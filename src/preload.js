@@ -10,4 +10,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCachedMatches: () => ipcRenderer.invoke('valorant:get-cached-matches'),
   getNetworkStatus: () => ipcRenderer.invoke('network:get-status'),
   getPingSamples: () => ipcRenderer.invoke('network:get-ping-samples'),
+  listCrosshairs: () => ipcRenderer.invoke('crosshair:list'),
+  saveCrosshair: (name, code, color, image) =>
+    ipcRenderer.invoke('crosshair:save', { name, code, color, image }),
+  deleteCrosshair: (id) => ipcRenderer.invoke('crosshair:delete', id),
 });

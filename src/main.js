@@ -3,7 +3,15 @@ import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches } from './services/henrikdev.js';
-import { saveMatches, getCachedMatches, savePingSample, getAllPingSamples } from './services/db.js';
+import {
+  saveMatches,
+  getCachedMatches,
+  savePingSample,
+  getAllPingSamples,
+  saveCrosshair,
+  getCrosshairs,
+  deleteCrosshair,
+} from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
 
 const store = new Store();
@@ -69,6 +77,14 @@ setInterval(async () => {
 ipcMain.handle('network:get-status', () => networkStatus);
 
 ipcMain.handle('network:get-ping-samples', () => getAllPingSamples());
+
+ipcMain.handle('crosshair:list', () => getCrosshairs());
+
+ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
+  saveCrosshair(name, code, color, image),
+);
+
+ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(id));
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

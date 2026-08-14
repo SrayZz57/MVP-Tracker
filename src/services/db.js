@@ -21,6 +21,29 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS crosshairs (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    code TEXT NOT NULL,
+    color TEXT,
+    image TEXT,
+    created_at INTEGER NOT NULL
+  )
+`);
+
+// Migration légère pour les bases déjà créées avant l'ajout de ces colonnes.
+try {
+  db.exec('ALTER TABLE crosshairs ADD COLUMN color TEXT');
+} catch {
+  // colonne déjà présente
+}
+try {
+  db.exec('ALTER TABLE crosshairs ADD COLUMN image TEXT');
+} catch {
+  // colonne déjà présente
+}
+
 export function saveMatches(puuid, matches) {
   const insert = db.prepare(
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
@@ -46,4 +69,20 @@ export function savePingSample(latencyMs) {
 
 export function getAllPingSamples() {
   return db.prepare('SELECT timestamp, latency_ms FROM ping_samples ORDER BY timestamp ASC').all();
+}
+
+export function saveCrosshair(name, code, color, image) {
+  db.prepare(
+    'INSERT INTO crosshairs (name, code, color, image, created_at) VALUES (?, ?, ?, ?, ?)',
+  ).run(name, code, color || null, image || null, Date.now());
+}
+
+export function getCrosshairs() {
+  return db
+    .prepare('SELECT id, name, code, color, image FROM crosshairs ORDER BY created_at DESC')
+    .all();
+}
+
+export function deleteCrosshair(id) {
+  db.prepare('DELETE FROM crosshairs WHERE id = ?').run(id);
 }
