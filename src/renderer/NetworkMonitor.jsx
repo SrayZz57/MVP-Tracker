@@ -10,14 +10,25 @@ function NetworkMonitor() {
     return () => clearInterval(interval);
   }, []);
 
+  const pingClass = status.latestPing === null ? '' : status.latestPing < 60 ? 'good' : status.latestPing < 120 ? 'mid' : 'bad';
+
   return (
-    <div>
-      <h2>Réseau</h2>
+    <div className="card">
+      <h3>Statut</h3>
       <p>
+        <span className={status.valorantRunning ? 'status-dot online' : 'status-dot'} />
         {status.valorantRunning ? 'Valorant détecté' : 'Valorant non détecté'}
-        {status.valorantRunning &&
-          ` — Ping (connexion générale) : ${status.latestPing === null ? 'en attente...' : `${status.latestPing} ms`}`}
       </p>
+      {status.valorantRunning && (
+        <div className="stat-tiles">
+          <div className="stat-tile">
+            <div className={`ping-value ${pingClass}`}>
+              {status.latestPing === null ? '...' : `${status.latestPing} ms`}
+            </div>
+            <div className="label">Ping (connexion générale)</div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -60,76 +60,91 @@ function CrosshairLibrary() {
 
   return (
     <div>
-      <h2>Bibliothèque de crosshairs</h2>
+      <div className="card">
+        <h2 style={{ marginBottom: '1rem' }}>🎯 Bibliothèque de crosshairs</h2>
 
-      <h3>Catalogue</h3>
-      <div style={{ display: 'flex', gap: '1rem', alignItems: 'center', marginBottom: '0.5rem' }}>
-        <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
-          <option value="">Toutes les couleurs</option>
-          {CROSSHAIR_COLOR_NAMES.map((c) => (
-            <option key={c} value={c}>{c}</option>
-          ))}
-        </select>
-        <select value={styleFilter} onChange={(e) => setStyleFilter(e.target.value)}>
-          <option value="">Tous les styles</option>
-          {CROSSHAIR_STYLE_NAMES.map((s) => (
-            <option key={s} value={s}>{s}</option>
-          ))}
-        </select>
-      </div>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-        {filteredCatalog.map((preset) => (
-          <div key={preset.name} style={{ border: '1px solid #ccc', padding: '0.5rem', width: '120px' }}>
-            <CrosshairPreview code={preset.code} />
-            <p>{preset.name}</p>
-            <button onClick={() => handleUsePreset(preset)}>Utiliser celui-ci</button>
-          </div>
-        ))}
-      </div>
-
-      <h3>Ajouter un code perso</h3>
-      <form onSubmit={handleSave} style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', maxWidth: '700px', alignItems: 'center' }}>
-        <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} required />
-        <input
-          placeholder="Code crosshair (ex: 0;P;c;1;...)"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          required
-          style={{ flex: 1 }}
-        />
-        <input placeholder="Couleur (ex: Cyan)" value={color} onChange={(e) => setColor(e.target.value)} />
-        <label>
-          Image (optionnel) :{' '}
-          <input type="file" accept="image/*" onChange={handleImageChange} />
-        </label>
-        <button type="submit">Enregistrer</button>
-      </form>
-      {code.trim() !== '' && (
-        <div style={{ marginTop: '0.5rem' }}>
-          <p>Aperçu :</p>
-          {image ? (
-            <img src={image} alt="Aperçu du crosshair" style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-          ) : (
-            <CrosshairPreview code={code.trim()} />
-          )}
+        <h3>Catalogue</h3>
+        <div className="filter-bar">
+          <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
+            <option value="">Toutes les couleurs</option>
+            {CROSSHAIR_COLOR_NAMES.map((c) => (
+              <option key={c} value={c}>{c}</option>
+            ))}
+          </select>
+          <select value={styleFilter} onChange={(e) => setStyleFilter(e.target.value)}>
+            <option value="">Tous les styles</option>
+            {CROSSHAIR_STYLE_NAMES.map((s) => (
+              <option key={s} value={s}>{s}</option>
+            ))}
+          </select>
+          <span className="label">{filteredCatalog.length} crosshair(s)</span>
         </div>
-      )}
+        <div className="crosshair-grid">
+          {filteredCatalog.map((preset) => (
+            <div key={preset.name} className="crosshair-item">
+              <CrosshairPreview code={preset.code} />
+              <p>{preset.name}</p>
+              <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
+            </div>
+          ))}
+        </div>
+      </div>
 
-      <h3>Ta bibliothèque</h3>
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-        {crosshairs.map((ch) => (
-          <div key={ch.id} style={{ border: '1px solid #ccc', padding: '0.5rem', width: '120px' }}>
-            {ch.image ? (
-              <img src={ch.image} alt={ch.name} style={{ width: '100px', height: '100px', objectFit: 'contain' }} />
-            ) : (
-              <CrosshairPreview code={ch.code} />
-            )}
-            <p>{ch.name}</p>
-            {ch.color && <p>Couleur : {ch.color}</p>}
-            <button onClick={() => navigator.clipboard.writeText(ch.code)}>Copier</button>
-            <button onClick={() => handleDelete(ch.id)}>Supprimer</button>
+      <div className="card">
+        <h3>Ajouter un code perso</h3>
+        <form onSubmit={handleSave} className="crosshair-form">
+          <div className="crosshair-form-fields">
+            <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input
+              placeholder="Code crosshair (ex: 0;P;c;1;...)"
+              value={code}
+              onChange={(e) => setCode(e.target.value)}
+              required
+            />
+            <input placeholder="Couleur (ex: Cyan)" value={color} onChange={(e) => setColor(e.target.value)} />
+            <label>
+              Image (optionnel)
+              <input type="file" accept="image/*" onChange={handleImageChange} />
+            </label>
           </div>
-        ))}
+          <div className="crosshair-form-preview">
+            {code.trim() !== '' ? (
+              image ? (
+                <img src={image} alt="Aperçu du crosshair" className="crosshair-custom-preview" />
+              ) : (
+                <CrosshairPreview code={code.trim()} />
+              )
+            ) : (
+              <div className="crosshair-preview-placeholder">Aperçu</div>
+            )}
+            <button type="submit">Enregistrer</button>
+          </div>
+        </form>
+      </div>
+
+      <div className="card">
+        <h3>Ta bibliothèque ({crosshairs.length})</h3>
+        {crosshairs.length === 0 ? (
+          <p>Aucun crosshair enregistré pour l'instant — pioche dans le catalogue ci-dessus ou ajoute ton propre code.</p>
+        ) : (
+          <div className="crosshair-grid">
+            {crosshairs.map((ch) => (
+              <div key={ch.id} className="crosshair-item">
+                {ch.image ? (
+                  <img src={ch.image} alt={ch.name} className="crosshair-custom-preview" />
+                ) : (
+                  <CrosshairPreview code={ch.code} />
+                )}
+                <p>{ch.name}</p>
+                {ch.color && <p className="label">{ch.color}</p>}
+                <div className="crosshair-item-actions">
+                  <button onClick={() => navigator.clipboard.writeText(ch.code)}>Copier</button>
+                  <button onClick={() => handleDelete(ch.id)}>Supprimer</button>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );

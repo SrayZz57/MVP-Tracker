@@ -1,13 +1,20 @@
 import { useState } from 'react';
 
-function SettingsForm({ onSaved }) {
-  const [name, setName] = useState('');
-  const [tag, setTag] = useState('');
-  const [apiKey, setApiKey] = useState('');
+function SettingsForm({ initialSettings, onSaved }) {
+  const [name, setName] = useState(initialSettings?.name ?? '');
+  const [tag, setTag] = useState(initialSettings?.tag ?? '');
+  const [apiKey, setApiKey] = useState(initialSettings?.apiKey ?? '');
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const settings = { name: name.trim(), tag: tag.trim(), apiKey: apiKey.trim() };
+    // On garde `puuid` (retrouvé automatiquement lors du premier chargement des
+    // matchs) même quand on ne fait que corriger le Riot ID ou la clé API ici.
+    const settings = {
+      ...initialSettings,
+      name: name.trim(),
+      tag: tag.trim(),
+      apiKey: apiKey.trim(),
+    };
     await window.electronAPI.saveSettings(settings);
     onSaved(settings);
   };
