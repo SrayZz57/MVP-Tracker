@@ -117,6 +117,73 @@ h3 {
   margin-left: auto;
 }
 
+.welcome-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  padding: 2rem;
+  text-align: center;
+}
+
+.welcome-logo {
+  width: 100px;
+  height: 100px;
+  object-fit: contain;
+  filter: drop-shadow(0 0 20px rgba(255, 70, 85, 0.6));
+  margin-bottom: 0.5rem;
+}
+
+.welcome-screen h1 {
+  font-size: 2.2rem;
+  letter-spacing: 0.03em;
+}
+
+.welcome-tagline {
+  color: var(--text-muted);
+  margin-bottom: 2rem;
+}
+
+.welcome-screen .search-bar {
+  transform: scale(1.15);
+}
+
+.search-bar {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.search-bar-riotid {
+  display: flex;
+  align-items: center;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.search-bar-riotid input {
+  border: none;
+  background: transparent;
+  border-radius: 0;
+}
+
+.search-bar-hash {
+  color: var(--text-muted);
+  padding: 0 0.1rem;
+}
+
+.search-bar-tag {
+  width: 90px;
+}
+
+.search-bar-key {
+  width: 160px;
+}
+
 .content {
   flex: 1;
   padding: 1.5rem;
@@ -376,7 +443,7 @@ li {
 }
 
 .crosshair-item {
-  width: 140px;
+  width: 160px;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 8px;
@@ -408,6 +475,8 @@ li {
 
 .crosshair-item-actions button {
   flex: 1;
+  padding: 0.4rem 0.3rem;
+  font-size: 0.72rem;
 }
 
 .crosshair-form {
@@ -701,4 +770,91 @@ li {
 .result-loss-text {
   color: var(--accent);
   font-weight: 600;
+}
+
+.ow-profile-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.ow-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  border: 2px solid var(--accent);
+  object-fit: cover;
+}
+
+.ow-rank-row {
+  display: flex;
+  gap: 1rem;
+  margin-top: 1rem;
+  flex-wrap: wrap;
+}
+
+.ow-rank-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.6rem 1rem;
+  min-width: 90px;
+}
+
+.ow-rank-badge img {
+  width: 32px;
+  height: 32px;
+}
+
+/* Thème adapté au jeu actif : Overwatch reprend l'orange officiel à la place
+   du rouge Valorant, partout où var(--accent) est utilisée. */
+.app.overwatch {
+  --accent: #f99e1a;
+  --accent-hover: #ffb545;
+}
+
+.game-switcher {
+  display: flex;
+  width: 100%;
+}
+
+.game-tab {
+  flex: 1;
+  border: none;
+  border-radius: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.95rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  background: var(--surface);
+  color: var(--text-muted);
+  border-bottom: 3px solid var(--border);
+  transition: all 0.15s ease;
+}
+
+.game-tab.valorant {
+  border-bottom-color: rgba(255, 70, 85, 0.4);
+}
+
+.game-tab.overwatch {
+  border-bottom-color: rgba(249, 158, 26, 0.4);
+}
+
+.game-tab.valorant.active {
+  color: white;
+  background: #ff4655;
+  border-bottom-color: #ff4655;
+  box-shadow: 0 0 14px rgba(255, 70, 85, 0.6);
+}
+
+.game-tab.overwatch.active {
+  color: white;
+  background: #f99e1a;
+  border-bottom-color: #f99e1a;
+  box-shadow: 0 0 14px rgba(249, 158, 26, 0.6);
 }

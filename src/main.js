@@ -13,6 +13,7 @@ import {
   deleteCrosshair,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
+import { getPlayerSummary, getPlayerStatsSummary } from './services/overfast.js';
 
 const store = new Store();
 
@@ -85,6 +86,17 @@ ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
 );
 
 ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(id));
+
+ipcMain.handle('overwatch:get-settings', () => store.get('overwatchSettings') || null);
+
+ipcMain.handle('overwatch:get-profile', async (_event, battleTag) => {
+  const [summary, stats] = await Promise.all([
+    getPlayerSummary(battleTag),
+    getPlayerStatsSummary(battleTag),
+  ]);
+  store.set('overwatchSettings', { battleTag });
+  return { summary, stats };
+});
 
 // This method will be called when Electron has finished
 // initialization and is ready to create browser windows.

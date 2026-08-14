@@ -6,11 +6,6 @@ function useValorantData(settings) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    window.electronAPI.getCachedMatches().then(setMatches);
-    window.electronAPI.getPingSamples().then(setPingSamples);
-  }, []);
-
   const refresh = async () => {
     if (!settings) return;
     setLoading(true);
@@ -25,6 +20,16 @@ function useValorantData(settings) {
       setLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (!settings) return;
+    // Recharge le cache local puis relance une recherche en direct dès que le
+    // profil suivi change (nouvelle recherche depuis la barre du haut).
+    window.electronAPI.getCachedMatches().then(setMatches);
+    window.electronAPI.getPingSamples().then(setPingSamples);
+    refresh();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [settings?.name, settings?.tag]);
 
   return { matches, pingSamples, loading, error, refresh };
 }

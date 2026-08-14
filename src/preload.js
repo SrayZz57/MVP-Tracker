@@ -14,4 +14,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveCrosshair: (name, code, color, image) =>
     ipcRenderer.invoke('crosshair:save', { name, code, color, image }),
   deleteCrosshair: (id) => ipcRenderer.invoke('crosshair:delete', id),
+  getOverwatchSettings: () => ipcRenderer.invoke('overwatch:get-settings'),
+  getOverwatchProfile: (battleTag) => ipcRenderer.invoke('overwatch:get-profile', battleTag),
 });
