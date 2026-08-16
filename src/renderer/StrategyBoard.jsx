@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, PencilBrush, Line, Rect, Ellipse, Polygon, Group, IText, FabricImage, Point } from 'fabric';
+import { Canvas, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
+import spikeIconUrl from '../assets/spike.png';
 
 const VIEWPORT_SIZE = 640;
 const MIN_ZOOM_FACTOR = 0.6;
@@ -21,46 +22,6 @@ function buildSightlinePoints() {
     points.push({ x: FOV_RADIUS * Math.cos(angle), y: FOV_RADIUS * Math.sin(angle) });
   }
   return points;
-}
-
-// Pas d'icône officielle du spike exposée par valorant-api.com (vérifié sur
-// /v1/gear, /v1/weapons, et la liste complète des endpoints du site), et pas
-// moyen de tracer le vrai pictogramme HUD faute de pouvoir inspecter une
-// image. On marque plutôt la zone de plant avec un repère "danger" (losange
-// plein + éclats radiants), cohérent avec l'usage réel sur le board (indiquer
-// où planter/défuser) même si ce n'est pas un pixel-perfect du logo Riot.
-function buildSpikeIcon() {
-  const coreRadius = 8;
-  const burstLength = 11;
-  const burstHalfAngle = 0.14;
-  const burstCount = 8;
-  const core = new Polygon(
-    [
-      { x: 0, y: -coreRadius },
-      { x: coreRadius, y: 0 },
-      { x: 0, y: coreRadius },
-      { x: -coreRadius, y: 0 },
-    ],
-    { fill: '#ff4655', stroke: '#151a1f', strokeWidth: 2, strokeLineJoin: 'round' },
-  );
-  const parts = [core];
-  for (let i = 0; i < burstCount; i++) {
-    const angle = (i * 2 * Math.PI) / burstCount + Math.PI / burstCount;
-    const tip = {
-      x: Math.cos(angle) * (coreRadius + burstLength),
-      y: Math.sin(angle) * (coreRadius + burstLength),
-    };
-    const base1 = {
-      x: Math.cos(angle - burstHalfAngle) * coreRadius,
-      y: Math.sin(angle - burstHalfAngle) * coreRadius,
-    };
-    const base2 = {
-      x: Math.cos(angle + burstHalfAngle) * coreRadius,
-      y: Math.sin(angle + burstHalfAngle) * coreRadius,
-    };
-    parts.push(new Polygon([base1, tip, base2], { fill: '#ff4655' }));
-  }
-  return new Group(parts);
 }
 
 function genMarkerId() {
@@ -448,8 +409,9 @@ function StrategyBoard() {
   }
 
   function handleStampSpike() {
-    const icon = buildSpikeIcon();
-    placeStamp(() => icon, 'icons', STAMP_SIZE / icon.width);
+    FabricImage.fromURL(spikeIconUrl).then((img) => {
+      placeStamp(() => img, 'icons', STAMP_SIZE / img.width);
+    });
   }
 
   function handleStampAgentPosition() {
