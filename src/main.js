@@ -2,7 +2,7 @@ import { app, BrowserWindow, ipcMain } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
-import { getAccount, getMatches } from './services/henrikdev.js';
+import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
 import {
   saveMatches,
   getCachedMatches,
@@ -58,8 +58,27 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
 
   const freshMatches = await getMatches(account.region, name, tag, apiKey);
   saveMatches(account.puuid, freshMatches);
+
+  try {
+    const mmr = await getMmr(account.region, name, tag, apiKey);
+    store.set('valorantRank', {
+      accountLevel: account.account_level,
+      cardUuid: account.card,
+      tierId: mmr.current.tier.id,
+      tierName: mmr.current.tier.name,
+      rr: mmr.current.rr,
+      peakTierId: mmr.peak.tier.id,
+      peakTierName: mmr.peak.tier.name,
+      peakSeasonUuid: mmr.peak.season.id,
+    });
+  } catch {
+    // Rang indisponible (compte non classé, erreur API) : on garde le dernier connu.
+  }
+
   return getCachedMatches(account.puuid);
 });
+
+ipcMain.handle('valorant:get-rank', () => store.get('valorantRank') || null);
 
 ipcMain.handle('valorant:get-cached-matches', () => {
   const settings = store.get('valorantSettings');
@@ -97,6 +116,34 @@ ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
 );
 
 ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(id));
+
+ipcMain.handle('skins:get-wishlist', () => store.get('skinsWishlist') || []);
+
+ipcMain.handle('skins:toggle-wishlist', (_event, uuid) => {
+  const wishlist = store.get('skinsWishlist') || [];
+  const next = wishlist.includes(uuid) ? wishlist.filter((id) => id !== uuid) : [...wishlist, uuid];
+  store.set('skinsWishlist', next);
+  return next;
+});
+
+ipcMain.handle('skins:get-collection', () => store.get('skinsCollection') || []);
+
+ipcMain.handle('skins:toggle-collection', (_event, { uuid, defaultPriceVp }) => {
+  const collection = store.get('skinsCollection') || [];
+  const exists = collection.some((entry) => entry.uuid === uuid);
+  const next = exists
+    ? collection.filter((entry) => entry.uuid !== uuid)
+    : [...collection, { uuid, priceVp: defaultPriceVp }];
+  store.set('skinsCollection', next);
+  return next;
+});
+
+ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
+  const collection = store.get('skinsCollection') || [];
+  const next = collection.map((entry) => (entry.uuid === uuid ? { ...entry, priceVp } : entry));
+  store.set('skinsCollection', next);
+  return next;
+});
 
 ipcMain.handle('overwatch:get-settings', () => store.get('overwatchSettings') || null);
 

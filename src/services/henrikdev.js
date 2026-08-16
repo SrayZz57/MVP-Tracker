@@ -24,3 +24,10 @@ export async function getMatches(region, name, tag, apiKey) {
     apiKey,
   );
 }
+
+export async function getMmr(region, name, tag, apiKey) {
+  return henrikFetch(
+    `/valorant/v3/mmr/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+    apiKey,
+  );
+}

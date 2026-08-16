@@ -1,16 +1,16 @@
 import { useMemo } from 'react';
-import { findMe, resultLabel, formStats, tiltStatus } from '../valorantStats.js';
+import { findMe, resultLabel, formStats, tiltStatus, excludeDeathmatch } from '../valorantStats.js';
 
 const STREAK_DOTS_COUNT = 10;
 
 function TiltTab({ settings, matches }) {
   const form = useMemo(
-    () => formStats(matches, settings.name, settings.tag),
+    () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
     [matches, settings.name, settings.tag],
   );
 
   const tilt = useMemo(
-    () => tiltStatus(matches, settings.name, settings.tag, form),
+    () => tiltStatus(excludeDeathmatch(matches), settings.name, settings.tag, form),
     [matches, settings.name, settings.tag, form],
   );
 

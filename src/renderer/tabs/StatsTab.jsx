@@ -13,6 +13,7 @@ import {
 import { useAgentIcons, useAgentPortraits } from '../agentIcons.js';
 import { useMapImages } from '../mapImages.js';
 import { useWeaponIcons } from '../weaponIcons.js';
+import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
@@ -47,7 +48,7 @@ function renderModeStats(title, rows) {
 
 const AGENT_CARDS_PAGE_SIZE = 5;
 
-function AgentCards({ rows, portraits, matches, settings, onRowClick }) {
+function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
   const [showAll, setShowAll] = useState(false);
   const visibleRows = showAll ? rows : rows.slice(0, AGENT_CARDS_PAGE_SIZE);
 
@@ -57,23 +58,38 @@ function AgentCards({ rows, portraits, matches, settings, onRowClick }) {
       <div className="map-card-list">
         {visibleRows.map((row) => {
           const image = portraits.get(row.key);
+          const icon = icons.get(row.key);
           const topWeapon = weaponKillsForAgent(matches, settings.name, settings.tag, row.key)[0];
           const kills = agentTotalKills(matches, settings.name, settings.tag, row.key);
+          const isGood = row.winrate !== null && row.winrate >= 50;
           return (
             <div
               key={row.key}
-              className="map-card agent-card"
-              style={image ? { backgroundImage: `url(${image})` } : undefined}
+              className={`agent-card ${row.winrate === null ? '' : isGood ? 'win' : 'loss'}`}
               onClick={() => onRowClick(row.key)}
             >
-              <div className="map-card-overlay">
-                <div className="map-card-title">{row.key}</div>
-                <div className="map-card-stats">
-                  {row.games} parties — {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`} winrate — K/D/A{' '}
-                  {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
-                  {' — '}{kills} kills{topWeapon && ` — arme préférée : ${topWeapon[0]}`}
+              <div className={`agent-card-badge ${row.winrate === null ? '' : isGood ? 'win' : 'loss'}`}>
+                <div className="agent-card-badge-value">
+                  {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}
+                </div>
+                <div className="agent-card-badge-label">winrate</div>
+              </div>
+              <div className="agent-card-info">
+                <div className="agent-card-title-row">
+                  {icon && <img src={icon} alt="" className="agent-card-icon" />}
+                  <span className="agent-card-title">{row.key}</span>
+                </div>
+                <div className="agent-card-stats">
+                  <span className="label">{row.games} parties</span>
+                  <span className="label">K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}</span>
+                  <span className="label">{kills} kills</span>
+                  {topWeapon && <span className="label">arme préférée : {topWeapon[0]}</span>}
                 </div>
               </div>
+              <div
+                className="agent-card-portrait"
+                style={image ? { backgroundImage: `url(${image})` } : undefined}
+              />
             </div>
           );
         })}
@@ -126,11 +142,16 @@ function MapCards({ rows, mapImages, onRowClick }) {
   );
 }
 
-function StatsTab({ settings, matches }) {
+function StatsTab({ settings, matches, rank }) {
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
   const mapImages = useMapImages();
   const weaponIcons = useWeaponIcons();
+  const rankTiers = useRankTiers();
+  const playerCardArt = usePlayerCardArt(rank?.cardUuid);
+  const seasonNames = useSeasonNames();
+  const currentTier = rank ? rankTiers.get(rank.tierId) : null;
+  const peakTier = rank ? rankTiers.get(rank.peakTierId) : null;
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedMap, setSelectedMap] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -181,7 +202,7 @@ function StatsTab({ settings, matches }) {
   );
 
   const kdProgression = useMemo(() => {
-    return matches
+    return excludeDeathmatch(matches)
       .slice(0, 20)
       .map((match) => {
         const me = findMe(match, settings.name, settings.tag);
@@ -207,12 +228,83 @@ function StatsTab({ settings, matches }) {
     return { avg, best, worst, trend: secondHalfAvg - firstHalfAvg };
   }, [kdProgression]);
 
+  // Même fenêtre de matchs que le graphique de K/D, pour un bilan V/D à côté.
+  const periodResults = useMemo(() => {
+    const results = excludeDeathmatch(matches)
+      .slice(0, 20)
+      .map((match) => {
+        const me = findMe(match, settings.name, settings.tag);
+        if (!me) return null;
+        return { id: match.metadata?.matchid, map: match.metadata?.map, label: resultLabel(match, me) };
+      })
+      .filter(Boolean)
+      .reverse();
+    const wins = results.filter((r) => r.label === 'Victoire').length;
+    const losses = results.filter((r) => r.label === 'Défaite').length;
+    const draws = results.length - wins - losses;
+    const winrate = results.length > 0 ? (wins / results.length) * 100 : null;
+    return { results, wins, losses, draws, winrate };
+  }, [matches, settings.name, settings.tag]);
+
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 
   return (
     <div>
+      <div
+        className="card profile-header-card"
+        style={{
+          backgroundImage: playerCardArt.banner ? `url(${playerCardArt.banner})` : undefined,
+          borderColor: currentTier?.color,
+        }}
+      >
+        <div className="profile-header-overlay">
+          {playerCardArt.icon && <img src={playerCardArt.icon} alt="" className="profile-card-icon" />}
+
+          <div className="profile-header-info">
+            <h2>
+              {settings.name}
+              <span className="profile-tag">#{settings.tag}</span>
+            </h2>
+
+            {rank ? (
+              <div className="profile-rank-block">
+                <div className="profile-rank-row">
+                  {currentTier?.icon && (
+                    <img src={currentTier.icon} alt={rank.tierName} className="profile-rank-icon" />
+                  )}
+                  <div className="profile-rank-details">
+                    <span className="profile-rank-name" style={{ color: currentTier?.color }}>
+                      {rank.tierName}
+                    </span>
+                    <div className="profile-rr-track">
+                      <div
+                        className="profile-rr-fill"
+                        style={{ width: `${Math.min(rank.rr, 100)}%`, background: currentTier?.color }}
+                      />
+                    </div>
+                    <span className="label">{rank.rr} RR</span>
+                  </div>
+                </div>
+
+                {rank.peakTierName && (
+                  <div className="profile-peak-badge">
+                    {peakTier?.icon && <img src={peakTier.icon} alt={rank.peakTierName} />}
+                    <span>
+                      🏆 Peak {rank.peakTierName}
+                      {seasonNames.get(rank.peakSeasonUuid) ? ` — ${seasonNames.get(rank.peakSeasonUuid)}` : ''}
+                    </span>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <p className="label">Rang indisponible</p>
+            )}
+          </div>
+        </div>
+      </div>
+
       <div className="card">
         <h3>📈 Progression du K/D ({kdProgression.length} derniers matchs)</h3>
         {kdStats && (
@@ -237,7 +329,33 @@ function StatsTab({ settings, matches }) {
             </div>
           </div>
         )}
-        <LineChart data={kdProgression} color="#ff4655" />
+        <div className="kd-chart-row">
+          <div className="kd-chart-col">
+            <LineChart data={kdProgression} color="#ff4655" />
+          </div>
+          <div className="kd-period-panel">
+            <h4>Bilan de la période</h4>
+            <div className="kd-period-score">
+              <span className="kd-period-wins">{periodResults.wins}V</span>
+              <span className="kd-period-sep">—</span>
+              <span className="kd-period-losses">{periodResults.losses}D</span>
+              {periodResults.draws > 0 && <span className="label">({periodResults.draws} nul)</span>}
+            </div>
+            <p className="label">
+              {periodResults.winrate === null ? '?' : `${periodResults.winrate.toFixed(0)}%`} de victoires
+            </p>
+            <div className="streak-dots">
+              {periodResults.results.map((r) => (
+                <span
+                  key={r.id}
+                  className={`streak-dot ${r.label === 'Victoire' ? 'win' : r.label === 'Défaite' ? 'loss' : 'neutral'}`}
+                  title={`${r.map ?? '?'} — ${r.label}`}
+                />
+              ))}
+            </div>
+            <p className="label kd-period-hint">Du plus ancien (gauche) au plus récent (droite)</p>
+          </div>
+        </div>
       </div>
 
       <div className="card">
@@ -282,6 +400,7 @@ function StatsTab({ settings, matches }) {
       <AgentCards
         rows={agentStats}
         portraits={agentPortraits}
+        icons={agentIcons}
         matches={matches}
         settings={settings}
         onRowClick={(name) => setSelectedAgent(name)}

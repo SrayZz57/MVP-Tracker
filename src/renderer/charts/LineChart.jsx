@@ -1,11 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
-const WIDTH = 600;
-const HEIGHT = 160;
+const DEFAULT_WIDTH = 600;
+const HEIGHT = 240;
 const PADDING = 24;
 
 function LineChart({ data, color = '#ff4655', unit = '' }) {
   const [hovered, setHovered] = useState(null);
+  const wrapRef = useRef(null);
+  const [width, setWidth] = useState(DEFAULT_WIDTH);
+
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const observer = new ResizeObserver((entries) => {
+      const w = entries[0]?.contentRect.width;
+      if (w) setWidth(w);
+    });
+    observer.observe(el);
+    return () => observer.disconnect();
+  }, []);
 
   if (!data || data.length === 0) {
     return <p>Pas encore assez de données pour un graphique.</p>;
@@ -17,7 +30,7 @@ function LineChart({ data, color = '#ff4655', unit = '' }) {
   const range = max - min || 1;
 
   const points = data.map((d, i) => {
-    const x = data.length === 1 ? WIDTH / 2 : PADDING + (i / (data.length - 1)) * (WIDTH - PADDING * 2);
+    const x = data.length === 1 ? width / 2 : PADDING + (i / (data.length - 1)) * (width - PADDING * 2);
     const y = HEIGHT - PADDING - ((d.value - min) / range) * (HEIGHT - PADDING * 2);
     return { x, y, label: d.label, value: d.value };
   });
@@ -27,8 +40,8 @@ function LineChart({ data, color = '#ff4655', unit = '' }) {
   const gradientId = `line-gradient-${color.replace('#', '')}`;
 
   return (
-    <div className="line-chart-wrap">
-      <svg viewBox={`0 0 ${WIDTH} ${HEIGHT}`} className="line-chart">
+    <div className="line-chart-wrap" ref={wrapRef}>
+      <svg viewBox={`0 0 ${width} ${HEIGHT}`} className="line-chart">
         <defs>
           <linearGradient id={gradientId} x1="0" y1="0" x2="0" y2="1">
             <stop offset="0%" stopColor={color} stopOpacity="0.35" />
@@ -71,7 +84,7 @@ function LineChart({ data, color = '#ff4655', unit = '' }) {
       {hovered !== null && (
         <div
           className="line-chart-tooltip"
-          style={{ left: `${(points[hovered].x / WIDTH) * 100}%`, top: `${(points[hovered].y / HEIGHT) * 100}%` }}
+          style={{ left: `${points[hovered].x}px`, top: `${points[hovered].y}px` }}
         >
           <strong>{points[hovered].value.toFixed(2)}{unit}</strong>
           <span>{points[hovered].label}</span>

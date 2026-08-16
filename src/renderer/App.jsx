@@ -6,6 +6,7 @@ import NetworkTab from './tabs/NetworkTab.jsx';
 import TiltTab from './tabs/TiltTab.jsx';
 import CrosshairsTab from './tabs/CrosshairsTab.jsx';
 import StrategyTab from './tabs/StrategyTab.jsx';
+import SkinsTab from './tabs/SkinsTab.jsx';
 import OverwatchTab from './tabs/OverwatchTab.jsx';
 import SearchBar from './SearchBar.jsx';
 import WelcomeScreen from './WelcomeScreen.jsx';
@@ -23,6 +24,7 @@ const VALORANT_TABS = [
   { id: 'tilt', label: 'Tilt' },
   { id: 'crosshairs', label: 'Crosshairs' },
   { id: 'strategie', label: 'Stratégie' },
+  { id: 'skins', label: 'Skins' },
 ];
 
 function App() {
@@ -46,7 +48,7 @@ function App() {
   const renderValorantTab = () => {
     switch (activeTab) {
       case 'stats':
-        return <StatsTab settings={settings} matches={data.matches} />;
+        return <StatsTab settings={settings} matches={data.matches} rank={data.rank} />;
       case 'forme':
         return <FormTab settings={settings} matches={data.matches} />;
       case 'reseau':
@@ -57,6 +59,8 @@ function App() {
         return <CrosshairsTab />;
       case 'strategie':
         return <StrategyTab />;
+      case 'skins':
+        return <SkinsTab />;
       default:
         return null;
     }

@@ -44,7 +44,7 @@ function bestEntry(rows) {
 
 function FormTab({ settings, matches }) {
   const form = useMemo(
-    () => formStats(matches, settings.name, settings.tag),
+    () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
     [matches, settings.name, settings.tag],
   );
 
