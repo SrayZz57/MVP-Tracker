@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, PencilBrush, Line, Rect, Ellipse, Polygon, Circle, Group, IText, FabricImage, Point } from 'fabric';
+import { Canvas, PencilBrush, Line, Rect, Ellipse, Polygon, Group, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
 
@@ -24,34 +24,39 @@ function buildSightlinePoints() {
 }
 
 // Pas d'icône officielle du spike exposée par valorant-api.com (vérifié sur
-// /v1/gear, /v1/weapons, et la liste complète des endpoints du site) : on
-// dessine une mine à pointes radiantes, plus proche de l'objet réel qu'un
-// simple losange.
+// /v1/gear, /v1/weapons, et la liste complète des endpoints du site), et pas
+// moyen de tracer le vrai pictogramme HUD faute de pouvoir inspecter une
+// image. On marque plutôt la zone de plant avec un repère "danger" (losange
+// plein + éclats radiants), cohérent avec l'usage réel sur le board (indiquer
+// où planter/défuser) même si ce n'est pas un pixel-perfect du logo Riot.
 function buildSpikeIcon() {
-  const coreRadius = 7;
-  const spikeLength = 12;
-  const spikeHalfAngle = 0.16;
-  const spikeCount = 6;
-  const parts = [
-    new Circle({
-      radius: coreRadius,
-      fill: '#151a1f',
-      stroke: '#ff4655',
-      strokeWidth: 2,
-      originX: 'center',
-      originY: 'center',
-    }),
-  ];
-  for (let i = 0; i < spikeCount; i++) {
-    const angle = (i * 2 * Math.PI) / spikeCount;
-    const tip = { x: Math.cos(angle) * (coreRadius + spikeLength), y: Math.sin(angle) * (coreRadius + spikeLength) };
+  const coreRadius = 8;
+  const burstLength = 11;
+  const burstHalfAngle = 0.14;
+  const burstCount = 8;
+  const core = new Polygon(
+    [
+      { x: 0, y: -coreRadius },
+      { x: coreRadius, y: 0 },
+      { x: 0, y: coreRadius },
+      { x: -coreRadius, y: 0 },
+    ],
+    { fill: '#ff4655', stroke: '#151a1f', strokeWidth: 2, strokeLineJoin: 'round' },
+  );
+  const parts = [core];
+  for (let i = 0; i < burstCount; i++) {
+    const angle = (i * 2 * Math.PI) / burstCount + Math.PI / burstCount;
+    const tip = {
+      x: Math.cos(angle) * (coreRadius + burstLength),
+      y: Math.sin(angle) * (coreRadius + burstLength),
+    };
     const base1 = {
-      x: Math.cos(angle - spikeHalfAngle) * coreRadius,
-      y: Math.sin(angle - spikeHalfAngle) * coreRadius,
+      x: Math.cos(angle - burstHalfAngle) * coreRadius,
+      y: Math.sin(angle - burstHalfAngle) * coreRadius,
     };
     const base2 = {
-      x: Math.cos(angle + spikeHalfAngle) * coreRadius,
-      y: Math.sin(angle + spikeHalfAngle) * coreRadius,
+      x: Math.cos(angle + burstHalfAngle) * coreRadius,
+      y: Math.sin(angle + burstHalfAngle) * coreRadius,
     };
     parts.push(new Polygon([base1, tip, base2], { fill: '#ff4655' }));
   }
