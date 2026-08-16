@@ -19,6 +19,8 @@ import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 
+const MATCH_HISTORY_PAGE_SIZE = 10;
+
 function renderModeStats(title, rows, icons) {
   return (
     <div className="card">
@@ -159,6 +161,7 @@ function StatsTab({ settings, matches, rank }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedMap, setSelectedMap] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [showAllMatches, setShowAllMatches] = useState(false);
 
   const globalStats = useMemo(() => {
     let totalHeadshots = 0;
@@ -430,9 +433,9 @@ function StatsTab({ settings, matches, rank }) {
       {renderModeStats('Stats par mode', modeStats)}
 
       <div className="card">
-        <h3>Historique de matchs (20 derniers)</h3>
+        <h3>Historique de matchs ({matches.length})</h3>
         <div className="match-list">
-          {matches.slice(0, 20).map((match) => {
+          {(showAllMatches ? matches : matches.slice(0, MATCH_HISTORY_PAGE_SIZE)).map((match) => {
             const me = findMe(match, settings.name, settings.tag);
             const { hsPercent, bsPercent, lsPercent } = hitStats(me);
             const label = resultLabel(match, me);
@@ -462,6 +465,11 @@ function StatsTab({ settings, matches, rank }) {
             );
           })}
         </div>
+        {matches.length > MATCH_HISTORY_PAGE_SIZE && (
+          <button className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
+            {showAllMatches ? '▲ Voir moins' : `▼ Voir plus (${matches.length - MATCH_HISTORY_PAGE_SIZE})`}
+          </button>
+        )}
       </div>
 
       {selectedMatch && (
