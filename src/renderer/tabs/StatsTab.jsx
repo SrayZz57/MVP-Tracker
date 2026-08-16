@@ -10,7 +10,7 @@ import {
   weaponKillsForAgent,
   agentTotalKills,
 } from '../valorantStats.js';
-import { useAgentIcons, useAgentPortraits } from '../agentIcons.js';
+import { useAgentIcons, useAgentPortraits, useAgentRoles } from '../agentIcons.js';
 import { useMapImages } from '../mapImages.js';
 import { useWeaponIcons } from '../weaponIcons.js';
 import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
@@ -19,7 +19,7 @@ import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 
-function renderModeStats(title, rows) {
+function renderModeStats(title, rows, icons) {
   return (
     <div className="card">
       <h3>{title}</h3>
@@ -28,7 +28,10 @@ function renderModeStats(title, rows) {
       ) : (
         rows.map((row) => (
           <div key={row.key} className="stat-bar-row">
-            <span className="stat-bar-label">{row.key}</span>
+            <span className="stat-bar-label">
+              {icons?.get(row.key) && <img src={icons.get(row.key)} alt="" className="stat-bar-icon" />}
+              {row.key}
+            </span>
             <span className="stat-bar-track">
               <span
                 className={`stat-bar-fill ${row.winrate === null ? '' : row.winrate >= 50 ? 'good' : 'bad'}`}
@@ -145,6 +148,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
 function StatsTab({ settings, matches, rank }) {
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
+  const agentRoles = useAgentRoles();
   const mapImages = useMapImages();
   const weaponIcons = useWeaponIcons();
   const rankTiers = useRankTiers();
@@ -189,6 +193,22 @@ function StatsTab({ settings, matches, rank }) {
   const agentStats = useMemo(
     () => groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match, me) => me.character),
     [matches, settings.name, settings.tag],
+  );
+
+  const roleStats = useMemo(
+    () =>
+      groupStats(
+        excludeDeathmatch(matches),
+        settings.name,
+        settings.tag,
+        (match, me) => agentRoles.get(me.character)?.roleName,
+      ),
+    [matches, settings.name, settings.tag, agentRoles],
+  );
+
+  const roleIcons = useMemo(
+    () => new Map([...agentRoles.values()].filter((r) => r.roleName).map((r) => [r.roleName, r.roleIcon])),
+    [agentRoles],
   );
 
   const mapStats = useMemo(
@@ -406,6 +426,7 @@ function StatsTab({ settings, matches, rank }) {
         onRowClick={(name) => setSelectedAgent(name)}
       />
       <MapCards rows={mapStats} mapImages={mapImages} onRowClick={(mapName) => setSelectedMap(mapName)} />
+      {renderModeStats('Stats par rôle', roleStats, roleIcons)}
       {renderModeStats('Stats par mode', modeStats)}
 
       <div className="card">

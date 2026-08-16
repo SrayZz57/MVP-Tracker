@@ -1,4 +1,4 @@
-import { agentUsageOnMap, weaponKillsOnMap, mapSideStats } from './valorantStats.js';
+import { agentUsageOnMap, weaponKillsOnMap, mapSideStats, excludeDeathmatch } from './valorantStats.js';
 import { useMapImages } from './mapImages.js';
 import { useWeaponIcons } from './weaponIcons.js';
 
@@ -7,8 +7,9 @@ function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
   const weaponIcons = useWeaponIcons();
   const mapSplash = mapImages.get(mapName);
 
-  const agentUsage = agentUsageOnMap(matches, settings.name, settings.tag, mapName);
-  const weaponKills = weaponKillsOnMap(matches, settings.name, settings.tag, mapName);
+  const rankedMatches = excludeDeathmatch(matches);
+  const agentUsage = agentUsageOnMap(rankedMatches, settings.name, settings.tag, mapName);
+  const weaponKills = weaponKillsOnMap(rankedMatches, settings.name, settings.tag, mapName);
   const sides = mapSideStats(matches, settings.name, settings.tag, mapName);
 
   const maxWeaponCount = weaponKills[0]?.[1] ?? 0;

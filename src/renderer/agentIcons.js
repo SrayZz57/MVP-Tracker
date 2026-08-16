@@ -4,7 +4,7 @@ let agentsPromise = null;
 
 function loadAgents() {
   if (!agentsPromise) {
-    agentsPromise = fetch('https://valorant-api.com/v1/agents?isPlayableCharacter=true')
+    agentsPromise = fetch('https://valorant-api.com/v1/agents?isPlayableCharacter=true&language=fr-FR')
       .then((response) => response.json())
       .then((json) => json.data);
   }
@@ -33,6 +33,25 @@ export function useAgentPortraits() {
   }, []);
 
   return portraits;
+}
+
+export function useAgentRoles() {
+  const [roles, setRoles] = useState(new Map());
+
+  useEffect(() => {
+    loadAgents().then((agents) => {
+      setRoles(
+        new Map(
+          agents.map((agent) => [
+            agent.displayName,
+            { roleName: agent.role?.displayName ?? null, roleIcon: agent.role?.displayIcon ?? null },
+          ]),
+        ),
+      );
+    });
+  }, []);
+
+  return roles;
 }
 
 const PLACEABLE_SLOTS = ['Ability1', 'Ability2', 'Grenade', 'Ultimate'];

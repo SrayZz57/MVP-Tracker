@@ -26,6 +26,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('skins:toggle-collection', { uuid, defaultPriceVp }),
   setSkinCollectionPrice: (uuid, priceVp) =>
     ipcRenderer.invoke('skins:set-collection-price', { uuid, priceVp }),
-  getOverwatchSettings: () => ipcRenderer.invoke('overwatch:get-settings'),
-  getOverwatchProfile: (battleTag) => ipcRenderer.invoke('overwatch:get-profile', battleTag),
+  getGoals: () => ipcRenderer.invoke('goals:get'),
+  addGoal: (goal) => ipcRenderer.invoke('goals:add', goal),
+  toggleGoalDone: (id) => ipcRenderer.invoke('goals:toggle-done', id),
+  deleteGoal: (id) => ipcRenderer.invoke('goals:delete', id),
 });

@@ -2,12 +2,14 @@ import { useEffect, useState } from 'react';
 
 // Prix VP estimés par rareté — pas exposés par l'API (voir CLAUDE.md/plan),
 // valeurs communautaires connues mais non officielles, modifiables par skin.
+// Ultra est au-dessus d'Exclusive en jeu (confirmé via le champ "rank" de
+// /v1/contenttiers : Exclusive=3, Ultra=4), donc plus cher.
 export const TIER_PRICES = {
   Select: 875,
   Deluxe: 1275,
   Premium: 1775,
-  Ultra: 2175,
-  Exclusive: 2475,
+  Exclusive: 2175,
+  Ultra: 2475,
 };
 
 // Les couteaux coûtent environ le double d'une arme à feu de la même rareté

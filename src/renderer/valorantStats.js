@@ -12,6 +12,159 @@ export function findMe(match, name, tag) {
   );
 }
 
+// Positions de mort (mode: 'deaths') ou de kill (mode: 'kills') du joueur suivi
+// sur une map donnée, tirées de round.player_stats[].kill_events[] — coordonnées
+// monde brutes, à convertir en pixels minimap via les facteurs de useMapCoordinates().
+// Chaque point est tagué avec le côté (attaque/défense, via attackerTeamByRound)
+// et l'arme utilisée, pour permettre de filtrer la heatmap.
+export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths') {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  const points = [];
+
+  matches
+    .filter((m) => m.metadata?.map === mapName)
+    .forEach((match) => {
+      const me = findMe(match, name, tag);
+      if (!me?.team) return;
+      const attackerByRound = attackerTeamByRound(match);
+
+      (match.rounds || []).forEach((round, roundIndex) => {
+        const attackerTeam = attackerByRound[roundIndex];
+        const side = attackerTeam === null ? null : attackerTeam === me.team ? 'attack' : 'defense';
+
+        (round.player_stats || []).forEach((ps) => {
+          (ps.kill_events || []).forEach((k) => {
+            const relevant =
+              mode === 'kills'
+                ? k.killer_display_name?.toLowerCase() === fullName
+                : k.victim_display_name?.toLowerCase() === fullName;
+            if (relevant && k.victim_death_location) {
+              points.push({ ...k.victim_death_location, side, weapon: k.damage_weapon_name ?? null });
+            }
+          });
+        });
+      });
+    });
+
+  return points;
+}
+
+const DEATH_TIMING_BUCKETS = [
+  { id: 'early', label: 'Entrée (0-20s)', max: 20000 },
+  { id: 'mid', label: 'Milieu de round (20-60s)', max: 60000 },
+  { id: 'late', label: 'Fin de round (60s+)', max: Infinity },
+];
+
+// Répartition des morts du joueur suivi selon le moment du round où elles
+// arrivent — kill_time_in_round (ms) est déjà présent dans les kill_events
+// utilisés pour la heatmap, juste pas encore exploité pour son axe temporel.
+export function deathTimingStats(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  const counts = { early: 0, mid: 0, late: 0 };
+  let total = 0;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    (match.rounds || []).forEach((round) => {
+      (round.player_stats || []).forEach((ps) => {
+        (ps.kill_events || []).forEach((k) => {
+          if (k.victim_display_name?.toLowerCase() !== fullName) return;
+          total += 1;
+          const bucket = DEATH_TIMING_BUCKETS.find((b) => k.kill_time_in_round < b.max);
+          counts[bucket.id] += 1;
+        });
+      });
+    });
+  });
+
+  return {
+    total,
+    buckets: DEATH_TIMING_BUCKETS.map((b) => ({
+      id: b.id,
+      label: b.label,
+      count: counts[b.id],
+      percent: total > 0 ? (counts[b.id] / total) * 100 : null,
+    })),
+  };
+}
+
+// Détecte les situations de clutch : le joueur suivi est le dernier vivant de
+// son équipe alors qu'au moins un adversaire est encore en vie. On reconstruit
+// qui est vivant à chaque instant en rejouant les kill_events du round dans
+// l'ordre, faute d'un champ "joueurs vivants" direct dans les données.
+export function clutchStats(matches, name, tag) {
+  let attempts = 0;
+  let wins = 0;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me?.puuid || !me?.team) return;
+
+    (match.rounds || []).forEach((round) => {
+      const playerStats = round.player_stats || [];
+      const teammates = playerStats.filter((ps) => ps.player_team === me.team).map((ps) => ps.player_puuid);
+      if (!teammates.includes(me.puuid)) return;
+
+      const allKills = [];
+      playerStats.forEach((ps) => (ps.kill_events || []).forEach((k) => allKills.push(k)));
+      allKills.sort((a, b) => a.kill_time_in_round - b.kill_time_in_round);
+
+      const aliveTeammates = new Set(teammates);
+      const aliveEnemies = new Set(playerStats.filter((ps) => ps.player_team !== me.team).map((ps) => ps.player_puuid));
+      let wasClutch = false;
+
+      allKills.forEach((k) => {
+        aliveTeammates.delete(k.victim_puuid);
+        aliveEnemies.delete(k.victim_puuid);
+        if (!wasClutch && aliveTeammates.size === 1 && aliveTeammates.has(me.puuid) && aliveEnemies.size >= 1) {
+          wasClutch = true;
+        }
+      });
+
+      if (wasClutch) {
+        attempts += 1;
+        if (round.winning_team === me.team) wins += 1;
+      }
+    });
+  });
+
+  return { attempts, wins, winrate: attempts > 0 ? (wins / attempts) * 100 : null };
+}
+
+const ECONOMY_TIERS = [
+  { id: 'eco', label: 'Éco', max: 2000 },
+  { id: 'semi', label: 'Semi-buy', max: 3900 },
+  { id: 'full', label: 'Full buy', max: Infinity },
+];
+
+// Winrate selon la valeur du loadout du joueur suivi à chaque round
+// (economy.loadout_value), pour voir l'impact réel des rounds d'éco/save.
+export function economyImpactStats(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  const buckets = { eco: { rounds: 0, wins: 0 }, semi: { rounds: 0, wins: 0 }, full: { rounds: 0, wins: 0 } };
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me?.team) return;
+
+    (match.rounds || []).forEach((round) => {
+      const ps = (round.player_stats || []).find((p) => p.player_display_name?.toLowerCase() === fullName);
+      const loadoutValue = ps?.economy?.loadout_value;
+      if (loadoutValue === undefined) return;
+
+      const tier = ECONOMY_TIERS.find((t) => loadoutValue < t.max);
+      buckets[tier.id].rounds += 1;
+      if (round.winning_team === me.team) buckets[tier.id].wins += 1;
+    });
+  });
+
+  return ECONOMY_TIERS.map((t) => ({
+    id: t.id,
+    label: t.label,
+    rounds: buckets[t.id].rounds,
+    winrate: buckets[t.id].rounds > 0 ? (buckets[t.id].wins / buckets[t.id].rounds) * 100 : null,
+  }));
+}
+
 export function resultLabel(match, me) {
   if (match?.metadata?.mode_id === 'deathmatch') return 'Sans équipe';
   if (!me?.team) return '?';
@@ -154,6 +307,33 @@ function directAttackerTeam(round) {
   return null;
 }
 
+// Reconstruit, pour un match donné, l'équipe qui attaquait à chaque round —
+// logique partagée par mapSideStats() et deathLocationsOnMap() (filtre
+// attaque/défense de la heatmap).
+function attackerTeamByRound(match) {
+  const rounds = match.rounds || [];
+  const attackerByRound = rounds.map(directAttackerTeam);
+
+  if (STANDARD_HALF_MODES.includes(match.metadata?.mode_id)) {
+    const half1 = attackerByRound.slice(0, HALF_SIZE).find((t) => t !== null) ?? null;
+    const half2 = attackerByRound.slice(HALF_SIZE, HALF_SIZE * 2).find((t) => t !== null) ?? null;
+    const half1Attacker = half1 ?? (half2 ? otherTeam(half2) : null);
+    const half2Attacker = half2 ?? (half1 ? otherTeam(half1) : null);
+
+    for (let i = 0; i < Math.min(HALF_SIZE, rounds.length); i += 1) {
+      if (half1Attacker) attackerByRound[i] = half1Attacker;
+    }
+    for (let i = HALF_SIZE; i < Math.min(HALF_SIZE * 2, rounds.length); i += 1) {
+      if (half2Attacker) attackerByRound[i] = half2Attacker;
+    }
+    if (rounds.length > HALF_SIZE * 2 && half1Attacker && attackerByRound[HALF_SIZE * 2] === null) {
+      attackerByRound[HALF_SIZE * 2] = half1Attacker;
+    }
+  }
+
+  return attackerByRound;
+}
+
 export function mapSideStats(matches, name, tag, mapName) {
   let attackRounds = 0;
   let attackWins = 0;
@@ -168,24 +348,7 @@ export function mapSideStats(matches, name, tag, mapName) {
       if (!me?.team) return;
 
       const rounds = match.rounds || [];
-      const attackerByRound = rounds.map(directAttackerTeam);
-
-      if (STANDARD_HALF_MODES.includes(match.metadata?.mode_id)) {
-        const half1 = attackerByRound.slice(0, HALF_SIZE).find((t) => t !== null) ?? null;
-        const half2 = attackerByRound.slice(HALF_SIZE, HALF_SIZE * 2).find((t) => t !== null) ?? null;
-        const half1Attacker = half1 ?? (half2 ? otherTeam(half2) : null);
-        const half2Attacker = half2 ?? (half1 ? otherTeam(half1) : null);
-
-        for (let i = 0; i < Math.min(HALF_SIZE, rounds.length); i += 1) {
-          if (half1Attacker) attackerByRound[i] = half1Attacker;
-        }
-        for (let i = HALF_SIZE; i < Math.min(HALF_SIZE * 2, rounds.length); i += 1) {
-          if (half2Attacker) attackerByRound[i] = half2Attacker;
-        }
-        if (rounds.length > HALF_SIZE * 2 && half1Attacker && attackerByRound[HALF_SIZE * 2] === null) {
-          attackerByRound[HALF_SIZE * 2] = half1Attacker;
-        }
-      }
+      const attackerByRound = attackerTeamByRound(match);
 
       attackerByRound.forEach((attackerTeam, i) => {
         if (!attackerTeam) {
@@ -269,6 +432,59 @@ export function dayOfWeek(match) {
   const gameStart = match?.metadata?.game_start;
   if (!gameStart) return null;
   return DAY_LABELS[new Date(gameStart * 1000).getDay()];
+}
+
+export function overallHsPercent(matches, name, tag) {
+  let headshots = 0;
+  let total = 0;
+  matches.forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    const hs = hitStats(me);
+    headshots += hs.headshots;
+    total += hs.headshots + hs.bodyshots + hs.legshots;
+  });
+  return total > 0 ? (headshots / total) * 100 : null;
+}
+
+export function overallWinrate(matches, name, tag) {
+  let wins = 0;
+  let decided = 0;
+  matches.forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    const label = resultLabel(match, me);
+    if (label === 'Victoire' || label === 'Défaite') {
+      decided += 1;
+      if (label === 'Victoire') wins += 1;
+    }
+  });
+  return decided > 0 ? (wins / decided) * 100 : null;
+}
+
+// Lundi 00h00 (heure locale) de la semaine en cours.
+function startOfCurrentWeek() {
+  const now = new Date();
+  const day = now.getDay(); // 0=dimanche, 1=lundi, ..., 6=samedi
+  const diffToMonday = day === 0 ? 6 : day - 1;
+  const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
+  monday.setHours(0, 0, 0, 0);
+  return monday;
+}
+
+// Le wrapped montre la dernière semaine complète (lundi-dimanche précédents),
+// pas la semaine en cours : sinon le lundi matin, avant d'avoir rejoué, le
+// wrapped serait vide au lieu de récapituler ce qui vient de se terminer. Il
+// change donc une fois par semaine, le lundi, quand "la semaine dernière" avance.
+export function matchesInCurrentWeek(matches) {
+  const thisMonday = startOfCurrentWeek().getTime();
+  const lastMonday = thisMonday - 7 * 24 * 60 * 60 * 1000;
+  return matches.filter((match) => {
+    const gameStart = match?.metadata?.game_start;
+    if (!gameStart) return false;
+    const ts = gameStart * 1000;
+    return ts >= lastMonday && ts < thisMonday;
+  });
 }
 
 // Suppose `matches` triés du plus récent au plus ancien (c'est l'ordre renvoyé par le cache SQLite).

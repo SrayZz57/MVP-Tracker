@@ -4,6 +4,14 @@ import SkinDetailModal from './SkinDetailModal.jsx';
 
 const PAGE_SIZE = 30;
 
+// Recherche insensible aux accents ("celeste" doit trouver "céleste").
+function normalizeText(text) {
+  return text
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .toLowerCase();
+}
+
 const VIEWS = [
   { id: 'catalogue', label: 'Catalogue' },
   { id: 'wishlist', label: 'Wishlist' },
@@ -53,12 +61,12 @@ function SkinsCatalog() {
 
   const filteredCatalog = useMemo(() => {
     if (!catalog) return [];
-    const term = search.trim().toLowerCase();
+    const term = normalizeText(search.trim());
     const min = priceMin === '' ? -Infinity : Number(priceMin);
     const max = priceMax === '' ? Infinity : Number(priceMax);
     return catalog.filter(
       (s) =>
-        (term === '' || s.name.toLowerCase().includes(term)) &&
+        (term === '' || normalizeText(s.name).includes(term)) &&
         (weaponFilter === '' || s.weaponName === weaponFilter) &&
         (tierFilter === '' || s.tierName === tierFilter) &&
         s.estimatedPriceVp >= min &&

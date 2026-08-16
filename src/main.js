@@ -16,7 +16,6 @@ import {
   deleteStrategy,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
-import { getPlayerSummary, getPlayerStatsSummary } from './services/overfast.js';
 
 const store = new Store();
 
@@ -145,15 +144,27 @@ ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
   return next;
 });
 
-ipcMain.handle('overwatch:get-settings', () => store.get('overwatchSettings') || null);
+ipcMain.handle('goals:get', () => store.get('personalGoals') || []);
 
-ipcMain.handle('overwatch:get-profile', async (_event, battleTag) => {
-  const [summary, stats] = await Promise.all([
-    getPlayerSummary(battleTag),
-    getPlayerStatsSummary(battleTag),
-  ]);
-  store.set('overwatchSettings', { battleTag });
-  return { summary, stats };
+ipcMain.handle('goals:add', (_event, goal) => {
+  const goals = store.get('personalGoals') || [];
+  const next = [...goals, { ...goal, id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, done: false, createdAt: Date.now() }];
+  store.set('personalGoals', next);
+  return next;
+});
+
+ipcMain.handle('goals:toggle-done', (_event, id) => {
+  const goals = store.get('personalGoals') || [];
+  const next = goals.map((goal) => (goal.id === id ? { ...goal, done: !goal.done } : goal));
+  store.set('personalGoals', next);
+  return next;
+});
+
+ipcMain.handle('goals:delete', (_event, id) => {
+  const goals = store.get('personalGoals') || [];
+  const next = goals.filter((goal) => goal.id !== id);
+  store.set('personalGoals', next);
+  return next;
 });
 
 // This method will be called when Electron has finished
