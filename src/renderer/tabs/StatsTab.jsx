@@ -2,57 +2,60 @@ import { useMemo, useState } from 'react';
 import {
   findMe,
   resultLabel,
+  matchScore,
   hitStats,
   weaponKillsFor,
   groupStats,
+  excludeDeathmatch,
   weaponKillsForAgent,
   agentTotalKills,
 } from '../valorantStats.js';
 import { useAgentIcons, useAgentPortraits } from '../agentIcons.js';
 import { useMapImages } from '../mapImages.js';
+import { useWeaponIcons } from '../weaponIcons.js';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
+import LineChart from '../charts/LineChart.jsx';
 
-function renderGroupTable(title, rows, iconFor, onRowClick) {
+function renderModeStats(title, rows) {
   return (
     <div className="card">
       <h3>{title}</h3>
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Parties</th>
-            <th>Winrate</th>
-            <th>K/D/A moyen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.key} className={onRowClick ? 'clickable' : ''} onClick={() => onRowClick?.(row.key)}>
-              <td>
-                {iconFor?.(row.key) && <img src={iconFor(row.key)} alt="" className="agent-icon" />}
-                {row.key}
-              </td>
-              <td>{row.games}</td>
-              <td>{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</td>
-              <td>
-                {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      {rows.length === 0 ? (
+        <p>Pas encore de données.</p>
+      ) : (
+        rows.map((row) => (
+          <div key={row.key} className="stat-bar-row">
+            <span className="stat-bar-label">{row.key}</span>
+            <span className="stat-bar-track">
+              <span
+                className={`stat-bar-fill ${row.winrate === null ? '' : row.winrate >= 50 ? 'good' : 'bad'}`}
+                style={{ width: `${row.winrate ?? 4}%` }}
+              />
+            </span>
+            <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
+            <span className="stat-bar-meta">
+              {row.games} parties — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+            </span>
+          </div>
+        ))
+      )}
     </div>
   );
 }
 
-function renderAgentCards(rows, portraits, matches, settings, onRowClick) {
+const AGENT_CARDS_PAGE_SIZE = 5;
+
+function AgentCards({ rows, portraits, matches, settings, onRowClick }) {
+  const [showAll, setShowAll] = useState(false);
+  const visibleRows = showAll ? rows : rows.slice(0, AGENT_CARDS_PAGE_SIZE);
+
   return (
     <div className="card">
       <h3>Stats par agent</h3>
       <div className="map-card-list">
-        {rows.map((row) => {
+        {visibleRows.map((row) => {
           const image = portraits.get(row.key);
           const topWeapon = weaponKillsForAgent(matches, settings.name, settings.tag, row.key)[0];
           const kills = agentTotalKills(matches, settings.name, settings.tag, row.key);
@@ -75,16 +78,26 @@ function renderAgentCards(rows, portraits, matches, settings, onRowClick) {
           );
         })}
       </div>
+      {rows.length > AGENT_CARDS_PAGE_SIZE && (
+        <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+          {showAll ? '▲ Voir moins' : `▼ Voir plus (${rows.length - AGENT_CARDS_PAGE_SIZE})`}
+        </button>
+      )}
     </div>
   );
 }
 
-function renderMapCards(rows, mapImages, onRowClick) {
+const MAP_CARDS_PAGE_SIZE = 5;
+
+function MapCards({ rows, mapImages, onRowClick }) {
+  const [showAll, setShowAll] = useState(false);
+  const visibleRows = showAll ? rows : rows.slice(0, MAP_CARDS_PAGE_SIZE);
+
   return (
     <div className="card">
       <h3>Stats par map</h3>
       <div className="map-card-list">
-        {rows.map((row) => {
+        {visibleRows.map((row) => {
           const image = mapImages.get(row.key);
           return (
             <div
@@ -104,6 +117,11 @@ function renderMapCards(rows, mapImages, onRowClick) {
           );
         })}
       </div>
+      {rows.length > MAP_CARDS_PAGE_SIZE && (
+        <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+          {showAll ? '▲ Voir moins' : `▼ Voir plus (${rows.length - MAP_CARDS_PAGE_SIZE})`}
+        </button>
+      )}
     </div>
   );
 }
@@ -112,6 +130,7 @@ function StatsTab({ settings, matches }) {
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
   const mapImages = useMapImages();
+  const weaponIcons = useWeaponIcons();
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedMap, setSelectedMap] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState(null);
@@ -147,12 +166,12 @@ function StatsTab({ settings, matches }) {
   }, [matches, settings.name, settings.tag]);
 
   const agentStats = useMemo(
-    () => groupStats(matches, settings.name, settings.tag, (match, me) => me.character),
+    () => groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match, me) => me.character),
     [matches, settings.name, settings.tag],
   );
 
   const mapStats = useMemo(
-    () => groupStats(matches, settings.name, settings.tag, (match) => match.metadata?.map),
+    () => groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => match.metadata?.map),
     [matches, settings.name, settings.tag],
   );
 
@@ -161,12 +180,66 @@ function StatsTab({ settings, matches }) {
     [matches, settings.name, settings.tag],
   );
 
+  const kdProgression = useMemo(() => {
+    return matches
+      .slice(0, 20)
+      .map((match) => {
+        const me = findMe(match, settings.name, settings.tag);
+        if (!me) return null;
+        const kills = me.stats?.kills ?? 0;
+        const deaths = me.stats?.deaths ?? 0;
+        return { label: match.metadata?.map ?? '?', value: deaths > 0 ? kills / deaths : kills };
+      })
+      .filter(Boolean)
+      .reverse();
+  }, [matches, settings.name, settings.tag]);
+
+  const kdStats = useMemo(() => {
+    if (kdProgression.length === 0) return null;
+    const values = kdProgression.map((d) => d.value);
+    const avg = values.reduce((a, b) => a + b, 0) / values.length;
+    const best = Math.max(...values);
+    const worst = Math.min(...values);
+    const half = Math.floor(values.length / 2);
+    const firstHalfAvg = half > 0 ? values.slice(0, half).reduce((a, b) => a + b, 0) / half : avg;
+    const secondHalfAvg =
+      values.length - half > 0 ? values.slice(half).reduce((a, b) => a + b, 0) / (values.length - half) : avg;
+    return { avg, best, worst, trend: secondHalfAvg - firstHalfAvg };
+  }, [kdProgression]);
+
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 
   return (
     <div>
+      <div className="card">
+        <h3>📈 Progression du K/D ({kdProgression.length} derniers matchs)</h3>
+        {kdStats && (
+          <div className="stat-tiles">
+            <div className="stat-tile">
+              <div className="value">{kdStats.avg.toFixed(2)}</div>
+              <div className="label">K/D moyen</div>
+            </div>
+            <div className="stat-tile">
+              <div className="value">{kdStats.best.toFixed(2)}</div>
+              <div className="label">Meilleur match</div>
+            </div>
+            <div className="stat-tile">
+              <div className="value">{kdStats.worst.toFixed(2)}</div>
+              <div className="label">Pire match</div>
+            </div>
+            <div className="stat-tile">
+              <div className="value" style={{ color: kdStats.trend >= 0 ? '#3ddc84' : 'var(--accent)' }}>
+                {kdStats.trend >= 0 ? '▲' : '▼'} {Math.abs(kdStats.trend).toFixed(2)}
+              </div>
+              <div className="label">Tendance (2e moitié vs 1re)</div>
+            </div>
+          </div>
+        )}
+        <LineChart data={kdProgression} color="#ff4655" />
+      </div>
+
       <div className="card">
         <h3>Stats globales ({matches.length} matchs)</h3>
         <div className="stat-tiles">
@@ -192,7 +265,10 @@ function StatsTab({ settings, matches }) {
             const maxCount = globalStats.weaponRanking[0][1];
             return globalStats.weaponRanking.map(([weapon, count]) => (
               <div key={weapon} className="weapon-bar-row">
-                <span className="name">{weapon}</span>
+                <span className="name">
+                  {weaponIcons.get(weapon) && <img src={weaponIcons.get(weapon)} alt="" className="weapon-icon" />}
+                  {weapon}
+                </span>
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxCount) * 100}%` }} />
                 </span>
@@ -203,17 +279,24 @@ function StatsTab({ settings, matches }) {
         )}
       </div>
 
-      {renderAgentCards(agentStats, agentPortraits, matches, settings, (name) => setSelectedAgent(name))}
-      {renderMapCards(mapStats, mapImages, (mapName) => setSelectedMap(mapName))}
-      {renderGroupTable('Stats par mode', modeStats)}
+      <AgentCards
+        rows={agentStats}
+        portraits={agentPortraits}
+        matches={matches}
+        settings={settings}
+        onRowClick={(name) => setSelectedAgent(name)}
+      />
+      <MapCards rows={mapStats} mapImages={mapImages} onRowClick={(mapName) => setSelectedMap(mapName)} />
+      {renderModeStats('Stats par mode', modeStats)}
 
       <div className="card">
-        <h3>Historique de matchs</h3>
+        <h3>Historique de matchs (20 derniers)</h3>
         <div className="match-list">
-          {matches.map((match) => {
+          {matches.slice(0, 20).map((match) => {
             const me = findMe(match, settings.name, settings.tag);
             const { hsPercent, bsPercent, lsPercent } = hitStats(me);
             const label = resultLabel(match, me);
+            const score = matchScore(match, me);
             const resultClass = label === 'Victoire' ? 'match-win' : label === 'Défaite' ? 'match-loss' : '';
             return (
               <div
@@ -231,7 +314,10 @@ function StatsTab({ settings, matches }) {
                   {hsPercent !== null &&
                     ` — Tête ${hsPercent.toFixed(0)}% / Corps ${bsPercent.toFixed(0)}% / Jambes ${lsPercent.toFixed(0)}%`}
                 </span>
-                <span className={`result-badge ${resultClass}`}>{label}</span>
+                <span className={`result-badge ${resultClass}`}>
+                  {label}
+                  {score && ` (${score})`}
+                </span>
               </div>
             );
           })}

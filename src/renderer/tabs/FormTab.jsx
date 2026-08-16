@@ -1,34 +1,45 @@
 import { useMemo } from 'react';
-import { groupStats, timeSlot, dayOfWeek, TIME_SLOT_ORDER, WEEK_ORDER, formStats } from '../valorantStats.js';
+import {
+  groupStats,
+  excludeDeathmatch,
+  timeSlot,
+  dayOfWeek,
+  TIME_SLOT_ORDER,
+  WEEK_ORDER,
+  formStats,
+} from '../valorantStats.js';
 
-function renderGroupTable(title, rows) {
+function renderStatBars(title, rows, icon) {
   return (
     <div className="card">
-      <h3>{title}</h3>
-      <table>
-        <thead>
-          <tr>
-            <th></th>
-            <th>Parties</th>
-            <th>Winrate</th>
-            <th>K/D/A moyen</th>
-          </tr>
-        </thead>
-        <tbody>
-          {rows.map((row) => (
-            <tr key={row.key}>
-              <td>{row.key}</td>
-              <td>{row.games}</td>
-              <td>{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</td>
-              <td>
-                {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
-              </td>
-            </tr>
-          ))}
-        </tbody>
-      </table>
+      <h3>{icon} {title}</h3>
+      {rows.length === 0 ? (
+        <p>Pas encore de données.</p>
+      ) : (
+        rows.map((row) => (
+          <div key={row.key} className="stat-bar-row">
+            <span className="stat-bar-label">{row.key}</span>
+            <span className="stat-bar-track">
+              <span
+                className={`stat-bar-fill ${row.winrate === null ? '' : row.winrate >= 50 ? 'good' : 'bad'}`}
+                style={{ width: `${row.winrate ?? 4}%` }}
+              />
+            </span>
+            <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
+            <span className="stat-bar-meta">
+              {row.games} parties — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+            </span>
+          </div>
+        ))
+      )}
     </div>
   );
+}
+
+function bestEntry(rows) {
+  const withEnoughGames = rows.filter((row) => row.games >= 2 && row.winrate !== null);
+  if (withEnoughGames.length === 0) return null;
+  return withEnoughGames.reduce((best, row) => (row.winrate > best.winrate ? row : best));
 }
 
 function FormTab({ settings, matches }) {
@@ -39,7 +50,7 @@ function FormTab({ settings, matches }) {
 
   const timeSlotStats = useMemo(
     () =>
-      groupStats(matches, settings.name, settings.tag, (match) => timeSlot(match)).sort(
+      groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => timeSlot(match)).sort(
         (a, b) => TIME_SLOT_ORDER.indexOf(a.key) - TIME_SLOT_ORDER.indexOf(b.key),
       ),
     [matches, settings.name, settings.tag],
@@ -47,11 +58,14 @@ function FormTab({ settings, matches }) {
 
   const dayOfWeekStats = useMemo(
     () =>
-      groupStats(matches, settings.name, settings.tag, (match) => dayOfWeek(match)).sort(
+      groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => dayOfWeek(match)).sort(
         (a, b) => WEEK_ORDER.indexOf(a.key) - WEEK_ORDER.indexOf(b.key),
       ),
     [matches, settings.name, settings.tag],
   );
+
+  const bestTimeSlot = useMemo(() => bestEntry(timeSlotStats), [timeSlotStats]);
+  const bestDay = useMemo(() => bestEntry(dayOfWeekStats), [dayOfWeekStats]);
 
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
@@ -83,8 +97,35 @@ function FormTab({ settings, matches }) {
         </div>
       </div>
 
-      {renderGroupTable('Stats par tranche horaire', timeSlotStats)}
-      {renderGroupTable('Stats par jour de la semaine', dayOfWeekStats)}
+      {(bestTimeSlot || bestDay) && (
+        <div className="card highlight-card">
+          <h3>🌟 Meilleur moment pour jouer</h3>
+          <div className="stat-tiles">
+            {bestTimeSlot && (
+              <div className="stat-tile">
+                <div className="value">{bestTimeSlot.key}</div>
+                <div className="label">
+                  {bestTimeSlot.winrate.toFixed(0)}% winrate ({bestTimeSlot.games} parties)
+                </div>
+              </div>
+            )}
+            {bestDay && (
+              <div className="stat-tile">
+                <div className="value">{bestDay.key}</div>
+                <div className="label">
+                  {bestDay.winrate.toFixed(0)}% winrate ({bestDay.games} parties)
+                </div>
+              </div>
+            )}
+          </div>
+          <p className="label" style={{ marginTop: '0.5rem' }}>
+            Calculé sur les créneaux/jours avec au moins 2 parties jouées.
+          </p>
+        </div>
+      )}
+
+      {renderStatBars('Stats par tranche horaire', timeSlotStats, '🕐')}
+      {renderStatBars('Stats par jour de la semaine', dayOfWeekStats, '📅')}
     </div>
   );
 }

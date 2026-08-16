@@ -14,11 +14,11 @@ function NetworkMonitor() {
 
   return (
     <div className="card">
-      <h3>Statut</h3>
-      <p>
-        <span className={status.valorantRunning ? 'status-dot online' : 'status-dot'} />
+      <h3>📡 Statut</h3>
+      <div className={`network-status-banner ${status.valorantRunning ? 'online' : ''}`}>
+        <span className="status-dot-lg" />
         {status.valorantRunning ? 'Valorant détecté' : 'Valorant non détecté'}
-      </p>
+      </div>
       {status.valorantRunning && (
         <div className="stat-tiles">
           <div className="stat-tile">

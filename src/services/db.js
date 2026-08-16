@@ -22,6 +22,16 @@ db.exec(`
 `);
 
 db.exec(`
+  CREATE TABLE IF NOT EXISTS strategies (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    map TEXT NOT NULL,
+    canvas_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )
+`);
+
+db.exec(`
   CREATE TABLE IF NOT EXISTS crosshairs (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     name TEXT NOT NULL,
@@ -85,4 +95,20 @@ export function getCrosshairs() {
 
 export function deleteCrosshair(id) {
   db.prepare('DELETE FROM crosshairs WHERE id = ?').run(id);
+}
+
+export function saveStrategy(name, map, canvasJson) {
+  db.prepare(
+    'INSERT INTO strategies (name, map, canvas_json, created_at) VALUES (?, ?, ?, ?)',
+  ).run(name, map, canvasJson, Date.now());
+}
+
+export function getStrategiesForMap(map) {
+  return db
+    .prepare('SELECT id, name, map, canvas_json, created_at FROM strategies WHERE map = ? ORDER BY created_at DESC')
+    .all(map);
+}
+
+export function deleteStrategy(id) {
+  db.prepare('DELETE FROM strategies WHERE id = ?').run(id);
 }

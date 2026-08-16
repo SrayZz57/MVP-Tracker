@@ -34,3 +34,26 @@ export function useAgentPortraits() {
 
   return portraits;
 }
+
+const PLACEABLE_SLOTS = ['Ability1', 'Ability2', 'Grenade', 'Ultimate'];
+
+export function useAgentAbilities() {
+  const [abilities, setAbilities] = useState(new Map());
+
+  useEffect(() => {
+    loadAgents().then((agents) => {
+      setAbilities(
+        new Map(
+          agents.map((agent) => [
+            agent.displayName,
+            agent.abilities
+              .filter((ability) => PLACEABLE_SLOTS.includes(ability.slot) && ability.displayIcon)
+              .map((ability) => ({ name: ability.displayName, icon: ability.displayIcon })),
+          ]),
+        ),
+      );
+    });
+  }, []);
+
+  return abilities;
+}

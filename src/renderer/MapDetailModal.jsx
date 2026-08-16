@@ -1,8 +1,10 @@
 import { agentUsageOnMap, weaponKillsOnMap, mapSideStats } from './valorantStats.js';
 import { useMapImages } from './mapImages.js';
+import { useWeaponIcons } from './weaponIcons.js';
 
 function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
   const mapImages = useMapImages();
+  const weaponIcons = useWeaponIcons();
   const mapSplash = mapImages.get(mapName);
 
   const agentUsage = agentUsageOnMap(matches, settings.name, settings.tag, mapName);
@@ -62,7 +64,10 @@ function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
           ) : (
             weaponKills.map(([weapon, count]) => (
               <div key={weapon} className="weapon-bar-row">
-                <span className="name">{weapon}</span>
+                <span className="name">
+                  {weaponIcons.get(weapon) && <img src={weaponIcons.get(weapon)} alt="" className="weapon-icon" />}
+                  {weapon}
+                </span>
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxWeaponCount) * 100}%` }} />
                 </span>

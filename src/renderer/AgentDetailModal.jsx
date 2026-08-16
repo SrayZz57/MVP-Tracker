@@ -1,8 +1,9 @@
-import { weaponKillsForAgent, mapStatsForAgent, agentPlaytimeMs, agentTotalKills } from './valorantStats.js';
+import { weaponKillsForAgent, mapStatsForAgent, agentPlaytimeSeconds, agentTotalKills } from './valorantStats.js';
 import { useAgentPortraits } from './agentIcons.js';
+import { useWeaponIcons } from './weaponIcons.js';
 
-function formatPlaytime(ms) {
-  const totalMinutes = Math.round(ms / 60000);
+function formatPlaytime(seconds) {
+  const totalMinutes = Math.round(seconds / 60);
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   return hours > 0 ? `${hours}h ${minutes}min` : `${minutes}min`;
@@ -11,10 +12,11 @@ function formatPlaytime(ms) {
 function AgentDetailModal({ character, matches, settings, onClose }) {
   const portraits = useAgentPortraits();
   const portrait = portraits.get(character);
+  const weaponIcons = useWeaponIcons();
 
   const weaponKills = weaponKillsForAgent(matches, settings.name, settings.tag, character);
   const mapStats = mapStatsForAgent(matches, settings.name, settings.tag, character);
-  const playtimeMs = agentPlaytimeMs(matches, settings.name, settings.tag, character);
+  const playtimeSeconds = agentPlaytimeSeconds(matches, settings.name, settings.tag, character);
   const totalKills = agentTotalKills(matches, settings.name, settings.tag, character);
 
   const maxWeaponCount = weaponKills[0]?.[1] ?? 0;
@@ -40,7 +42,7 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
               <div className="label">Kills au total</div>
             </div>
             <div className="stat-tile">
-              <div className="value">{formatPlaytime(playtimeMs)}</div>
+              <div className="value">{formatPlaytime(playtimeSeconds)}</div>
               <div className="label">Temps de jeu</div>
             </div>
           </div>
@@ -53,7 +55,10 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
           ) : (
             weaponKills.map(([weapon, count]) => (
               <div key={weapon} className="weapon-bar-row">
-                <span className="name">{weapon}</span>
+                <span className="name">
+                  {weaponIcons.get(weapon) && <img src={weaponIcons.get(weapon)} alt="" className="weapon-icon" />}
+                  {weapon}
+                </span>
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxWeaponCount) * 100}%` }} />
                 </span>

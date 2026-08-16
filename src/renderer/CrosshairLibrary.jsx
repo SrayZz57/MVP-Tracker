@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import CrosshairPreview from './CrosshairPreview.jsx';
-import { CROSSHAIR_CATALOG, CROSSHAIR_COLOR_NAMES, CROSSHAIR_STYLE_NAMES } from './crosshairPresets.js';
+import { CROSSHAIR_CATALOG, CROSSHAIR_COLOR_NAMES, CROSSHAIR_STYLE_NAMES, PRO_CROSSHAIRS } from './crosshairPresets.js';
+
+const CATALOG_PAGE_SIZE = 12;
+const PRO_PAGE_SIZE = 8;
 
 function CrosshairLibrary() {
   const [crosshairs, setCrosshairs] = useState([]);
@@ -10,6 +13,8 @@ function CrosshairLibrary() {
   const [image, setImage] = useState('');
   const [colorFilter, setColorFilter] = useState('');
   const [styleFilter, setStyleFilter] = useState('');
+  const [showAllCatalog, setShowAllCatalog] = useState(false);
+  const [showAllPro, setShowAllPro] = useState(false);
 
   const filteredCatalog = useMemo(
     () =>
@@ -80,7 +85,7 @@ function CrosshairLibrary() {
           <span className="label">{filteredCatalog.length} crosshair(s)</span>
         </div>
         <div className="crosshair-grid">
-          {filteredCatalog.map((preset) => (
+          {(showAllCatalog ? filteredCatalog : filteredCatalog.slice(0, CATALOG_PAGE_SIZE)).map((preset) => (
             <div key={preset.name} className="crosshair-item">
               <CrosshairPreview code={preset.code} />
               <p>{preset.name}</p>
@@ -88,6 +93,30 @@ function CrosshairLibrary() {
             </div>
           ))}
         </div>
+        {filteredCatalog.length > CATALOG_PAGE_SIZE && (
+          <button className="show-more-btn" onClick={() => setShowAllCatalog(!showAllCatalog)}>
+            {showAllCatalog ? '▲ Voir moins' : `▼ Voir plus (${filteredCatalog.length - CATALOG_PAGE_SIZE})`}
+          </button>
+        )}
+      </div>
+
+      <div className="card">
+        <h3>Crosshairs de pros</h3>
+        <p className="label">Codes publiés par des joueurs pro (source : thespike.gg)</p>
+        <div className="crosshair-grid">
+          {(showAllPro ? PRO_CROSSHAIRS : PRO_CROSSHAIRS.slice(0, PRO_PAGE_SIZE)).map((preset) => (
+            <div key={preset.name} className="crosshair-item">
+              <CrosshairPreview code={preset.code} />
+              <p>{preset.name}</p>
+              <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
+            </div>
+          ))}
+        </div>
+        {PRO_CROSSHAIRS.length > PRO_PAGE_SIZE && (
+          <button className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
+            {showAllPro ? '▲ Voir moins' : `▼ Voir plus (${PRO_CROSSHAIRS.length - PRO_PAGE_SIZE})`}
+          </button>
+        )}
       </div>
 
       <div className="card">

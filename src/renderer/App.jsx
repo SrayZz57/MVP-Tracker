@@ -5,6 +5,7 @@ import FormTab from './tabs/FormTab.jsx';
 import NetworkTab from './tabs/NetworkTab.jsx';
 import TiltTab from './tabs/TiltTab.jsx';
 import CrosshairsTab from './tabs/CrosshairsTab.jsx';
+import StrategyTab from './tabs/StrategyTab.jsx';
 import OverwatchTab from './tabs/OverwatchTab.jsx';
 import SearchBar from './SearchBar.jsx';
 import WelcomeScreen from './WelcomeScreen.jsx';
@@ -21,6 +22,7 @@ const VALORANT_TABS = [
   { id: 'reseau', label: 'Réseau' },
   { id: 'tilt', label: 'Tilt' },
   { id: 'crosshairs', label: 'Crosshairs' },
+  { id: 'strategie', label: 'Stratégie' },
 ];
 
 function App() {
@@ -53,6 +55,8 @@ function App() {
         return <TiltTab settings={settings} matches={data.matches} />;
       case 'crosshairs':
         return <CrosshairsTab />;
+      case 'strategie':
+        return <StrategyTab />;
       default:
         return null;
     }

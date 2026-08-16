@@ -11,6 +11,9 @@ import {
   saveCrosshair,
   getCrosshairs,
   deleteCrosshair,
+  saveStrategy,
+  getStrategiesForMap,
+  deleteStrategy,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
 import { getPlayerSummary, getPlayerStatsSummary } from './services/overfast.js';
@@ -86,6 +89,14 @@ ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
 );
 
 ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(id));
+
+ipcMain.handle('strategy:list', (_event, map) => getStrategiesForMap(map));
+
+ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
+  saveStrategy(name, map, canvasJson),
+);
+
+ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(id));
 
 ipcMain.handle('overwatch:get-settings', () => store.get('overwatchSettings') || null);
 

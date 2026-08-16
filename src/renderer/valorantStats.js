@@ -1,3 +1,10 @@
+// Le Combat à mort n'a pas d'équipes/de winrate — à exclure des stats qui en dépendent
+// (par agent, par map, par tranche horaire, par jour), pas des stats par mode (où il
+// reste une catégorie légitime à afficher).
+export function excludeDeathmatch(matches) {
+  return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch');
+}
+
 export function findMe(match, name, tag) {
   const players = match?.players?.all_players || [];
   return players.find(
@@ -9,9 +16,25 @@ export function resultLabel(match, me) {
   if (match?.metadata?.mode_id === 'deathmatch') return 'Sans équipe';
   if (!me?.team) return '?';
   const teamKey = me.team.toLowerCase();
+  const otherKey = teamKey === 'red' ? 'blue' : 'red';
+  const myRounds = match?.teams?.[teamKey]?.rounds_won;
+  const otherRounds = match?.teams?.[otherKey]?.rounds_won;
+  if (myRounds !== undefined && otherRounds !== undefined && myRounds === otherRounds) {
+    return 'Match nul';
+  }
   const won = match?.teams?.[teamKey]?.has_won;
   if (won === undefined) return '?';
   return won ? 'Victoire' : 'Défaite';
+}
+
+export function matchScore(match, me) {
+  if (!me?.team) return null;
+  const myKey = me.team.toLowerCase();
+  const otherKey = myKey === 'red' ? 'blue' : 'red';
+  const myRounds = match?.teams?.[myKey]?.rounds_won;
+  const otherRounds = match?.teams?.[otherKey]?.rounds_won;
+  if (myRounds === undefined || otherRounds === undefined) return null;
+  return `${myRounds}-${otherRounds}`;
 }
 
 export function hitStats(me) {
@@ -89,7 +112,8 @@ export function mapStatsForAgent(matches, name, tag, character) {
   return groupStats(matchesForAgent(matches, name, tag, character), name, tag, (match) => match.metadata?.map);
 }
 
-export function agentPlaytimeMs(matches, name, tag, character) {
+// `metadata.game_length` est en secondes dans les données de l'API.
+export function agentPlaytimeSeconds(matches, name, tag, character) {
   return matchesForAgent(matches, name, tag, character).reduce(
     (sum, match) => sum + (match.metadata?.game_length ?? 0),
     0,
@@ -106,7 +130,30 @@ export function agentTotalKills(matches, name, tag, character) {
 // Détermine qui attaquait un round donné à partir d'indices fiables :
 // - si une équipe a posé la spike, elle attaquait forcément ce round-là
 // - si le round se termine par "Time expired", l'équipe gagnante défendait
-// Sinon (élimination sans pose), impossible de savoir avec certitude : on ignore le round.
+// Sinon (élimination sans pose), on ne peut rien déduire du round pris isolément.
+//
+// Mais les côtés ne changent JAMAIS au milieu d'une mi-temps (12 rounds en
+// Compétitif/Non classé) : un seul indice trouvé n'importe où dans les 12
+// premiers rounds suffit à connaître le côté des 12 (et donc, par symétrie,
+// celui des 12 suivants aussi). En prolongation, le round 25 reprend le côté
+// du tout premier round du match.
+const HALF_SIZE = 12;
+const STANDARD_HALF_MODES = ['competitive', 'unrated'];
+
+function otherTeam(team) {
+  return team === 'Red' ? 'Blue' : 'Red';
+}
+
+function directAttackerTeam(round) {
+  if (round.plant_events?.planted_by?.team) {
+    return round.plant_events.planted_by.team;
+  }
+  if (round.end_type === 'Round timer expired') {
+    return otherTeam(round.winning_team);
+  }
+  return null;
+}
+
 export function mapSideStats(matches, name, tag, mapName) {
   let attackRounds = 0;
   let attackWins = 0;
@@ -120,20 +167,32 @@ export function mapSideStats(matches, name, tag, mapName) {
       const me = findMe(match, name, tag);
       if (!me?.team) return;
 
-      (match.rounds || []).forEach((round) => {
-        let attackerTeam = null;
-        if (round.plant_events?.planted_by?.team) {
-          attackerTeam = round.plant_events.planted_by.team;
-        } else if (round.end_type === 'Time expired') {
-          attackerTeam = round.winning_team === 'Red' ? 'Blue' : 'Red';
-        }
+      const rounds = match.rounds || [];
+      const attackerByRound = rounds.map(directAttackerTeam);
 
+      if (STANDARD_HALF_MODES.includes(match.metadata?.mode_id)) {
+        const half1 = attackerByRound.slice(0, HALF_SIZE).find((t) => t !== null) ?? null;
+        const half2 = attackerByRound.slice(HALF_SIZE, HALF_SIZE * 2).find((t) => t !== null) ?? null;
+        const half1Attacker = half1 ?? (half2 ? otherTeam(half2) : null);
+        const half2Attacker = half2 ?? (half1 ? otherTeam(half1) : null);
+
+        for (let i = 0; i < Math.min(HALF_SIZE, rounds.length); i += 1) {
+          if (half1Attacker) attackerByRound[i] = half1Attacker;
+        }
+        for (let i = HALF_SIZE; i < Math.min(HALF_SIZE * 2, rounds.length); i += 1) {
+          if (half2Attacker) attackerByRound[i] = half2Attacker;
+        }
+        if (rounds.length > HALF_SIZE * 2 && half1Attacker && attackerByRound[HALF_SIZE * 2] === null) {
+          attackerByRound[HALF_SIZE * 2] = half1Attacker;
+        }
+      }
+
+      attackerByRound.forEach((attackerTeam, i) => {
         if (!attackerTeam) {
           unknownRounds += 1;
           return;
         }
-
-        const won = round.winning_team === me.team;
+        const won = rounds[i].winning_team === me.team;
         if (me.team === attackerTeam) {
           attackRounds += 1;
           if (won) attackWins += 1;
@@ -291,7 +350,7 @@ export function pingCorrelation(matches, pingSamples, name, tag) {
     if (!me) return;
 
     const gameStartMs = (match.metadata?.game_start ?? 0) * 1000;
-    const gameLengthMs = match.metadata?.game_length ?? 0;
+    const gameLengthMs = (match.metadata?.game_length ?? 0) * 1000;
     const windowSamples = pingSamples.filter(
       (s) => s.timestamp >= gameStartMs && s.timestamp <= gameStartMs + gameLengthMs,
     );

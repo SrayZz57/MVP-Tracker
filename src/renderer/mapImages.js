@@ -1,13 +1,26 @@
 import { useEffect, useState } from 'react';
 
 let cache = null;
+let minimapCache = null;
+
+async function loadMaps() {
+  const response = await fetch('https://valorant-api.com/v1/maps');
+  const json = await response.json();
+  return json.data.filter((map) => map.displayName !== 'The Range');
+}
 
 async function loadMapImages() {
   if (cache) return cache;
-  const response = await fetch('https://valorant-api.com/v1/maps');
-  const json = await response.json();
-  cache = new Map(json.data.map((map) => [map.displayName, map.splash]));
+  const maps = await loadMaps();
+  cache = new Map(maps.map((map) => [map.displayName, map.splash]));
   return cache;
+}
+
+async function loadMapMinimaps() {
+  if (minimapCache) return minimapCache;
+  const maps = await loadMaps();
+  minimapCache = new Map(maps.map((map) => [map.displayName, map.displayIcon]));
+  return minimapCache;
 }
 
 export function useMapImages() {
@@ -18,4 +31,14 @@ export function useMapImages() {
   }, []);
 
   return images;
+}
+
+export function useMapMinimaps() {
+  const [minimaps, setMinimaps] = useState(new Map());
+
+  useEffect(() => {
+    loadMapMinimaps().then(setMinimaps);
+  }, []);
+
+  return minimaps;
 }
