@@ -14,6 +14,8 @@ import { useAgentIcons, useAgentPortraits, useAgentRoles } from '../agentIcons.j
 import { useMapImages } from '../mapImages.js';
 import { useWeaponIcons } from '../weaponIcons.js';
 import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
+import PlayerProfileCard from '../PlayerProfileCard.jsx';
+import RankMomentumCard from '../RankMomentumCard.jsx';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
@@ -327,6 +329,9 @@ function StatsTab({ settings, matches, rank }) {
           </div>
         </div>
       </div>
+
+      <PlayerProfileCard settings={settings} matches={matches} />
+      <RankMomentumCard settings={settings} matches={matches} />
 
       <div className="card">
         <h3>📈 Progression du K/D ({kdProgression.length} derniers matchs)</h3>

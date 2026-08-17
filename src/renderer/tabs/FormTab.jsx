@@ -9,7 +9,19 @@ import {
   formStats,
 } from '../valorantStats.js';
 
-function renderStatBars(title, rows, icon) {
+const WEEKDAY_ICONS = {
+  Lundi: '📅', Mardi: '📅', Mercredi: '📅', Jeudi: '📅', Vendredi: '📅', Samedi: '🎉', Dimanche: '🎉',
+};
+
+function timeSlotIcon(key) {
+  const hour = parseInt(key, 10);
+  if (hour >= 6 && hour < 12) return '🌅';
+  if (hour >= 12 && hour < 18) return '☀️';
+  if (hour >= 18 && hour < 24) return '🌆';
+  return '🌙';
+}
+
+function renderStatBars(title, rows, icon, rowIcon) {
   return (
     <div className="card">
       <h3>{icon} {title}</h3>
@@ -18,7 +30,7 @@ function renderStatBars(title, rows, icon) {
       ) : (
         rows.map((row) => (
           <div key={row.key} className="stat-bar-row">
-            <span className="stat-bar-label">{row.key}</span>
+            <span className="stat-bar-label">{rowIcon ? rowIcon(row.key) : ''} {row.key}</span>
             <span className="stat-bar-track">
               <span
                 className={`stat-bar-fill ${row.winrate === null ? '' : row.winrate >= 50 ? 'good' : 'bad'}`}
@@ -103,7 +115,7 @@ function FormTab({ settings, matches }) {
           <div className="stat-tiles">
             {bestTimeSlot && (
               <div className="stat-tile">
-                <div className="value">{bestTimeSlot.key}</div>
+                <div className="value">{timeSlotIcon(bestTimeSlot.key)} {bestTimeSlot.key}</div>
                 <div className="label">
                   {bestTimeSlot.winrate.toFixed(0)}% winrate ({bestTimeSlot.games} parties)
                 </div>
@@ -111,7 +123,7 @@ function FormTab({ settings, matches }) {
             )}
             {bestDay && (
               <div className="stat-tile">
-                <div className="value">{bestDay.key}</div>
+                <div className="value">{WEEKDAY_ICONS[bestDay.key]} {bestDay.key}</div>
                 <div className="label">
                   {bestDay.winrate.toFixed(0)}% winrate ({bestDay.games} parties)
                 </div>
@@ -124,8 +136,8 @@ function FormTab({ settings, matches }) {
         </div>
       )}
 
-      {renderStatBars('Stats par tranche horaire', timeSlotStats, '🕐')}
-      {renderStatBars('Stats par jour de la semaine', dayOfWeekStats, '📅')}
+      {renderStatBars('Stats par tranche horaire', timeSlotStats, '🕐', timeSlotIcon)}
+      {renderStatBars('Stats par jour de la semaine', dayOfWeekStats, '📅', (key) => WEEKDAY_ICONS[key])}
     </div>
   );
 }

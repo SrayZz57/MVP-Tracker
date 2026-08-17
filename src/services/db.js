@@ -42,6 +42,56 @@ db.exec(`
   )
 `);
 
+db.exec(`
+  CREATE TABLE IF NOT EXISTS bets (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,
+    threshold REAL,
+    baseline_match_id TEXT,
+    status TEXT NOT NULL DEFAULT 'pending',
+    resolved_match_id TEXT,
+    actual_value REAL,
+    won INTEGER,
+    points INTEGER,
+    created_at INTEGER NOT NULL,
+    resolved_at INTEGER
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS match_assessments (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    match_id TEXT NOT NULL UNIQUE,
+    date TEXT NOT NULL,
+    map TEXT,
+    answers_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS weekly_narratives (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    week_start TEXT NOT NULL UNIQUE,
+    recap_json TEXT NOT NULL,
+    rank_json TEXT,
+    narrative_json TEXT NOT NULL,
+    created_at INTEGER NOT NULL
+  )
+`);
+
+db.exec(`
+  CREATE TABLE IF NOT EXISTS puzzles (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    date TEXT NOT NULL UNIQUE,
+    situation_json TEXT NOT NULL,
+    choice TEXT,
+    correct INTEGER,
+    created_at INTEGER NOT NULL,
+    answered_at INTEGER
+  )
+`);
+
 // Migration légère pour les bases déjà créées avant l'ajout de ces colonnes.
 try {
   db.exec('ALTER TABLE crosshairs ADD COLUMN color TEXT');
@@ -111,4 +161,100 @@ export function getStrategiesForMap(map) {
 
 export function deleteStrategy(id) {
   db.prepare('DELETE FROM strategies WHERE id = ?').run(id);
+}
+
+export function getPendingBet() {
+  return db.prepare("SELECT * FROM bets WHERE status = 'pending' ORDER BY created_at DESC LIMIT 1").get() ?? null;
+}
+
+export function createBet(type, threshold, baselineMatchId) {
+  db.prepare(
+    "INSERT INTO bets (type, threshold, baseline_match_id, status, created_at) VALUES (?, ?, ?, 'pending', ?)",
+  ).run(type, threshold ?? null, baselineMatchId ?? null, Date.now());
+  return getPendingBet();
+}
+
+export function cancelBet(id) {
+  db.prepare("DELETE FROM bets WHERE id = ? AND status = 'pending'").run(id);
+}
+
+export function resolveBet(id, resolvedMatchId, actualValue, won, points) {
+  db.prepare(
+    "UPDATE bets SET status = 'resolved', resolved_match_id = ?, actual_value = ?, won = ?, points = ?, resolved_at = ? WHERE id = ?",
+  ).run(resolvedMatchId, actualValue, won ? 1 : 0, points, Date.now(), id);
+  return db.prepare('SELECT * FROM bets WHERE id = ?').get(id);
+}
+
+export function getBetHistory(limit) {
+  return db.prepare("SELECT * FROM bets WHERE status = 'resolved' ORDER BY resolved_at DESC LIMIT ?").all(limit);
+}
+
+export function getTotalBetPoints() {
+  const row = db.prepare("SELECT COALESCE(SUM(points), 0) as total FROM bets WHERE status = 'resolved'").get();
+  return row.total;
+}
+
+export function getAssessmentForMatch(matchId) {
+  return db.prepare('SELECT * FROM match_assessments WHERE match_id = ?').get(matchId) ?? null;
+}
+
+export function saveAssessment(matchId, date, map, answersJson) {
+  db.prepare(
+    'INSERT INTO match_assessments (match_id, date, map, answers_json, created_at) VALUES (?, ?, ?, ?, ?)',
+  ).run(matchId, date, map || null, answersJson, Date.now());
+  return getAssessmentForMatch(matchId);
+}
+
+export function getAssessmentHistory(limit) {
+  return db.prepare('SELECT * FROM match_assessments ORDER BY created_at DESC LIMIT ?').all(limit);
+}
+
+export function getNarrativeForWeek(weekStart) {
+  return db.prepare('SELECT * FROM weekly_narratives WHERE week_start = ?').get(weekStart) ?? null;
+}
+
+export function getPreviousNarrative(weekStart) {
+  return (
+    db
+      .prepare('SELECT * FROM weekly_narratives WHERE week_start < ? ORDER BY week_start DESC LIMIT 1')
+      .get(weekStart) ?? null
+  );
+}
+
+export function saveNarrative(weekStart, recapJson, rankJson, narrativeJson) {
+  db.prepare(
+    'INSERT INTO weekly_narratives (week_start, recap_json, rank_json, narrative_json, created_at) VALUES (?, ?, ?, ?, ?)',
+  ).run(weekStart, recapJson, rankJson || null, narrativeJson, Date.now());
+  return getNarrativeForWeek(weekStart);
+}
+
+export function getNarrativeHistory(limit) {
+  return db.prepare('SELECT * FROM weekly_narratives ORDER BY week_start DESC LIMIT ?').all(limit);
+}
+
+export function getPuzzleByDate(date) {
+  return db.prepare('SELECT * FROM puzzles WHERE date = ?').get(date) ?? null;
+}
+
+export function savePuzzle(date, situationJson) {
+  db.prepare('INSERT INTO puzzles (date, situation_json, created_at) VALUES (?, ?, ?)').run(
+    date,
+    situationJson,
+    Date.now(),
+  );
+  return getPuzzleByDate(date);
+}
+
+export function answerPuzzle(date, choice, correct) {
+  db.prepare('UPDATE puzzles SET choice = ?, correct = ?, answered_at = ? WHERE date = ?').run(
+    choice,
+    correct ? 1 : 0,
+    Date.now(),
+    date,
+  );
+  return getPuzzleByDate(date);
+}
+
+export function getPuzzleHistory(limit) {
+  return db.prepare('SELECT * FROM puzzles ORDER BY date DESC LIMIT ?').all(limit);
 }

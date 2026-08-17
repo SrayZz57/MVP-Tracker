@@ -1,9 +1,16 @@
 import { useEffect, useMemo, useState } from 'react';
 import CrosshairPreview from './CrosshairPreview.jsx';
-import { CROSSHAIR_CATALOG, CROSSHAIR_COLOR_NAMES, CROSSHAIR_STYLE_NAMES, PRO_CROSSHAIRS } from './crosshairPresets.js';
+import { PRO_CROSSHAIRS } from './crosshairPresets.js';
 
-const CATALOG_PAGE_SIZE = 12;
-const PRO_PAGE_SIZE = 8;
+const PRO_PAGE_SIZE = 15;
+const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
+
+function normalizeText(value) {
+  return value
+    .normalize('NFD')
+    .replace(DIACRITICS_RE, '')
+    .toLowerCase();
+}
 
 function CrosshairLibrary() {
   const [crosshairs, setCrosshairs] = useState([]);
@@ -11,26 +18,24 @@ function CrosshairLibrary() {
   const [code, setCode] = useState('');
   const [color, setColor] = useState('');
   const [image, setImage] = useState('');
-  const [colorFilter, setColorFilter] = useState('');
-  const [styleFilter, setStyleFilter] = useState('');
-  const [showAllCatalog, setShowAllCatalog] = useState(false);
+  const [proSearch, setProSearch] = useState('');
   const [showAllPro, setShowAllPro] = useState(false);
 
-  const filteredCatalog = useMemo(
-    () =>
-      CROSSHAIR_CATALOG.filter(
-        (item) =>
-          (colorFilter === '' || item.colorName === colorFilter) &&
-          (styleFilter === '' || item.styleName === styleFilter),
-      ),
-    [colorFilter, styleFilter],
-  );
+  const filteredPro = useMemo(() => {
+    const query = normalizeText(proSearch.trim());
+    if (query === '') return PRO_CROSSHAIRS;
+    return PRO_CROSSHAIRS.filter((preset) => normalizeText(preset.name).includes(query));
+  }, [proSearch]);
 
   const refresh = () => window.electronAPI.listCrosshairs().then(setCrosshairs);
 
   useEffect(() => {
     refresh();
   }, []);
+
+  useEffect(() => {
+    setShowAllPro(false);
+  }, [proSearch]);
 
   const handleSave = async (event) => {
     event.preventDefault();
@@ -65,62 +70,48 @@ function CrosshairLibrary() {
 
   return (
     <div>
-      <div className="card">
-        <h2 style={{ marginBottom: '1rem' }}>🎯 Bibliothèque de crosshairs</h2>
-
-        <h3>Catalogue</h3>
-        <div className="filter-bar">
-          <select value={colorFilter} onChange={(e) => setColorFilter(e.target.value)}>
-            <option value="">Toutes les couleurs</option>
-            {CROSSHAIR_COLOR_NAMES.map((c) => (
-              <option key={c} value={c}>{c}</option>
-            ))}
-          </select>
-          <select value={styleFilter} onChange={(e) => setStyleFilter(e.target.value)}>
-            <option value="">Tous les styles</option>
-            {CROSSHAIR_STYLE_NAMES.map((s) => (
-              <option key={s} value={s}>{s}</option>
-            ))}
-          </select>
-          <span className="label">{filteredCatalog.length} crosshair(s)</span>
-        </div>
-        <div className="crosshair-grid">
-          {(showAllCatalog ? filteredCatalog : filteredCatalog.slice(0, CATALOG_PAGE_SIZE)).map((preset) => (
-            <div key={preset.name} className="crosshair-item">
-              <CrosshairPreview code={preset.code} />
-              <p>{preset.name}</p>
-              <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
-            </div>
-          ))}
-        </div>
-        {filteredCatalog.length > CATALOG_PAGE_SIZE && (
-          <button className="show-more-btn" onClick={() => setShowAllCatalog(!showAllCatalog)}>
-            {showAllCatalog ? '▲ Voir moins' : `▼ Voir plus (${filteredCatalog.length - CATALOG_PAGE_SIZE})`}
-          </button>
-        )}
+      <div className="card crosshair-hero">
+        <h2>🎯 Bibliothèque de crosshairs</h2>
+        <p className="label">
+          Pioche parmi {PRO_CROSSHAIRS.length} crosshairs de joueurs pro, ou ajoute tes propres codes. Tout ce que tu
+          enregistres va dans ta bibliothèque personnelle en bas de page.
+        </p>
       </div>
 
       <div className="card">
-        <h3>Crosshairs de pros</h3>
+        <h3>🏆 Crosshairs de pros</h3>
         <p className="label">Codes publiés par des joueurs pro (source : thespike.gg)</p>
-        <div className="crosshair-grid">
-          {(showAllPro ? PRO_CROSSHAIRS : PRO_CROSSHAIRS.slice(0, PRO_PAGE_SIZE)).map((preset) => (
-            <div key={preset.name} className="crosshair-item">
-              <CrosshairPreview code={preset.code} />
-              <p>{preset.name}</p>
-              <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
-            </div>
-          ))}
+        <div className="filter-bar">
+          <input
+            className="crosshair-pro-search"
+            placeholder="🔍 Chercher un pro (ex: TenZ, ScreaM...)"
+            value={proSearch}
+            onChange={(e) => setProSearch(e.target.value)}
+          />
+          <span className="heatmap-point-count">{filteredPro.length} résultat(s)</span>
         </div>
-        {PRO_CROSSHAIRS.length > PRO_PAGE_SIZE && (
+        {filteredPro.length === 0 ? (
+          <p>Aucun pro ne correspond à cette recherche.</p>
+        ) : (
+          <div className="crosshair-grid">
+            {(showAllPro ? filteredPro : filteredPro.slice(0, PRO_PAGE_SIZE)).map((preset) => (
+              <div key={preset.name} className="crosshair-item">
+                <CrosshairPreview code={preset.code} />
+                <p>{preset.name}</p>
+                <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
+              </div>
+            ))}
+          </div>
+        )}
+        {filteredPro.length > PRO_PAGE_SIZE && (
           <button className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
-            {showAllPro ? '▲ Voir moins' : `▼ Voir plus (${PRO_CROSSHAIRS.length - PRO_PAGE_SIZE})`}
+            {showAllPro ? '▲ Voir moins' : `▼ Voir plus (${filteredPro.length - PRO_PAGE_SIZE})`}
           </button>
         )}
       </div>
 
       <div className="card">
-        <h3>Ajouter un code perso</h3>
+        <h3>✏️ Ajouter un code perso</h3>
         <form onSubmit={handleSave} className="crosshair-form">
           <div className="crosshair-form-fields">
             <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} required />
@@ -152,9 +143,9 @@ function CrosshairLibrary() {
       </div>
 
       <div className="card">
-        <h3>Ta bibliothèque ({crosshairs.length})</h3>
+        <h3>📁 Ta bibliothèque ({crosshairs.length})</h3>
         {crosshairs.length === 0 ? (
-          <p>Aucun crosshair enregistré pour l'instant — pioche dans le catalogue ci-dessus ou ajoute ton propre code.</p>
+          <p>Aucun crosshair enregistré pour l'instant — pioche dans le catalogue pro ci-dessus ou ajoute ton propre code.</p>
         ) : (
           <div className="crosshair-grid">
             {crosshairs.map((ch) => (

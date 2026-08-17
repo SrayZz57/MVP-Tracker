@@ -14,6 +14,23 @@ import {
   saveStrategy,
   getStrategiesForMap,
   deleteStrategy,
+  getPuzzleByDate,
+  savePuzzle,
+  answerPuzzle,
+  getPuzzleHistory,
+  getNarrativeForWeek,
+  getPreviousNarrative,
+  saveNarrative,
+  getNarrativeHistory,
+  getAssessmentForMatch,
+  saveAssessment,
+  getAssessmentHistory,
+  getPendingBet,
+  createBet,
+  cancelBet,
+  resolveBet,
+  getBetHistory,
+  getTotalBetPoints,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
 
@@ -143,6 +160,48 @@ ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
   store.set('skinsCollection', next);
   return next;
 });
+
+ipcMain.handle('bet:get-pending', () => getPendingBet());
+
+ipcMain.handle('bet:create', (_event, { type, threshold, baselineMatchId }) =>
+  createBet(type, threshold, baselineMatchId),
+);
+
+ipcMain.handle('bet:cancel', (_event, id) => cancelBet(id));
+
+ipcMain.handle('bet:resolve', (_event, { id, resolvedMatchId, actualValue, won, points }) =>
+  resolveBet(id, resolvedMatchId, actualValue, won, points),
+);
+
+ipcMain.handle('bet:history', (_event, limit) => getBetHistory(limit ?? 30));
+
+ipcMain.handle('bet:total-points', () => getTotalBetPoints());
+
+ipcMain.handle('assessment:get', (_event, matchId) => getAssessmentForMatch(matchId));
+
+ipcMain.handle('assessment:save', (_event, { matchId, date, map, answersJson }) =>
+  saveAssessment(matchId, date, map, answersJson),
+);
+
+ipcMain.handle('assessment:history', (_event, limit) => getAssessmentHistory(limit ?? 30));
+
+ipcMain.handle('narrative:get', (_event, weekStart) => getNarrativeForWeek(weekStart));
+
+ipcMain.handle('narrative:get-previous', (_event, weekStart) => getPreviousNarrative(weekStart));
+
+ipcMain.handle('narrative:save', (_event, { weekStart, recapJson, rankJson, narrativeJson }) =>
+  saveNarrative(weekStart, recapJson, rankJson, narrativeJson),
+);
+
+ipcMain.handle('narrative:history', (_event, limit) => getNarrativeHistory(limit ?? 20));
+
+ipcMain.handle('puzzle:get', (_event, date) => getPuzzleByDate(date));
+
+ipcMain.handle('puzzle:save', (_event, { date, situationJson }) => savePuzzle(date, situationJson));
+
+ipcMain.handle('puzzle:answer', (_event, { date, choice, correct }) => answerPuzzle(date, choice, correct));
+
+ipcMain.handle('puzzle:history', (_event, limit) => getPuzzleHistory(limit ?? 30));
 
 ipcMain.handle('goals:get', () => store.get('personalGoals') || []);
 

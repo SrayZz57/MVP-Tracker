@@ -1,14 +1,7 @@
-import { useMemo, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { toPng } from 'html-to-image';
-import {
-  excludeDeathmatch,
-  matchesInCurrentWeek,
-  findMe,
-  groupStats,
-  formStats,
-  overallHsPercent,
-  overallWinrate,
-} from './valorantStats.js';
+import { matchesInCurrentWeek, lastCompletedWeekStart, weekStartKey } from './valorantStats.js';
+import { buildWeekRecap, generateNarrative } from './weeklyNarrative.js';
 import { useAgentPortraits } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 
@@ -18,38 +11,51 @@ function WeeklyRecapCard({ settings, matches, rank }) {
   const cardRef = useRef(null);
   const [open, setOpen] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [narrative, setNarrative] = useState(null);
+  const [history, setHistory] = useState([]);
+
+  const weekKey = useMemo(() => weekStartKey(lastCompletedWeekStart()), []);
 
   const recap = useMemo(() => {
     const weekAll = matchesInCurrentWeek(matches);
-    const week = excludeDeathmatch(weekAll);
-    if (week.length === 0) return null;
+    return buildWeekRecap(weekAll, settings.name, settings.tag);
+  }, [matches, settings.name, settings.tag]);
 
-    const agentRows = groupStats(week, settings.name, settings.tag, (match, me) => me.character);
-    const mapRows = groupStats(week, settings.name, settings.tag, (match) => match.metadata?.map).filter(
-      (row) => row.games >= 2 && row.winrate !== null,
-    );
-    const bestMap = mapRows.length > 0 ? mapRows.reduce((a, b) => (b.winrate > a.winrate ? b : a)) : null;
+  useEffect(() => {
+    if (!recap) return;
+    let cancelled = false;
 
-    let bestKd = null;
-    week.forEach((match) => {
-      const me = findMe(match, settings.name, settings.tag);
-      if (!me) return;
-      const kills = me.stats?.kills ?? 0;
-      const deaths = me.stats?.deaths ?? 0;
-      const kd = deaths > 0 ? kills / deaths : kills;
-      if (bestKd === null || kd > bestKd) bestKd = kd;
+    window.electronAPI.getWeeklyNarrative(weekKey).then(async (existing) => {
+      if (cancelled) return;
+      if (existing) {
+        setNarrative(JSON.parse(existing.narrative_json));
+        return;
+      }
+
+      const previous = await window.electronAPI.getPreviousWeeklyNarrative(weekKey);
+      const previousRank = previous?.rank_json ? JSON.parse(previous.rank_json) : null;
+      const currentRank = rank ? { tierId: rank.tierId, tierName: rank.tierName, rr: rank.rr } : null;
+      const paragraphs = generateNarrative(recap, currentRank, previousRank);
+
+      await window.electronAPI.saveWeeklyNarrative(
+        weekKey,
+        JSON.stringify(recap),
+        currentRank ? JSON.stringify(currentRank) : null,
+        JSON.stringify(paragraphs),
+      );
+      if (cancelled) return;
+      setNarrative(paragraphs);
     });
 
-    return {
-      games: week.length,
-      winrate: overallWinrate(week, settings.name, settings.tag),
-      kd: formStats(week, settings.name, settings.tag).overallKd,
-      hsPercent: overallHsPercent(weekAll, settings.name, settings.tag),
-      bestAgent: agentRows[0] ?? null,
-      bestMap,
-      bestKd,
+    return () => {
+      cancelled = true;
     };
-  }, [matches, settings.name, settings.tag]);
+  }, [recap, weekKey, rank]);
+
+  useEffect(() => {
+    if (!open) return;
+    window.electronAPI.getWeeklyNarrativeHistory(20).then((rows) => setHistory(rows.filter((r) => r.week_start !== weekKey)));
+  }, [open, weekKey]);
 
   const handleExport = () => {
     if (!cardRef.current) return;
@@ -140,10 +146,33 @@ function WeeklyRecapCard({ settings, matches, rank }) {
                   {exporting ? 'Export en cours...' : '📷 Exporter en image'}
                 </button>
 
+                {narrative && (
+                  <div className="weekly-narrative">
+                    <h4>📖 Ton récit de la semaine</h4>
+                    {narrative.map((paragraph, i) => (
+                      <p key={i}>{paragraph}</p>
+                    ))}
+                  </div>
+                )}
+
                 <p className="weekly-drawer-hint">
                   📅 Chaque lundi, ce wrapped se remet à zéro et récapitule les 7 jours précédents — reviens ici en
                   début de semaine pour voir ton résumé et le partager si tu veux.
                 </p>
+
+                {history.length > 0 && (
+                  <div className="weekly-narrative-history">
+                    <h4>Semaines précédentes</h4>
+                    {history.map((row) => (
+                      <div key={row.id} className="weekly-narrative-history-item">
+                        <div className="weekly-narrative-history-date">Semaine du {row.week_start}</div>
+                        {JSON.parse(row.narrative_json).map((paragraph, i) => (
+                          <p key={i}>{paragraph}</p>
+                        ))}
+                      </div>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

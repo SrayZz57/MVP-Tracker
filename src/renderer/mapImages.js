@@ -4,10 +4,20 @@ let cache = null;
 let minimapCache = null;
 let coordinatesCache = null;
 
+// L'endpoint /v1/maps renvoie aussi des maps d'entraînement/événements qui
+// n'existent pas en vrai partie (Skirmish A-E, District, Kasbah, Drift,
+// Glitch, Piazza, Basic Training, The Range) — vérifié via recherche du pool
+// de maps réel (compétitif + celles juste sorties de rotation mais toujours
+// jouables en Non classé/Swiftplay).
+const REAL_MAPS = new Set([
+  'Ascent', 'Bind', 'Breeze', 'Corrode', 'Fracture', 'Haven', 'Icebox',
+  'Lotus', 'Pearl', 'Split', 'Summit', 'Sunset', 'Abyss',
+]);
+
 async function loadMaps() {
   const response = await fetch('https://valorant-api.com/v1/maps');
   const json = await response.json();
-  return json.data.filter((map) => map.displayName !== 'The Range');
+  return json.data.filter((map) => REAL_MAPS.has(map.displayName));
 }
 
 async function loadMapImages() {

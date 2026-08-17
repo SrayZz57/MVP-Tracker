@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { Canvas, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
+import { Canvas, Control, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
 import spikeIconUrl from '../assets/spike.png';
@@ -26,6 +26,50 @@ function buildSightlinePoints() {
 
 function genMarkerId() {
   return `m-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+}
+
+// Poignée de rotation libre pour la ligne de vue : positionnée au bord droit
+// de sa bounding box (x:0.5, y:0), ce qui correspond exactement à la pointe
+// du cône (le rayon central de buildSightlinePoints() passe par ce point).
+// L'action pivote autour de l'ancrage réel de l'objet (getPositionByOrigin),
+// pas autour de son centre visuel — contrairement à la poignée 'mtr' par
+// défaut de Fabric, qui pivote toujours au centre et ferait dériver la
+// pointe hors de la position du joueur.
+function renderSightlineRotateHandle(ctx, left, top, styleOverride, fabricObject) {
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(left, top, 7, 0, Math.PI * 2, false);
+  ctx.fillStyle = '#ffffff';
+  ctx.fill();
+  ctx.lineWidth = 2;
+  ctx.strokeStyle = fabricObject.stroke || DEFAULT_COLOR;
+  ctx.stroke();
+  ctx.restore();
+}
+
+function sightlineRotateActionHandler(eventData, transform, x, y) {
+  const { target } = transform;
+  const pivot = target.getPositionByOrigin(target.originX, target.originY);
+  let angle = (Math.atan2(y - pivot.y, x - pivot.x) * 180) / Math.PI;
+  if (angle < 0) angle += 360;
+  target.set('angle', angle % 360);
+  return true;
+}
+
+function createSightlineRotateControl() {
+  return new Control({
+    x: 0.5,
+    y: 0,
+    cursorStyle: 'grab',
+    actionName: 'rotate',
+    render: renderSightlineRotateHandle,
+    actionHandler: sightlineRotateActionHandler,
+  });
+}
+
+function attachSightlineControls(obj) {
+  obj.setControlVisible('mtr', false);
+  obj.controls = { ...obj.controls, rotateFree: createSightlineRotateControl() };
 }
 
 const SHAPE_TOOLS = [
@@ -86,6 +130,8 @@ function StrategyBoard() {
   const [strategyName, setStrategyName] = useState('');
   const [strategies, setStrategies] = useState([]);
   const [selectedSightline, setSelectedSightline] = useState(null);
+  const [sightlineAttached, setSightlineAttached] = useState(false);
+  const [lockPicking, setLockPicking] = useState(false);
 
   const canvasElRef = useRef(null);
   const fabricCanvasRef = useRef(null);
@@ -97,6 +143,8 @@ function StrategyBoard() {
   const panningRef = useRef(null);
   const fitZoomRef = useRef(1);
   const initialViewportRef = useRef(null);
+  const lockPickingRef = useRef(false);
+  const pendingLockSightlineRef = useRef(null);
 
   const abilitiesForAgent = agentAbilities.get(selectedAgent) ?? [];
 
@@ -111,6 +159,10 @@ function StrategyBoard() {
   useEffect(() => {
     layersRef.current = layers;
   }, [layers]);
+
+  useEffect(() => {
+    lockPickingRef.current = lockPicking;
+  }, [lockPicking]);
 
   useEffect(() => {
     if (!selectedMap && mapNames.length > 0) {
@@ -140,6 +192,25 @@ function StrategyBoard() {
     });
 
     canvas.on('mouse:down', (opt) => {
+      if (lockPickingRef.current) {
+        const marker = opt.target?.isPositionMarker ? opt.target : null;
+        const sightline = pendingLockSightlineRef.current;
+        if (marker && sightline) {
+          sightline.set({
+            attachedTo: marker.markerId,
+            lockMovementX: true,
+            lockMovementY: true,
+            left: marker.left,
+            top: marker.top,
+          });
+          canvas.requestRenderAll();
+        }
+        pendingLockSightlineRef.current = null;
+        lockPickingRef.current = false;
+        setLockPicking(false);
+        return;
+      }
+
       const currentTool = toolRef.current;
 
       if (currentTool === 'pan') {
@@ -291,11 +362,14 @@ function StrategyBoard() {
           obj.set({ attachedTo: null, lockMovementX: false, lockMovementY: false });
         }
       });
+      updateSelection();
     });
 
     const updateSelection = () => {
       const active = canvas.getActiveObject();
-      setSelectedSightline(active && active.isSightline ? active : null);
+      const sightline = active && active.isSightline ? active : null;
+      setSelectedSightline(sightline);
+      setSightlineAttached(!!sightline?.attachedTo);
     };
     canvas.on('selection:created', updateSelection);
     canvas.on('selection:updated', updateSelection);
@@ -306,6 +380,11 @@ function StrategyBoard() {
       if (tag === 'INPUT' || tag === 'TEXTAREA') return;
       if (e.key === 'Delete' || e.key === 'Backspace') {
         removeActiveObjects(canvas);
+      }
+      if (e.key === 'Escape' && lockPickingRef.current) {
+        pendingLockSightlineRef.current = null;
+        lockPickingRef.current = false;
+        setLockPicking(false);
       }
     };
     window.addEventListener('keydown', handleKeyDown);
@@ -451,10 +530,11 @@ function StrategyBoard() {
       lockMovementX: !!marker,
       lockMovementY: !!marker,
     });
-    // La rotation se fait via les boutons ↺/↻ (pivot sur la position, pas le
-    // centre de la forme) — la poignée de rotation par défaut de Fabric pivote
-    // toujours au centre, donc on la masque pour ne pas induire en erreur.
-    cone.setControlVisible('mtr', false);
+    // Rotation libre via une poignée custom ancrée sur la position (pas le
+    // centre de la forme comme le ferait la poignée 'mtr' par défaut de
+    // Fabric) — voir attachSightlineControls(). Les boutons ↺/↻ restent
+    // disponibles pour des ajustements précis en plus du glisser-déposer.
+    attachSightlineControls(cone);
     tagLayer(cone, 'icons');
     canvas.add(cone);
     canvas.setActiveObject(cone);
@@ -466,6 +546,28 @@ function StrategyBoard() {
     if (!canvas || !selectedSightline) return;
     selectedSightline.set('angle', ((selectedSightline.angle || 0) + delta + 360) % 360);
     canvas.requestRenderAll();
+  }
+
+  // Arme le mode "verrouillage" : le prochain clic sur une position joueur
+  // sur la carte attache la ligne de vue sélectionnée à ce marqueur (elle se
+  // recale dessus et le suit désormais), sans perdre son orientation actuelle.
+  function armLockToPlayer() {
+    if (!selectedSightline) return;
+    pendingLockSightlineRef.current = selectedSightline;
+    setLockPicking(true);
+  }
+
+  function cancelLockToPlayer() {
+    pendingLockSightlineRef.current = null;
+    setLockPicking(false);
+  }
+
+  function detachSightline() {
+    const canvas = fabricCanvasRef.current;
+    if (!canvas || !selectedSightline) return;
+    selectedSightline.set({ attachedTo: null, lockMovementX: false, lockMovementY: false });
+    canvas.requestRenderAll();
+    setSightlineAttached(false);
   }
 
   function handleDeleteSelection() {
@@ -501,7 +603,7 @@ function StrategyBoard() {
     const data = JSON.parse(entry.canvas_json);
     canvas.loadFromJSON(data).then(() => {
       canvas.getObjects().forEach((obj) => {
-        if (obj.isSightline) obj.setControlVisible('mtr', false);
+        if (obj.isSightline) attachSightlineControls(obj);
       });
       rescaleIcons(canvas);
     });
@@ -604,7 +706,7 @@ function StrategyBoard() {
           </button>
           <button
             className="strategy-tool"
-            title="Ligne de vue (FOV réel 103°, orientable). Sélectionne une position joueur avant de cliquer pour l'y attacher."
+            title="Ligne de vue (FOV réel 103°). Glisse le point blanc à sa pointe pour la pivoter librement, ou utilise 'Lier à un joueur' pour la fixer sur une position déjà placée."
             onClick={handlePlaceSightline}
           >
             👁️ Ligne de vue
@@ -618,6 +720,19 @@ function StrategyBoard() {
               <button className="strategy-tool" onClick={() => rotateSightline(15)}>
                 ↻ 15°
               </button>
+              {sightlineAttached ? (
+                <button className="strategy-tool" onClick={detachSightline}>
+                  🔓 Détacher du joueur
+                </button>
+              ) : lockPicking ? (
+                <button className="strategy-tool active" onClick={cancelLockToPlayer}>
+                  🔒 Clique sur un joueur sur la carte… (Échap pour annuler)
+                </button>
+              ) : (
+                <button className="strategy-tool" onClick={armLockToPlayer}>
+                  🔒 Lier à un joueur
+                </button>
+              )}
             </>
           )}
         </div>

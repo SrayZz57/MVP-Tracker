@@ -130,7 +130,144 @@ export function clutchStats(matches, name, tag) {
   return { attempts, wins, winrate: attempts > 0 ? (wins / attempts) * 100 : null };
 }
 
-const ECONOMY_TIERS = [
+// Premier kill du round (toutes équipes confondues) : le joueur suivi en est
+// soit l'auteur ("premier sang"), soit la victime ("première mort"). Sert de
+// proxy d'agressivité — plus fiable qu'un ratio K/D brut puisqu'il capture
+// spécifiquement la prise d'initiative en tout début de round.
+export function firstBloodStats(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  let firstBloods = 0;
+  let firstDeaths = 0;
+  let roundsWithKills = 0;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    (match.rounds || []).forEach((round) => {
+      const allKills = [];
+      (round.player_stats || []).forEach((ps) => (ps.kill_events || []).forEach((k) => allKills.push(k)));
+      if (allKills.length === 0) return;
+
+      allKills.sort((a, b) => a.kill_time_in_round - b.kill_time_in_round);
+      const first = allKills[0];
+      roundsWithKills += 1;
+      if (first.killer_display_name?.toLowerCase() === fullName) firstBloods += 1;
+      else if (first.victim_display_name?.toLowerCase() === fullName) firstDeaths += 1;
+    });
+  });
+
+  const involved = firstBloods + firstDeaths;
+  return { firstBloods, firstDeaths, roundsWithKills, ratio: involved > 0 ? (firstBloods / involved) * 100 : null };
+}
+
+// Fréquence de tilt sur l'historique récent : proportion des matchs qui font
+// partie d'une série de 3 défaites consécutives ou plus, rejouée en ordre
+// chronologique (même seuil que tiltStatus(), mais mesuré dans le temps
+// plutôt qu'à l'instant présent).
+export function tiltFrequency(matches, name, tag) {
+  const chronological = [...excludeDeathmatch(matches)].reverse();
+  const results = chronological
+    .map((match) => {
+      const me = findMe(match, name, tag);
+      return me ? resultLabel(match, me) : null;
+    })
+    .filter(Boolean);
+
+  if (results.length === 0) return { total: 0, tiltedCount: 0, percent: null };
+
+  let tiltedCount = 0;
+  let streak = 0;
+  results.forEach((label) => {
+    if (label === 'Défaite') {
+      streak += 1;
+      if (streak >= 3) tiltedCount += 1;
+    } else {
+      streak = 0;
+    }
+  });
+
+  return { total: results.length, tiltedCount, percent: (tiltedCount / results.length) * 100 };
+}
+
+// Valorant tourne sur Unreal Engine (4 puis 5), dont la convention par défaut est
+// 1 unité = 1 cm — pas de documentation officielle Riot sur ce ratio précis, donc
+// distance approximative, mais cohérente avec la taille réelle des maps.
+const UNITS_PER_METER = 100;
+
+// Seuils en mètres — killDistance() convertit déjà les unités brutes en mètres.
+const DISTANCE_BUCKETS = [
+  { id: 'close', label: 'Courte (< 8m)', max: 8 },
+  { id: 'mid', label: 'Moyenne (8-20m)', max: 20 },
+  { id: 'long', label: 'Longue (20-35m)', max: 35 },
+  { id: 'verylong', label: 'Très longue (35m+)', max: Infinity },
+];
+
+function killDistance(k) {
+  const killerLocation = k.player_locations_on_kill?.find((p) => p.player_puuid === k.killer_puuid)?.location;
+  if (!killerLocation || !k.victim_death_location) return null;
+  const dx = killerLocation.x - k.victim_death_location.x;
+  const dy = killerLocation.y - k.victim_death_location.y;
+  return Math.sqrt(dx * dx + dy * dy) / UNITS_PER_METER;
+}
+
+// Riot n'expose aucune donnée de précision de tir (pas de balles tirées/ratées) —
+// impossible de calculer une vraie "accuracy". Le meilleur proxy honnête pour voir
+// si l'aim baisse avec la distance : le taux de victoire en duel (kills vs morts du
+// joueur suivi) selon la distance entre les deux joueurs au moment du kill.
+export function duelDistanceStats(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  const buckets = {};
+  DISTANCE_BUCKETS.forEach((b) => { buckets[b.id] = { kills: 0, deaths: 0 }; });
+
+  const killDistances = [];
+  const deathDistances = [];
+
+  excludeDeathmatch(matches).forEach((match) => {
+    (match.rounds || []).forEach((round) => {
+      (round.player_stats || []).forEach((ps) => {
+        (ps.kill_events || []).forEach((k) => {
+          const isMyKill = k.killer_display_name?.toLowerCase() === fullName;
+          const isMyDeath = k.victim_display_name?.toLowerCase() === fullName;
+          if (!isMyKill && !isMyDeath) return;
+
+          const distance = killDistance(k);
+          if (distance === null) return;
+
+          const bucket = DISTANCE_BUCKETS.find((b) => distance < b.max);
+          if (isMyKill) {
+            buckets[bucket.id].kills += 1;
+            killDistances.push(distance);
+          }
+          if (isMyDeath) {
+            buckets[bucket.id].deaths += 1;
+            deathDistances.push(distance);
+          }
+        });
+      });
+    });
+  });
+
+  const average = (arr) => (arr.length > 0 ? arr.reduce((sum, v) => sum + v, 0) / arr.length : null);
+
+  const rows = DISTANCE_BUCKETS.map((b) => {
+    const { kills, deaths } = buckets[b.id];
+    const total = kills + deaths;
+    return { id: b.id, label: b.label, kills, deaths, total, winrate: total > 0 ? (kills / total) * 100 : null };
+  });
+
+  const withEnoughDuels = rows.filter((r) => r.total >= 3);
+  const closest = withEnoughDuels[0] ?? null;
+  const farthest = withEnoughDuels.length > 0 ? withEnoughDuels[withEnoughDuels.length - 1] : null;
+  const dropOff =
+    closest && farthest && closest.id !== farthest.id ? closest.winrate - farthest.winrate : null;
+
+  return {
+    rows,
+    avgKillDistance: average(killDistances),
+    avgDeathDistance: average(deathDistances),
+    dropOff,
+  };
+}
+
+export const ECONOMY_TIERS = [
   { id: 'eco', label: 'Éco', max: 2000 },
   { id: 'semi', label: 'Semi-buy', max: 3900 },
   { id: 'full', label: 'Full buy', max: Infinity },
@@ -472,19 +609,36 @@ function startOfCurrentWeek() {
   return monday;
 }
 
+// Lundi 00h00 (heure locale) de la dernière semaine complète (celle qui
+// précède la semaine en cours) — sert de clé stable pour identifier "la
+// semaine dernière" indépendamment du jour où on la consulte.
+export function lastCompletedWeekStart() {
+  const thisMonday = startOfCurrentWeek().getTime();
+  return new Date(thisMonday - 7 * 24 * 60 * 60 * 1000);
+}
+
+export function weekStartKey(date) {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+}
+
+// Matchs joués entre weekStart (inclus) et weekStart+7j (exclu).
+export function matchesInWeek(matches, weekStart) {
+  const start = weekStart.getTime();
+  const end = start + 7 * 24 * 60 * 60 * 1000;
+  return matches.filter((match) => {
+    const gameStart = match?.metadata?.game_start;
+    if (!gameStart) return false;
+    const ts = gameStart * 1000;
+    return ts >= start && ts < end;
+  });
+}
+
 // Le wrapped montre la dernière semaine complète (lundi-dimanche précédents),
 // pas la semaine en cours : sinon le lundi matin, avant d'avoir rejoué, le
 // wrapped serait vide au lieu de récapituler ce qui vient de se terminer. Il
 // change donc une fois par semaine, le lundi, quand "la semaine dernière" avance.
 export function matchesInCurrentWeek(matches) {
-  const thisMonday = startOfCurrentWeek().getTime();
-  const lastMonday = thisMonday - 7 * 24 * 60 * 60 * 1000;
-  return matches.filter((match) => {
-    const gameStart = match?.metadata?.game_start;
-    if (!gameStart) return false;
-    const ts = gameStart * 1000;
-    return ts >= lastMonday && ts < thisMonday;
-  });
+  return matchesInWeek(matches, lastCompletedWeekStart());
 }
 
 // Suppose `matches` triés du plus récent au plus ancien (c'est l'ordre renvoyé par le cache SQLite).

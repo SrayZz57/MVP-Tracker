@@ -19,6 +19,27 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveStrategy: (name, map, canvasJson) =>
     ipcRenderer.invoke('strategy:save', { name, map, canvasJson }),
   deleteStrategy: (id) => ipcRenderer.invoke('strategy:delete', id),
+  getPendingBet: () => ipcRenderer.invoke('bet:get-pending'),
+  createBet: (type, threshold, baselineMatchId) =>
+    ipcRenderer.invoke('bet:create', { type, threshold, baselineMatchId }),
+  cancelBet: (id) => ipcRenderer.invoke('bet:cancel', id),
+  resolveBet: (id, resolvedMatchId, actualValue, won, points) =>
+    ipcRenderer.invoke('bet:resolve', { id, resolvedMatchId, actualValue, won, points }),
+  getBetHistory: (limit) => ipcRenderer.invoke('bet:history', limit),
+  getTotalBetPoints: () => ipcRenderer.invoke('bet:total-points'),
+  getMatchAssessment: (matchId) => ipcRenderer.invoke('assessment:get', matchId),
+  saveMatchAssessment: (matchId, date, map, answersJson) =>
+    ipcRenderer.invoke('assessment:save', { matchId, date, map, answersJson }),
+  getMatchAssessmentHistory: (limit) => ipcRenderer.invoke('assessment:history', limit),
+  getWeeklyNarrative: (weekStart) => ipcRenderer.invoke('narrative:get', weekStart),
+  getPreviousWeeklyNarrative: (weekStart) => ipcRenderer.invoke('narrative:get-previous', weekStart),
+  saveWeeklyNarrative: (weekStart, recapJson, rankJson, narrativeJson) =>
+    ipcRenderer.invoke('narrative:save', { weekStart, recapJson, rankJson, narrativeJson }),
+  getWeeklyNarrativeHistory: (limit) => ipcRenderer.invoke('narrative:history', limit),
+  getPuzzle: (date) => ipcRenderer.invoke('puzzle:get', date),
+  savePuzzle: (date, situationJson) => ipcRenderer.invoke('puzzle:save', { date, situationJson }),
+  answerPuzzle: (date, choice, correct) => ipcRenderer.invoke('puzzle:answer', { date, choice, correct }),
+  getPuzzleHistory: (limit) => ipcRenderer.invoke('puzzle:history', limit),
   getSkinsWishlist: () => ipcRenderer.invoke('skins:get-wishlist'),
   toggleSkinWishlist: (uuid) => ipcRenderer.invoke('skins:toggle-wishlist', uuid),
   getSkinsCollection: () => ipcRenderer.invoke('skins:get-collection'),

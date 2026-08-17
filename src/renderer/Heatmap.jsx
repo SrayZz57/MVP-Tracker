@@ -139,7 +139,12 @@ function Heatmap({ settings, matches }) {
               <option key={w} value={w}>{w}</option>
             ))}
           </select>
-          <span className="label">{points.length} point(s) analysé(s)</span>
+          <span className="heatmap-point-count">📍 {points.length} point(s) analysé(s)</span>
+          <div className="heatmap-legend">
+            <span>faible</span>
+            <span className={`heatmap-legend-bar ${mode}`} />
+            <span>élevé</span>
+          </div>
         </div>
 
         <div className="heatmap-canvas-wrap">

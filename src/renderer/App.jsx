@@ -9,8 +9,16 @@ import StrategyTab from './tabs/StrategyTab.jsx';
 import SkinsTab from './tabs/SkinsTab.jsx';
 import HeatmapTab from './tabs/HeatmapTab.jsx';
 import AnalyseTab from './tabs/AnalyseTab.jsx';
+import CompositionTab from './tabs/CompositionTab.jsx';
+import HallOfFameTab from './tabs/HallOfFameTab.jsx';
+import TeammatesRivalsTab from './tabs/TeammatesRivalsTab.jsx';
+import BuySimulatorTab from './tabs/BuySimulatorTab.jsx';
+import BetsTab from './tabs/BetsTab.jsx';
+import SessionGuideTab from './tabs/SessionGuideTab.jsx';
+import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
 import GoalsWidget from './GoalsWidget.jsx';
 import WeeklyRecapCard from './WeeklyRecapCard.jsx';
+import PostMortemModal from './PostMortemModal.jsx';
 import SearchBar from './SearchBar.jsx';
 import WelcomeScreen from './WelcomeScreen.jsx';
 import { useRankTiers, usePlayerCardArt } from './rankData.js';
@@ -25,6 +33,8 @@ const NAV_SECTIONS = [
       { id: 'tilt', label: 'Tilt', icon: '😤' },
       { id: 'heatmap', label: 'Heatmap', icon: '🔥' },
       { id: 'analyse', label: 'Analyse', icon: '🧠' },
+      { id: 'hall-of-fame', label: 'Hall of Fame', icon: '🏆' },
+      { id: 'social', label: 'Coéquipiers & Rivaux', icon: '🤝' },
     ],
   },
   {
@@ -32,24 +42,34 @@ const NAV_SECTIONS = [
     tabs: [{ id: 'reseau', label: 'Réseau', icon: '📶' }],
   },
   {
+    label: 'Entraînement',
+    tabs: [
+      { id: 'session', label: 'Session guidée', icon: '🎬' },
+      { id: 'puzzle', label: 'Puzzle du jour', icon: '🎲' },
+      { id: 'bets', label: 'Paris perso', icon: '🎰' },
+    ],
+  },
+  {
     label: 'Outils',
     tabs: [
       { id: 'crosshairs', label: 'Crosshairs', icon: '🎯' },
       { id: 'strategie', label: 'Stratégie', icon: '🗺️' },
       { id: 'skins', label: 'Skins', icon: '💎' },
+      { id: 'composition', label: 'Composition', icon: '🧩' },
+      { id: 'buy-simulator', label: "Simulation d'achat", icon: '💰' },
     ],
   },
 ];
 
 const ALL_TABS = NAV_SECTIONS.flatMap((s) => s.tabs);
 
-function SidebarProfile({ settings, rank }) {
+function SidebarProfile({ settings, rank, onClick }) {
   const rankTiers = useRankTiers();
   const playerCardArt = usePlayerCardArt(rank?.cardUuid);
   const currentTier = rank ? rankTiers.get(rank.tierId) : null;
 
   return (
-    <div className="sidebar-profile">
+    <button className="sidebar-profile" onClick={onClick}>
       <div className="sidebar-profile-avatar">
         {playerCardArt.icon ? <img src={playerCardArt.icon} alt="" /> : <span>{settings.name.charAt(0)}</span>}
       </div>
@@ -67,7 +87,7 @@ function SidebarProfile({ settings, rank }) {
           <div className="sidebar-profile-rank label">Rang indisponible</div>
         )}
       </div>
-    </div>
+    </button>
   );
 }
 
@@ -108,6 +128,20 @@ function App() {
         return <HeatmapTab settings={settings} matches={data.matches} />;
       case 'analyse':
         return <AnalyseTab settings={settings} matches={data.matches} />;
+      case 'composition':
+        return <CompositionTab settings={settings} matches={data.matches} />;
+      case 'hall-of-fame':
+        return <HallOfFameTab settings={settings} matches={data.matches} />;
+      case 'social':
+        return <TeammatesRivalsTab settings={settings} matches={data.matches} />;
+      case 'buy-simulator':
+        return <BuySimulatorTab settings={settings} matches={data.matches} />;
+      case 'bets':
+        return <BetsTab settings={settings} matches={data.matches} />;
+      case 'session':
+        return <SessionGuideTab settings={settings} matches={data.matches} />;
+      case 'puzzle':
+        return <DailyPuzzleTab settings={settings} matches={data.matches} />;
       default:
         return null;
     }
@@ -141,7 +175,7 @@ function App() {
           ))}
         </div>
 
-        <SidebarProfile settings={settings} rank={data.rank} />
+        <SidebarProfile settings={settings} rank={data.rank} onClick={() => setActiveTab('stats')} />
       </nav>
 
       <div className="main-area">
@@ -165,6 +199,7 @@ function App() {
 
       <GoalsWidget matches={data.matches} settings={settings} />
       <WeeklyRecapCard matches={data.matches} settings={settings} rank={data.rank} />
+      <PostMortemModal matches={data.matches} settings={settings} />
     </div>
   );
 }
