@@ -15,9 +15,20 @@ export const TIER_PRICES = {
 // Les couteaux coûtent environ le double d'une arme à feu de la même rareté
 // (quasi tous les couteaux sont en tier "Exclusive" dans les données du jeu,
 // mais un skin d'arme Exclusive et un couteau Exclusive n'ont pas le même prix
-// en jeu — vérifié par recherche, le ratio ~2x est constant sur tous les tiers).
+// en jeu — vérifié par recherche, le ratio ~2x est constant sur tous les tiers
+// pour la grande majorité des couteaux "standard").
 const MELEE_CATEGORY = 'EEquippableCategory::Melee';
 const MELEE_PRICE_MULTIPLIER = 2;
+
+// Quelques couteaux "hors norme" (éditions spéciales/bundles/collab) ne
+// suivent pas le ×2 standard — recherché le 2026-08-17. Liste volontairement
+// courte : plusieurs autres couteaux repérés comme "hors norme" pendant la
+// recherche (ex. Magepunk Electroblade, VCT LOCK//IN Misericórdia) avaient des
+// sources contradictoires sur leur tier réel, donc pas assez fiables pour être
+// inclus ici plutôt que de risquer un chiffre faux.
+const MELEE_PRICE_OVERRIDES = {
+  'Power Fist': 5950, // RDS — le couteau le plus cher jamais sorti par Riot, confirmé par plusieurs sources
+};
 
 let cache = null;
 
@@ -55,6 +66,7 @@ async function loadCatalog() {
       const video = levelsWithVideo.length > 0 ? levelsWithVideo[levelsWithVideo.length - 1].streamedVideo : null;
       const basePrice = TIER_PRICES[tier.tierName] ?? 0;
       const isMelee = weapon.category === MELEE_CATEGORY;
+      const meleeOverride = isMelee ? MELEE_PRICE_OVERRIDES[skin.displayName] : undefined;
       skins.push({
         uuid: skin.uuid,
         name: skin.displayName,
@@ -65,7 +77,7 @@ async function loadCatalog() {
         video,
         chromas: skin.chromas,
         ...tier,
-        estimatedPriceVp: isMelee ? basePrice * MELEE_PRICE_MULTIPLIER : basePrice,
+        estimatedPriceVp: meleeOverride ?? (isMelee ? basePrice * MELEE_PRICE_MULTIPLIER : basePrice),
       });
     }
   }

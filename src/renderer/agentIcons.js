@@ -54,6 +54,18 @@ export function useAgentRoles() {
   return roles;
 }
 
+// Données brutes complètes (rôle, description, capacités avec description) —
+// pour le wiki, qui a besoin de plus que les Maps ciblées des autres hooks.
+export function useAgentsData() {
+  const [agents, setAgents] = useState([]);
+
+  useEffect(() => {
+    loadAgents().then(setAgents);
+  }, []);
+
+  return agents;
+}
+
 const PLACEABLE_SLOTS = ['Ability1', 'Ability2', 'Grenade', 'Ultimate'];
 
 export function useAgentAbilities() {
@@ -67,7 +79,7 @@ export function useAgentAbilities() {
             agent.displayName,
             agent.abilities
               .filter((ability) => PLACEABLE_SLOTS.includes(ability.slot) && ability.displayIcon)
-              .map((ability) => ({ name: ability.displayName, icon: ability.displayIcon })),
+              .map((ability) => ({ name: ability.displayName, icon: ability.displayIcon, slot: ability.slot })),
           ]),
         ),
       );

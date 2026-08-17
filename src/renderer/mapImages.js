@@ -14,10 +14,15 @@ const REAL_MAPS = new Set([
   'Lotus', 'Pearl', 'Split', 'Summit', 'Sunset', 'Abyss',
 ]);
 
-async function loadMaps() {
-  const response = await fetch('https://valorant-api.com/v1/maps');
-  const json = await response.json();
-  return json.data.filter((map) => REAL_MAPS.has(map.displayName));
+let mapsPromise = null;
+
+function loadMaps() {
+  if (!mapsPromise) {
+    mapsPromise = fetch('https://valorant-api.com/v1/maps?language=fr-FR')
+      .then((response) => response.json())
+      .then((json) => json.data.filter((map) => REAL_MAPS.has(map.displayName)));
+  }
+  return mapsPromise;
 }
 
 async function loadMapImages() {
@@ -79,4 +84,16 @@ export function useMapCoordinates() {
   }, []);
 
   return coordinates;
+}
+
+// Données complètes des vraies maps (nombre de sites, coordonnées in-fiction,
+// splash art) pour le wiki.
+export function useMapsData() {
+  const [maps, setMaps] = useState([]);
+
+  useEffect(() => {
+    loadMaps().then(setMaps);
+  }, []);
+
+  return maps;
 }

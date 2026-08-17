@@ -11,11 +11,13 @@ import HeatmapTab from './tabs/HeatmapTab.jsx';
 import AnalyseTab from './tabs/AnalyseTab.jsx';
 import CompositionTab from './tabs/CompositionTab.jsx';
 import HallOfFameTab from './tabs/HallOfFameTab.jsx';
+import PerformanceChartsTab from './tabs/PerformanceChartsTab.jsx';
 import TeammatesRivalsTab from './tabs/TeammatesRivalsTab.jsx';
 import BuySimulatorTab from './tabs/BuySimulatorTab.jsx';
 import BetsTab from './tabs/BetsTab.jsx';
 import SessionGuideTab from './tabs/SessionGuideTab.jsx';
 import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
+import WikiTab from './tabs/WikiTab.jsx';
 import GoalsWidget from './GoalsWidget.jsx';
 import WeeklyRecapCard from './WeeklyRecapCard.jsx';
 import PostMortemModal from './PostMortemModal.jsx';
@@ -35,6 +37,7 @@ const NAV_SECTIONS = [
       { id: 'analyse', label: 'Analyse', icon: '🧠' },
       { id: 'hall-of-fame', label: 'Hall of Fame', icon: '🏆' },
       { id: 'social', label: 'Coéquipiers & Rivaux', icon: '🤝' },
+      { id: 'graphiques', label: 'Graphiques', icon: '📈' },
     ],
   },
   {
@@ -57,6 +60,7 @@ const NAV_SECTIONS = [
       { id: 'skins', label: 'Skins', icon: '💎' },
       { id: 'composition', label: 'Composition', icon: '🧩' },
       { id: 'buy-simulator', label: "Simulation d'achat", icon: '💰' },
+      { id: 'wiki', label: 'Wiki', icon: '📖' },
     ],
   },
 ];
@@ -132,6 +136,8 @@ function App() {
         return <CompositionTab settings={settings} matches={data.matches} />;
       case 'hall-of-fame':
         return <HallOfFameTab settings={settings} matches={data.matches} />;
+      case 'graphiques':
+        return <PerformanceChartsTab settings={settings} matches={data.matches} />;
       case 'social':
         return <TeammatesRivalsTab settings={settings} matches={data.matches} />;
       case 'buy-simulator':
@@ -142,6 +148,8 @@ function App() {
         return <SessionGuideTab settings={settings} matches={data.matches} />;
       case 'puzzle':
         return <DailyPuzzleTab settings={settings} matches={data.matches} />;
+      case 'wiki':
+        return <WikiTab />;
       default:
         return null;
     }

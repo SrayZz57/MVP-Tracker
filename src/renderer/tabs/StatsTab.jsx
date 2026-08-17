@@ -19,6 +19,7 @@ import RankMomentumCard from '../RankMomentumCard.jsx';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
+import WeaponDetailModal from '../WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
@@ -163,7 +164,9 @@ function StatsTab({ settings, matches, rank }) {
   const [selectedMatch, setSelectedMatch] = useState(null);
   const [selectedMap, setSelectedMap] = useState(null);
   const [selectedAgent, setSelectedAgent] = useState(null);
+  const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [showAllMatches, setShowAllMatches] = useState(false);
+  const [modeFilter, setModeFilter] = useState('');
 
   const globalStats = useMemo(() => {
     let totalHeadshots = 0;
@@ -270,6 +273,21 @@ function StatsTab({ settings, matches, rank }) {
     const winrate = results.length > 0 ? (wins / results.length) * 100 : null;
     return { results, wins, losses, draws, winrate };
   }, [matches, settings.name, settings.tag]);
+
+  // Modes réellement présents dans l'historique en cache — pas de liste
+  // figée, pour ne jamais proposer un mode que le joueur n'a pas joué.
+  const availableModes = useMemo(() => {
+    const modes = new Map();
+    matches.forEach((match) => {
+      if (match.metadata?.mode_id) modes.set(match.metadata.mode_id, match.metadata.mode ?? match.metadata.mode_id);
+    });
+    return [...modes.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [matches]);
+
+  const filteredMatches = useMemo(
+    () => (modeFilter ? matches.filter((match) => match.metadata?.mode_id === modeFilter) : matches),
+    [matches, modeFilter],
+  );
 
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
@@ -410,7 +428,7 @@ function StatsTab({ settings, matches, rank }) {
           (() => {
             const maxCount = globalStats.weaponRanking[0][1];
             return globalStats.weaponRanking.map(([weapon, count]) => (
-              <div key={weapon} className="weapon-bar-row">
+              <div key={weapon} className="weapon-bar-row clickable" onClick={() => setSelectedWeapon(weapon)}>
                 <span className="name">
                   {weaponIcons.get(weapon) && <img src={weaponIcons.get(weapon)} alt="" className="weapon-icon" />}
                   {weapon}
@@ -438,9 +456,23 @@ function StatsTab({ settings, matches, rank }) {
       {renderModeStats('Stats par mode', modeStats)}
 
       <div className="card">
-        <h3>Historique de matchs ({matches.length})</h3>
+        <h3>Historique de matchs ({filteredMatches.length})</h3>
+        <div className="filter-bar">
+          <select
+            value={modeFilter}
+            onChange={(e) => {
+              setModeFilter(e.target.value);
+              setShowAllMatches(false);
+            }}
+          >
+            <option value="">Tous les modes</option>
+            {availableModes.map(([id, label]) => (
+              <option key={id} value={id}>{label}</option>
+            ))}
+          </select>
+        </div>
         <div className="match-list">
-          {(showAllMatches ? matches : matches.slice(0, MATCH_HISTORY_PAGE_SIZE)).map((match) => {
+          {(showAllMatches ? filteredMatches : filteredMatches.slice(0, MATCH_HISTORY_PAGE_SIZE)).map((match) => {
             const me = findMe(match, settings.name, settings.tag);
             const { hsPercent, bsPercent, lsPercent } = hitStats(me);
             const label = resultLabel(match, me);
@@ -470,9 +502,9 @@ function StatsTab({ settings, matches, rank }) {
             );
           })}
         </div>
-        {matches.length > MATCH_HISTORY_PAGE_SIZE && (
+        {filteredMatches.length > MATCH_HISTORY_PAGE_SIZE && (
           <button className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
-            {showAllMatches ? '▲ Voir moins' : `▼ Voir plus (${matches.length - MATCH_HISTORY_PAGE_SIZE})`}
+            {showAllMatches ? '▲ Voir moins' : `▼ Voir plus (${filteredMatches.length - MATCH_HISTORY_PAGE_SIZE})`}
           </button>
         )}
       </div>
@@ -502,6 +534,16 @@ function StatsTab({ settings, matches, rank }) {
           matches={matches}
           settings={settings}
           onClose={() => setSelectedAgent(null)}
+        />
+      )}
+
+      {selectedWeapon && (
+        <WeaponDetailModal
+          weapon={selectedWeapon}
+          weaponIcon={weaponIcons.get(selectedWeapon)}
+          matches={matches}
+          settings={settings}
+          onClose={() => setSelectedWeapon(null)}
         />
       )}
     </div>

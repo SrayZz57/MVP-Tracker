@@ -73,3 +73,26 @@ export function useShopArmors() {
 
   return armors;
 }
+
+let weaponsDataPromise = null;
+
+// Données complètes (weaponStats : dégâts par distance, cadence, chargeur...)
+// pour le wiki — armes sans shopData (couteau) filtrées, comme ailleurs.
+function loadWeaponsData() {
+  if (!weaponsDataPromise) {
+    weaponsDataPromise = fetch('https://valorant-api.com/v1/weapons?language=fr-FR')
+      .then((response) => response.json())
+      .then((json) => json.data.filter((w) => w.shopData));
+  }
+  return weaponsDataPromise;
+}
+
+export function useWeaponsData() {
+  const [weapons, setWeapons] = useState([]);
+
+  useEffect(() => {
+    loadWeaponsData().then(setWeapons);
+  }, []);
+
+  return weapons;
+}

@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
@@ -33,6 +33,7 @@ import {
   getTotalBetPoints,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
+import { updateElectronApp } from 'update-electron-app';
 
 const store = new Store();
 
@@ -40,6 +41,10 @@ const store = new Store();
 if (started) {
   app.quit();
 }
+
+// Vérifie les GitHub Releases au démarrage puis toutes les heures ; ne fait
+// rien en dev (app pas empaquetée), donc sûr à laisser tel quel.
+updateElectronApp({ repo: 'SrayZz57/MVP-Tracker' });
 
 const createWindow = () => {
   // Create the browser window.
@@ -61,6 +66,8 @@ const createWindow = () => {
   // Open the DevTools.
   mainWindow.webContents.openDevTools();
 };
+
+ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
 
 ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
 

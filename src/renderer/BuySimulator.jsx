@@ -1,7 +1,8 @@
 import { useMemo, useState } from 'react';
 import { analyzeRoundBuys, summarizeRoundBuys, listMatchesWithRounds, recommendBuy } from './buySimulator.js';
+import { agentAbilityBudget, AGENT_ABILITY_COSTS, ABILITY_COSTS_SOURCE_DATE } from './abilityCosts.js';
 import { useShopWeapons, useShopArmors, useWeaponIcons } from './weaponIcons.js';
-import { useAgentIcons, useAgentRoles } from './agentIcons.js';
+import { useAgentIcons, useAgentRoles, useAgentAbilities } from './agentIcons.js';
 
 function BuyAnalysisSection({ settings, matches }) {
   const weaponIcons = useWeaponIcons();
@@ -62,6 +63,7 @@ function BuyCalculatorSection() {
   const armors = useShopArmors();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
+  const agentAbilities = useAgentAbilities();
   const [credits, setCredits] = useState(4000);
   const [agent, setAgent] = useState('');
 
@@ -70,6 +72,11 @@ function BuyCalculatorSection() {
     const role = agentRoles.get(agent)?.roleName ?? null;
     return recommendBuy(credits, weapons, armors, role);
   }, [credits, weapons, armors, agent, agentRoles]);
+
+  const abilityBudget = useMemo(() => {
+    if (!agent) return null;
+    return agentAbilityBudget(agent, agentAbilities.get(agent));
+  }, [agent, agentAbilities]);
 
   return (
     <>
@@ -118,9 +125,39 @@ function BuyCalculatorSection() {
         </div>
       )}
 
+      {agent && (
+        <div className="buy-ability-section">
+          <h4>Capacités de {agent}</h4>
+          {abilityBudget && abilityBudget.length > 0 ? (
+            <>
+              {abilityBudget.map((a) => {
+                const affordable = recommendation ? a.cost <= recommendation.remaining : false;
+                return (
+                  <div key={a.name} className="buy-ability-row">
+                    <img src={a.icon} alt="" className="wiki-ability-icon" />
+                    <span className="buy-ability-name">{a.name}</span>
+                    <span className="buy-ability-cost">{a.cost === 0 ? 'Gratuite' : `${a.cost} crédits`}</span>
+                    {recommendation && <span className="buy-ability-status">{affordable ? '✅' : '❌'}</span>}
+                  </div>
+                );
+              })}
+              <p className="label" style={{ marginTop: '0.6rem' }}>
+                Coûts recherchés le {ABILITY_COSTS_SOURCE_DATE} (wiki officiel Riot){recommendation ? ` — comparés aux ${recommendation.remaining} crédits restants après arme + bouclier.` : '.'}
+              </p>
+            </>
+          ) : (
+            <p className="label">
+              Pas encore de coûts de capacités fiables pour {agent} — non couvert par la source utilisée (agent
+              récent ou kit atypique).
+            </p>
+          )}
+        </div>
+      )}
+
       <p className="label buy-calc-disclaimer">
-        Basé sur les vrais prix du shop (armes + boucliers). Les capacités d'agent ne sont pas incluses : leur coût
-        n'est exposé par aucune API accessible, donc pas de recommandation inventée dessus.
+        Arme et bouclier basés sur les vrais prix du shop (API officielle). Les coûts de capacités ne sont exposés
+        par aucune API — recherchés manuellement sur le wiki Riot, disponibles pour une partie du roster seulement
+        (voir ci-dessus si ton agent n'est pas couvert).
       </p>
     </>
   );

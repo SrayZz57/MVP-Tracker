@@ -26,6 +26,40 @@ export function useRankTiers() {
   return tiers;
 }
 
+let rankLadderPromise = null;
+
+// Échelle ordonnée des rangs (nom + division + icône) pour le wiki — tier 0
+// ("Sans grade") gardé, tiers < 3 (placeholders sans vraie icône) filtrés.
+function loadRankLadder() {
+  if (!rankLadderPromise) {
+    rankLadderPromise = fetch('https://valorant-api.com/v1/competitivetiers?language=fr-FR')
+      .then((response) => response.json())
+      .then((json) => {
+        const latestEpisode = json.data[json.data.length - 1];
+        return latestEpisode.tiers
+          .filter((tier) => (tier.tier === 0 || tier.tier >= 3) && tier.largeIcon)
+          .map((tier) => ({
+            tier: tier.tier,
+            tierName: tier.tierName,
+            divisionName: tier.divisionName,
+            color: `#${tier.color.slice(0, 6)}`,
+            icon: tier.largeIcon,
+          }));
+      });
+  }
+  return rankLadderPromise;
+}
+
+export function useRankLadder() {
+  const [ladder, setLadder] = useState([]);
+
+  useEffect(() => {
+    loadRankLadder().then(setLadder);
+  }, []);
+
+  return ladder;
+}
+
 let seasonsCache = null;
 
 async function loadSeasonNames() {

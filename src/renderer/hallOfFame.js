@@ -1,4 +1,4 @@
-import { excludeDeathmatch, findMe, resultLabel } from './valorantStats.js';
+import { excludeDeathmatch, findMe, resultLabel, hitStats, killDistance } from './valorantStats.js';
 
 const ACE_THRESHOLD = 5;
 
@@ -132,11 +132,105 @@ function findBestKda(matches, name, tag) {
   return best;
 }
 
+// Meilleure précision tête sur un match (au moins un tir enregistré).
+function findBestHsPercent(matches, name, tag) {
+  let best = null;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    const { hsPercent, headshots, bodyshots, legshots } = hitStats(me);
+    if (hsPercent === null || headshots + bodyshots + legshots < 5) return;
+    if (!best || hsPercent > best.hsPercent) {
+      best = { hsPercent, agent: me.character, ...matchContext(match) };
+    }
+  });
+
+  return best;
+}
+
+// Match avec le plus de kills du joueur suivi.
+function findBestKillsMatch(matches, name, tag) {
+  let best = null;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    const kills = me.stats?.kills ?? 0;
+    if (!best || kills > best.kills) {
+      best = { kills, agent: me.character, ...matchContext(match) };
+    }
+  });
+
+  return best;
+}
+
+// Kill le plus lointain jamais enregistré (mêmes coordonnées/conversion que
+// duelDistanceStats — voir killDistance() dans valorantStats.js).
+function findBestKillDistance(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  let best = null;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    (match.rounds || []).forEach((round) => {
+      (round.player_stats || []).forEach((ps) => {
+        (ps.kill_events || []).forEach((k) => {
+          if (k.killer_display_name?.toLowerCase() !== fullName) return;
+          const distance = killDistance(k);
+          if (distance === null) return;
+          if (!best || distance > best.distance) {
+            best = { distance, weapon: k.damage_weapon_name ?? null, agent: me.character, ...matchContext(match) };
+          }
+        });
+      });
+    });
+  });
+
+  return best;
+}
+
+// Nombre d'agents distincts joués (matchs classés/non-deathmatch).
+function countAgentDiversity(matches, name, tag) {
+  const agents = new Set();
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (me?.character) agents.add(me.character);
+  });
+  return agents.size;
+}
+
+// Meilleur "match parfait" : victoire sans être mort une seule fois — on
+// garde celui avec le plus de kills parmi ces occurrences.
+function findBestPerfectMatch(matches, name, tag) {
+  let best = null;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+    const deaths = me.stats?.deaths ?? 0;
+    const kills = me.stats?.kills ?? 0;
+    if (deaths !== 0 || kills === 0) return;
+    if (resultLabel(match, me) !== 'Victoire') return;
+    if (!best || kills > best.kills) {
+      best = { kills, agent: me.character, ...matchContext(match) };
+    }
+  });
+
+  return best;
+}
+
 export function computeHallOfFame(matches, name, tag) {
   return {
     bestAce: findBestAce(matches, name, tag),
     longestWinStreak: findLongestWinStreak(matches, name, tag),
     bestClutch: findBestClutch(matches, name, tag),
     bestKda: findBestKda(matches, name, tag),
+    bestHsPercent: findBestHsPercent(matches, name, tag),
+    bestKillsMatch: findBestKillsMatch(matches, name, tag),
+    bestKillDistance: findBestKillDistance(matches, name, tag),
+    agentDiversity: countAgentDiversity(matches, name, tag),
+    bestPerfectMatch: findBestPerfectMatch(matches, name, tag),
   };
 }

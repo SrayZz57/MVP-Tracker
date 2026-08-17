@@ -1,38 +1,60 @@
 import { useMemo } from 'react';
 import { computeHallOfFame } from './hallOfFame.js';
-import { useAgentIcons } from './agentIcons.js';
+import { deriveAchievements } from './achievements.js';
+import { useAgentPortraits } from './agentIcons.js';
 
 function formatDate(ms) {
   if (!ms) return '?';
   return new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function TrophyCard({ icon, title, value, valueLabel, context, agentIcon, empty }) {
+function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty }) {
   return (
-    <div className={`trophy-card ${empty ? 'empty' : ''}`}>
-      <div className="trophy-icon">{icon}</div>
-      <div className="trophy-title">{title}</div>
-      {empty ? (
-        <p className="label">Pas encore débloqué — continue à jouer.</p>
+    <div
+      className={`trophy-card ${empty ? 'empty' : ''}`}
+      style={!empty && portrait ? { backgroundImage: `url(${portrait})` } : undefined}
+    >
+      <div className="trophy-card-overlay">
+        <div className="trophy-header">
+          <span className="trophy-icon">{icon}</span>
+          <span className="trophy-title">{title}</span>
+        </div>
+        {empty ? (
+          <p className="label">Pas encore débloqué — continue à jouer.</p>
+        ) : (
+          <>
+            <div className="trophy-value">
+              {value}
+              {valueLabel && <span className="trophy-value-label">{valueLabel}</span>}
+            </div>
+            <div className="trophy-context">{context}</div>
+          </>
+        )}
+      </div>
+    </div>
+  );
+}
+
+function AchievementBadge({ icon, title, description, unlocked, contextText }) {
+  return (
+    <div className={`achievement-badge ${unlocked ? 'unlocked' : 'locked'}`} title={description}>
+      <div className="achievement-badge-icon">{unlocked ? icon : '🔒'}</div>
+      <div className="achievement-badge-title">{title}</div>
+      {unlocked ? (
+        <div className="achievement-badge-context">{contextText}</div>
       ) : (
-        <>
-          <div className="trophy-value">
-            {value}
-            {valueLabel && <span className="trophy-value-label">{valueLabel}</span>}
-          </div>
-          <div className="trophy-context">
-            {agentIcon && <img src={agentIcon} alt="" className="trophy-context-icon" />}
-            {context}
-          </div>
-        </>
+        <div className="achievement-badge-context">{description}</div>
       )}
     </div>
   );
 }
 
 function HallOfFame({ settings, matches }) {
-  const agentIcons = useAgentIcons();
+  const agentPortraits = useAgentPortraits();
   const hof = useMemo(() => computeHallOfFame(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
+  const achievementGroups = useMemo(() => deriveAchievements(hof), [hof]);
+  const totalCount = achievementGroups.reduce((sum, g) => sum + g.items.length, 0);
+  const unlockedCount = achievementGroups.reduce((sum, g) => sum + g.items.filter((i) => i.unlocked).length, 0);
 
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
@@ -55,7 +77,7 @@ function HallOfFame({ settings, matches }) {
           empty={!hof.bestAce}
           value={hof.bestAce?.kills}
           valueLabel="kills en un round"
-          agentIcon={hof.bestAce && agentIcons.get(hof.bestAce.agent)}
+          portrait={hof.bestAce && agentPortraits.get(hof.bestAce.agent)}
           context={hof.bestAce && `${hof.bestAce.agent} — ${hof.bestAce.map}, round ${hof.bestAce.roundNumber} — ${formatDate(hof.bestAce.date)}`}
         />
         <TrophyCard
@@ -75,7 +97,7 @@ function HallOfFame({ settings, matches }) {
           empty={!hof.bestClutch}
           value={hof.bestClutch && `1v${hof.bestClutch.enemies}`}
           valueLabel="gagné"
-          agentIcon={hof.bestClutch && agentIcons.get(hof.bestClutch.agent)}
+          portrait={hof.bestClutch && agentPortraits.get(hof.bestClutch.agent)}
           context={hof.bestClutch && `${hof.bestClutch.agent} — ${hof.bestClutch.map}, round ${hof.bestClutch.roundNumber} — ${formatDate(hof.bestClutch.date)}`}
         />
         <TrophyCard
@@ -84,10 +106,29 @@ function HallOfFame({ settings, matches }) {
           empty={!hof.bestKda}
           value={hof.bestKda?.kda.toFixed(2)}
           valueLabel={hof.bestKda && `${hof.bestKda.kills}/${hof.bestKda.deaths}/${hof.bestKda.assists}`}
-          agentIcon={hof.bestKda && agentIcons.get(hof.bestKda.agent)}
+          portrait={hof.bestKda && agentPortraits.get(hof.bestKda.agent)}
           context={hof.bestKda && `${hof.bestKda.agent} — ${hof.bestKda.map} — ${formatDate(hof.bestKda.date)}`}
         />
       </div>
+
+      <div className="card">
+        <h3>🏅 Succès ({unlockedCount}/{totalCount})</h3>
+        <p className="label">
+          Débloqués automatiquement dès que tu atteins le seuil, à partir des mêmes données que les records
+          ci-dessus.
+        </p>
+      </div>
+
+      {achievementGroups.map((group) => (
+        <div key={group.label} className="card">
+          <h3>{group.label}</h3>
+          <div className="achievement-grid">
+            {group.items.map((item) => (
+              <AchievementBadge key={item.id} {...item} />
+            ))}
+          </div>
+        </div>
+      ))}
     </div>
   );
 }

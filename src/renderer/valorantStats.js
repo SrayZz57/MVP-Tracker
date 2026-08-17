@@ -200,7 +200,7 @@ const DISTANCE_BUCKETS = [
   { id: 'verylong', label: 'Très longue (35m+)', max: Infinity },
 ];
 
-function killDistance(k) {
+export function killDistance(k) {
   const killerLocation = k.player_locations_on_kill?.find((p) => p.player_puuid === k.killer_puuid)?.location;
   if (!killerLocation || !k.victim_death_location) return null;
   const dx = killerLocation.x - k.victim_death_location.x;
@@ -347,6 +347,39 @@ export function weaponKillsFor(match, puuid) {
   return kills
     .filter((k) => k.killer_puuid === puuid && k.damage_weapon_name)
     .map((k) => k.damage_weapon_name);
+}
+
+// Détail d'une arme précise : répartition des kills par map et par agent joué,
+// et distance moyenne des kills (mêmes coordonnées que duelDistanceStats).
+// Riot ne tague pas les damage_events par arme, donc pas de HS/BS/JB par arme
+// possible ici — seul le total (toutes armes confondues) l'est, déjà affiché
+// dans "Stats globales".
+export function weaponDetailStats(matches, name, tag, weaponName) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  let totalKills = 0;
+  const byMap = new Map();
+  const byAgent = new Map();
+  const distances = [];
+
+  matches.forEach((match) => {
+    const me = findMe(match, name, tag);
+    (match.kills || []).forEach((k) => {
+      if (k.killer_display_name?.toLowerCase() !== fullName || k.damage_weapon_name !== weaponName) return;
+      totalKills += 1;
+      byMap.set(match.metadata?.map ?? '?', (byMap.get(match.metadata?.map ?? '?') || 0) + 1);
+      const agent = me?.character ?? '?';
+      byAgent.set(agent, (byAgent.get(agent) || 0) + 1);
+      const distance = killDistance(k);
+      if (distance !== null) distances.push(distance);
+    });
+  });
+
+  return {
+    totalKills,
+    avgDistance: distances.length > 0 ? distances.reduce((sum, d) => sum + d, 0) / distances.length : null,
+    byMap: [...byMap.entries()].sort((a, b) => b[1] - a[1]),
+    byAgent: [...byAgent.entries()].sort((a, b) => b[1] - a[1]),
+  };
 }
 
 export function agentUsageOnMap(matches, name, tag, mapName) {
