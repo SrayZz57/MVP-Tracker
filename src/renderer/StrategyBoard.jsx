@@ -626,129 +626,145 @@ function StrategyBoard() {
   return (
     <div className="strategy-board">
       <div className="strategy-toolbar card">
-        <div className="strategy-toolbar-row">
-          <select value={selectedMap} onChange={(e) => setSelectedMap(e.target.value)}>
-            {mapNames.map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
-            ))}
-          </select>
-          <button className="strategy-tool" onClick={() => zoomBy(1 / ZOOM_STEP)}>
-            🔍－
-          </button>
-          <button className="strategy-tool" onClick={() => zoomBy(ZOOM_STEP)}>
-            🔍＋
-          </button>
-          <button className="strategy-tool" onClick={resetView}>
-            ⟲ Réinitialiser la vue
-          </button>
-        </div>
-
-        <div className="strategy-toolbar-row">
-          {SHAPE_TOOLS.map((t) => (
-            <button
-              key={t.key}
-              className={t.key === tool ? 'strategy-tool active' : 'strategy-tool'}
-              onClick={() => setTool(t.key)}
-            >
-              {t.label}
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">🗺️ Carte</div>
+          <div className="strategy-toolbar-row">
+            <select className="strategy-map-select" value={selectedMap} onChange={(e) => setSelectedMap(e.target.value)}>
+              {mapNames.map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <div className="strategy-tool-group">
+              <button className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title="Zoom arrière">
+                🔍－
+              </button>
+              <button className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title="Zoom avant">
+                🔍＋
+              </button>
+            </div>
+            <button className="strategy-tool" onClick={resetView}>
+              ⟲ Réinitialiser la vue
             </button>
-          ))}
-
-          <input
-            type="color"
-            value={color}
-            onChange={(e) => setColor(e.target.value)}
-            title="Couleur"
-          />
-
-          <button className="strategy-tool" onClick={handleDeleteSelection}>
-            🗑️ Supprimer
-          </button>
+          </div>
         </div>
 
-        <div className="strategy-toolbar-row">
-          <span className="label">Agent :</span>
-          <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
-            <option value="">— choisir —</option>
-            {[...agentIcons.keys()].sort().map((name) => (
-              <option key={name} value={name}>
-                {name}
-              </option>
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">✏️ Dessin</div>
+          <div className="strategy-toolbar-row">
+            <div className="strategy-tool-group">
+              {SHAPE_TOOLS.map((t) => (
+                <button
+                  key={t.key}
+                  className={t.key === tool ? 'strategy-tool active' : 'strategy-tool'}
+                  onClick={() => setTool(t.key)}
+                >
+                  {t.label}
+                </button>
+              ))}
+            </div>
+
+            <input
+              type="color"
+              value={color}
+              onChange={(e) => setColor(e.target.value)}
+              title="Couleur"
+            />
+
+            <button className="strategy-tool danger" onClick={handleDeleteSelection}>
+              🗑️ Supprimer
+            </button>
+          </div>
+        </div>
+
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">🧑‍🚀 Agents & capacités</div>
+          <div className="strategy-toolbar-row">
+            <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
+              <option value="">— choisir un agent —</option>
+              {[...agentIcons.keys()].sort().map((name) => (
+                <option key={name} value={name}>
+                  {name}
+                </option>
+              ))}
+            </select>
+            <button className="strategy-tool" onClick={handleStampAgentPosition} disabled={!selectedAgent}>
+              📍 Placer la position
+            </button>
+
+            <select
+              value={selectedAbility}
+              onChange={(e) => setSelectedAbility(e.target.value)}
+              disabled={!selectedAgent}
+            >
+              <option value="">— capacité —</option>
+              {abilitiesForAgent.map((ability) => (
+                <option key={ability.name} value={ability.name}>
+                  {ability.name}
+                </option>
+              ))}
+            </select>
+            <button className="strategy-tool" onClick={handleStampAbility} disabled={!selectedAbility}>
+              ✨ Placer la capacité
+            </button>
+          </div>
+        </div>
+
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">👁️ Icônes & ligne de vue</div>
+          <div className="strategy-toolbar-row">
+            <button className="strategy-tool" onClick={handleStampSpike}>
+              ◈ Spike
+            </button>
+            <button
+              className="strategy-tool"
+              title="Ligne de vue (FOV réel 103°). Glisse le point blanc à sa pointe pour la pivoter librement, ou utilise 'Lier à un joueur' pour la fixer sur une position déjà placée."
+              onClick={handlePlaceSightline}
+            >
+              👁️ Ligne de vue
+            </button>
+            {selectedSightline && (
+              <div className="strategy-sightline-controls">
+                <span className="strategy-inline-label">Orienter :</span>
+                <button className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title="Pivoter -15°">
+                  ↺
+                </button>
+                <button className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title="Pivoter +15°">
+                  ↻
+                </button>
+                {sightlineAttached ? (
+                  <button className="strategy-tool" onClick={detachSightline}>
+                    🔓 Détacher du joueur
+                  </button>
+                ) : lockPicking ? (
+                  <button className="strategy-tool active" onClick={cancelLockToPlayer}>
+                    🔒 Clique sur un joueur sur la carte… (Échap pour annuler)
+                  </button>
+                ) : (
+                  <button className="strategy-tool" onClick={armLockToPlayer}>
+                    🔒 Lier à un joueur
+                  </button>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">📚 Calques visibles</div>
+          <div className="strategy-toolbar-row">
+            {LAYER_DEFS.map((l) => (
+              <label key={l.key} className="strategy-layer-toggle">
+                <input
+                  type="checkbox"
+                  checked={layers[l.key]}
+                  onChange={(e) => setLayers((prev) => ({ ...prev, [l.key]: e.target.checked }))}
+                />
+                {l.label}
+              </label>
             ))}
-          </select>
-          <button className="strategy-tool" onClick={handleStampAgentPosition} disabled={!selectedAgent}>
-            Placer la position
-          </button>
-
-          <select
-            value={selectedAbility}
-            onChange={(e) => setSelectedAbility(e.target.value)}
-            disabled={!selectedAgent}
-          >
-            <option value="">— capacité —</option>
-            {abilitiesForAgent.map((ability) => (
-              <option key={ability.name} value={ability.name}>
-                {ability.name}
-              </option>
-            ))}
-          </select>
-          <button className="strategy-tool" onClick={handleStampAbility} disabled={!selectedAbility}>
-            Placer la capacité
-          </button>
-        </div>
-
-        <div className="strategy-toolbar-row">
-          <span className="label">Autres icônes :</span>
-          <button className="strategy-tool" onClick={handleStampSpike}>
-            ◈ Spike
-          </button>
-          <button
-            className="strategy-tool"
-            title="Ligne de vue (FOV réel 103°). Glisse le point blanc à sa pointe pour la pivoter librement, ou utilise 'Lier à un joueur' pour la fixer sur une position déjà placée."
-            onClick={handlePlaceSightline}
-          >
-            👁️ Ligne de vue
-          </button>
-          {selectedSightline && (
-            <>
-              <span className="label">Orienter :</span>
-              <button className="strategy-tool" onClick={() => rotateSightline(-15)}>
-                ↺ 15°
-              </button>
-              <button className="strategy-tool" onClick={() => rotateSightline(15)}>
-                ↻ 15°
-              </button>
-              {sightlineAttached ? (
-                <button className="strategy-tool" onClick={detachSightline}>
-                  🔓 Détacher du joueur
-                </button>
-              ) : lockPicking ? (
-                <button className="strategy-tool active" onClick={cancelLockToPlayer}>
-                  🔒 Clique sur un joueur sur la carte… (Échap pour annuler)
-                </button>
-              ) : (
-                <button className="strategy-tool" onClick={armLockToPlayer}>
-                  🔒 Lier à un joueur
-                </button>
-              )}
-            </>
-          )}
-        </div>
-
-        <div className="strategy-toolbar-row">
-          <span className="label">Calques :</span>
-          {LAYER_DEFS.map((l) => (
-            <label key={l.key} className="strategy-layer-toggle">
-              <input
-                type="checkbox"
-                checked={layers[l.key]}
-                onChange={(e) => setLayers((prev) => ({ ...prev, [l.key]: e.target.checked }))}
-              />
-              {l.label}
-            </label>
-          ))}
+          </div>
         </div>
       </div>
 
@@ -758,7 +774,7 @@ function StrategyBoard() {
         </div>
 
         <div className="strategy-side card">
-          <h3>Sauvegarder</h3>
+          <h3>💾 Sauvegarder</h3>
           <div className="strategy-save-row">
             <input
               type="text"
@@ -774,7 +790,7 @@ function StrategyBoard() {
             📷 Exporter en PNG
           </button>
 
-          <h3>Stratégies — {selectedMap}</h3>
+          <h3>📂 Stratégies — {selectedMap}</h3>
           {strategies.length === 0 ? (
             <p className="label">Aucune stratégie sauvegardée pour cette map.</p>
           ) : (
@@ -784,7 +800,7 @@ function StrategyBoard() {
                   <button className="strategy-list-name" onClick={() => handleLoadStrategy(entry)}>
                     {entry.name}
                   </button>
-                  <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)}>
+                  <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title="Supprimer">
                     ✕
                   </button>
                 </li>

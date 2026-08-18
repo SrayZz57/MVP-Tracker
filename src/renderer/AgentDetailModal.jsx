@@ -70,7 +70,7 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
               <div className="label">Winrate</div>
             </div>
             <div className="stat-tile">
-              <div className="value">
+              <div className="value compact">
                 {overall ? `${overall.avgKills.toFixed(1)}/${overall.avgDeaths.toFixed(1)}/${overall.avgAssists.toFixed(1)}` : '?'}
               </div>
               <div className="label">K/D/A moyen</div>

@@ -59,9 +59,14 @@ function BetsTracker({ settings, matches }) {
       <div className="card comp-score-card">
         <h3>🎰 Paris perso</h3>
         <div className="comp-score-main">
-          <div className="comp-score-value" style={{ color: '#ffc857' }}>
-            {totalPoints}
-            <span className="comp-score-max">pts</span>
+          <div
+            className="comp-score-ring"
+            style={{ background: 'conic-gradient(#ffc857, #ffe1a3, #ffc857)' }}
+          >
+            <div className="comp-score-ring-inner">
+              <div className="comp-score-value" style={{ color: '#ffc857' }}>{totalPoints}</div>
+              <div className="comp-score-max">pts</div>
+            </div>
           </div>
           <div className="label">Points accumulés</div>
         </div>
@@ -71,20 +76,23 @@ function BetsTracker({ settings, matches }) {
         </p>
       </div>
 
-      <div className="card">
+      <div className={pending ? 'card tilt-card calm' : 'card'}>
         {pending === undefined ? (
           <p>Chargement…</p>
         ) : pending ? (
-          <>
-            <h3>⏳ Pari en cours</h3>
-            <p style={{ fontWeight: 600 }}>{describeBet(pending.type, pending.threshold)}</p>
-            <p className="label">En attente de ton prochain match pour être résolu automatiquement.</p>
-            <button onClick={handleCancelBet}>Annuler le pari</button>
-          </>
+          <div className="tilt-card-header">
+            <span className="tilt-card-badge">⏳</span>
+            <div>
+              <h3>Pari en cours</h3>
+              <p style={{ fontWeight: 600 }}>{describeBet(pending.type, pending.threshold)}</p>
+              <p className="label">En attente de ton prochain match pour être résolu automatiquement.</p>
+              <button onClick={handleCancelBet}>Annuler le pari</button>
+            </div>
+          </div>
         ) : (
           <>
             <h3>🎲 Placer un pari</h3>
-            <div className="filter-bar">
+            <div className="buy-calc-panel">
               <select value={type} onChange={(e) => setType(e.target.value)}>
                 {BET_TYPES.map((t) => (
                   <option key={t.id} value={t.id}>
@@ -119,7 +127,7 @@ function BetsTracker({ settings, matches }) {
               <div key={h.id} className="puzzle-history-row">
                 <span className="puzzle-history-date">{new Date(h.resolved_at).toLocaleDateString('fr-FR')}</span>
                 <span className="puzzle-history-map">{describeBet(h.type, h.threshold)}</span>
-                <span className={`puzzle-history-status ${h.won ? 'correct' : 'incorrect'}`}>
+                <span className={`buy-round-badge ${h.won ? 'coherent' : 'questionable'}`}>
                   {h.won ? `✅ +${h.points} pts` : '❌ 0 pt'}
                 </span>
               </div>

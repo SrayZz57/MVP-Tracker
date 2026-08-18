@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
@@ -35,6 +35,13 @@ import {
 import { isValorantRunning, pingOnce } from './services/network.js';
 import { updateElectronApp } from 'update-electron-app';
 
+// Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
+// move the cache: Accès refusé" au démarrage, cache disque probablement
+// verrouillé/corrompu par un antivirus ou des instances précédentes) — chaque
+// requête réseau (dont tous les appels aux API d'assets) échouait tant que le
+// service redémarrait. Désactiver le cache disque HTTP contourne le problème.
+app.commandLine.appendSwitch('disable-http-cache');
+
 const store = new Store();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
@@ -46,21 +53,28 @@ if (started) {
 // rien en dev (app pas empaquetée), donc sûr à laisser tel quel.
 updateElectronApp({ repo: 'SrayZz57/MVP-Tracker' });
 
+// Enlève le bandeau de menu natif (File/Edit/View/Window) — l'app a sa propre
+// navigation, ce menu par défaut d'Electron n'a aucune utilité ici.
+Menu.setApplicationMenu(null);
+
 const createWindow = () => {
   // Create the browser window.
   const mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
   });
 
+  mainWindow.webContents.on('console-message', (_e, _level, message) => {
+    console.log('[renderer]', message);
+  });
+
   // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
-    // DevTools utile en dev, mais ne doit jamais s'ouvrir dans la version publiée.
-    mainWindow.webContents.openDevTools();
   } else {
     mainWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`));
   }

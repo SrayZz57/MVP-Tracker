@@ -109,8 +109,9 @@ function DailyPuzzle({ settings, matches }) {
                 <p style={{ marginTop: '1rem', fontWeight: 600 }}>Vu ce contexte, qu'aurais-tu fait ce round ?</p>
                 <div className="puzzle-options">
                   {PUZZLE_OPTIONS.map((option) => (
-                    <button key={option.id} className="strategy-tool puzzle-option" onClick={() => handleChoice(option.id)}>
-                      {option.icon} {option.label}
+                    <button key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
+                      <span className="puzzle-option-icon">{option.icon}</span>
+                      {option.label}
                     </button>
                   ))}
                 </div>
@@ -158,7 +159,7 @@ function DailyPuzzle({ settings, matches }) {
                 <div key={h.id} className="puzzle-history-row">
                   <span className="puzzle-history-date">{h.date}</span>
                   <span className="puzzle-history-map">{situation.map}</span>
-                  <span className={`puzzle-history-status ${h.answered_at === null ? '' : h.correct === 1 ? 'correct' : 'incorrect'}`}>
+                  <span className={`buy-round-badge ${h.answered_at === null ? '' : h.correct === 1 ? 'coherent' : 'questionable'}`}>
                     {h.answered_at === null ? '⏳ Pas encore répondu' : h.correct === 1 ? '✅ Bonne intuition' : '❌ Loupé'}
                   </span>
                 </div>

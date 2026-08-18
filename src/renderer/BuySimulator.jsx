@@ -49,7 +49,9 @@ function BuyAnalysisSection({ settings, matches }) {
               {weaponIcons.get(r.weapon) && <img src={weaponIcons.get(r.weapon)} alt="" className="weapon-icon" />}
               {r.weapon ?? '?'}
             </span>
-            <span className="buy-round-verdict">{r.verdict === 'coherent' ? '✅' : '⚠️'}</span>
+            <span className={`buy-round-badge ${r.verdict}`}>
+              {r.verdict === 'coherent' ? '✅ Cohérent' : '⚠️ À vérifier'}
+            </span>
             <span className="buy-round-explanation label">{r.explanation}</span>
           </div>
         ))}
@@ -80,7 +82,7 @@ function BuyCalculatorSection() {
 
   return (
     <>
-      <div className="filter-bar">
+      <div className="buy-calc-panel">
         <label className="buy-calc-field">
           Crédits disponibles
           <input
@@ -133,7 +135,7 @@ function BuyCalculatorSection() {
               {abilityBudget.map((a) => {
                 const affordable = recommendation ? a.cost <= recommendation.remaining : false;
                 return (
-                  <div key={a.name} className="buy-ability-row">
+                  <div key={a.name} className={`buy-ability-row ${recommendation ? (affordable ? 'affordable' : 'unaffordable') : ''}`}>
                     <img src={a.icon} alt="" className="wiki-ability-icon" />
                     <span className="buy-ability-name">{a.name}</span>
                     <span className="buy-ability-cost">{a.cost === 0 ? 'Gratuite' : `${a.cost} crédits`}</span>

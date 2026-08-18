@@ -106,15 +106,25 @@ function SessionGuide({ settings, matches }) {
 
       {plan && (
         <div className="card">
-          <h3>Checklist de session</h3>
+          <div className="achievement-group-header">
+            <h3>Checklist de session</h3>
+            <span className="achievement-group-count">
+              {Object.values(checked).filter(Boolean).length}/{checklist.length}
+            </span>
+          </div>
+          <div className="achievement-group-track">
+            <div
+              className="achievement-group-fill"
+              style={{ width: `${(Object.values(checked).filter(Boolean).length / checklist.length) * 100}%` }}
+            />
+          </div>
           <div className="session-checklist">
             {checklist.map((item) => (
               <label key={item.id} className={`session-check-item ${item.level} ${checked[item.id] ? 'done' : ''}`}>
                 <input type="checkbox" checked={!!checked[item.id]} onChange={() => toggleChecked(item.id)} />
+                <span className="session-check-icon-badge">{item.icon}</span>
                 <span className="session-check-body">
-                  <span className="session-check-title">
-                    {item.icon} {item.title}
-                  </span>
+                  <span className="session-check-title">{item.title}</span>
                   <span className="session-check-detail">{item.detail}</span>
                 </span>
               </label>

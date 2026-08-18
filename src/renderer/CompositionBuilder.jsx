@@ -7,6 +7,7 @@ import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
+const NOTE_ICONS = { warning: '⚠️', info: 'ℹ️', good: '✅' };
 
 function scoreColor(value) {
   if (value >= 75) return '#3ddc84';
@@ -69,7 +70,7 @@ function CompositionBuilder({ settings, matches }) {
           {slots.map((value, index) => {
             const tier = value && selectedMap ? getAgentMapTier(value, selectedMap) : null;
             return (
-              <div key={index} className="comp-slot">
+              <div key={index} className={`comp-slot ${value ? 'filled' : ''}`}>
                 <div className="comp-slot-icon">
                   {value && agentIcons.get(value) ? (
                     <img src={agentIcons.get(value)} alt={value} />
@@ -93,8 +94,18 @@ function CompositionBuilder({ settings, matches }) {
       {score && (
         <div className="card comp-score-card">
           <div className="comp-score-main">
-            <div className="comp-score-value" style={{ color: scoreColor(score.overall) }}>
-              {score.overall}<span className="comp-score-max">/100</span>
+            <div
+              className="comp-score-ring"
+              style={{
+                background: `conic-gradient(${scoreColor(score.overall)} ${score.overall * 3.6}deg, var(--surface-alt) 0deg)`,
+              }}
+            >
+              <div className="comp-score-ring-inner">
+                <div className="comp-score-value" style={{ color: scoreColor(score.overall) }}>
+                  {score.overall}
+                </div>
+                <div className="comp-score-max">/100</div>
+              </div>
             </div>
             <div className="label">Score de la compo sur {selectedMap}</div>
           </div>
@@ -135,6 +146,7 @@ function CompositionBuilder({ settings, matches }) {
           <div className="comp-notes">
             {analysis.notes.map((note, i) => (
               <div key={i} className={`comp-note comp-note-${note.level}`}>
+                <span className="comp-note-icon">{NOTE_ICONS[note.level] ?? 'ℹ️'}</span>
                 {note.text}
               </div>
             ))}

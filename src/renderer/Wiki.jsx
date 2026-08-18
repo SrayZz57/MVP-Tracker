@@ -239,15 +239,48 @@ function MapModal({ map, minimapUrl, onClose }) {
   );
 }
 
+// Regroupe les paliers par division (Fer/Bronze/.../Immortel, 3 sous-paliers
+// chacun) — Non classé et Radiant n'en ont qu'un seul. Ordre conservé tel que
+// renvoyé par l'API (croissant), inversé à l'affichage pour aller du plus
+// haut rang au plus bas.
+function groupRankLadder(ladder) {
+  const order = [];
+  const byDivision = new Map();
+  ladder.forEach((tier) => {
+    if (!byDivision.has(tier.divisionName)) {
+      byDivision.set(tier.divisionName, []);
+      order.push(tier.divisionName);
+    }
+    byDivision.get(tier.divisionName).push(tier);
+  });
+  return order.map((division) => ({ division, tiers: byDivision.get(division) })).reverse();
+}
+
 function RankLadder({ ladder }) {
+  const groups = useMemo(() => groupRankLadder(ladder), [ladder]);
+
   return (
     <div className="wiki-rank-ladder">
-      {[...ladder].reverse().map((tier) => (
-        <div key={tier.tier} className="wiki-rank-row" style={{ borderLeftColor: tier.color }}>
-          <img src={tier.icon} alt="" className="wiki-rank-icon" />
-          <span className="wiki-rank-name">{tier.tierName}</span>
-        </div>
-      ))}
+      {groups.map((group) => {
+        const tiers = [...group.tiers].reverse();
+        const color = tiers[0]?.color;
+        return (
+          <div key={group.division} className="wiki-rank-group" style={{ '--rank-color': color }}>
+            <div className="wiki-rank-group-label">{group.division}</div>
+            <div className="wiki-rank-group-tiers">
+              {tiers.map((tier) => {
+                const subLabel = tier.tierName.replace(group.division, '').trim();
+                return (
+                  <div key={tier.tier} className="wiki-rank-chip">
+                    <img src={tier.icon} alt="" className="wiki-rank-icon" />
+                    <span className="wiki-rank-name">{subLabel || tier.tierName}</span>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

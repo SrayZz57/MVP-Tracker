@@ -35,7 +35,7 @@ function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty }
   );
 }
 
-function AchievementBadge({ icon, title, description, unlocked, contextText }) {
+function AchievementBadge({ icon, title, description, unlocked, contextText, progressPercent }) {
   return (
     <div className={`achievement-badge ${unlocked ? 'unlocked' : 'locked'}`} title={description}>
       <div className="achievement-badge-icon">{unlocked ? icon : '🔒'}</div>
@@ -43,7 +43,12 @@ function AchievementBadge({ icon, title, description, unlocked, contextText }) {
       {unlocked ? (
         <div className="achievement-badge-context">{contextText}</div>
       ) : (
-        <div className="achievement-badge-context">{description}</div>
+        <>
+          <div className="achievement-badge-context">{description}</div>
+          <div className="achievement-badge-progress">
+            <div className="achievement-badge-progress-fill" style={{ width: `${progressPercent}%` }} />
+          </div>
+        </>
       )}
     </div>
   );
@@ -121,7 +126,16 @@ function HallOfFame({ settings, matches }) {
 
       {achievementGroups.map((group) => (
         <div key={group.label} className="card">
-          <h3>{group.label}</h3>
+          <div className="achievement-group-header">
+            <h3>{group.label}</h3>
+            <span className="achievement-group-count">{group.unlockedCount}/{group.total}</span>
+          </div>
+          <div className="achievement-group-track">
+            <div
+              className="achievement-group-fill"
+              style={{ width: `${(group.unlockedCount / group.total) * 100}%` }}
+            />
+          </div>
           <div className="achievement-grid">
             {group.items.map((item) => (
               <AchievementBadge key={item.id} {...item} />

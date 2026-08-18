@@ -23,47 +23,54 @@ function currentMetricValue(goal, matches, settings) {
   return null;
 }
 
+// Un objectif déjà proposé (ajouté ou non, terminé ou non) sur le même
+// sujet ne doit pas être re-proposé — sinon un objectif déjà réussi une
+// fois peut être ré-ajouté et re-marqué "atteint" à l'infini.
+function alreadyCovered(existingGoals, metric, subject) {
+  return existingGoals.some(
+    (g) => g.metric === metric && (g.subject ?? null) === (subject ?? null),
+  );
+}
+
 // Propose des objectifs à partir des stats déjà calculées ailleurs dans l'app
 // (pas de saisie manuelle de cible : la cible est déduite du niveau actuel).
-function generateSuggestions(matches, settings) {
+function generateSuggestions(matches, settings, existingGoals) {
   const clean = excludeDeathmatch(matches);
   const suggestions = [];
 
-  const hs = overallHsPercent(matches, settings.name, settings.tag);
-  if (hs !== null) {
-    suggestions.push({
-      metric: 'hsPercent',
-      label: 'Précision tête (global)',
-      baseline: hs,
-      target: Math.round(Math.min(hs + 5, 45)),
-    });
+  if (!alreadyCovered(existingGoals, 'hsPercent', undefined)) {
+    const hs = overallHsPercent(matches, settings.name, settings.tag);
+    const target = hs === null ? null : Math.round(Math.min(hs + 5, 45));
+    if (hs !== null && target > hs) {
+      suggestions.push({ metric: 'hsPercent', label: 'Précision tête (global)', baseline: hs, target });
+    }
   }
 
-  const wr = overallWinrate(clean, settings.name, settings.tag);
-  if (wr !== null) {
-    suggestions.push({
-      metric: 'winrate',
-      label: 'Winrate global',
-      baseline: wr,
-      target: Math.round(Math.min(wr + 5, 70)),
-    });
+  if (!alreadyCovered(existingGoals, 'winrate', undefined)) {
+    const wr = overallWinrate(clean, settings.name, settings.tag);
+    const target = wr === null ? null : Math.round(Math.min(wr + 5, 70));
+    if (wr !== null && target > wr) {
+      suggestions.push({ metric: 'winrate', label: 'Winrate global', baseline: wr, target });
+    }
   }
 
-  const kd = formStats(clean, settings.name, settings.tag).overallKd;
-  if (kd !== null) {
-    suggestions.push({
-      metric: 'kd',
-      label: 'K/D global',
-      baseline: kd,
-      target: Math.round((kd + 0.15) * 100) / 100,
-    });
+  if (!alreadyCovered(existingGoals, 'kd', undefined)) {
+    const kd = formStats(clean, settings.name, settings.tag).overallKd;
+    const target = kd === null ? null : Math.round((kd + 0.15) * 100) / 100;
+    if (kd !== null && target > kd) {
+      suggestions.push({ metric: 'kd', label: 'K/D global', baseline: kd, target });
+    }
   }
 
-  const mapRows = groupStats(clean, settings.name, settings.tag, (m) => m.metadata?.map).filter(
-    (r) => r.games >= MIN_GAMES_FOR_BREAKDOWN && r.winrate !== null,
-  );
-  if (mapRows.length > 0) {
-    const worstMap = mapRows.reduce((a, b) => (b.winrate < a.winrate ? b : a));
+  // Un objectif par map étant lié à un `subject` précis, on cherche la pire
+  // map qui n'a pas déjà un objectif (actif ou terminé) dessus, plutôt que
+  // de s'arrêter à la toute pire si elle est déjà couverte.
+  const mapRows = groupStats(clean, settings.name, settings.tag, (m) => m.metadata?.map)
+    .filter((r) => r.games >= MIN_GAMES_FOR_BREAKDOWN && r.winrate !== null)
+    .filter((r) => !alreadyCovered(existingGoals, 'mapWinrate', r.key))
+    .sort((a, b) => a.winrate - b.winrate);
+  const worstMap = mapRows.find((r) => Math.min(r.winrate + 15, 70) > r.winrate);
+  if (worstMap) {
     suggestions.push({
       metric: 'mapWinrate',
       subject: worstMap.key,
@@ -73,11 +80,12 @@ function generateSuggestions(matches, settings) {
     });
   }
 
-  const agentRows = groupStats(clean, settings.name, settings.tag, (m, me) => me.character).filter(
-    (r) => r.games >= MIN_GAMES_FOR_BREAKDOWN && r.winrate !== null,
-  );
-  if (agentRows.length > 0) {
-    const worstAgent = agentRows.reduce((a, b) => (b.winrate < a.winrate ? b : a));
+  const agentRows = groupStats(clean, settings.name, settings.tag, (m, me) => me.character)
+    .filter((r) => r.games >= MIN_GAMES_FOR_BREAKDOWN && r.winrate !== null)
+    .filter((r) => !alreadyCovered(existingGoals, 'agentWinrate', r.key))
+    .sort((a, b) => a.winrate - b.winrate);
+  const worstAgent = agentRows.find((r) => Math.min(r.winrate + 15, 70) > r.winrate);
+  if (worstAgent) {
     suggestions.push({
       metric: 'agentWinrate',
       subject: worstAgent.key,
@@ -105,12 +113,10 @@ function GoalsWidget({ matches, settings }) {
 
   const suggestions = useMemo(() => {
     if (matches.length === 0) return [];
-    const all = generateSuggestions(matches, settings);
-    // Pas de doublon avec un objectif déjà actif sur le même sujet.
-    return all.filter(
-      (s) => !activeGoals.some((g) => g.metric === s.metric && g.subject === s.subject),
-    );
-  }, [matches, settings, activeGoals]);
+    // On exclut tout sujet déjà couvert par un objectif actif OU terminé,
+    // pour ne jamais reproposer un objectif déjà réussi.
+    return generateSuggestions(matches, settings, goals);
+  }, [matches, settings, goals]);
 
   const handleAddSuggestion = (suggestion) => {
     window.electronAPI.addGoal({ type: 'metric', ...suggestion }).then(setGoals);

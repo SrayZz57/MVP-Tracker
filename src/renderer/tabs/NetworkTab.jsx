@@ -29,6 +29,53 @@ function PingGauge({ percent }) {
   );
 }
 
+const SPARKLINE_WIDTH = 300;
+const SPARKLINE_HEIGHT = 60;
+const SPARKLINE_SAMPLE_COUNT = 60;
+
+function PingSparkline({ samples }) {
+  const recent = useMemo(
+    () => [...samples].sort((a, b) => a.timestamp - b.timestamp).slice(-SPARKLINE_SAMPLE_COUNT),
+    [samples],
+  );
+
+  if (recent.length < 2) {
+    return <p className="label">Pas encore assez de relevés récents pour tracer une courbe.</p>;
+  }
+
+  const values = recent.map((s) => s.latency_ms);
+  const max = Math.max(...values, 60);
+  const min = Math.min(...values, 0);
+  const range = Math.max(max - min, 1);
+
+  const points = recent.map((s, i) => {
+    const x = (i / (recent.length - 1)) * SPARKLINE_WIDTH;
+    const y = SPARKLINE_HEIGHT - ((s.latency_ms - min) / range) * SPARKLINE_HEIGHT;
+    return `${x},${y}`;
+  });
+
+  const avg = values.reduce((a, b) => a + b, 0) / values.length;
+  const color = avg < 60 ? '#3ddc84' : avg < 120 ? 'var(--warning)' : 'var(--accent)';
+  const areaPoints = `0,${SPARKLINE_HEIGHT} ${points.join(' ')} ${SPARKLINE_WIDTH},${SPARKLINE_HEIGHT}`;
+
+  return (
+    <div className="ping-sparkline-wrap">
+      <svg
+        viewBox={`0 0 ${SPARKLINE_WIDTH} ${SPARKLINE_HEIGHT}`}
+        preserveAspectRatio="none"
+        className="ping-sparkline"
+      >
+        <polygon points={areaPoints} style={{ fill: color }} className="ping-sparkline-area" />
+        <polyline points={points.join(' ')} style={{ stroke: color }} className="ping-sparkline-line" />
+      </svg>
+      <div className="ping-sparkline-meta">
+        <span>{recent.length} derniers relevés</span>
+        <span>moy. {avg.toFixed(0)} ms — min {min.toFixed(0)} — max {max.toFixed(0)}</span>
+      </div>
+    </div>
+  );
+}
+
 function NetworkTab({ settings, matches, pingSamples }) {
   const pingStats = useMemo(
     () => pingCorrelation(matches, pingSamples, settings.name, settings.tag),
@@ -40,6 +87,11 @@ function NetworkTab({ settings, matches, pingSamples }) {
   return (
     <div>
       <NetworkMonitor />
+
+      <div className="card">
+        <h3>📈 Historique récent du ping</h3>
+        <PingSparkline samples={pingSamples} />
+      </div>
 
       <div className="card">
         <h3>💀 Corrélation ping / morts</h3>

@@ -1,4 +1,15 @@
-import { excludeDeathmatch, findMe, resultLabel, hitStats, killDistance } from './valorantStats.js';
+import {
+  excludeDeathmatch,
+  findMe,
+  resultLabel,
+  hitStats,
+  killDistance,
+  clutchStats,
+  firstBloodStats,
+  overallHsPercent,
+  weaponKillsFor,
+  duelDistanceStats,
+} from './valorantStats.js';
 
 const ACE_THRESHOLD = 5;
 
@@ -21,7 +32,9 @@ function findBestAce(matches, name, tag) {
     if (!me?.puuid) return;
     (match.rounds || []).forEach((round, roundIndex) => {
       const myPs = (round.player_stats || []).find((ps) => ps.player_puuid === me.puuid);
-      const kills = myPs?.kill_events?.length ?? 0;
+      // Exclut les kill_events où killer === victim : mort par l'explosion du
+      // spike (ou suicide) n'est pas un kill, même si l'API le liste ici.
+      const kills = (myPs?.kill_events || []).filter((k) => k.killer_puuid !== k.victim_puuid).length;
       if (kills < ACE_THRESHOLD) return;
       if (!best || kills > best.kills) {
         best = { kills, roundNumber: roundIndex + 1, agent: me.character, ...matchContext(match) };
@@ -221,7 +234,100 @@ function findBestPerfectMatch(matches, name, tag) {
   return best;
 }
 
+// Compteurs "carrière" (cumulés sur tout l'historique en cache), pour des
+// succès de progression sur le long terme plutôt que des records ponctuels.
+function careerCounters(matches, name, tag) {
+  const clean = excludeDeathmatch(matches);
+  let totalKills = 0;
+  let totalWins = 0;
+  let totalPlaytimeSeconds = 0;
+  const maps = new Set();
+  const modes = new Set();
+  const killsByAgent = new Map();
+  const gamesByAgent = new Map();
+  const killsByWeapon = new Map();
+  let longestMatch = null;
+
+  clean.forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me) return;
+
+    totalKills += me.stats?.kills ?? 0;
+    if (resultLabel(match, me) === 'Victoire') totalWins += 1;
+    totalPlaytimeSeconds += match.metadata?.game_length ?? 0;
+    if (match.metadata?.map) maps.add(match.metadata.map);
+    if (match.metadata?.mode) modes.add(match.metadata.mode);
+
+    if (me.character) {
+      killsByAgent.set(me.character, (killsByAgent.get(me.character) || 0) + (me.stats?.kills ?? 0));
+      gamesByAgent.set(me.character, (gamesByAgent.get(me.character) || 0) + 1);
+    }
+
+    weaponKillsFor(match, me.puuid).forEach((weapon) => {
+      killsByWeapon.set(weapon, (killsByWeapon.get(weapon) || 0) + 1);
+    });
+
+    const rounds = match.rounds?.length ?? 0;
+    if (rounds > 0 && (!longestMatch || rounds > longestMatch.rounds)) {
+      longestMatch = { rounds, agent: me.character, ...matchContext(match) };
+    }
+  });
+
+  const topByValue = (map) => {
+    let bestKey = null;
+    let bestValue = 0;
+    map.forEach((value, key) => {
+      if (value > bestValue) {
+        bestValue = value;
+        bestKey = key;
+      }
+    });
+    return bestKey ? { key: bestKey, value: bestValue } : null;
+  };
+
+  const bestAgentKills = topByValue(killsByAgent);
+  const bestAgentGames = topByValue(gamesByAgent);
+  const bestWeaponKills = topByValue(killsByWeapon);
+
+  return {
+    totalMatches: clean.length,
+    totalKills,
+    totalWins,
+    totalPlaytimeSeconds,
+    mapsPlayedCount: maps.size,
+    modesPlayedCount: modes.size,
+    maxAgentKills: bestAgentKills && { agent: bestAgentKills.key, kills: bestAgentKills.value },
+    maxAgentGames: bestAgentGames && { agent: bestAgentGames.key, games: bestAgentGames.value },
+    maxWeaponKills: bestWeaponKills && { weapon: bestWeaponKills.key, kills: bestWeaponKills.value },
+    longestMatch,
+  };
+}
+
+// Nombre de spikes posés / désamorcés par le joueur suivi — plant_events et
+// defuse_events n'existent que sur le round où l'action a eu lieu (sinon les
+// champs sont null), pas besoin de reconstruire quoi que ce soit.
+function countSpikeActions(matches, name, tag) {
+  const fullName = `${name}#${tag}`.toLowerCase();
+  let plants = 0;
+  let defuses = 0;
+
+  excludeDeathmatch(matches).forEach((match) => {
+    (match.rounds || []).forEach((round) => {
+      if (round.plant_events?.planted_by?.display_name?.toLowerCase() === fullName) plants += 1;
+      if (round.defuse_events?.defused_by?.display_name?.toLowerCase() === fullName) defuses += 1;
+    });
+  });
+
+  return { plants, defuses };
+}
+
 export function computeHallOfFame(matches, name, tag) {
+  const career = careerCounters(matches, name, tag);
+  const spikeActions = countSpikeActions(matches, name, tag);
+  const clutch = clutchStats(matches, name, tag);
+  const firstBlood = firstBloodStats(matches, name, tag);
+  const duelStats = duelDistanceStats(matches, name, tag);
+
   return {
     bestAce: findBestAce(matches, name, tag),
     longestWinStreak: findLongestWinStreak(matches, name, tag),
@@ -232,5 +338,13 @@ export function computeHallOfFame(matches, name, tag) {
     bestKillDistance: findBestKillDistance(matches, name, tag),
     agentDiversity: countAgentDiversity(matches, name, tag),
     bestPerfectMatch: findBestPerfectMatch(matches, name, tag),
+    careerHsPercent: overallHsPercent(matches, name, tag),
+    totalClutchWins: clutch.wins,
+    totalFirstBloods: firstBlood.firstBloods,
+    totalPlants: spikeActions.plants,
+    totalDefuses: spikeActions.defuses,
+    longRangeDuels: duelStats.rows.find((r) => r.id === 'long') ?? null,
+    veryLongRangeDuels: duelStats.rows.find((r) => r.id === 'verylong') ?? null,
+    ...career,
   };
 }

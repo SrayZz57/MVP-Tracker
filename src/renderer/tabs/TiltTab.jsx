@@ -32,17 +32,22 @@ function TiltTab({ settings, matches }) {
   return (
     <div>
       <div className={`card tilt-card ${tilt.isTilted ? '' : 'calm'}`}>
-        <h3>{tilt.isTilted ? '⚠️ Signes de tilt détectés' : '✅ Pas de signe de tilt'}</h3>
-        {tilt.isTilted ? (
-          <p className="warning">
-            {tilt.lossStreakTilt && `${form.streakCount} défaites d'affilée. `}
-            {tilt.perfDegradation &&
-              `Perf en baisse sur les 3 derniers matchs (K/D ${tilt.last3Kd.toFixed(2)} vs moyenne ${form.overallKd.toFixed(2)}). `}
-            Une pause pourrait aider.
-          </p>
-        ) : (
-          <p>Continue comme ça, rien à signaler pour l'instant.</p>
-        )}
+        <div className="tilt-card-header">
+          <span className="tilt-card-badge">{tilt.isTilted ? '⚠️' : '✅'}</span>
+          <div>
+            <h3>{tilt.isTilted ? 'Signes de tilt détectés' : 'Pas de signe de tilt'}</h3>
+            {tilt.isTilted ? (
+              <p className="warning">
+                {tilt.lossStreakTilt && `${form.streakCount} défaites d'affilée. `}
+                {tilt.perfDegradation &&
+                  `Perf en baisse sur les 3 derniers matchs (K/D ${tilt.last3Kd.toFixed(2)} vs moyenne ${form.overallKd.toFixed(2)}). `}
+                Une pause pourrait aider.
+              </p>
+            ) : (
+              <p>Continue comme ça, rien à signaler pour l'instant.</p>
+            )}
+          </div>
+        </div>
       </div>
 
       <div className="card">
@@ -61,35 +66,43 @@ function TiltTab({ settings, matches }) {
         </p>
       </div>
 
-      <div className="card">
-        <h3>📊 Ce qui est surveillé</h3>
-        <div className="stat-tiles">
-          <div className="stat-tile">
-            <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
-              {form.streakType === 'Défaite' ? form.streakCount : 0}
+      <div className="tilt-columns">
+        <div className="card">
+          <h3>📊 Ce qui est surveillé</h3>
+          <div className="stat-tiles">
+            <div className="stat-tile">
+              <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
+                {form.streakType === 'Défaite' ? form.streakCount : 0}
+              </div>
+              <div className="label">Défaites d'affilée (seuil : 3)</div>
             </div>
-            <div className="label">Défaites d'affilée (seuil : 3)</div>
-          </div>
-          <div className="stat-tile">
-            <div className="value" style={{ color: tilt.perfDegradation ? 'var(--accent)' : undefined }}>
-              {tilt.last3Kd === null ? '?' : tilt.last3Kd.toFixed(2)}
+            <div className="stat-tile">
+              <div className="value" style={{ color: tilt.perfDegradation ? 'var(--accent)' : undefined }}>
+                {tilt.last3Kd === null ? '?' : tilt.last3Kd.toFixed(2)}
+              </div>
+              <div className="label">K/D sur les 3 derniers matchs</div>
             </div>
-            <div className="label">K/D sur les 3 derniers matchs</div>
-          </div>
-          <div className="stat-tile">
-            <div className="value">{last3KdRatio === null ? '?' : `${(last3KdRatio * 100).toFixed(0)}%`}</div>
-            <div className="label">...de ta moyenne générale (seuil : 70%)</div>
+            <div className="stat-tile">
+              <div className="value">{last3KdRatio === null ? '?' : `${(last3KdRatio * 100).toFixed(0)}%`}</div>
+              <div className="label">...de ta moyenne générale (seuil : 70%)</div>
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="card">
-        <h3>ℹ️ Comment ça marche</h3>
-        <p>Un signe de tilt est détecté si l'une de ces deux conditions est vraie :</p>
-        <ul>
-          <li>3 défaites d'affilée ou plus</li>
-          <li>Ton K/D sur les 3 derniers matchs est inférieur à 70% de ta moyenne générale</li>
-        </ul>
+        <div className="card">
+          <h3>ℹ️ Comment ça marche</h3>
+          <p className="label">Un signe de tilt est détecté si l'une de ces deux conditions est vraie :</p>
+          <div className="tilt-rule-list">
+            <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
+              <span className="tilt-rule-icon">{tilt.lossStreakTilt ? '🔴' : '⚪'}</span>
+              3 défaites d'affilée ou plus
+            </div>
+            <div className={`tilt-rule ${tilt.perfDegradation ? 'active' : ''}`}>
+              <span className="tilt-rule-icon">{tilt.perfDegradation ? '🔴' : '⚪'}</span>
+              K/D sur les 3 derniers matchs inférieur à 70% de ta moyenne générale
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   );
