@@ -31,6 +31,7 @@ import {
   resolveBet,
   getBetHistory,
   getTotalBetPoints,
+  backfillLegacyPuuid,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
 import { updateElectronApp } from 'update-electron-app';
@@ -43,6 +44,32 @@ import { updateElectronApp } from 'update-electron-app';
 app.commandLine.appendSwitch('disable-http-cache');
 
 const store = new Store();
+
+// Toutes les données liées à un compte (crosshairs, stratégies, paris,
+// évaluations, puzzles, wrapped, objectifs, skins) sont maintenant scopées
+// par puuid, pour que consulter le tracker de quelqu'un d'autre sur cette
+// machine n'écrase/n'affiche plus les données d'un autre compte. Les lignes
+// créées avant ce scoping sont rattachées au compte actuellement configuré.
+function currentPuuid() {
+  return store.get('valorantSettings')?.puuid ?? null;
+}
+backfillLegacyPuuid(currentPuuid());
+
+// Même chose côté electron-store : `personalGoals`/`skinsWishlist`/
+// `skinsCollection` existaient en clés globales avant ce scoping — on les
+// rattache au compte actuellement configuré si ce n'est pas déjà fait.
+(function migrateLegacyStoreKeys() {
+  const puuid = currentPuuid();
+  if (!puuid) return;
+  ['personalGoals', 'skinsWishlist', 'skinsCollection'].forEach((base) => {
+    const legacy = store.get(base);
+    const scopedKeyName = `${base}:${puuid}`;
+    if (legacy !== undefined && store.get(scopedKeyName) === undefined) {
+      store.set(scopedKeyName, legacy);
+      store.delete(base);
+    }
+  });
+})();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
 if (started) {
@@ -137,112 +164,154 @@ ipcMain.handle('network:get-status', () => networkStatus);
 
 ipcMain.handle('network:get-ping-samples', () => getAllPingSamples());
 
-ipcMain.handle('crosshair:list', () => getCrosshairs());
+ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 
 ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
-  saveCrosshair(name, code, color, image),
+  saveCrosshair(currentPuuid(), name, code, color, image),
 );
 
-ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(id));
+ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(currentPuuid(), id));
 
-ipcMain.handle('strategy:list', (_event, map) => getStrategiesForMap(map));
+ipcMain.handle('strategy:list', (_event, map) => (currentPuuid() ? getStrategiesForMap(currentPuuid(), map) : []));
 
 ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
-  saveStrategy(name, map, canvasJson),
+  saveStrategy(currentPuuid(), name, map, canvasJson),
 );
 
-ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(id));
+ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(currentPuuid(), id));
 
-ipcMain.handle('skins:get-wishlist', () => store.get('skinsWishlist') || []);
+// Clé `electron-store` scopée par compte — `skinsWishlist` / `skinsCollection`
+// / `personalGoals` suivent maintenant le compte plutôt que la machine.
+function scopedKey(base) {
+  const puuid = currentPuuid();
+  return puuid ? `${base}:${puuid}` : null;
+}
+
+ipcMain.handle('skins:get-wishlist', () => {
+  const key = scopedKey('skinsWishlist');
+  return key ? store.get(key) || [] : [];
+});
 
 ipcMain.handle('skins:toggle-wishlist', (_event, uuid) => {
-  const wishlist = store.get('skinsWishlist') || [];
+  const key = scopedKey('skinsWishlist');
+  if (!key) return [];
+  const wishlist = store.get(key) || [];
   const next = wishlist.includes(uuid) ? wishlist.filter((id) => id !== uuid) : [...wishlist, uuid];
-  store.set('skinsWishlist', next);
+  store.set(key, next);
   return next;
 });
 
-ipcMain.handle('skins:get-collection', () => store.get('skinsCollection') || []);
+ipcMain.handle('skins:get-collection', () => {
+  const key = scopedKey('skinsCollection');
+  return key ? store.get(key) || [] : [];
+});
 
 ipcMain.handle('skins:toggle-collection', (_event, { uuid, defaultPriceVp }) => {
-  const collection = store.get('skinsCollection') || [];
+  const key = scopedKey('skinsCollection');
+  if (!key) return [];
+  const collection = store.get(key) || [];
   const exists = collection.some((entry) => entry.uuid === uuid);
   const next = exists
     ? collection.filter((entry) => entry.uuid !== uuid)
     : [...collection, { uuid, priceVp: defaultPriceVp }];
-  store.set('skinsCollection', next);
+  store.set(key, next);
   return next;
 });
 
 ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
-  const collection = store.get('skinsCollection') || [];
+  const key = scopedKey('skinsCollection');
+  if (!key) return [];
+  const collection = store.get(key) || [];
   const next = collection.map((entry) => (entry.uuid === uuid ? { ...entry, priceVp } : entry));
-  store.set('skinsCollection', next);
+  store.set(key, next);
   return next;
 });
 
-ipcMain.handle('bet:get-pending', () => getPendingBet());
+ipcMain.handle('bet:get-pending', () => (currentPuuid() ? getPendingBet(currentPuuid()) : null));
 
 ipcMain.handle('bet:create', (_event, { type, threshold, baselineMatchId }) =>
-  createBet(type, threshold, baselineMatchId),
+  createBet(currentPuuid(), type, threshold, baselineMatchId),
 );
 
-ipcMain.handle('bet:cancel', (_event, id) => cancelBet(id));
+ipcMain.handle('bet:cancel', (_event, id) => cancelBet(currentPuuid(), id));
 
 ipcMain.handle('bet:resolve', (_event, { id, resolvedMatchId, actualValue, won, points }) =>
-  resolveBet(id, resolvedMatchId, actualValue, won, points),
+  resolveBet(currentPuuid(), id, resolvedMatchId, actualValue, won, points),
 );
 
-ipcMain.handle('bet:history', (_event, limit) => getBetHistory(limit ?? 30));
+ipcMain.handle('bet:history', (_event, limit) => (currentPuuid() ? getBetHistory(currentPuuid(), limit ?? 30) : []));
 
-ipcMain.handle('bet:total-points', () => getTotalBetPoints());
+ipcMain.handle('bet:total-points', () => (currentPuuid() ? getTotalBetPoints(currentPuuid()) : 0));
 
-ipcMain.handle('assessment:get', (_event, matchId) => getAssessmentForMatch(matchId));
+ipcMain.handle('assessment:get', (_event, matchId) =>
+  currentPuuid() ? getAssessmentForMatch(currentPuuid(), matchId) : null,
+);
 
 ipcMain.handle('assessment:save', (_event, { matchId, date, map, answersJson }) =>
-  saveAssessment(matchId, date, map, answersJson),
+  saveAssessment(currentPuuid(), matchId, date, map, answersJson),
 );
 
-ipcMain.handle('assessment:history', (_event, limit) => getAssessmentHistory(limit ?? 30));
+ipcMain.handle('assessment:history', (_event, limit) =>
+  currentPuuid() ? getAssessmentHistory(currentPuuid(), limit ?? 30) : [],
+);
 
-ipcMain.handle('narrative:get', (_event, weekStart) => getNarrativeForWeek(weekStart));
+ipcMain.handle('narrative:get', (_event, weekStart) =>
+  currentPuuid() ? getNarrativeForWeek(currentPuuid(), weekStart) : null,
+);
 
-ipcMain.handle('narrative:get-previous', (_event, weekStart) => getPreviousNarrative(weekStart));
+ipcMain.handle('narrative:get-previous', (_event, weekStart) =>
+  currentPuuid() ? getPreviousNarrative(currentPuuid(), weekStart) : null,
+);
 
 ipcMain.handle('narrative:save', (_event, { weekStart, recapJson, rankJson, narrativeJson }) =>
-  saveNarrative(weekStart, recapJson, rankJson, narrativeJson),
+  saveNarrative(currentPuuid(), weekStart, recapJson, rankJson, narrativeJson),
 );
 
-ipcMain.handle('narrative:history', (_event, limit) => getNarrativeHistory(limit ?? 20));
+ipcMain.handle('narrative:history', (_event, limit) =>
+  currentPuuid() ? getNarrativeHistory(currentPuuid(), limit ?? 20) : [],
+);
 
-ipcMain.handle('puzzle:get', (_event, date) => getPuzzleByDate(date));
+ipcMain.handle('puzzle:get', (_event, date) => (currentPuuid() ? getPuzzleByDate(currentPuuid(), date) : null));
 
-ipcMain.handle('puzzle:save', (_event, { date, situationJson }) => savePuzzle(date, situationJson));
+ipcMain.handle('puzzle:save', (_event, { date, situationJson }) =>
+  savePuzzle(currentPuuid(), date, situationJson),
+);
 
-ipcMain.handle('puzzle:answer', (_event, { date, choice, correct }) => answerPuzzle(date, choice, correct));
+ipcMain.handle('puzzle:answer', (_event, { date, choice, correct }) =>
+  answerPuzzle(currentPuuid(), date, choice, correct),
+);
 
-ipcMain.handle('puzzle:history', (_event, limit) => getPuzzleHistory(limit ?? 30));
+ipcMain.handle('puzzle:history', (_event, limit) => (currentPuuid() ? getPuzzleHistory(currentPuuid(), limit ?? 30) : []));
 
-ipcMain.handle('goals:get', () => store.get('personalGoals') || []);
+ipcMain.handle('goals:get', () => {
+  const key = scopedKey('personalGoals');
+  return key ? store.get(key) || [] : [];
+});
 
 ipcMain.handle('goals:add', (_event, goal) => {
-  const goals = store.get('personalGoals') || [];
+  const key = scopedKey('personalGoals');
+  if (!key) return [];
+  const goals = store.get(key) || [];
   const next = [...goals, { ...goal, id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, done: false, createdAt: Date.now() }];
-  store.set('personalGoals', next);
+  store.set(key, next);
   return next;
 });
 
 ipcMain.handle('goals:toggle-done', (_event, id) => {
-  const goals = store.get('personalGoals') || [];
+  const key = scopedKey('personalGoals');
+  if (!key) return [];
+  const goals = store.get(key) || [];
   const next = goals.map((goal) => (goal.id === id ? { ...goal, done: !goal.done } : goal));
-  store.set('personalGoals', next);
+  store.set(key, next);
   return next;
 });
 
 ipcMain.handle('goals:delete', (_event, id) => {
-  const goals = store.get('personalGoals') || [];
+  const key = scopedKey('personalGoals');
+  if (!key) return [];
+  const goals = store.get(key) || [];
   const next = goals.filter((goal) => goal.id !== id);
-  store.set('personalGoals', next);
+  store.set(key, next);
   return next;
 });
 
