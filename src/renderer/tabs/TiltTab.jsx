@@ -1,10 +1,11 @@
 import { useMemo } from 'react';
 import { findMe, resultLabel, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
+import LoadingState from '../LoadingState.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 
-function TiltTab({ settings, matches }) {
+function TiltTab({ settings, matches, loading }) {
   const form = useMemo(
     () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
     [matches, settings.name, settings.tag],
@@ -32,6 +33,7 @@ function TiltTab({ settings, matches }) {
   );
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

@@ -1,7 +1,9 @@
 import CompositionBuilder from '../CompositionBuilder.jsx';
 
-function CompositionTab({ settings, matches }) {
-  return <CompositionBuilder settings={settings} matches={matches} />;
+function CompositionTab({ settings, matches, mySettings, myMatches }) {
+  return (
+    <CompositionBuilder settings={settings} matches={matches} mySettings={mySettings} myMatches={myMatches} />
+  );
 }
 
 export default CompositionTab;

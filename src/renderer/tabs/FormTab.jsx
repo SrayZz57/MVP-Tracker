@@ -8,6 +8,7 @@ import {
   WEEK_ORDER,
   formStats,
 } from '../valorantStats.js';
+import LoadingState from '../LoadingState.jsx';
 
 const WEEKDAY_ICONS = {
   Lundi: '📅', Mardi: '📅', Mercredi: '📅', Jeudi: '📅', Vendredi: '📅', Samedi: '🎉', Dimanche: '🎉',
@@ -54,7 +55,7 @@ function bestEntry(rows) {
   return withEnoughGames.reduce((best, row) => (row.winrate > best.winrate ? row : best));
 }
 
-function FormTab({ settings, matches }) {
+function FormTab({ settings, matches, loading }) {
   const form = useMemo(
     () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
     [matches, settings.name, settings.tag],
@@ -80,6 +81,7 @@ function FormTab({ settings, matches }) {
   const bestDay = useMemo(() => bestEntry(dayOfWeekStats), [dayOfWeekStats]);
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

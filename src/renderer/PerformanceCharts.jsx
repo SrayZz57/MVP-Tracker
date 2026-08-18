@@ -7,8 +7,9 @@ import AnimatedBarList from './charts/AnimatedBarList.jsx';
 import HeatmapGrid from './charts/HeatmapGrid.jsx';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import LineChart from './charts/LineChart.jsx';
+import LoadingState from './LoadingState.jsx';
 
-function PerformanceCharts({ settings, matches }) {
+function PerformanceCharts({ settings, matches, loading }) {
   const agentRoles = useAgentRoles();
   const ranked = useMemo(() => excludeDeathmatch(matches), [matches]);
 
@@ -43,6 +44,7 @@ function PerformanceCharts({ settings, matches }) {
   );
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

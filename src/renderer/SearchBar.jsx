@@ -7,7 +7,10 @@ function SearchBar({ initialSettings, onSearch }) {
 
   const handleSubmit = async (event) => {
     event.preventDefault();
-    const settings = { ...initialSettings, name: name.trim(), tag: tag.trim(), apiKey: apiKey.trim() };
+    // Pas de spread de `initialSettings` ici : une nouvelle recherche vise
+    // potentiellement un tout autre profil, l'ancien `puuid` ne doit surtout
+    // pas être recopié (sinon l'app croit encore regarder le profil précédent).
+    const settings = { name: name.trim(), tag: tag.trim(), apiKey: apiKey.trim() };
     await window.electronAPI.saveSettings(settings);
     onSearch(settings);
   };

@@ -1,7 +1,7 @@
 import TeammatesRivals from '../TeammatesRivals.jsx';
 
-function TeammatesRivalsTab({ settings, matches }) {
-  return <TeammatesRivals settings={settings} matches={matches} />;
+function TeammatesRivalsTab({ settings, matches, loading }) {
+  return <TeammatesRivals settings={settings} matches={matches} loading={loading} />;
 }
 
 export default TeammatesRivalsTab;

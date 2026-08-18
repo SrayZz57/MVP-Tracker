@@ -3,6 +3,7 @@ import { analyzeRoundBuys, summarizeRoundBuys, listMatchesWithRounds, recommendB
 import { agentAbilityBudget, AGENT_ABILITY_COSTS, ABILITY_COSTS_SOURCE_DATE } from './abilityCosts.js';
 import { useShopWeapons, useShopArmors, useWeaponIcons } from './weaponIcons.js';
 import { useAgentIcons, useAgentRoles, useAgentAbilities } from './agentIcons.js';
+import LoadingState from './LoadingState.jsx';
 
 function BuyAnalysisSection({ settings, matches }) {
   const weaponIcons = useWeaponIcons();
@@ -165,8 +166,9 @@ function BuyCalculatorSection() {
   );
 }
 
-function BuySimulator({ settings, matches }) {
+function BuySimulator({ settings, matches, loading }) {
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

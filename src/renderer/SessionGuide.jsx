@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { buildSessionPlan } from './sessionPlan.js';
+import LoadingState from './LoadingState.jsx';
 
 function buildChecklist(plan, latestStrategy) {
   const items = [
@@ -61,7 +62,7 @@ function buildChecklist(plan, latestStrategy) {
   return items;
 }
 
-function SessionGuide({ settings, matches }) {
+function SessionGuide({ settings, matches, loading: matchesLoading }) {
   const [plan, setPlan] = useState(null);
   const [latestStrategy, setLatestStrategy] = useState(null);
   const [checked, setChecked] = useState({});
@@ -88,6 +89,7 @@ function SessionGuide({ settings, matches }) {
   }
 
   if (matches.length === 0) {
+    if (matchesLoading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

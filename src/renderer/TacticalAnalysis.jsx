@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { deathTimingStats, clutchStats, economyImpactStats, duelDistanceStats } from './valorantStats.js';
 import PostMortemHistory from './PostMortemHistory.jsx';
+import LoadingState from './LoadingState.jsx';
 
 const TIMING_ICONS = { early: '🏃', mid: '⚔️', late: '⏳' };
 const ECONOMY_ICONS = { eco: '🥖', semi: '💵', full: '💰' };
@@ -13,13 +14,14 @@ function clutchColor(winrate) {
   return 'var(--accent)';
 }
 
-function TacticalAnalysis({ settings, matches }) {
+function TacticalAnalysis({ settings, matches, loading }) {
   const timing = useMemo(() => deathTimingStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
   const clutch = useMemo(() => clutchStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
   const economy = useMemo(() => economyImpactStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
   const distance = useMemo(() => duelDistanceStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

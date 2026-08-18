@@ -15,7 +15,10 @@ function WelcomeScreen({ onSaved }) {
       </div>
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
       <h1>MVP Tracker</h1>
-      <p className="welcome-tagline">Le tracker de stats Valorant qui va plus loin que les autres.</p>
+      <p className="welcome-tagline">
+        Cherche un joueur — toi-même ou n'importe qui d'autre. Ça ne change rien à ton compte, c'est juste pour
+        consulter un tracker.
+      </p>
       <SearchBar onSearch={onSaved} />
       <div className="welcome-api-help">
         <p>

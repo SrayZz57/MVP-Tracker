@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { computeTeammateSynergy, computeNemesis } from './socialStats.js';
 import { useAgentIcons } from './agentIcons.js';
+import LoadingState from './LoadingState.jsx';
 
 const GRAPH_SIZE = 480;
 const CENTER = GRAPH_SIZE / 2;
@@ -106,7 +107,7 @@ function initials(name) {
   return base.slice(0, 2).toUpperCase();
 }
 
-function TeammatesRivals({ settings, matches }) {
+function TeammatesRivals({ settings, matches, loading }) {
   const agentIcons = useAgentIcons();
   const teammates = useMemo(
     () => computeTeammateSynergy(matches, settings.name, settings.tag),
@@ -118,6 +119,7 @@ function TeammatesRivals({ settings, matches }) {
   );
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

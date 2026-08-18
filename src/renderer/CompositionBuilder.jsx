@@ -16,7 +16,7 @@ function scoreColor(value) {
   return 'var(--accent)';
 }
 
-function CompositionBuilder({ settings, matches }) {
+function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
   const minimaps = useMapMinimaps();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
@@ -49,11 +49,14 @@ function CompositionBuilder({ settings, matches }) {
     setSlots((prev) => prev.map((v, i) => (i === index ? value : v)));
   };
 
-  // Tes agents les plus joués, en accès rapide — évite de devoir rouvrir les
-  // 5 menus déroulants pour la compo que tu essaies le plus souvent.
+  // Tes agents les plus joués, en accès rapide — toujours ceux du compte
+  // lié (même en composant pour la map/l'historique de quelqu'un d'autre),
+  // pas ceux du joueur actuellement affiché.
+  const myRankedMatches = useMemo(() => excludeDeathmatch(myMatches ?? matches), [myMatches, matches]);
+  const ownerSettings = mySettings ?? settings;
   const mostPlayedAgents = useMemo(
-    () => groupStats(rankedMatches, settings.name, settings.tag, (match, me) => me.character).slice(0, 8),
-    [rankedMatches, settings.name, settings.tag],
+    () => groupStats(myRankedMatches, ownerSettings.name, ownerSettings.tag, (match, me) => me.character).slice(0, 8),
+    [myRankedMatches, ownerSettings.name, ownerSettings.tag],
   );
 
   const handleQuickPick = (agentName) => {

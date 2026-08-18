@@ -45,21 +45,27 @@ app.commandLine.appendSwitch('disable-http-cache');
 
 const store = new Store();
 
-// Toutes les données liées à un compte (crosshairs, stratégies, paris,
-// évaluations, puzzles, wrapped, objectifs, skins) sont maintenant scopées
-// par puuid, pour que consulter le tracker de quelqu'un d'autre sur cette
-// machine n'écrase/n'affiche plus les données d'un autre compte. Les lignes
-// créées avant ce scoping sont rattachées au compte actuellement configuré.
+// Toutes les données "personnelles" (crosshairs, stratégies, paris,
+// évaluations, puzzles, wrapped, objectifs, skins) sont scopées par puuid —
+// mais celui du compte MVP Tracker réellement LIÉ (Supabase), jamais celui
+// de "qui est actuellement affiché à l'écran" (valorantSettings.puuid change
+// à chaque recherche d'un autre joueur — utiliser ce champ ici recréait
+// exactement le bug qu'on scope pour éviter). Le renderer tient cette valeur
+// à jour via account:set-linked-puuid dès qu'il connaît le profil Supabase.
 function currentPuuid() {
-  return store.get('valorantSettings')?.puuid ?? null;
+  return store.get('linkedAccountPuuid') ?? null;
 }
-backfillLegacyPuuid(currentPuuid());
+
+// Migration ponctuelle (une seule fois, à l'introduction de ce scoping) :
+// rattache les données déjà présentes au compte alors actif localement,
+// avant même qu'un vrai compte lié (au sens Supabase) n'existe.
+backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
 
 // Même chose côté electron-store : `personalGoals`/`skinsWishlist`/
 // `skinsCollection` existaient en clés globales avant ce scoping — on les
 // rattache au compte actuellement configuré si ce n'est pas déjà fait.
 (function migrateLegacyStoreKeys() {
-  const puuid = currentPuuid();
+  const puuid = store.get('valorantSettings')?.puuid ?? null;
   if (!puuid) return;
   ['personalGoals', 'skinsWishlist', 'skinsCollection'].forEach((base) => {
     const legacy = store.get(base);
@@ -115,6 +121,40 @@ ipcMain.handle('settings:set', (_event, settings) => {
   store.set('valorantSettings', settings);
 });
 
+// Le renderer appelle ceci dès qu'il connaît (ou perd) le compte MVP Tracker
+// lié — c'est cette valeur, pas valorantSettings.puuid, qui scope toutes les
+// données personnelles (voir currentPuuid() plus haut).
+ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
+  if (puuid) {
+    store.set('linkedAccountPuuid', puuid);
+  } else {
+    store.delete('linkedAccountPuuid');
+  }
+});
+
+// Cherche un compte Riot sans rien enregistrer — sert à afficher un aperçu
+// (bannière/rang/pseudo) avant que l'utilisateur confirme que c'est bien le
+// sien, sur l'écran de liaison de compte.
+ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey }) => {
+  const account = await getAccount(name, tag, apiKey);
+  let rank = null;
+  try {
+    const mmr = await getMmr(account.region, name, tag, apiKey);
+    rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
+  } catch {
+    // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
+  }
+  return {
+    name,
+    tag,
+    puuid: account.puuid,
+    region: account.region,
+    accountLevel: account.account_level,
+    cardUuid: account.card,
+    rank,
+  };
+});
+
 ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => {
   const account = await getAccount(name, tag, apiKey);
   store.set('valorantSettings', { name, tag, apiKey, puuid: account.puuid });
@@ -124,7 +164,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
 
   try {
     const mmr = await getMmr(account.region, name, tag, apiKey);
-    store.set('valorantRank', {
+    const rankInfo = {
       accountLevel: account.account_level,
       cardUuid: account.card,
       tierId: mmr.current.tier.id,
@@ -133,20 +173,38 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
       peakTierId: mmr.peak.tier.id,
       peakTierName: mmr.peak.tier.name,
       peakSeasonUuid: mmr.peak.season.id,
-    });
+    };
+    store.set(`valorantRank:${account.puuid}`, rankInfo);
   } catch {
-    // Rang indisponible (compte non classé, erreur API) : on garde le dernier connu.
+    // Rang indisponible pour CE compte (non classé, erreur API, rate limit) —
+    // on ne touche pas au cache d'un autre compte (voir le retour ci-dessous,
+    // toujours scopé au puuid réellement recherché, jamais un "dernier connu"
+    // global qui pouvait laisser transparaître le rang d'un autre joueur).
   }
 
-  return getCachedMatches(account.puuid);
+  return {
+    matches: getCachedMatches(account.puuid),
+    rank: store.get(`valorantRank:${account.puuid}`) || null,
+  };
 });
 
-ipcMain.handle('valorant:get-rank', () => store.get('valorantRank') || null);
+ipcMain.handle('valorant:get-rank-for', (_event, puuid) => {
+  if (!puuid) return null;
+  return store.get(`valorantRank:${puuid}`) || null;
+});
 
 ipcMain.handle('valorant:get-cached-matches', () => {
   const settings = store.get('valorantSettings');
   if (!settings?.puuid) return [];
   return getCachedMatches(settings.puuid);
+});
+
+// Variante par puuid explicite — sert aux widgets "personnels" (wrapped
+// hebdo, etc.) qui doivent toujours parler du compte lié, pas de celui
+// éventuellement affiché à l'écran si l'utilisateur consulte quelqu'un d'autre.
+ipcMain.handle('valorant:get-cached-matches-for', (_event, puuid) => {
+  if (!puuid) return [];
+  return getCachedMatches(puuid);
 });
 
 let networkStatus = { valorantRunning: false, latestPing: null };

@@ -1,7 +1,7 @@
 import TacticalAnalysis from '../TacticalAnalysis.jsx';
 
-function AnalyseTab({ settings, matches }) {
-  return <TacticalAnalysis settings={settings} matches={matches} />;
+function AnalyseTab({ settings, matches, loading }) {
+  return <TacticalAnalysis settings={settings} matches={matches} loading={loading} />;
 }
 
 export default AnalyseTab;

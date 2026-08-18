@@ -4,14 +4,41 @@ import { app } from 'electron';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
+// PRIMARY KEY composite (match_id, puuid) — pas juste match_id : deux joueurs
+// suivis qui jouent ENSEMBLE partagent le même match_id (Riot en assigne un
+// seul par partie), donc une clé sur match_id seul ne permettait d'enregistrer
+// ce match que pour le premier des deux consulté, le second se le voyait
+// silencieusement ignoré (INSERT OR IGNORE) et donc invisible dans son historique.
 db.exec(`
   CREATE TABLE IF NOT EXISTS matches (
-    match_id TEXT PRIMARY KEY,
+    match_id TEXT NOT NULL,
     puuid TEXT NOT NULL,
     game_start INTEGER,
-    data TEXT NOT NULL
+    data TEXT NOT NULL,
+    PRIMARY KEY (match_id, puuid)
   )
 `);
+
+// Migration pour les bases créées avant ce correctif — même schéma visé,
+// juste appliqué a posteriori sans perdre les matchs déjà en cache.
+(function migrateMatchesPrimaryKey() {
+  const existingSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'matches'`).get()?.sql;
+  if (!existingSql || existingSql.includes('PRIMARY KEY (match_id, puuid)')) return;
+  db.exec('ALTER TABLE matches RENAME TO matches_legacy');
+  db.exec(`
+    CREATE TABLE matches (
+      match_id TEXT NOT NULL,
+      puuid TEXT NOT NULL,
+      game_start INTEGER,
+      data TEXT NOT NULL,
+      PRIMARY KEY (match_id, puuid)
+    )
+  `);
+  db.exec(
+    'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) SELECT match_id, puuid, game_start, data FROM matches_legacy',
+  );
+  db.exec('DROP TABLE matches_legacy');
+})();
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS ping_samples (
@@ -204,7 +231,10 @@ export function saveMatches(puuid, matches) {
   const insert = db.prepare(
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
   );
+  // HenrikDev renvoie parfois une entrée null/incomplète dans la liste (match
+  // corrompu de leur côté) — on l'ignore plutôt que de planter dessus.
   for (const match of matches) {
+    if (!match?.metadata?.matchid) continue;
     insert.run(match.metadata.matchid, puuid, match.metadata.game_start, JSON.stringify(match));
   }
 }

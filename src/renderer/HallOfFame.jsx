@@ -3,6 +3,7 @@ import { computeHallOfFame } from './hallOfFame.js';
 import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
+import LoadingState from './LoadingState.jsx';
 
 function formatDate(ms) {
   if (!ms) return '?';
@@ -55,7 +56,7 @@ function AchievementBadge({ icon, title, description, unlocked, contextText, pro
   );
 }
 
-function HallOfFame({ settings, matches }) {
+function HallOfFame({ settings, matches, loading }) {
   const agentPortraits = useAgentPortraits();
   const hof = useMemo(() => computeHallOfFame(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
   const achievementGroups = useMemo(() => deriveAchievements(hof), [hof]);
@@ -83,6 +84,7 @@ function HallOfFame({ settings, matches }) {
   }, [achievementGroups, settings.name, settings.tag]);
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 

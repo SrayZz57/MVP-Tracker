@@ -22,6 +22,7 @@ import AgentDetailModal from '../AgentDetailModal.jsx';
 import WeaponDetailModal from '../WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 import CountUp from '../CountUp.jsx';
+import LoadingState from '../LoadingState.jsx';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
 
@@ -157,7 +158,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
   );
 }
 
-function StatsTab({ settings, matches, rank }) {
+function StatsTab({ settings, matches, rank, loading }) {
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
   const agentRoles = useAgentRoles();
@@ -306,6 +307,7 @@ function StatsTab({ settings, matches, rank }) {
   );
 
   if (matches.length === 0) {
+    if (loading) return <LoadingState />;
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
   }
 
