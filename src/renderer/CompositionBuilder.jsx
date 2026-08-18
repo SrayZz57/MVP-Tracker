@@ -1,9 +1,10 @@
 import { useMemo, useState } from 'react';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
-import { mapStatsForAgent, excludeDeathmatch } from './valorantStats.js';
+import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
 import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
+import CountUp from './CountUp.jsx';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
@@ -48,6 +49,21 @@ function CompositionBuilder({ settings, matches }) {
     setSlots((prev) => prev.map((v, i) => (i === index ? value : v)));
   };
 
+  // Tes agents les plus joués, en accès rapide — évite de devoir rouvrir les
+  // 5 menus déroulants pour la compo que tu essaies le plus souvent.
+  const mostPlayedAgents = useMemo(
+    () => groupStats(rankedMatches, settings.name, settings.tag, (match, me) => me.character).slice(0, 8),
+    [rankedMatches, settings.name, settings.tag],
+  );
+
+  const handleQuickPick = (agentName) => {
+    setSlots((prev) => {
+      const emptyIndex = prev.findIndex((v) => !v);
+      if (emptyIndex === -1) return prev;
+      return prev.map((v, i) => (i === emptyIndex ? agentName : v));
+    });
+  };
+
   return (
     <div>
       <div className="card">
@@ -89,6 +105,27 @@ function CompositionBuilder({ settings, matches }) {
             );
           })}
         </div>
+
+        {mostPlayedAgents.length > 0 && (
+          <div className="comp-quickpicks">
+            <span className="stats-scope-label">⚡ Tes agents les plus joués :</span>
+            <div className="comp-quickpick-list">
+              {mostPlayedAgents.map((row) => (
+                <button
+                  key={row.key}
+                  className="comp-quickpick-chip"
+                  disabled={slots.includes(row.key)}
+                  onClick={() => handleQuickPick(row.key)}
+                  title={`${row.games} partie(s)${row.winrate !== null ? ` — ${row.winrate.toFixed(0)}% winrate` : ''}`}
+                >
+                  {agentIcons.get(row.key) && <img src={agentIcons.get(row.key)} alt="" />}
+                  {row.key}
+                  <span className="comp-quickpick-games">{row.games}</span>
+                </button>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {score && (
@@ -102,7 +139,7 @@ function CompositionBuilder({ settings, matches }) {
             >
               <div className="comp-score-ring-inner">
                 <div className="comp-score-value" style={{ color: scoreColor(score.overall) }}>
-                  {score.overall}
+                  <CountUp value={score.overall} />
                 </div>
                 <div className="comp-score-max">/100</div>
               </div>

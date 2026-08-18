@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { ECONOMY_TIERS } from './valorantStats.js';
 import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS } from './dailyPuzzle.js';
+import Skeleton from './Skeleton.jsx';
 
 function todayKey() {
   const now = new Date();
@@ -75,7 +76,7 @@ function DailyPuzzle({ settings, matches }) {
           découvre ce qu'il s'est réellement passé — et si ça correspond à ta façon de jouer.
         </p>
 
-        {puzzle === undefined && <p>Chargement…</p>}
+        {puzzle === undefined && <Skeleton lines={4} />}
 
         {puzzle === null && (
           <p>Pas encore assez de matchs classés en cache pour générer un puzzle — reviens après quelques parties.</p>

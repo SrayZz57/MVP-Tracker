@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import NetworkMonitor from '../NetworkMonitor.jsx';
 import { pingCorrelation } from '../valorantStats.js';
+import CountUp from '../CountUp.jsx';
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -22,7 +23,7 @@ function PingGauge({ percent }) {
         />
       </svg>
       <div className="ping-gauge-center">
-        <div className="value" style={{ color }}>{percent.toFixed(0)}%</div>
+        <div className="value" style={{ color }}><CountUp value={percent} suffix="%" /></div>
         <div className="label">morts en pic</div>
       </div>
     </div>

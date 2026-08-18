@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import useValorantData from './useValorantData.js';
 import StatsTab from './tabs/StatsTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
@@ -99,10 +99,26 @@ function App() {
   const [settings, setSettings] = useState(undefined);
   const [activeTab, setActiveTab] = useState('stats');
   const data = useValorantData(settings);
+  const sidebarNavRef = useRef(null);
+  const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
 
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
   }, []);
+
+  // Fait glisser un repère lumineux vers le lien actif au lieu de le faire
+  // juste réapparaître à une nouvelle position — mesuré dynamiquement car les
+  // sections du sidebar n'ont pas toutes la même hauteur.
+  useLayoutEffect(() => {
+    const container = sidebarNavRef.current;
+    const activeEl = container?.querySelector('.sidebar-link.active');
+    if (!container || !activeEl) return;
+    setIndicator({
+      top: activeEl.offsetTop,
+      height: activeEl.offsetHeight,
+      ready: true,
+    });
+  }, [activeTab, settings]);
 
   if (settings === undefined) {
     return null;
@@ -165,7 +181,15 @@ function App() {
           <span>MVP Tracker</span>
         </div>
 
-        <div className="sidebar-nav">
+        <div className="sidebar-nav" ref={sidebarNavRef}>
+          <div
+            className="sidebar-active-indicator"
+            style={{
+              transform: `translateY(${indicator.top}px)`,
+              height: indicator.height,
+              opacity: indicator.ready ? 1 : 0,
+            }}
+          />
           {NAV_SECTIONS.map((section) => (
             <div key={section.label} className="sidebar-section">
               <div className="sidebar-section-label">{section.label}</div>

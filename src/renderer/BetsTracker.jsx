@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
+import Skeleton from './Skeleton.jsx';
+import CountUp from './CountUp.jsx';
 
 function BetsTracker({ settings, matches }) {
   const [pending, setPending] = useState(undefined); // undefined = chargement, null = aucun
@@ -64,7 +66,7 @@ function BetsTracker({ settings, matches }) {
             style={{ background: 'conic-gradient(#ffc857, #ffe1a3, #ffc857)' }}
           >
             <div className="comp-score-ring-inner">
-              <div className="comp-score-value" style={{ color: '#ffc857' }}>{totalPoints}</div>
+              <div className="comp-score-value" style={{ color: '#ffc857' }}><CountUp value={totalPoints} /></div>
               <div className="comp-score-max">pts</div>
             </div>
           </div>
@@ -78,7 +80,7 @@ function BetsTracker({ settings, matches }) {
 
       <div className={pending ? 'card tilt-card calm' : 'card'}>
         {pending === undefined ? (
-          <p>Chargement…</p>
+          <Skeleton lines={2} />
         ) : pending ? (
           <div className="tilt-card-header">
             <span className="tilt-card-badge">⏳</span>

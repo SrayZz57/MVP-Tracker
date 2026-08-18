@@ -136,7 +136,7 @@ function GoalsWidget({ matches, settings }) {
   return (
     <>
       <button className="goals-widget-button" onClick={() => setOpen(!open)} title="Objectifs personnels">
-        🎯
+        <span key={open} className="goals-widget-icon">🎯</span>
       </button>
 
       {open && (

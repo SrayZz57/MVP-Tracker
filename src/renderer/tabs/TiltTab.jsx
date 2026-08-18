@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
-import { findMe, resultLabel, formStats, tiltStatus, excludeDeathmatch } from '../valorantStats.js';
+import { findMe, resultLabel, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
+import CountUp from '../CountUp.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 
@@ -24,6 +25,11 @@ function TiltTab({ settings, matches }) {
   );
 
   const last3KdRatio = form.overallKd && tilt.last3Kd !== null ? tilt.last3Kd / form.overallKd : null;
+
+  const frequency = useMemo(
+    () => tiltFrequency(matches, settings.name, settings.tag),
+    [matches, settings.name, settings.tag],
+  );
 
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
@@ -64,6 +70,36 @@ function TiltTab({ settings, matches }) {
         <p className="label" style={{ marginTop: '0.5rem' }}>
           Du plus récent (à gauche) au plus ancien (à droite) — vert = victoire, rouge = défaite.
         </p>
+      </div>
+
+      <div className="card">
+        <h3>📈 Fréquence de tilt (historique)</h3>
+        {frequency.total === 0 ? (
+          <p className="label">Pas encore assez de matchs pour calculer une fréquence.</p>
+        ) : (
+          <>
+            <div className="stat-tiles">
+              <div className="stat-tile">
+                <div className="value" style={{ color: frequency.percent >= 20 ? 'var(--accent)' : undefined }}>
+                  <CountUp value={frequency.percent} decimals={1} suffix="%" />
+                </div>
+                <div className="label">de tes matchs en tilt</div>
+              </div>
+              <div className="stat-tile">
+                <div className="value"><CountUp value={frequency.tiltedCount} /></div>
+                <div className="label">matchs dans une série de tilt</div>
+              </div>
+              <div className="stat-tile">
+                <div className="value"><CountUp value={frequency.total} /></div>
+                <div className="label">matchs analysés au total</div>
+              </div>
+            </div>
+            <p className="label" style={{ marginTop: '0.75rem' }}>
+              Un match compte comme "en tilt" s'il fait partie d'une série de 3 défaites consécutives ou plus, sur
+              tout ton historique en cache — pas juste la situation actuelle.
+            </p>
+          </>
+        )}
       </div>
 
       <div className="tilt-columns">

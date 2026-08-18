@@ -21,8 +21,15 @@ import MapDetailModal from '../MapDetailModal.jsx';
 import AgentDetailModal from '../AgentDetailModal.jsx';
 import WeaponDetailModal from '../WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
+import CountUp from '../CountUp.jsx';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
+
+const SCOPE_OPTIONS = [
+  { id: '', label: 'Tout' },
+  { id: 'competitive', label: 'Classé' },
+  { id: 'unrated', label: 'Non classé' },
+];
 
 function renderModeStats(title, rows, icons) {
   return (
@@ -167,6 +174,15 @@ function StatsTab({ settings, matches, rank }) {
   const [selectedWeapon, setSelectedWeapon] = useState(null);
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [modeFilter, setModeFilter] = useState('');
+  const [scope, setScope] = useState('');
+
+  // Filtre global de la page : "Tout" (comme avant), "Classé" (competitive
+  // uniquement) ou "Non classé" (unrated uniquement) — s'applique à toutes
+  // les stats de l'onglet, pas juste à la liste de matchs en bas.
+  const scopedMatches = useMemo(
+    () => (scope ? matches.filter((match) => match.metadata?.mode_id === scope) : matches),
+    [matches, scope],
+  );
 
   const globalStats = useMemo(() => {
     let totalHeadshots = 0;
@@ -174,7 +190,7 @@ function StatsTab({ settings, matches, rank }) {
     let totalLegshots = 0;
     const weaponCounts = new Map();
 
-    matches.forEach((match) => {
+    scopedMatches.forEach((match) => {
       const me = findMe(match, settings.name, settings.tag);
       if (!me) return;
 
@@ -196,22 +212,22 @@ function StatsTab({ settings, matches, rank }) {
       lsPercent: totalShots > 0 ? (totalLegshots / totalShots) * 100 : null,
       weaponRanking: [...weaponCounts.entries()].sort((a, b) => b[1] - a[1]),
     };
-  }, [matches, settings.name, settings.tag]);
+  }, [scopedMatches, settings.name, settings.tag]);
 
   const agentStats = useMemo(
-    () => groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match, me) => me.character),
-    [matches, settings.name, settings.tag],
+    () => groupStats(excludeDeathmatch(scopedMatches), settings.name, settings.tag, (match, me) => me.character),
+    [scopedMatches, settings.name, settings.tag],
   );
 
   const roleStats = useMemo(
     () =>
       groupStats(
-        excludeDeathmatch(matches),
+        excludeDeathmatch(scopedMatches),
         settings.name,
         settings.tag,
         (match, me) => agentRoles.get(me.character)?.roleName,
       ),
-    [matches, settings.name, settings.tag, agentRoles],
+    [scopedMatches, settings.name, settings.tag, agentRoles],
   );
 
   const roleIcons = useMemo(
@@ -220,17 +236,17 @@ function StatsTab({ settings, matches, rank }) {
   );
 
   const mapStats = useMemo(
-    () => groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => match.metadata?.map),
-    [matches, settings.name, settings.tag],
+    () => groupStats(excludeDeathmatch(scopedMatches), settings.name, settings.tag, (match) => match.metadata?.map),
+    [scopedMatches, settings.name, settings.tag],
   );
 
   const modeStats = useMemo(
-    () => groupStats(matches, settings.name, settings.tag, (match) => match.metadata?.mode),
-    [matches, settings.name, settings.tag],
+    () => groupStats(scopedMatches, settings.name, settings.tag, (match) => match.metadata?.mode),
+    [scopedMatches, settings.name, settings.tag],
   );
 
   const kdProgression = useMemo(() => {
-    return excludeDeathmatch(matches)
+    return excludeDeathmatch(scopedMatches)
       .slice(0, 20)
       .map((match) => {
         const me = findMe(match, settings.name, settings.tag);
@@ -241,7 +257,7 @@ function StatsTab({ settings, matches, rank }) {
       })
       .filter(Boolean)
       .reverse();
-  }, [matches, settings.name, settings.tag]);
+  }, [scopedMatches, settings.name, settings.tag]);
 
   const kdStats = useMemo(() => {
     if (kdProgression.length === 0) return null;
@@ -258,7 +274,7 @@ function StatsTab({ settings, matches, rank }) {
 
   // Même fenêtre de matchs que le graphique de K/D, pour un bilan V/D à côté.
   const periodResults = useMemo(() => {
-    const results = excludeDeathmatch(matches)
+    const results = excludeDeathmatch(scopedMatches)
       .slice(0, 20)
       .map((match) => {
         const me = findMe(match, settings.name, settings.tag);
@@ -272,21 +288,21 @@ function StatsTab({ settings, matches, rank }) {
     const draws = results.length - wins - losses;
     const winrate = results.length > 0 ? (wins / results.length) * 100 : null;
     return { results, wins, losses, draws, winrate };
-  }, [matches, settings.name, settings.tag]);
+  }, [scopedMatches, settings.name, settings.tag]);
 
-  // Modes réellement présents dans l'historique en cache — pas de liste
-  // figée, pour ne jamais proposer un mode que le joueur n'a pas joué.
+  // Modes réellement présents dans le scope actuel — pas de liste figée, pour
+  // ne jamais proposer un mode que le joueur n'a pas joué (ou hors du scope).
   const availableModes = useMemo(() => {
     const modes = new Map();
-    matches.forEach((match) => {
+    scopedMatches.forEach((match) => {
       if (match.metadata?.mode_id) modes.set(match.metadata.mode_id, match.metadata.mode ?? match.metadata.mode_id);
     });
     return [...modes.entries()].sort((a, b) => a[1].localeCompare(b[1]));
-  }, [matches]);
+  }, [scopedMatches]);
 
   const filteredMatches = useMemo(
-    () => (modeFilter ? matches.filter((match) => match.metadata?.mode_id === modeFilter) : matches),
-    [matches, modeFilter],
+    () => (modeFilter ? scopedMatches.filter((match) => match.metadata?.mode_id === modeFilter) : scopedMatches),
+    [scopedMatches, modeFilter],
   );
 
   if (matches.length === 0) {
@@ -295,11 +311,34 @@ function StatsTab({ settings, matches, rank }) {
 
   return (
     <div>
+      <div className="card stats-scope-card">
+        <span className="stats-scope-label">📊 Voir les stats de cette page pour :</span>
+        <div className="strategy-tool-group">
+          {SCOPE_OPTIONS.map((opt) => (
+            <button
+              key={opt.id}
+              className={opt.id === scope ? 'strategy-tool active' : 'strategy-tool'}
+              onClick={() => {
+                setScope(opt.id);
+                setModeFilter('');
+                setShowAllMatches(false);
+              }}
+            >
+              {opt.label}
+            </button>
+          ))}
+        </div>
+        {scope && (
+          <span className="label">{scopedMatches.length} match(s) {SCOPE_OPTIONS.find((o) => o.id === scope)?.label.toLowerCase()}</span>
+        )}
+      </div>
+
       <div
-        className="card profile-header-card"
+        className={`card profile-header-card ${currentTier?.color ? 'rank-glow' : ''}`}
         style={{
           backgroundImage: playerCardArt.banner ? `url(${playerCardArt.banner})` : undefined,
           borderColor: currentTier?.color,
+          '--rank-color': currentTier?.color,
         }}
       >
         <div className="profile-header-overlay">
@@ -356,15 +395,15 @@ function StatsTab({ settings, matches, rank }) {
         {kdStats && (
           <div className="stat-tiles">
             <div className="stat-tile">
-              <div className="value">{kdStats.avg.toFixed(2)}</div>
+              <div className="value"><CountUp value={kdStats.avg} decimals={2} /></div>
               <div className="label">K/D moyen</div>
             </div>
             <div className="stat-tile">
-              <div className="value">{kdStats.best.toFixed(2)}</div>
+              <div className="value"><CountUp value={kdStats.best} decimals={2} /></div>
               <div className="label">Meilleur match</div>
             </div>
             <div className="stat-tile">
-              <div className="value">{kdStats.worst.toFixed(2)}</div>
+              <div className="value"><CountUp value={kdStats.worst} decimals={2} /></div>
               <div className="label">Pire match</div>
             </div>
             <div className="stat-tile">
@@ -405,7 +444,7 @@ function StatsTab({ settings, matches, rank }) {
       </div>
 
       <div className="card">
-        <h3>Stats globales ({matches.length} matchs)</h3>
+        <h3>Stats globales ({scopedMatches.length} matchs)</h3>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value">{globalStats.hsPercent === null ? '?' : `${globalStats.hsPercent.toFixed(1)}%`}</div>

@@ -6,6 +6,8 @@ function sequentialColor(value) {
   return `rgba(57, 135, 229, ${alpha})`;
 }
 
+const MIN_GAMES_FOR_PEAK = 3;
+
 function HeatmapGrid({ grid }) {
   const [mounted, setMounted] = useState(false);
 
@@ -13,6 +15,20 @@ function HeatmapGrid({ grid }) {
     const id = requestAnimationFrame(() => setMounted(true));
     return () => cancelAnimationFrame(id);
   }, []);
+
+  // Met en avant le créneau avec le meilleur winrate, à condition d'avoir un
+  // minimum d'échantillon — sinon un 100% sur 1 seule partie ressortirait
+  // comme "meilleur créneau" de façon trompeuse.
+  let peakId = null;
+  let peakWinrate = -1;
+  grid.forEach((row) =>
+    row.periods.forEach((cell) => {
+      if (cell.games >= MIN_GAMES_FOR_PEAK && cell.winrate > peakWinrate) {
+        peakWinrate = cell.winrate;
+        peakId = `${row.day}-${cell.id}`;
+      }
+    }),
+  );
 
   return (
     <div className="heatmap-grid-chart">
@@ -29,18 +45,20 @@ function HeatmapGrid({ grid }) {
           <span className="heatmap-grid-row-label">{row.day}</span>
           {row.periods.map((cell, colIndex) => {
             const delay = (rowIndex * PERIODS.length + colIndex) * 22;
+            const isPeak = `${row.day}-${cell.id}` === peakId;
             return (
               <div
                 key={cell.id}
-                className={`heatmap-grid-cell ${cell.games === 0 ? 'empty' : ''}`}
+                className={`heatmap-grid-cell ${cell.games === 0 ? 'empty' : ''} ${isPeak ? 'peak' : ''}`}
                 style={{
                   background: cell.winrate === null ? undefined : sequentialColor(cell.winrate),
                   opacity: mounted ? 1 : 0,
                   transform: mounted ? 'scale(1)' : 'scale(0.8)',
                   transitionDelay: `${delay}ms`,
                 }}
-                title={cell.games > 0 ? `${cell.games} partie(s) — ${cell.winrate.toFixed(0)}% winrate` : 'Aucune donnée'}
+                title={cell.games > 0 ? `${cell.games} partie(s) — ${cell.winrate.toFixed(0)}% winrate${isPeak ? ' — ton meilleur créneau' : ''}` : 'Aucune donnée'}
               >
+                {isPeak && <span className="heatmap-grid-cell-star">★</span>}
                 {cell.winrate !== null ? `${cell.winrate.toFixed(0)}%` : '–'}
               </div>
             );

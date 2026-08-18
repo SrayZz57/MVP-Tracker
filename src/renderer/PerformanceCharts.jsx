@@ -52,10 +52,10 @@ function PerformanceCharts({ settings, matches }) {
         <h3>📈 Graphiques</h3>
         <p className="label">Un résumé visuel de tes stats, calculé à partir de ton historique en cache.</p>
         <div className="kpi-row">
-          <KpiTile label="Matchs classés" value={kpis.games} />
-          <KpiTile label="Winrate global" value={kpis.winrate} suffix="%" />
-          <KpiTile label="K/D moyen" value={kpis.kd} decimals={2} />
-          <KpiTile label="Précision tête" value={kpis.hsPercent} suffix="%" />
+          <KpiTile icon="🎮" label="Matchs classés" value={kpis.games} />
+          <KpiTile icon="🏆" label="Winrate global" value={kpis.winrate} suffix="%" />
+          <KpiTile icon="⚔️" label="K/D moyen" value={kpis.kd} decimals={2} />
+          <KpiTile icon="🎯" label="Précision tête" value={kpis.hsPercent} suffix="%" />
         </div>
       </div>
 

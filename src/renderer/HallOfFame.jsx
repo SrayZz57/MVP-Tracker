@@ -1,7 +1,8 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { computeHallOfFame } from './hallOfFame.js';
 import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
+import ConfettiBurst from './ConfettiBurst.jsx';
 
 function formatDate(ms) {
   if (!ms) return '?';
@@ -60,6 +61,26 @@ function HallOfFame({ settings, matches }) {
   const achievementGroups = useMemo(() => deriveAchievements(hof), [hof]);
   const totalCount = achievementGroups.reduce((sum, g) => sum + g.items.length, 0);
   const unlockedCount = achievementGroups.reduce((sum, g) => sum + g.items.filter((i) => i.unlocked).length, 0);
+  const [celebrate, setCelebrate] = useState(false);
+
+  // Compare aux succès déjà vus (stockés localement par compte) pour ne
+  // fêter que ceux qui viennent réellement de tomber, pas ceux déjà connus
+  // à chaque fois que l'onglet se rouvre.
+  useEffect(() => {
+    const storageKey = `mvp-achievements-seen:${settings.name}#${settings.tag}`.toLowerCase();
+    const seen = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));
+    const unlockedIds = achievementGroups.flatMap((g) => g.items.filter((i) => i.unlocked).map((i) => i.id));
+    const hasNewUnlock = unlockedIds.some((id) => !seen.has(id));
+
+    localStorage.setItem(storageKey, JSON.stringify(unlockedIds));
+
+    if (hasNewUnlock && seen.size > 0) {
+      setCelebrate(true);
+      const timeout = setTimeout(() => setCelebrate(false), 2600);
+      return () => clearTimeout(timeout);
+    }
+    return undefined;
+  }, [achievementGroups, settings.name, settings.tag]);
 
   if (matches.length === 0) {
     return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
@@ -67,6 +88,7 @@ function HallOfFame({ settings, matches }) {
 
   return (
     <div>
+      {celebrate && <ConfettiBurst />}
       <div className="card">
         <h3>🏆 Hall of Fame</h3>
         <p className="label">

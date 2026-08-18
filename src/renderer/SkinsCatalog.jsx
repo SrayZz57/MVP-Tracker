@@ -1,6 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
+import Skeleton from './Skeleton.jsx';
+import CountUp from './CountUp.jsx';
 
 const PAGE_SIZE = 30;
 
@@ -18,14 +20,25 @@ const VIEWS = [
   { id: 'collection', label: 'Ma collection' },
 ];
 
-function SkinCard({ skin, onClick, badge }) {
+function SkinCard({ skin, onClick, isWishlisted, isOwned }) {
   return (
-    <div className="skin-card" style={{ borderColor: skin.tierColor }} onClick={onClick}>
-      <img src={skin.displayIcon} alt={skin.name} />
+    <div
+      className="skin-card"
+      style={{ borderColor: skin.tierColor, '--tier-color': skin.tierColor }}
+      onClick={onClick}
+    >
+      {(isWishlisted || isOwned) && (
+        <div className="skin-card-badges">
+          {isOwned && <span className="skin-card-badge owned" title="Dans ta collection">✔</span>}
+          {isWishlisted && <span className="skin-card-badge wishlist" title="En wishlist">♥</span>}
+        </div>
+      )}
+      <div className="skin-card-img-wrap">
+        <img src={skin.displayIcon} alt={skin.name} />
+      </div>
       <p className="skin-card-name">{skin.name}</p>
       <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} — {skin.weaponName}</p>
       <p className="skin-card-price">{skin.estimatedPriceVp} VP</p>
-      {badge}
     </div>
   );
 }
@@ -107,7 +120,11 @@ function SkinsCatalog() {
   };
 
   if (!catalog) {
-    return <p>Chargement du catalogue de skins...</p>;
+    return (
+      <div className="card">
+        <Skeleton lines={5} />
+      </div>
+    );
   }
 
   const visibleCatalog = showAll ? filteredCatalog : filteredCatalog.slice(0, PAGE_SIZE);
@@ -165,7 +182,13 @@ function SkinsCatalog() {
 
           <div className="skin-grid">
             {visibleCatalog.map((skin) => (
-              <SkinCard key={skin.uuid} skin={skin} onClick={() => setSelectedSkin(skin)} />
+              <SkinCard
+                key={skin.uuid}
+                skin={skin}
+                onClick={() => setSelectedSkin(skin)}
+                isWishlisted={wishlist.includes(skin.uuid)}
+                isOwned={collection.some((e) => e.uuid === skin.uuid)}
+              />
             ))}
           </div>
           {filteredCatalog.length > PAGE_SIZE && (
@@ -184,7 +207,13 @@ function SkinsCatalog() {
           ) : (
             <div className="skin-grid">
               {wishlistSkins.map((skin) => (
-                <SkinCard key={skin.uuid} skin={skin} onClick={() => setSelectedSkin(skin)} />
+                <SkinCard
+                  key={skin.uuid}
+                  skin={skin}
+                  onClick={() => setSelectedSkin(skin)}
+                  isWishlisted
+                  isOwned={collection.some((e) => e.uuid === skin.uuid)}
+                />
               ))}
             </div>
           )}
@@ -193,9 +222,17 @@ function SkinsCatalog() {
 
       {view === 'collection' && (
         <div>
-          <div className="card collection-value-card">
-            <div className="value">{totalValueEuros.toFixed(2)}€</div>
-            <div className="label">Valeur totale de ton compte ({collectionSkins.length} skins possédés)</div>
+          <div className="card comp-score-card">
+            <div className="comp-score-main">
+              <div className="comp-score-ring" style={{ background: 'conic-gradient(#ffc857, #ff8fab, #ffc857)' }}>
+                <div className="comp-score-ring-inner">
+                  <div className="comp-score-value" style={{ color: '#ffc857', fontSize: '1.7rem' }}>
+                    <CountUp value={totalValueEuros} decimals={2} suffix="€" />
+                  </div>
+                </div>
+              </div>
+              <div className="label">Valeur totale de ton compte ({collectionSkins.length} skins possédés)</div>
+            </div>
           </div>
 
           <div className="card">
@@ -205,8 +242,14 @@ function SkinsCatalog() {
             ) : (
               <div className="skin-grid">
                 {collectionSkins.map((skin) => (
-                  <div key={skin.uuid} className="skin-card" style={{ borderColor: skin.tierColor }}>
-                    <img src={skin.displayIcon} alt={skin.name} onClick={() => setSelectedSkin(skin)} />
+                  <div
+                    key={skin.uuid}
+                    className="skin-card"
+                    style={{ borderColor: skin.tierColor, '--tier-color': skin.tierColor }}
+                  >
+                    <div className="skin-card-img-wrap" onClick={() => setSelectedSkin(skin)}>
+                      <img src={skin.displayIcon} alt={skin.name} />
+                    </div>
                     <p className="skin-card-name">{skin.name}</p>
                     <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} — {skin.weaponName}</p>
                     <div className="skin-price-row">

@@ -4,6 +4,15 @@ import logo from '../assets/logo.png';
 function WelcomeScreen({ onSaved }) {
   return (
     <div className="welcome-screen">
+      <div className="welcome-bg" aria-hidden="true">
+        <span className="welcome-orb welcome-orb-1" />
+        <span className="welcome-orb welcome-orb-2" />
+        <span className="welcome-orb welcome-orb-3" />
+        <span className="welcome-orb welcome-orb-4" />
+        <span className="welcome-orb welcome-orb-5" />
+        <span className="welcome-orb welcome-orb-6" />
+        <span className="welcome-orb welcome-orb-7" />
+      </div>
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
       <h1>MVP Tracker</h1>
       <p className="welcome-tagline">Le tracker de stats Valorant qui va plus loin que les autres.</p>
