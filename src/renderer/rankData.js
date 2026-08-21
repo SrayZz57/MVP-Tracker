@@ -97,6 +97,35 @@ export function useSeasonNames() {
 const cardArtCache = new Map();
 const EMPTY_CARD_ART = { icon: null, banner: null };
 
+let allPlayerCardsPromise = null;
+
+// Catalogue complet des cartes de joueur du jeu — sert de sélecteur de photo
+// de profil pour le compte MVP Tracker (pas de notion d'inventaire possédé
+// exposée par l'API publique, donc on propose tout le catalogue).
+function loadAllPlayerCards() {
+  if (!allPlayerCardsPromise) {
+    allPlayerCardsPromise = fetch('https://valorant-api.com/v1/playercards?language=fr-FR')
+      .then((response) => response.json())
+      .then((json) =>
+        (json.data ?? [])
+          .filter((card) => card.smallArt)
+          .map((card) => ({ uuid: card.uuid, displayName: card.displayName, icon: card.smallArt }))
+          .sort((a, b) => a.displayName.localeCompare(b.displayName)),
+      );
+  }
+  return allPlayerCardsPromise;
+}
+
+export function useAllPlayerCards() {
+  const [cards, setCards] = useState([]);
+
+  useEffect(() => {
+    loadAllPlayerCards().then(setCards);
+  }, []);
+
+  return cards;
+}
+
 export function usePlayerCardArt(cardUuid) {
   const [art, setArt] = useState(cardUuid ? cardArtCache.get(cardUuid) ?? EMPTY_CARD_ART : EMPTY_CARD_ART);
 

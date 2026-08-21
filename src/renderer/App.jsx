@@ -27,7 +27,12 @@ import WelcomeScreen from './WelcomeScreen.jsx';
 import LinkRiotAccount from './LinkRiotAccount.jsx';
 import AccountGreeting from './AccountGreeting.jsx';
 import AccountAuth from './AccountAuth.jsx';
+import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
+import AccountPage from './AccountPage.jsx';
+import MessagesTab from './tabs/MessagesTab.jsx';
+import FriendsTab from './tabs/FriendsTab.jsx';
 import { supabase } from './supabaseClient.js';
+import { useOnlinePresence } from './presence.js';
 import { useRankTiers, usePlayerCardArt } from './rankData.js';
 import logo from '../assets/logo.png';
 
@@ -107,14 +112,135 @@ function SidebarProfile({ settings, rank, onClick }) {
   );
 }
 
+function TopbarIconButton({ icon, badge, active, onClick, title }) {
+  return (
+    <button className={active ? 'topbar-icon-button active' : 'topbar-icon-button'} onClick={onClick} title={title}>
+      <span>{icon}</span>
+      {badge > 0 && <span className="topbar-icon-badge">{badge}</span>}
+    </button>
+  );
+}
+
+function TopbarAccountButton({ profile, myRank, active, onClick }) {
+  const avatarCardUuid = profile?.avatar_card_uuid ?? myRank?.cardUuid;
+  const avatarArt = usePlayerCardArt(avatarCardUuid);
+
+  return (
+    <button
+      className={active ? 'topbar-account-button active' : 'topbar-account-button'}
+      onClick={onClick}
+      title="Mon compte"
+    >
+      {avatarArt.icon ? (
+        <img src={avatarArt.icon} alt="" />
+      ) : (
+        <span>{(profile?.display_name || profile?.riot_name || '?').charAt(0)}</span>
+      )}
+    </button>
+  );
+}
+
 function App() {
   const [settings, setSettings] = useState(undefined);
   const [activeTab, setActiveTab] = useState('stats');
   const data = useValorantData(settings);
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
+  const [collapsedSections, setCollapsedSections] = useState(new Set());
+  // Ami à ouvrir en conversation dès l'arrivée sur l'onglet Messages, posé
+  // par le bouton "💬" de la page Amis — one-shot, consommé au montage.
+  const [pendingOpenFriendId, setPendingOpenFriendId] = useState(null);
+  const toggleSection = (label) => {
+    setCollapsedSections((prev) => {
+      const next = new Set(prev);
+      if (next.has(label)) next.delete(label);
+      else next.add(label);
+      return next;
+    });
+  };
   const [session, setSession] = useState(undefined); // undefined = chargement, null = déconnecté
   const [profile, setProfile] = useState(undefined); // undefined = chargement, null = pas encore lié
+  // true dès que le lien "mot de passe oublié" a rouvert l'app avec une
+  // session de récupération active — force l'écran de nouveau mot de passe
+  // avant tout le reste, peu importe l'état de connexion en cours.
+  const [recoveryPending, setRecoveryPending] = useState(false);
+
+  useEffect(() => {
+    const unsubscribe = window.electronAPI.onRecoveryDeepLink(async ({ accessToken, refreshToken }) => {
+      const { error } = await supabase.auth.setSession({ access_token: accessToken, refresh_token: refreshToken });
+      if (error) {
+        console.error('[auth] échec de la session de récupération :', error.message);
+        return;
+      }
+      setRecoveryPending(true);
+    });
+    return unsubscribe;
+  }, []);
+
+  const myUserId = session?.user?.id ?? null;
+  const onlineFriendIds = useOnlinePresence(myUserId);
+
+  // Notifications "sociales" (badge sur l'onglet Messages + notif Windows) —
+  // volontairement séparées de la logique interne de MessagesPage : ça doit
+  // rester visible même quand on est sur un tout autre onglet de l'app.
+  const [unreadFriendIds, setUnreadFriendIds] = useState(new Set());
+  const [pendingRequestCount, setPendingRequestCount] = useState(0);
+  const activeTabRef = useRef(activeTab);
+  activeTabRef.current = activeTab;
+
+  useEffect(() => {
+    if (activeTab === 'messages') setUnreadFriendIds(new Set());
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (!myUserId) return undefined;
+    const channel = supabase
+      .channel(`app-messages-${myUserId}`)
+      .on(
+        'postgres_changes',
+        { event: 'INSERT', schema: 'public', table: 'messages', filter: `recipient_id=eq.${myUserId}` },
+        async (payload) => {
+          const msg = payload.new;
+          if (activeTabRef.current === 'messages') return; // déjà géré/visible dans MessagesPage
+          setUnreadFriendIds((prev) => new Set(prev).add(msg.sender_id));
+          if (typeof Notification === 'undefined' || Notification.permission === 'denied') return;
+          const { data: sender } = await supabase
+            .from('profiles')
+            .select('display_name, riot_name, riot_tag')
+            .eq('id', msg.sender_id)
+            .maybeSingle();
+          const senderLabel = sender ? sender.display_name || `${sender.riot_name}#${sender.riot_tag}` : 'Nouveau message';
+          new Notification(senderLabel, { body: msg.content });
+        },
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [myUserId]);
+
+  useEffect(() => {
+    if (!myUserId) return undefined;
+    const loadPendingCount = async () => {
+      const { count } = await supabase
+        .from('friendships')
+        .select('id', { count: 'exact', head: true })
+        .eq('addressee_id', myUserId)
+        .eq('status', 'pending');
+      setPendingRequestCount(count ?? 0);
+    };
+    loadPendingCount();
+    const channel = supabase
+      .channel(`app-friendships-${myUserId}`)
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'friendships', filter: `addressee_id=eq.${myUserId}` },
+        loadPendingCount,
+      )
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [myUserId]);
+
+  const socialNotificationCount = unreadFriendIds.size + pendingRequestCount;
+
   // true uniquement après un vrai passage par l'écran de recherche Riot ID
   // *pendant cette session* — jamais déduit des réglages déjà en cache, pour
   // qu'un compte sans lien Supabase ne se relie pas silencieusement avec un
@@ -184,7 +310,7 @@ function App() {
     if (!session) return;
     supabase
       .from('profiles')
-      .select('riot_name, riot_tag, riot_puuid')
+      .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at')
       .eq('id', session.user.id)
       .maybeSingle()
       .then(({ data, error }) => {
@@ -211,10 +337,26 @@ function App() {
           console.error('[profiles] échec de la liaison Riot ID :', error.message);
           return;
         }
-        setProfile({ riot_name: settings.name, riot_tag: settings.tag, riot_puuid: settings.puuid });
+        setProfile({
+          riot_name: settings.name,
+          riot_tag: settings.tag,
+          riot_puuid: settings.puuid,
+          created_at: new Date().toISOString(),
+        });
         setLinkingRiot(false);
       });
   }, [session, linkingRiot, settings?.puuid, settings?.name, settings?.tag]);
+
+  // Modifie le pseudo d'affichage / l'avatar du compte MVP Tracker — utilisé
+  // par la page "Mon compte" (pas lié au compte Riot, propre à cette app).
+  const updateProfile = async (patch) => {
+    const { error } = await supabase.from('profiles').update(patch).eq('id', session.user.id);
+    if (error) {
+      console.error('[profiles] échec de la mise à jour du profil :', error.message);
+      return;
+    }
+    setProfile((prev) => ({ ...prev, ...patch }));
+  };
 
   // Fait glisser un repère lumineux vers le lien actif au lieu de le faire
   // juste réapparaître à une nouvelle position — mesuré dynamiquement car les
@@ -222,13 +364,21 @@ function App() {
   useLayoutEffect(() => {
     const container = sidebarNavRef.current;
     const activeEl = container?.querySelector('.sidebar-link.active');
-    if (!container || !activeEl) return;
+    if (!container || !activeEl) {
+      // L'onglet actif est dans une section repliée — pas de repère orphelin.
+      setIndicator((prev) => ({ ...prev, ready: false }));
+      return;
+    }
     setIndicator({
       top: activeEl.offsetTop,
       height: activeEl.offsetHeight,
       ready: true,
     });
-  }, [activeTab, settings]);
+  }, [activeTab, settings, collapsedSections]);
+
+  if (recoveryPending) {
+    return <SetNewPasswordScreen onDone={() => setRecoveryPending(false)} />;
+  }
 
   if (session === undefined || settings === undefined) {
     return null;
@@ -278,6 +428,7 @@ function App() {
     if (showGeneralSearch) {
       return (
         <WelcomeScreen
+          apiKey={settings?.apiKey}
           onSaved={(newSettings) => {
             setSettings(newSettings);
             setEnteredApp(true);
@@ -338,7 +489,14 @@ function App() {
       case 'graphiques':
         return <PerformanceChartsTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'social':
-        return <TeammatesRivalsTab settings={settings} matches={data.matches} loading={data.loading} />;
+        return (
+          <TeammatesRivalsTab
+            settings={settings}
+            matches={data.matches}
+            loading={data.loading}
+            myPuuid={profile?.riot_puuid}
+          />
+        );
       case 'my-hall-of-fame':
         return <HallOfFameTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'my-social':
@@ -357,12 +515,50 @@ function App() {
         return <DailyPuzzleTab settings={mySettings} matches={myMatches} />;
       case 'wiki':
         return <WikiTab />;
+      case 'messages':
+        return (
+          <MessagesTab
+            myId={session.user.id}
+            onlineFriendIds={onlineFriendIds}
+            initialFriendId={pendingOpenFriendId}
+            onConsumedInitialFriendId={() => setPendingOpenFriendId(null)}
+          />
+        );
+      case 'friends':
+        return (
+          <FriendsTab
+            myId={session.user.id}
+            onlineFriendIds={onlineFriendIds}
+            onOpenConversation={(friendId) => {
+              setPendingOpenFriendId(friendId);
+              setActiveTab('messages');
+            }}
+          />
+        );
+      case 'account':
+        return (
+          <AccountPage
+            profile={profile}
+            mySettings={mySettings}
+            myMatches={myMatches}
+            myRank={myRank}
+            onUpdate={updateProfile}
+            onSignOut={() => supabase.auth.signOut()}
+          />
+        );
       default:
         return null;
     }
   };
 
-  const currentTabMeta = ALL_TABS.find((t) => t.id === activeTab);
+  const currentTabMeta =
+    activeTab === 'account'
+      ? { icon: '👤', label: 'Mon compte' }
+      : activeTab === 'messages'
+        ? { icon: '💬', label: 'Messages' }
+        : activeTab === 'friends'
+          ? { icon: '👥', label: 'Amis' }
+          : ALL_TABS.find((t) => t.id === activeTab);
 
   return (
     <div className="app app-with-sidebar">
@@ -381,21 +577,34 @@ function App() {
               opacity: indicator.ready ? 1 : 0,
             }}
           />
-          {NAV_SECTIONS.map((section) => (
-            <div key={section.label} className="sidebar-section">
-              <div className="sidebar-section-label">{section.label}</div>
-              {section.tabs.map((tab) => (
+          {NAV_SECTIONS.map((section) => {
+            const collapsed = collapsedSections.has(section.label);
+            return (
+              <div key={section.label} className="sidebar-section">
                 <button
-                  key={tab.id}
-                  className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
-                  onClick={() => setActiveTab(tab.id)}
+                  className={collapsed ? 'sidebar-section-label collapsed' : 'sidebar-section-label'}
+                  onClick={() => toggleSection(section.label)}
                 >
-                  <span className="sidebar-link-icon">{tab.icon}</span>
-                  {tab.label}
+                  {section.label}
+                  <span className="sidebar-section-chevron">▾</span>
                 </button>
-              ))}
-            </div>
-          ))}
+                {!collapsed &&
+                  section.tabs.map((tab) => (
+                    <button
+                      key={tab.id}
+                      className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
+                      onClick={() => setActiveTab(tab.id)}
+                    >
+                      <span className="sidebar-link-icon">{tab.icon}</span>
+                      {tab.label}
+                      {tab.id === 'messages' && socialNotificationCount > 0 && (
+                        <span className="sidebar-link-badge">{socialNotificationCount}</span>
+                      )}
+                    </button>
+                  ))}
+              </div>
+            );
+          })}
         </div>
 
         <div className="sidebar-footer">
@@ -438,6 +647,26 @@ function App() {
           <button onClick={data.refresh} disabled={data.loading} className="refresh">
             {data.loading ? 'Chargement...' : 'Rafraîchir'}
           </button>
+          <TopbarIconButton
+            icon="💬"
+            title="Messages"
+            badge={unreadFriendIds.size}
+            active={activeTab === 'messages'}
+            onClick={() => setActiveTab('messages')}
+          />
+          <TopbarIconButton
+            icon="👥"
+            title="Amis"
+            badge={pendingRequestCount}
+            active={activeTab === 'friends'}
+            onClick={() => setActiveTab('friends')}
+          />
+          <TopbarAccountButton
+            profile={profile}
+            myRank={myRank}
+            active={activeTab === 'account'}
+            onClick={() => setActiveTab('account')}
+          />
         </header>
 
         {data.error && <p className="warning">Erreur : {data.error}</p>}

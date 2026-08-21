@@ -74,8 +74,7 @@ h3 {
   display: flex;
   flex-direction: column;
   padding: 1.4rem 0.85rem;
-  overflow-y: auto;
-  overflow-x: hidden;
+  overflow: hidden;
   position: relative;
 }
 
@@ -99,6 +98,7 @@ h3 {
   padding: 0.2rem 0.5rem 1.4rem;
   margin-bottom: 1.1rem;
   position: relative;
+  flex-shrink: 0;
 }
 
 .sidebar-brand::after {
@@ -120,7 +120,13 @@ h3 {
 
 .sidebar-nav {
   flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  overflow-x: hidden;
   position: relative;
+  /* Espace pour que l'indicateur qui glisse ne soit pas tronqué à droite. */
+  margin: 0 -0.85rem;
+  padding: 0 0.85rem;
 }
 
 .sidebar-section {
@@ -131,14 +137,33 @@ h3 {
   display: flex;
   align-items: center;
   gap: 0.4rem;
+  width: 100%;
+  background: none;
+  border: none;
   font-size: 0.66rem;
   font-weight: 700;
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.12em;
-  padding: 0 0.6rem;
+  padding: 0.2rem 0.6rem;
   margin-bottom: 0.55rem;
   opacity: 0.65;
+  cursor: pointer;
+  transition: opacity 0.15s ease;
+}
+
+.sidebar-section-label:hover {
+  opacity: 1;
+}
+
+.sidebar-section-chevron {
+  margin-left: auto;
+  transition: transform 0.18s ease;
+  font-size: 0.7rem;
+}
+
+.sidebar-section-label.collapsed .sidebar-section-chevron {
+  transform: rotate(-90deg);
 }
 
 .sidebar-section-label::after {
@@ -166,6 +191,23 @@ h3 {
   font-weight: 500;
   text-align: left;
   transition: background 0.18s ease, border-color 0.18s ease, color 0.18s ease, transform 0.18s ease;
+}
+
+.sidebar-link-badge {
+  margin-left: auto;
+  flex-shrink: 0;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 0.35rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(255, 70, 85, 0.5);
 }
 
 .sidebar-link-icon {
@@ -232,6 +274,7 @@ h3 {
   align-items: center;
   gap: 0.4rem;
   margin-top: 0.5rem;
+  flex-shrink: 0;
 }
 
 .sidebar-signout {
@@ -2541,12 +2584,23 @@ input[type='color'] {
   gap: 0.85rem;
   flex-wrap: wrap;
   padding: 0.7rem 1rem;
+  position: sticky;
+  top: -1.5rem;
+  margin-top: -1.5rem;
+  z-index: 5;
+  background: linear-gradient(180deg, var(--surface) 0%, #191c23 100%);
+  box-shadow: 0 6px 14px rgba(0, 0, 0, 0.35);
 }
 
 .stats-scope-label {
   font-size: 0.85rem;
   font-weight: 600;
   color: var(--text-muted);
+}
+
+.stats-scope-act-select {
+  font-size: 0.82rem;
+  padding: 0.35rem 0.55rem;
 }
 
 .profile-header-card {
@@ -4630,4 +4684,621 @@ input[type='color'] {
 
 .buy-ability-status {
   flex-shrink: 0;
+}
+
+.topbar-icon-button {
+  position: relative;
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  padding: 0;
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+}
+
+.topbar-icon-button:hover,
+.topbar-icon-button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 70, 85, 0.25);
+}
+
+.topbar-icon-badge {
+  position: absolute;
+  top: -5px;
+  right: -5px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  min-width: 17px;
+  height: 17px;
+  padding: 0 0.3rem;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 0 6px rgba(255, 70, 85, 0.5);
+  border: 2px solid var(--bg);
+}
+
+.topbar-account-button {
+  flex-shrink: 0;
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  padding: 0;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.topbar-account-button:hover,
+.topbar-account-button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 10px rgba(255, 70, 85, 0.25);
+}
+
+.topbar-account-button img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.account-header-card {
+  margin-bottom: 1.25rem;
+}
+
+.account-avatar-button {
+  position: relative;
+  flex-shrink: 0;
+  padding: 0;
+  border: none;
+  background: none;
+}
+
+.account-avatar-button .profile-card-icon {
+  width: 84px;
+  height: 84px;
+}
+
+.account-avatar-fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--surface-alt);
+  font-size: 2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.account-avatar-edit {
+  position: absolute;
+  inset: auto 0 -2px 0;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.75);
+  border-radius: 0 0 10px 10px;
+  font-size: 0.85rem;
+  padding: 0.15rem 0;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.account-avatar-button:hover .account-avatar-edit {
+  opacity: 1;
+}
+
+.account-name-display {
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.account-name-pencil {
+  font-size: 0.85rem;
+  opacity: 0;
+  transition: opacity 0.15s ease;
+}
+
+.account-name-display:hover .account-name-pencil {
+  opacity: 0.7;
+}
+
+.account-name-edit-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-bottom: 0.6rem;
+}
+
+.account-name-edit-row input {
+  font-size: 1.1rem;
+  padding: 0.4rem 0.6rem;
+}
+
+.account-name-edit-row button {
+  width: 38px;
+  padding: 0;
+}
+
+.account-name-cancel {
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.account-summary-tiles {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.account-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 0;
+}
+
+.account-tile-label {
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.account-tile-value {
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+.account-role-highlights {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.account-highlight {
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 0.85rem 1rem;
+}
+
+.account-highlight-label {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.account-highlight-body {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  flex-wrap: wrap;
+}
+
+.account-highlight-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface-alt);
+}
+
+.account-highlight-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.account-highlight-sub {
+  width: 100%;
+  font-size: 0.78rem;
+  color: var(--text-muted);
+}
+
+.account-subsection-title {
+  margin: 0 0 0.6rem;
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.account-signout {
+  width: auto;
+  padding: 0.5rem 1rem;
+  gap: 0.4rem;
+}
+
+.account-role-picker {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+  gap: 0.6rem;
+  margin-bottom: 1.25rem;
+}
+
+.account-role-option {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  font-weight: 600;
+  font-size: 0.85rem;
+}
+
+.account-role-option img {
+  width: 22px;
+  height: 22px;
+}
+
+.account-role-option.active {
+  border-color: var(--accent);
+  background: rgba(255, 70, 85, 0.12);
+  color: var(--text);
+}
+
+.account-agent-picker {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  width: 100%;
+  padding: 0.65rem 0.85rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1.5px solid var(--border);
+  border-radius: 10px;
+  margin-bottom: 1rem;
+}
+
+.account-agent-picker:hover {
+  border-color: var(--accent);
+}
+
+.account-agent-picker img {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  background: var(--surface-alt);
+}
+
+.account-agent-picker span:not(.account-agent-picker-edit) {
+  font-weight: 700;
+}
+
+.account-agent-picker-edit {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.account-suggestion {
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--accent);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0 6px 6px 0;
+  margin: 0 0 1.25rem;
+}
+
+.messages-page {
+  display: flex;
+  gap: 1.25rem;
+  height: calc(100vh - 190px);
+  min-height: 420px;
+}
+
+.messages-sidebar {
+  width: 320px;
+  flex-shrink: 0;
+  overflow-y: auto;
+  margin-bottom: 0;
+}
+
+.messages-thread {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  padding: 0;
+  overflow: hidden;
+  margin-bottom: 0;
+}
+
+.friend-search-form {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.friend-search-form .search-bar-riotid {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-search-form .search-bar-riotid input:first-child {
+  flex: 1;
+  min-width: 0;
+}
+
+.friend-search-form .search-bar-tag {
+  width: 54px;
+  flex-shrink: 0;
+}
+
+.friend-search-form button {
+  width: 42px;
+  flex-shrink: 0;
+}
+
+.friend-search-result {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 0.5rem 0.65rem;
+  margin-bottom: 1rem;
+  font-size: 0.85rem;
+}
+
+.friend-search-result span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-search-result button {
+  width: auto;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.78rem;
+}
+
+.friend-avatar-wrap {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.friend-avatar {
+  width: 100%;
+  height: 100%;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: var(--surface-alt);
+  border: 1.5px solid var(--border);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.75rem;
+  color: var(--accent);
+}
+
+.friend-online-dot {
+  position: absolute;
+  bottom: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #3ddc84;
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 6px rgba(61, 220, 132, 0.6);
+}
+
+.friend-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.friend-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-bottom: 1rem;
+}
+
+.friend-list-item {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.45rem 0.5rem;
+  border-radius: 8px;
+  background: transparent;
+  border: 1px solid transparent;
+  text-align: left;
+  font-size: 0.85rem;
+}
+
+.friend-list-item span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-list-item:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.friend-list-item.active {
+  background: rgba(255, 70, 85, 0.12);
+  border-color: var(--accent);
+}
+
+.friend-unread-dot {
+  flex-shrink: 0;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
+}
+
+.friend-request-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.35rem 0.4rem;
+  font-size: 0.82rem;
+}
+
+.friend-request-row span {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.friend-request-row button {
+  width: 28px;
+  height: 28px;
+  padding: 0;
+  flex-shrink: 0;
+  font-size: 0.75rem;
+}
+
+.friend-request-actions {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.messages-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.messages-thread-header {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+  font-weight: 700;
+  flex-shrink: 0;
+}
+
+.messages-thread-header-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+}
+
+.messages-thread-header-status {
+  font-size: 0.72rem;
+  font-weight: 400;
+  color: var(--text-muted);
+}
+
+.messages-remove-friend {
+  margin-left: auto;
+  width: auto;
+  padding: 0.3rem 0.7rem;
+  font-size: 0.75rem;
+  background: transparent;
+  border: 1px solid var(--border);
+  color: var(--text-muted);
+  font-weight: 400;
+}
+
+.messages-remove-friend:hover {
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.messages-thread-body {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.message-bubble {
+  align-self: flex-start;
+  max-width: 70%;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-radius: 12px 12px 12px 2px;
+  padding: 0.5rem 0.8rem;
+  font-size: 0.88rem;
+  word-break: break-word;
+}
+
+.message-bubble.mine {
+  align-self: flex-end;
+  background: rgba(255, 70, 85, 0.18);
+  border-color: rgba(255, 70, 85, 0.4);
+  border-radius: 12px 12px 2px 12px;
+}
+
+.messages-input-row {
+  display: flex;
+  gap: 0.6rem;
+  padding: 1rem 1.25rem;
+  border-top: 1px solid var(--border);
+  flex-shrink: 0;
+}
+
+.messages-input-row input {
+  flex: 1;
+}
+
+.messages-input-row button {
+  width: auto;
+  padding: 0.5rem 1.1rem;
+}
+
+.card-picker-modal {
+  max-width: 640px;
+}
+
+.card-picker-search {
+  width: 100%;
+  margin: 0.75rem 0 1rem;
+}
+
+.card-picker-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(72px, 1fr));
+  gap: 0.6rem;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+
+.card-picker-item {
+  padding: 0;
+  border-radius: 8px;
+  overflow: hidden;
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  aspect-ratio: 1;
+}
+
+.card-picker-item:hover {
+  border-color: var(--accent);
+}
+
+.card-picker-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
 }

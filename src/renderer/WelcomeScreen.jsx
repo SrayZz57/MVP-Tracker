@@ -1,7 +1,7 @@
 import SearchBar from './SearchBar.jsx';
 import logo from '../assets/logo.png';
 
-function WelcomeScreen({ onSaved }) {
+function WelcomeScreen({ onSaved, apiKey }) {
   return (
     <div className="welcome-screen">
       <div className="welcome-bg" aria-hidden="true">
@@ -19,7 +19,7 @@ function WelcomeScreen({ onSaved }) {
         Cherche un joueur — toi-même ou n'importe qui d'autre. Ça ne change rien à ton compte, c'est juste pour
         consulter un tracker.
       </p>
-      <SearchBar onSearch={onSaved} />
+      <SearchBar initialSettings={{ apiKey }} onSearch={onSaved} />
       <div className="welcome-api-help">
         <p>
           La clé API sert à récupérer tes matchs depuis HenrikDev (le service que l'appli utilise pour parler à

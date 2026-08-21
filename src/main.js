@@ -90,9 +90,64 @@ updateElectronApp({ repo: 'SrayZz57/MVP-Tracker' });
 // navigation, ce menu par défaut d'Electron n'a aucune utilité ici.
 Menu.setApplicationMenu(null);
 
+// Schéma personnalisé utilisé pour le lien de réinitialisation de mot de
+// passe envoyé par Supabase — l'app n'a pas de site web pour héberger la
+// page de redirection, donc le lien rouvre directement l'app à la place.
+const DEEP_LINK_SCHEME = 'mvptracker';
+
+let mainWindow = null;
+
+// En dev (app pas empaquetée), il faut préciser explicitement l'exécutable
+// et le script à relancer, sinon l'enregistrement du protocole ne pointe pas
+// vers la bonne commande.
+if (process.defaultApp) {
+  if (process.argv.length >= 2) {
+    app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
+  }
+} else {
+  app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
+}
+
+// Extrait access_token/refresh_token/type du lien mvptracker://reset-password#...
+// et les transmet au renderer, qui active la session puis affiche l'écran de
+// nouveau mot de passe.
+function handleDeepLink(url) {
+  if (!url || !url.startsWith(`${DEEP_LINK_SCHEME}://`)) return;
+  let parsed;
+  try {
+    parsed = new URL(url);
+  } catch {
+    return;
+  }
+  const raw = (parsed.hash ? parsed.hash.slice(1) : '') || parsed.search.slice(1);
+  const params = new URLSearchParams(raw);
+  if (params.get('type') !== 'recovery') return;
+  const accessToken = params.get('access_token');
+  const refreshToken = params.get('refresh_token');
+  if (!accessToken || !refreshToken) return;
+  mainWindow?.webContents.send('deep-link:recovery', { accessToken, refreshToken });
+}
+
+// Windows lance une deuxième instance quand on clique le lien — le verrou
+// redirige cet appel vers l'instance déjà ouverte au lieu d'en ouvrir une
+// deuxième qui écrirait dans les mêmes fichiers locaux.
+const gotSingleInstanceLock = app.requestSingleInstanceLock();
+if (!gotSingleInstanceLock) {
+  app.quit();
+} else {
+  app.on('second-instance', (_event, argv) => {
+    const deepLink = argv.find((arg) => arg.startsWith(`${DEEP_LINK_SCHEME}://`));
+    if (deepLink) handleDeepLink(deepLink);
+    if (mainWindow) {
+      if (mainWindow.isMinimized()) mainWindow.restore();
+      mainWindow.focus();
+    }
+  });
+}
+
 const createWindow = () => {
   // Create the browser window.
-  const mainWindow = new BrowserWindow({
+  mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
     autoHideMenuBar: true,
@@ -379,6 +434,13 @@ ipcMain.handle('goals:delete', (_event, id) => {
 app.whenReady().then(() => {
   createWindow();
 
+  // Premier lancement déclenché directement par le lien (l'app n'était pas
+  // encore ouverte) — le lien arrive dans les arguments de démarrage.
+  const startupDeepLink = process.argv.find((arg) => arg.startsWith(`${DEEP_LINK_SCHEME}://`));
+  if (startupDeepLink) {
+    mainWindow.webContents.once('did-finish-load', () => handleDeepLink(startupDeepLink));
+  }
+
   // On OS X it's common to re-create a window in the app when the
   // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
@@ -386,6 +448,12 @@ app.whenReady().then(() => {
       createWindow();
     }
   });
+});
+
+// macOS lance ce lien via 'open-url' plutôt que les arguments de démarrage.
+app.on('open-url', (event, url) => {
+  event.preventDefault();
+  handleDeepLink(url);
 });
 
 // Quit when all windows are closed, except on macOS. There, it's common

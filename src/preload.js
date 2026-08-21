@@ -5,6 +5,11 @@ import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
   openExternal: (url) => ipcRenderer.invoke('shell:open-external', url),
+  onRecoveryDeepLink: (callback) => {
+    const listener = (_event, tokens) => callback(tokens);
+    ipcRenderer.on('deep-link:recovery', listener);
+    return () => ipcRenderer.removeListener('deep-link:recovery', listener);
+  },
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:set', settings),
   setLinkedPuuid: (puuid) => ipcRenderer.invoke('account:set-linked-puuid', puuid),

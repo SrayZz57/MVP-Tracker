@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>MVP Tracker — Le tracker Valorant qui voit plus loin</title>
+<meta name="description" content="MVP Tracker croise ta performance en jeu, ton réseau et ton rythme de vie. Le tracker Valorant qui explique enfin tes bonnes et tes mauvaises sessions." />
+<link rel="icon" href="assets/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+<div class="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/logo.png" alt="" />
+      MVP Tracker
+    </a>
+    <div class="nav-links">
+      <a href="index.html" class="active">Accueil</a>
+      <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="telecharger.html">Télécharger</a>
+    </div>
+    <a href="telecharger.html" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</nav>
+
+<!-- ====================== HERO ====================== -->
+<header class="hero">
+  <div class="glow-field">
+    <span class="glow glow-a"></span>
+    <span class="glow glow-b"></span>
+    <span class="glow glow-c"></span>
+  </div>
+  <div class="grid-bg"></div>
+
+  <div class="hero-agents">
+    <img src="assets/agents/jett.png" alt="" class="hero-agent hero-agent-l" data-depth="18" />
+    <img src="assets/agents/reyna.png" alt="" class="hero-agent hero-agent-r" data-depth="26" />
+  </div>
+
+  <div class="container hero-inner">
+    <span class="eyebrow">Application desktop · Valorant</span>
+    <h1><span class="gradient-text" data-split>Ton K/D ne dit pas tout.</span></h1>
+    <p class="hero-sub">
+      MVP Tracker croise ta performance en jeu avec ton <strong>ping</strong>, ton <strong>rythme de vie</strong>
+      et ton <strong>état mental</strong> — les vrais facteurs derrière tes bonnes et tes mauvaises sessions.
+    </p>
+    <div class="hero-ctas">
+      <a href="telecharger.html" class="btn btn-primary" data-magnetic>Télécharger l'app</a>
+      <a href="fonctionnalites.html" class="btn btn-ghost">Explorer les fonctionnalités</a>
+    </div>
+    <p class="hero-note"><span class="pulse-dot"></span> En test privé — version publique bientôt</p>
+  </div>
+
+  <div class="scroll-hint">
+    <span>Défile</span>
+    <span class="line"></span>
+  </div>
+</header>
+
+<!-- ====================== BANDEAU ====================== -->
+<div class="marquee">
+  <div class="marquee-track">
+    <span class="marquee-item">📊 <b>Stats par agent & map</b></span>
+    <span class="marquee-item">📶 <b>Ping corrélé aux morts</b></span>
+    <span class="marquee-item">⏰ <b>Perf par tranche horaire</b></span>
+    <span class="marquee-item">😤 <b>Détection de tilt</b></span>
+    <span class="marquee-item">🔥 <b>Heatmap de morts</b></span>
+    <span class="marquee-item">🏆 <b>Hall of Fame</b></span>
+    <span class="marquee-item">💬 <b>Amis & messagerie</b></span>
+    <span class="marquee-item">🎯 <b>Bibliothèque de crosshairs</b></span>
+    <!-- Duplicata : permet à l'animation de boucler sans saut visible. -->
+    <span class="marquee-item">📊 <b>Stats par agent & map</b></span>
+    <span class="marquee-item">📶 <b>Ping corrélé aux morts</b></span>
+    <span class="marquee-item">⏰ <b>Perf par tranche horaire</b></span>
+    <span class="marquee-item">😤 <b>Détection de tilt</b></span>
+    <span class="marquee-item">🔥 <b>Heatmap de morts</b></span>
+    <span class="marquee-item">🏆 <b>Hall of Fame</b></span>
+    <span class="marquee-item">💬 <b>Amis & messagerie</b></span>
+    <span class="marquee-item">🎯 <b>Bibliothèque de crosshairs</b></span>
+  </div>
+</div>
+
+<!-- ====================== PROBLÈME ====================== -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Le constat</span>
+      <h2>Les trackers classiques s'arrêtent au <span class="text-accent">score</span></h2>
+      <p>
+        Ils te disent <em>combien</em> tu as fait. Jamais <em>pourquoi</em>. MVP Tracker va chercher
+        les facteurs que personne ne surveille.
+      </p>
+    </div>
+
+    <div class="card-grid stagger">
+      <div class="card">
+        <div class="card-icon">📶</div>
+        <h3>Le ping, pas juste les stats</h3>
+        <p>
+          Chaque pic de latence est enregistré pendant ta session et recoupé avec tes morts.
+          Tu sauras si c'était vraiment toi — ou ta connexion.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏰</div>
+        <h3>Ton rythme, pas une moyenne</h3>
+        <p>
+          Winrate par créneau horaire croisé avec le jour de la semaine. Découvre les moments
+          où tu joues réellement bien, et ceux où tu perds ton temps.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">😤</div>
+        <h3>Le tilt, détecté à temps</h3>
+        <p>
+          Suivi des séries de défaites et de la dégradation de tes perfs sur plusieurs matchs,
+          avec une suggestion de pause avant que ça coûte trop cher.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== VITRINE ====================== -->
+<section style="background: linear-gradient(180deg, transparent, rgba(255,255,255,0.015), transparent);">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Aperçu</span>
+      <h2>Une app, <span class="text-accent">quinze outils</span></h2>
+      <p>Clique pour explorer les écrans. Tout est en local, tout est instantané.</p>
+    </div>
+
+    <div class="showcase reveal">
+      <div class="showcase-tabs">
+        <button class="showcase-tab" data-title="Stats" data-caption="Profil complet, rang, Profil ADN et progression — filtrables par mode et par acte.">
+          <span class="ico">📊</span> Stats & profil
+        </button>
+        <button class="showcase-tab" data-title="Heatmap" data-caption="Où tu meurs, où tu tues, map par map — filtrable par côté et par arme.">
+          <span class="ico">🔥</span> Heatmap
+        </button>
+        <button class="showcase-tab" data-title="Graphiques" data-caption="Winrate par jour et moment de la journée, tendance K/D, winrate glissant.">
+          <span class="ico">📈</span> Graphiques
+        </button>
+        <button class="showcase-tab" data-title="Réseau" data-caption="Ping en temps réel pendant ta session, corrélé directement à tes performances.">
+          <span class="ico">📶</span> Réseau
+        </button>
+        <button class="showcase-tab" data-title="Analyse" data-caption="Clutchs, timing des morts, distances de duel, impact économique de tes achats.">
+          <span class="ico">🧠</span> Analyse tactique
+        </button>
+        <button class="showcase-tab" data-title="Hall of Fame" data-caption="Tes records personnels détectés automatiquement, et 75 succès à débloquer.">
+          <span class="ico">🏆</span> Hall of Fame
+        </button>
+        <button class="showcase-tab" data-title="Mon compte" data-caption="Ton profil MVP Tracker : avatar, pseudo, rôle et agent fétiche que tu choisis.">
+          <span class="ico">👤</span> Mon compte
+        </button>
+      </div>
+
+      <div>
+        <div class="showcase-stage">
+          <div class="stage-bar">
+            <span class="stage-dot dot-r"></span>
+            <span class="stage-dot dot-y"></span>
+            <span class="stage-dot dot-g"></span>
+            <span class="stage-title">MVP Tracker</span>
+          </div>
+          <div class="stage-frames">
+            <div class="stage-frame"><img src="assets/screens/stats.png" alt="Écran Stats de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/heatmap.png" alt="Écran Heatmap de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/graphiques.png" alt="Écran Graphiques de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/reseau.png" alt="Écran Réseau de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/analyse.png" alt="Écran Analyse tactique de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/halloffame.png" alt="Écran Hall of Fame de MVP Tracker" /></div>
+            <div class="stage-frame"><img src="assets/screens/compte.png" alt="Écran Mon compte de MVP Tracker" /></div>
+          </div>
+        </div>
+        <p class="showcase-caption"></p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== CHIFFRES ====================== -->
+<section style="padding-top: 3rem;">
+  <div class="container">
+    <div class="stat-row stagger">
+      <div class="stat-box">
+        <div class="stat-num"><span data-count="15">0</span></div>
+        <div class="stat-label">outils dans l'app</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num"><span data-count="75">0</span></div>
+        <div class="stat-label">succès à débloquer</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num"><span data-count="50">0</span></div>
+        <div class="stat-label">matchs analysés par sync</div>
+      </div>
+      <div class="stat-box">
+        <div class="stat-num"><span data-count="0">0</span>€</div>
+        <div class="stat-label">pour la version de base</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== SPLIT 1 ====================== -->
+<section>
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <span class="eyebrow">Réseau</span>
+        <h3>Le lag n'est plus une excuse — c'est une donnée</h3>
+        <p>
+          MVP Tracker mesure ta latence en continu pendant que tu joues, puis recoupe ces mesures
+          avec le moment exact de chaque mort. Les pics suspects ressortent tout seuls.
+        </p>
+        <ul class="check-list">
+          <li>Ping mesuré en temps réel pendant la session</li>
+          <li>Corrélation automatique entre pics de lag et morts</li>
+          <li>Historique conservé pour comparer tes sessions</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="7">
+        <img src="assets/screens/reseau.png" alt="Monitoring réseau dans MVP Tracker" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== SPLIT 2 ====================== -->
+<section style="padding-top: 0;">
+  <div class="container">
+    <div class="split reverse reveal">
+      <div>
+        <span class="eyebrow">Rythme de vie</span>
+        <h3>Tu joues mieux le mardi soir. Tu ne le savais pas.</h3>
+        <p>
+          Chaque match est rangé par jour et par créneau horaire. En quelques sessions, la grille
+          révèle les moments où tu es réellement performant — et ceux où tu ferais mieux d'éteindre.
+        </p>
+        <ul class="check-list">
+          <li>Grille winrate jour × moment de la journée</li>
+          <li>Score de forme sur tes derniers matchs</li>
+          <li>Tendance K/D et winrate glissant</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="7">
+        <img src="assets/screens/graphiques.png" alt="Graphiques de performance dans MVP Tracker" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== SPLIT 3 ====================== -->
+<section style="padding-top: 0;">
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <span class="eyebrow">Social</span>
+        <h3>Tes potes, tes rivaux, tes configs — au même endroit</h3>
+        <p>
+          Ajoute tes amis par Riot ID, vois qui est en ligne, discute en temps réel sans quitter l'app.
+          Et découvre avec qui tu gagnes vraiment le plus souvent.
+        </p>
+        <ul class="check-list">
+          <li>Messagerie privée en temps réel</li>
+          <li>Statut en ligne et notifications</li>
+          <li>Synergie d'équipe et nemesis calculés sur tes matchs</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="7">
+        <img src="assets/screens/social.png" alt="Coéquipiers et rivaux dans MVP Tracker" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== CTA ====================== -->
+<section>
+  <div class="container">
+    <div class="cta-panel reveal">
+      <span class="eyebrow">Prêt à comprendre ton jeu ?</span>
+      <h2>Arrête de deviner. <span class="text-accent">Commence à savoir.</span></h2>
+      <p>
+        MVP Tracker est en test privé avec un petit groupe de joueurs.
+        La version publique arrive bientôt.
+      </p>
+      <div class="hero-ctas">
+        <a href="telecharger.html" class="btn btn-primary" data-magnetic>Voir comment l'obtenir</a>
+        <a href="roadmap.html" class="btn btn-ghost">Consulter la roadmap</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="margin-bottom: 1rem;">
+          <img src="assets/logo.png" alt="" />
+          MVP Tracker
+        </a>
+        <p class="footer-about">
+          Le tracker Valorant qui relie performance, réseau et rythme de vie.
+          Application desktop Windows, gratuite dans sa version de base.
+        </p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <div class="footer-links">
+          <a href="index.html">Accueil</a>
+          <a href="fonctionnalites.html">Fonctionnalités</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="telecharger.html">Télécharger</a>
+        </div>
+      </div>
+      <div>
+        <h4>Projet</h4>
+        <div class="footer-links">
+          <a href="https://github.com/SrayZz57/MVP-Tracker">GitHub</a>
+          <a href="telecharger.html#faq">Questions fréquentes</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MVP Tracker — projet indépendant, non affilié à Riot Games.</span>
+      <span>Fait avec ❤️ pour les joueurs qui veulent progresser.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>

@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Fonctionnalités — MVP Tracker</title>
+<meta name="description" content="Tous les outils de MVP Tracker : stats détaillées, heatmap, monitoring réseau, détection de tilt, analyse tactique, social, crosshairs et bien plus." />
+<link rel="icon" href="assets/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+<div class="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/logo.png" alt="" />
+      MVP Tracker
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="fonctionnalites.html" class="active">Fonctionnalités</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="telecharger.html">Télécharger</a>
+    </div>
+    <a href="telecharger.html" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
+    <button class="nav-toggle" aria-label="Menu">☰</button>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="glow-field">
+    <span class="glow glow-a"></span>
+    <span class="glow glow-b"></span>
+  </div>
+  <div class="grid-bg"></div>
+  <img src="assets/agents/sage.png" alt="" class="hero-agent hero-agent-r" data-depth="14" style="opacity: 0.18; height: 46vh;" />
+  <div class="container" style="position: relative; z-index: 2;">
+    <span class="eyebrow">Fonctionnalités</span>
+    <h1><span class="gradient-text" data-split>Tout ce que l'app sait faire</span></h1>
+    <p>Quinze outils, un seul objectif : comprendre ce qui fait vraiment varier ton niveau.</p>
+  </div>
+</header>
+
+<!-- ====================== PERFORMANCE ====================== -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Performance</span>
+      <h2>Comprendre <span class="text-accent">chaque match</span></h2>
+      <p>La base solide : historique complet, stats par agent, par map, par mode et par acte.</p>
+    </div>
+
+    <div class="split reveal" style="margin-bottom: 4rem;">
+      <div>
+        <h3>Stats & Profil ADN</h3>
+        <p>
+          Ton historique complet avec K/D/A, winrate, rang et progression RR. Le Profil ADN résume
+          ton style de jeu en quatre axes calculés sur tes vraies parties : agressivité, stabilité
+          mentale, polyvalence et clutch factor.
+        </p>
+        <ul class="check-list">
+          <li>Filtres classé / non classé et sélection par acte</li>
+          <li>Détail par agent, par map et par arme</li>
+          <li>Comparaison de ta forme récente à ta moyenne habituelle</li>
+          <li>Précision, headshots et répartition des tirs</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/stats.png" alt="Écran Stats" />
+      </div>
+    </div>
+
+    <div class="split reverse reveal" style="margin-bottom: 4rem;">
+      <div>
+        <h3>Heatmap de morts et de kills</h3>
+        <p>
+          Chaque mort et chaque kill est positionné sur la vraie minimap. En quelques matchs,
+          tes angles à problème deviennent évidents.
+        </p>
+        <ul class="check-list">
+          <li>Toutes les maps du pool actuel</li>
+          <li>Bascule entre « où je meurs » et « où je kill »</li>
+          <li>Filtres par côté (attaque / défense) et par arme</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/heatmap.png" alt="Écran Heatmap" />
+      </div>
+    </div>
+
+    <div class="split reveal">
+      <div>
+        <h3>Analyse tactique</h3>
+        <p>
+          Au-delà du score : à quel moment du round tu meurs, comment tu t'en sors en clutch,
+          à quelle distance tu gagnes tes duels, et ce que ton économie t'a réellement rapporté.
+        </p>
+        <ul class="check-list">
+          <li>Timing des morts (début / milieu / fin de round)</li>
+          <li>Taux de réussite en clutch selon la situation</li>
+          <li>Distances de duel gagnants et perdants</li>
+          <li>Impact des achats eco / semi / full buy</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/analyse.png" alt="Écran Analyse tactique" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== L'ANGLE DIFFÉRENCIANT ====================== -->
+<section style="background: linear-gradient(180deg, transparent, rgba(255,70,85,0.035), transparent);">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">L'angle unique</span>
+      <h2>Ce qu'aucun autre tracker <span class="text-accent">ne regarde</span></h2>
+      <p>La vraie raison d'être de MVP Tracker : relier ton jeu à ce qui l'entoure.</p>
+    </div>
+
+    <div class="card-grid stagger">
+      <div class="card">
+        <div class="card-icon">📶</div>
+        <h3>Monitoring réseau</h3>
+        <p>
+          Ping mesuré en continu pendant ta session, historisé et recoupé avec le moment exact
+          de chaque mort. Les morts « injustes » ressortent enfin noir sur blanc.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">⏰</div>
+        <h3>Perf & Forme</h3>
+        <p>
+          Classement de tes matchs par créneau horaire et jour de la semaine, avec un score
+          de forme calculé sur ta série récente.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">😤</div>
+        <h3>Détection de tilt</h3>
+        <p>
+          Suivi de tes séries victoires / défaites et de la dégradation de tes perfs sur
+          deux à trois matchs, avec suggestion de pause au bon moment.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📈</div>
+        <h3>Graphiques</h3>
+        <p>
+          Grille winrate jour × moment, tendance K/D sur les vingt derniers matchs,
+          winrate glissant et répartition des rôles joués.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== PERSONNEL & SOCIAL ====================== -->
+<section>
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Ton compte</span>
+      <h2>Un profil qui <span class="text-accent">te suit</span></h2>
+      <p>Compte en ligne, Riot ID lié, et des données personnelles qui restent les tiennes même quand tu consultes le profil de quelqu'un d'autre.</p>
+    </div>
+
+    <div class="split reveal" style="margin-bottom: 4rem;">
+      <div>
+        <h3>Mon compte</h3>
+        <p>
+          Ton identité MVP Tracker : avatar choisi parmi toutes les cartes Valorant, pseudo
+          d'affichage libre, rôle et agent fétiche que <em>tu</em> décides — pas un calcul
+          automatique qui décide à ta place.
+        </p>
+        <ul class="check-list">
+          <li>Compte en ligne sécurisé, avec mot de passe oublié</li>
+          <li>Riot ID lié une fois pour toutes</li>
+          <li>Avatar parmi le catalogue complet de cartes</li>
+          <li>Statistiques globales toujours à jour</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/compte.png" alt="Écran Mon compte" />
+      </div>
+    </div>
+
+    <div class="split reverse reveal">
+      <div>
+        <h3>Hall of Fame & succès</h3>
+        <p>
+          Tes records personnels détectés automatiquement dans ton historique : meilleur ace,
+          plus longue série de victoires, meilleur clutch, meilleur KDA. Plus 75 succès à débloquer.
+        </p>
+        <ul class="check-list">
+          <li>Records mis à jour dès qu'un nouveau tombe</li>
+          <li>75 succès répartis par catégorie</li>
+          <li>Contexte complet : agent, map, round et date</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/halloffame.png" alt="Écran Hall of Fame" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== OUTILS ====================== -->
+<section style="background: linear-gradient(180deg, transparent, rgba(255,255,255,0.015), transparent);">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">Outils & entraînement</span>
+      <h2>Tout le reste de la <span class="text-accent">boîte à outils</span></h2>
+    </div>
+
+    <div class="card-grid stagger">
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">💬</div>
+        <h3>Amis & messagerie</h3>
+        <p>Ajoute des joueurs par Riot ID, discute en temps réel, vois qui est en ligne, reçois des notifications.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🤝</div>
+        <h3>Coéquipiers & rivaux</h3>
+        <p>Ton winrate avec chaque coéquipier récurrent, et les agents ou joueurs contre qui tu galères le plus.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🎯</div>
+        <h3>Crosshairs</h3>
+        <p>Bibliothèque de viseurs sauvegardables, comparables, avec aperçu visuel et code de partage.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🗺️</div>
+        <h3>Stratégie</h3>
+        <p>Tableau tactique par map pour dessiner tes exécutions et les retrouver avant une session.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🧩</div>
+        <h3>Composition</h3>
+        <p>Analyse d'équilibre de compo à cinq, croisée avec tes vraies stats sur chaque agent et chaque map.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">💰</div>
+        <h3>Simulation d'achat</h3>
+        <p>Analyse round par round de ton économie, avec recommandations d'achat basées sur les vrais prix.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">💎</div>
+        <h3>Skins & collection</h3>
+        <p>Catalogue complet, wishlist, et valeur totale de ta collection en euros.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🎬</div>
+        <h3>Session guidée</h3>
+        <p>Un plan de session généré à partir de tes stats : map à travailler, objectif, checklist.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🎲</div>
+        <h3>Puzzle du jour</h3>
+        <p>Une situation de jeu par jour pour travailler ta prise de décision, avec historique de tes réponses.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">🎰</div>
+        <h3>Paris perso</h3>
+        <p>Parie sur ta propre prochaine partie et accumule des points selon ta régularité.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">📖</div>
+        <h3>Wiki intégré</h3>
+        <p>Agents, capacités, armes, maps et échelle de rangs — consultables sans quitter l'app.</p>
+      </div>
+      <div class="card">
+        <span class="card-tag">Dispo</span>
+        <div class="card-icon">📅</div>
+        <h3>Wrapped hebdomadaire</h3>
+        <p>Un récap narratif de ta semaine, généré automatiquement chaque lundi.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section style="padding-top: 2rem;">
+  <div class="container">
+    <div class="cta-panel reveal">
+      <h2>Envie de tester ?</h2>
+      <p>L'app est en test privé. Découvre comment y accéder.</p>
+      <a href="telecharger.html" class="btn btn-primary" data-magnetic>Accéder à l'app</a>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="margin-bottom: 1rem;">
+          <img src="assets/logo.png" alt="" />
+          MVP Tracker
+        </a>
+        <p class="footer-about">
+          Le tracker Valorant qui relie performance, réseau et rythme de vie.
+          Application desktop Windows, gratuite dans sa version de base.
+        </p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <div class="footer-links">
+          <a href="index.html">Accueil</a>
+          <a href="fonctionnalites.html">Fonctionnalités</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="telecharger.html">Télécharger</a>
+        </div>
+      </div>
+      <div>
+        <h4>Projet</h4>
+        <div class="footer-links">
+          <a href="https://github.com/SrayZz57/MVP-Tracker">GitHub</a>
+          <a href="telecharger.html#faq">Questions fréquentes</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MVP Tracker — projet indépendant, non affilié à Riot Games.</span>
+      <span>Fait avec ❤️ pour les joueurs qui veulent progresser.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>

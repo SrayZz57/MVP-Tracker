@@ -14,7 +14,11 @@ function synergyColor(winrate) {
   return 'var(--accent)';
 }
 
-function SynergyGraph({ teammates }) {
+function displayName(entry, myPuuid) {
+  return entry.puuid === myPuuid ? 'Toi' : entry.name;
+}
+
+function SynergyGraph({ teammates, myPuuid }) {
   const shown = teammates.slice(0, MAX_NODES);
 
   if (shown.length === 0) {
@@ -81,7 +85,7 @@ function SynergyGraph({ teammates }) {
               {t.winrate.toFixed(0)}%
             </text>
             <text x={x} y={y + nodeRadius + 17} textAnchor="middle" className="synergy-label">
-              {t.name}
+              {displayName(t, myPuuid)}
             </text>
             <text x={x} y={y + nodeRadius + 31} textAnchor="middle" className="synergy-label synergy-label-meta">
               {t.games} parties
@@ -107,7 +111,7 @@ function initials(name) {
   return base.slice(0, 2).toUpperCase();
 }
 
-function TeammatesRivals({ settings, matches, loading }) {
+function TeammatesRivals({ settings, matches, loading, myPuuid }) {
   const agentIcons = useAgentIcons();
   const teammates = useMemo(
     () => computeTeammateSynergy(matches, settings.name, settings.tag),
@@ -132,7 +136,7 @@ function TeammatesRivals({ settings, matches, loading }) {
           épais et vert, mieux ça se passe quand vous êtes dans la même équipe.
         </p>
         <div className="synergy-graph-wrap">
-          <SynergyGraph teammates={teammates} />
+          <SynergyGraph teammates={teammates} myPuuid={myPuuid} />
         </div>
       </div>
 
@@ -172,8 +176,8 @@ function TeammatesRivals({ settings, matches, loading }) {
             nemesis.players.slice(0, 8).map((n, i) => (
               <div key={n.puuid} className="stat-bar-row rival-row">
                 <RankBadge rank={i} />
-                <span className="rival-avatar">{initials(n.name)}</span>
-                <span className="stat-bar-label rival-name">{n.name}</span>
+                <span className="rival-avatar">{initials(displayName(n, myPuuid))}</span>
+                <span className="stat-bar-label rival-name">{displayName(n, myPuuid)}</span>
                 <span className="stat-bar-track">
                   <span
                     className={`stat-bar-fill ${n.winrate >= 50 ? 'good' : 'bad'}`}

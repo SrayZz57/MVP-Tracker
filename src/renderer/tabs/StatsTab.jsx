@@ -176,14 +176,36 @@ function StatsTab({ settings, matches, rank, loading }) {
   const [showAllMatches, setShowAllMatches] = useState(false);
   const [modeFilter, setModeFilter] = useState('');
   const [scope, setScope] = useState('');
+  const [actFilter, setActFilter] = useState('');
+
+  // Actes réellement présents dans l'historique en cache, du plus récent au
+  // plus ancien (basé sur la dernière game jouée dans chacun) — jamais une
+  // liste figée qui proposerait un acte jamais joué.
+  const availableActs = useMemo(() => {
+    const latestByAct = new Map(); // season_id -> game_start le plus récent
+    matches.forEach((match) => {
+      const seasonId = match.metadata?.season_id;
+      const gameStart = match.metadata?.game_start ?? 0;
+      if (!seasonId) return;
+      if (!latestByAct.has(seasonId) || gameStart > latestByAct.get(seasonId)) {
+        latestByAct.set(seasonId, gameStart);
+      }
+    });
+    return [...latestByAct.entries()]
+      .sort((a, b) => b[1] - a[1])
+      .map(([seasonId]) => ({ id: seasonId, label: seasonNames.get(seasonId) ?? seasonId }));
+  }, [matches, seasonNames]);
 
   // Filtre global de la page : "Tout" (comme avant), "Classé" (competitive
-  // uniquement) ou "Non classé" (unrated uniquement) — s'applique à toutes
-  // les stats de l'onglet, pas juste à la liste de matchs en bas.
-  const scopedMatches = useMemo(
-    () => (scope ? matches.filter((match) => match.metadata?.mode_id === scope) : matches),
-    [matches, scope],
-  );
+  // uniquement) ou "Non classé" (unrated uniquement), croisé avec un acte
+  // précis si choisi — s'applique à toutes les stats de l'onglet, pas juste
+  // à la liste de matchs en bas.
+  const scopedMatches = useMemo(() => {
+    let result = matches;
+    if (scope) result = result.filter((match) => match.metadata?.mode_id === scope);
+    if (actFilter) result = result.filter((match) => match.metadata?.season_id === actFilter);
+    return result;
+  }, [matches, scope, actFilter]);
 
   const globalStats = useMemo(() => {
     let totalHeadshots = 0;
@@ -330,8 +352,29 @@ function StatsTab({ settings, matches, rank, loading }) {
             </button>
           ))}
         </div>
-        {scope && (
-          <span className="label">{scopedMatches.length} match(s) {SCOPE_OPTIONS.find((o) => o.id === scope)?.label.toLowerCase()}</span>
+        {availableActs.length > 0 && (
+          <select
+            value={actFilter}
+            onChange={(e) => {
+              setActFilter(e.target.value);
+              setShowAllMatches(false);
+            }}
+            className="stats-scope-act-select"
+          >
+            <option value="">Tous les actes</option>
+            {availableActs.map((act) => (
+              <option key={act.id} value={act.id}>
+                {act.label}
+              </option>
+            ))}
+          </select>
+        )}
+        {(scope || actFilter) && (
+          <span className="label">
+            {scopedMatches.length} match(s)
+            {scope ? ` ${SCOPE_OPTIONS.find((o) => o.id === scope)?.label.toLowerCase()}` : ''}
+            {actFilter ? ` — ${availableActs.find((a) => a.id === actFilter)?.label}` : ''}
+          </span>
         )}
       </div>
 
