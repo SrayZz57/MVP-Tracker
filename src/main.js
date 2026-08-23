@@ -1,8 +1,9 @@
-import { app, BrowserWindow, ipcMain, shell, Menu } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification } from 'electron';
 import path from 'node:path';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
+import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
 import {
   saveMatches,
   getCachedMatches,
@@ -282,6 +283,69 @@ setInterval(async () => {
 }, 5000);
 
 ipcMain.handle('network:get-status', () => networkStatus);
+
+// Détection de tilt en direct : tant que Valorant tourne, on revérifie
+// régulièrement si un nouveau match vient de se terminer et, si oui, on
+// recalcule le statut de tilt pour prévenir par notification Windows —
+// sans attendre que l'utilisateur ouvre l'app et clique sur l'onglet Tilt.
+const tiltPollState = { lastMatchId: null, notified: false };
+
+function notifyTilt(tilt, form) {
+  if (!Notification.isSupported()) return;
+  const body = tilt.lossStreakTilt
+    ? `Série de ${form.streakCount} défaites d'affilée. Une pause pourrait aider.`
+    : `Ta perf a baissé sur tes 3 derniers matchs. Une pause pourrait aider.`;
+  const notification = new Notification({
+    title: '⚠️ MVP Tracker — signe de tilt détecté',
+    body,
+    silent: false,
+  });
+  notification.on('click', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isMinimized()) mainWindow.restore();
+    mainWindow.show();
+    mainWindow.focus();
+  });
+  notification.show();
+}
+
+async function checkTiltAndNotify() {
+  const settings = store.get('valorantSettings');
+  if (!settings?.name || !settings?.tag || !settings?.apiKey) return;
+  try {
+    const account = await getAccount(settings.name, settings.tag, settings.apiKey);
+    const freshMatches = await getMatches(account.region, settings.name, settings.tag, settings.apiKey);
+    saveMatches(account.puuid, freshMatches);
+
+    const latestId = freshMatches[0]?.metadata?.matchid ?? null;
+    if (!latestId || latestId === tiltPollState.lastMatchId) return;
+    const isFirstCheck = tiltPollState.lastMatchId === null;
+    tiltPollState.lastMatchId = latestId;
+    // Premier check depuis le lancement de l'app : sert juste de point de
+    // départ, pour ne pas notifier immédiatement sur un tilt déjà ancien.
+    if (isFirstCheck) return;
+
+    const played = excludeDeathmatch(getCachedMatches(account.puuid));
+    const form = formStats(played, settings.name, settings.tag);
+    const tilt = tiltStatus(played, settings.name, settings.tag, form);
+
+    if (tilt.isTilted) {
+      if (!tiltPollState.notified) {
+        tiltPollState.notified = true;
+        notifyTilt(tilt, form);
+      }
+    } else {
+      tiltPollState.notified = false;
+    }
+  } catch {
+    // Erreur ponctuelle (rate limit, réseau) : on retentera au prochain tick,
+    // pas besoin de faire planter la vérification pour ça.
+  }
+}
+
+setInterval(() => {
+  if (isValorantRunning()) checkTiltAndNotify();
+}, 120000);
 
 ipcMain.handle('network:get-ping-samples', () => (currentPuuid() ? getAllPingSamples(currentPuuid()) : []));
 

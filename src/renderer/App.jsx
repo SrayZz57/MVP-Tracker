@@ -329,11 +329,27 @@ function App() {
 
   // Compte MVP Tracker (Supabase) — étape à part du Riot ID : se connecter au
   // compte de l'app ne veut pas dire avoir déjà lié un pseudo Valo.
+  // Supabase revalide automatiquement la session (et redéclenche cet
+  // écouteur) chaque fois que la fenêtre revient au premier plan après avoir
+  // été en arrière-plan — pas seulement lors d'une vraie connexion/déconnexion.
+  // Sans ce garde-fou, chaque retour au premier plan réinitialisait `profile`,
+  // ce qui démontait puis remontait les composants qui en dépendent (dont le
+  // popup de bilan de match) et pouvait le faire réapparaître comme non
+  // répondu à cause d'une brève fenêtre où le puuid lié n'était plus à jour
+  // côté process principal.
+  const lastUserIdRef = useRef(undefined);
   useEffect(() => {
-    supabase.auth.getSession().then(({ data: { session: current } }) => setSession(current));
+    supabase.auth.getSession().then(({ data: { session: current } }) => {
+      lastUserIdRef.current = current?.user?.id ?? null;
+      setSession(current);
+    });
     const { data: listener } = supabase.auth.onAuthStateChange((_event, next) => {
       setSession(next);
-      setProfile(undefined); // reforce la vérification du lien Riot ID pour ce compte
+      const nextUserId = next?.user?.id ?? null;
+      if (nextUserId !== lastUserIdRef.current) {
+        lastUserIdRef.current = nextUserId;
+        setProfile(undefined); // reforce la vérification du lien Riot ID seulement si le compte a réellement changé
+      }
     });
     return () => listener.subscription.unsubscribe();
   }, []);
