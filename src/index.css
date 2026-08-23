@@ -5589,7 +5589,7 @@ input[type='color'] {
 
 .friend-summary-banner {
   position: relative;
-  height: 260px;
+  height: 150px;
   background-size: cover;
   background-position: center;
   background-color: var(--surface-alt);
@@ -5601,52 +5601,14 @@ input[type='color'] {
   animation: rank-glow-breathe 4s ease-in-out infinite;
 }
 
-/* Grand portrait de l'agent séléctionné, calé en bas de la bannière —
-   l'élément visuel le plus marquant de la carte. */
-.friend-summary-hero-portrait {
-  position: absolute;
-  bottom: -6px;
-  right: -8px;
-  height: 92%;
-  width: auto;
-  object-fit: contain;
-  object-position: bottom;
-  filter: drop-shadow(0 12px 24px rgba(0, 0, 0, 0.65));
-  pointer-events: none;
-}
-
-.friend-summary-role-badge {
-  position: absolute;
-  top: 0.85rem;
-  left: 0.85rem;
-  z-index: 2;
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.4rem 0.75rem;
-  border-radius: 999px;
-  background: rgba(10, 12, 16, 0.6);
-  backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  font-family: 'Chakra Petch', sans-serif;
-  font-weight: 600;
-  font-size: 0.85rem;
-}
-
-.friend-summary-role-badge img {
-  width: 22px;
-  height: 22px;
-}
-
 .friend-summary-banner-overlay {
   position: absolute;
   inset: 0;
-  z-index: 1;
   display: flex;
   align-items: flex-end;
   gap: 0.8rem;
   padding: 1rem;
-  background: linear-gradient(180deg, rgba(10, 12, 16, 0) 0%, rgba(10, 12, 16, 0) 40%, rgba(10, 12, 16, 0.55) 68%, rgba(10, 12, 16, 0.94) 100%);
+  background: linear-gradient(180deg, rgba(10, 12, 16, 0.1) 0%, rgba(10, 12, 16, 0.55) 55%, rgba(10, 12, 16, 0.94) 100%);
 }
 
 .friend-summary-avatar-wrap {
@@ -5749,6 +5711,58 @@ input[type='color'] {
 
 .friend-summary-stat-text .label {
   font-size: 0.72rem;
+}
+
+/* Case dédiée à l'agent fétiche : portrait complet bien visible, séparée
+   des tuiles de stats plutôt qu'entassée dedans. */
+.friend-summary-agent-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0 1rem 0.6rem;
+  padding: 0.75rem 0.75rem 0.6rem;
+  border-radius: var(--radius, 12px);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.friend-summary-agent-portrait {
+  height: 140px;
+  width: auto;
+  max-width: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 8px 18px rgba(0, 0, 0, 0.55));
+}
+
+.friend-summary-agent-name {
+  margin-top: 0.4rem;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 600;
+  font-size: 0.9rem;
+}
+
+.friend-summary-role-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin: 0 1rem 1rem;
+  padding: 0.65rem 0.85rem;
+  border-radius: var(--radius, 12px);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.friend-summary-role-value {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-weight: 600;
+  font-size: 0.88rem;
+}
+
+.friend-summary-role-value img {
+  width: 20px;
+  height: 20px;
 }
 
 .messages-empty {

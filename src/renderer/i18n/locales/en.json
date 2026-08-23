@@ -473,6 +473,7 @@
     "unranked": "Unranked",
     "accountLevel": "Level {{level}}",
     "level": "Account level",
+    "mainRole": "Main role",
     "viewProfile": "View profile",
     "sendMessage": "Send a message",
     "removeFriend": "Remove this friend"

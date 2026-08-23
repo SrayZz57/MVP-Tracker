@@ -35,15 +35,6 @@ function FriendSummaryCard({ profile, preview, online }) {
           '--rank-color': tier?.color,
         }}
       >
-        {profile.main_role && (
-          <span className="friend-summary-role-badge">
-            {roleIcon && <img src={roleIcon} alt="" />}
-            {profile.main_role}
-          </span>
-        )}
-
-        {agentPortrait && <img className="friend-summary-hero-portrait" src={agentPortrait} alt={profile.main_agent} />}
-
         <div className="friend-summary-banner-overlay">
           <div className="friend-summary-avatar-wrap">
             <div className="friend-summary-avatar">
@@ -57,10 +48,7 @@ function FriendSummaryCard({ profile, preview, online }) {
           </div>
           <div className="friend-summary-identity">
             <span className="friend-summary-name">{displayedLabel}</span>
-            <span className="friend-summary-tag">
-              {profile.riot_name}#{profile.riot_tag}
-              {profile.main_agent && ` · ${profile.main_agent}`}
-            </span>
+            <span className="friend-summary-tag">{profile.riot_name}#{profile.riot_tag}</span>
           </div>
         </div>
       </div>
@@ -82,6 +70,23 @@ function FriendSummaryCard({ profile, preview, online }) {
               <span className="label">{t('friends.level')}</span>
             </div>
           </div>
+        </div>
+      )}
+
+      {profile.main_agent && (
+        <div className="friend-summary-agent-card">
+          {agentPortrait && <img className="friend-summary-agent-portrait" src={agentPortrait} alt="" />}
+          <span className="friend-summary-agent-name">{profile.main_agent}</span>
+        </div>
+      )}
+
+      {profile.main_role && (
+        <div className="friend-summary-role-row">
+          <span className="label">{t('friends.mainRole')}</span>
+          <span className="friend-summary-role-value">
+            {roleIcon && <img src={roleIcon} alt="" />}
+            {profile.main_role}
+          </span>
         </div>
       )}
     </div>

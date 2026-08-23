@@ -473,6 +473,7 @@
     "unranked": "Non classé",
     "accountLevel": "Niveau {{level}}",
     "level": "Niveau de compte",
+    "mainRole": "Rôle principal",
     "viewProfile": "Voir le profil",
     "sendMessage": "Envoyer un message",
     "removeFriend": "Retirer cet ami"
