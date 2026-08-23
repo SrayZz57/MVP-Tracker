@@ -359,15 +359,34 @@ function App() {
   // du précédent utilisateur connecté.
   useEffect(() => {
     if (!session) return;
-    supabase
-      .from('profiles')
-      .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at')
-      .eq('id', session.user.id)
-      .maybeSingle()
-      .then(({ data, error }) => {
-        if (error) console.error('[profiles] échec de la lecture du profil :', error.message);
-        setProfile(data ?? null);
-      });
+    let cancelled = false;
+
+    // Au tout premier lancement de l'app, le service réseau de Chromium peut
+    // mettre un instant à se stabiliser (voir le commentaire plus haut dans
+    // main.js) — une requête échouée à ce moment-là ne veut pas dire que le
+    // compte n'est pas lié. On réessaie avant de conclure, plutôt que de
+    // renvoyer l'utilisateur à tort vers l'écran de liaison Riot.
+    async function loadProfile(attempt = 0) {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at')
+        .eq('id', session.user.id)
+        .maybeSingle();
+      if (cancelled) return;
+      if (error) {
+        console.error('[profiles] échec de la lecture du profil :', error.message);
+        if (attempt < 3) {
+          setTimeout(() => loadProfile(attempt + 1), 1000 * (attempt + 1));
+        }
+        return;
+      }
+      setProfile(data ?? null);
+    }
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
   }, [session]);
 
   // Lie le compte au Riot ID uniquement suite à un passage volontaire par
