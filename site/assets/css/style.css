@@ -147,6 +147,9 @@ img { max-width: 100%; display: block; }
      qu'ils tiennent sur une seule ligne sans repasser à la ligne. */
   padding-left: 0.5rem;
   padding-right: 0.5rem;
+  /* Léger décalage de tout le bandeau vers la gauche par rapport au centrage
+     par défaut du conteneur. */
+  transform: translateX(-1.25rem);
 }
 
 /* Flex + space-between avec exactement 3 enfants (brand, links, actions) :
