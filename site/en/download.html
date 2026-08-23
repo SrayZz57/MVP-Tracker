@@ -70,17 +70,16 @@
         Fetching the latest version…
       </p>
       <div class="hero-ctas">
-        <a id="download-btn" href="https://github.com/SrayZz57/MVP-Tracker/releases/latest" class="btn btn-primary" data-magnetic>
+        <a id="download-btn" href="#" class="btn btn-primary" data-magnetic>
           Download for Windows
         </a>
-        <a href="https://github.com/SrayZz57/MVP-Tracker/releases" class="btn btn-ghost">See all versions</a>
       </div>
       <p style="margin-top: 1.75rem; font-size: 0.82rem; color: var(--text-faint);">
         Windows 10 / 11 · Desktop app · Free
       </p>
       <p style="margin-top: 0.6rem; font-size: 0.78rem; color: var(--text-faint);">
-        You'll still need your own HenrikDev API key on first launch (free, 30 seconds) —
-        a shared key is in the works.
+        You'll need your own HenrikDev API key on first launch — free, takes 30 seconds, and the
+        app walks you through it step by step.
       </p>
     </div>
   </div>
@@ -224,13 +223,16 @@
       <div>
         <h4>Project</h4>
         <div class="footer-links">
-          <a href="https://github.com/SrayZz57/MVP-Tracker">GitHub</a>
           <a href="#faq">FAQ</a>
+          <a href="privacy-policy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="legal-notice.html">Legal notice</a>
+          <a href="contact.html">Contact</a>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 MVP Tracker — independent project, not affiliated with Riot Games.</span>
+      <span>© 2026 MVP Tracker — independent project. VALORANT is a trademark of Riot Games, Inc.; MVP Tracker is not affiliated with, endorsed, or sponsored by Riot Games.</span>
       <span>Made with ❤️ for players who want to improve.</span>
     </div>
   </div>
@@ -265,8 +267,7 @@
         throw new Error('No .exe found in the release');
       }
     } catch (err) {
-      // Silent fallback: the button keeps its default link to the Releases page.
-      if (sub) sub.textContent = 'Get the latest version from the Releases page below.';
+      if (sub) sub.textContent = 'Could not fetch the latest version right now — try again in a moment or contact us.';
     }
   })();
 </script>

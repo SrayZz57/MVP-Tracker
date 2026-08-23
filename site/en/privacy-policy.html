@@ -1,0 +1,231 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Privacy Policy — MVP Tracker</title>
+<meta name="description" content="What MVP Tracker collects, where it's stored, and what never gets sent anywhere." />
+<link rel="icon" href="../assets/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="../assets/css/style.css" />
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+<div class="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="../assets/logo.png" alt="" />
+      MVP Tracker
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Home</a>
+      <a href="features.html">Features</a>
+      <a href="about.html">About</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="download.html">Download</a>
+      <a href="../politique-confidentialite.html" title="Version française">FR</a>
+    </div>
+    <div class="nav-actions">
+      <a href="download.html" class="btn btn-primary btn-sm" data-magnetic>Get the app</a>
+      <button class="nav-toggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="glow-field">
+    <span class="glow glow-a"></span>
+    <span class="glow glow-b"></span>
+  </div>
+  <div class="grid-bg"></div>
+  <div class="container" style="position: relative; z-index: 2;">
+    <span class="eyebrow">Privacy</span>
+    <h1><span class="gradient-text" data-split>What MVP Tracker knows about you</span></h1>
+    <p>
+      An independent project, with no marketing budget and no interest in reselling your data — here's exactly
+      what's collected, where it's stored, and what never gets sent anywhere.
+    </p>
+  </div>
+</header>
+
+<section>
+  <div class="container" style="max-width: 780px;">
+
+    <div class="reveal">
+      <span class="eyebrow">Short version</span>
+      <h2>No reselling, no tracking, no ads</h2>
+      <p>
+        MVP Tracker has no analytics tool, no ad tracker, no third-party cookies built in. Nothing you do in
+        the app is sold or shared for commercial purposes — there isn't even infrastructure to do that. The
+        project is built by one person, for the real use of Valorant players.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Stored only on your PC</span>
+      <h3>What never leaves your machine</h3>
+      <p>
+        The app keeps a local database (SQLite) on your computer, never sent to an MVP Tracker server —
+        there isn't one. That includes:
+      </p>
+      <ul class="check-list">
+        <li>Your cached Valorant matches (and those of any profile you look up)</li>
+        <li>Your ping / network detection history — now strictly scoped to your linked account, invisible to anyone else using the app on the same machine</li>
+        <li>Your crosshairs, strategies, personal bets, answered puzzles, weekly wraps, goals, skin wishlist and collection</li>
+        <li>Your personal HenrikDev API key</li>
+      </ul>
+      <p>
+        Uninstalling the app or deleting that local file erases this data for good — nothing keeps a copy
+        elsewhere.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Online account (optional)</span>
+      <h3>What's stored if you create an MVP Tracker account</h3>
+      <p>
+        The online account only exists to persistently link your Riot ID and enable social features (friends,
+        messaging). It's hosted with <strong>Supabase</strong>, a specialized third-party provider, with strict
+        access rules (each user can only read what concerns them). This is stored:
+      </p>
+      <ul class="check-list">
+        <li>Your email address and password (the password is never stored in plain text — Supabase hashes it)</li>
+        <li>The Riot ID linked to your account (username, tag, internal Riot identifier), which can only be linked to one MVP Tracker account at a time</li>
+        <li>Your display name and chosen avatar, if set</li>
+        <li>Your main role and favorite agent, if set</li>
+        <li>Your friends list (sent/received/accepted requests)</li>
+        <li>The content of messages exchanged with your friends in the app</li>
+      </ul>
+      <p>
+        This data is only visible to you and, for the friends list and messages, to the friends involved —
+        never to a random other user.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Contact form</span>
+      <h3>If you write to us from the site</h3>
+      <p>
+        The <a href="contact.html">contact form</a> stores your name, email, and message in a dedicated table,
+        accessible only from the Supabase dashboard — never publicly readable, even with the key used by the
+        site. This information is only used to reply to you.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Third-party services</span>
+      <h3>What goes out, and why</h3>
+      <ul class="check-list">
+        <li><strong>HenrikDev API</strong> — receives your personal API key and the Riot ID you look up (yours or another player's, if you use search) to return match data. This key and these searches never pass through an MVP Tracker server.</li>
+        <li><strong>valorant-api.com</strong> — provides game images/icons (agents, weapons, maps, ranks). No personal data sent.</li>
+        <li><strong>Distribution platform</strong> — the app checks on launch whether a new version exists, via a public API. No personal data sent.</li>
+      </ul>
+      <p>
+        Each of these services has its own privacy policy, independent of MVP Tracker.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Retention</span>
+      <h3>How long it's kept</h3>
+      <ul class="check-list">
+        <li>Local data (matches, ping, crosshairs...): as long as the app stays installed, until manual deletion or uninstall</li>
+        <li>Online account (email, profile, friends, messages): as long as the account exists, until a deletion request</li>
+        <li>Contact form messages: kept as long as needed to reply and follow up, 12 months maximum</li>
+      </ul>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Hosting and minimum age</span>
+      <h3>Where and for whom</h3>
+      <p>
+        Online account data is hosted via Supabase Inc.'s infrastructure, which may be located outside the
+        European Union depending on the project's configured region — see the
+        <a href="legal-notice.html">legal notice</a> for hosting details.
+      </p>
+      <p>
+        The app isn't intended for people under 15 without consent from a holder of parental authority, in
+        line with French data protection rules — see the <a href="terms.html">terms of use</a>.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Your rights</span>
+      <h3>Access, rectification, deletion, and more</h3>
+      <p>
+        Under GDPR, you have a right of access, rectification, deletion, restriction of processing, objection,
+        and data portability over your online account data. Local data (matches, crosshairs, ping, etc.)
+        disappears when you uninstall the app.
+      </p>
+      <p>
+        To exercise any of these rights, or for any question about this policy, email
+        <a href="mailto:mvptracker.app@gmail.com">mvptracker.app@gmail.com</a> — the request will be handled
+        manually, since the project doesn't yet have a self-service tool. You also have the right to lodge a
+        complaint with the <a href="https://www.cnil.fr">CNIL</a>, the French data protection authority (or
+        your local supervisory authority within the EU).
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;">
+      <span class="eyebrow">Updates</span>
+      <h3>This page can change</h3>
+      <p>
+        If new features change what's collected, this page will be updated accordingly — no individual
+        notification. For any question, reach out via the <a href="contact.html">contact form</a>.
+      </p>
+    </div>
+
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="margin-bottom: 1rem;">
+          <img src="../assets/logo.png" alt="" />
+          MVP Tracker
+        </a>
+        <p class="footer-about">
+          The Valorant tracker that connects performance, network, and lifestyle.
+          Free desktop app for Windows.
+        </p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <div class="footer-links">
+          <a href="index.html">Home</a>
+          <a href="features.html">Features</a>
+          <a href="about.html">About</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="download.html">Download</a>
+        </div>
+      </div>
+      <div>
+        <h4>Project</h4>
+        <div class="footer-links">
+          <a href="download.html#faq">FAQ</a>
+          <a href="privacy-policy.html">Privacy</a>
+          <a href="terms.html">Terms</a>
+          <a href="legal-notice.html">Legal notice</a>
+          <a href="contact.html">Contact</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MVP Tracker — independent project. VALORANT is a trademark of Riot Games, Inc.; MVP Tracker is not affiliated with, endorsed, or sponsored by Riot Games.</span>
+      <span>Made with ❤️ for players who want to improve.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="../assets/js/app.js"></script>
+</body>
+</html>

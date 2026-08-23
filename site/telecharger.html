@@ -70,17 +70,16 @@
         Récupération de la dernière version…
       </p>
       <div class="hero-ctas">
-        <a id="download-btn" href="https://github.com/SrayZz57/MVP-Tracker/releases/latest" class="btn btn-primary" data-magnetic>
+        <a id="download-btn" href="#" class="btn btn-primary" data-magnetic>
           Télécharger pour Windows
         </a>
-        <a href="https://github.com/SrayZz57/MVP-Tracker/releases" class="btn btn-ghost">Voir toutes les versions</a>
       </div>
       <p style="margin-top: 1.75rem; font-size: 0.82rem; color: var(--text-faint);">
         Windows 10 / 11 · Application desktop · Gratuit
       </p>
       <p style="margin-top: 0.6rem; font-size: 0.78rem; color: var(--text-faint);">
-        Il te faudra encore ta propre clé API HenrikDev au premier lancement (gratuite, 30 secondes) —
-        une clé partagée est en préparation.
+        Il te faudra ta propre clé API HenrikDev au premier lancement — gratuite, ça prend 30 secondes, et
+        l'app te guide pas à pas.
       </p>
     </div>
   </div>
@@ -226,13 +225,16 @@
       <div>
         <h4>Projet</h4>
         <div class="footer-links">
-          <a href="https://github.com/SrayZz57/MVP-Tracker">GitHub</a>
           <a href="#faq">Questions fréquentes</a>
+          <a href="politique-confidentialite.html">Confidentialité</a>
+          <a href="cgu.html">CGU</a>
+          <a href="mentions-legales.html">Mentions légales</a>
+          <a href="contact.html">Contact</a>
         </div>
       </div>
     </div>
     <div class="footer-bottom">
-      <span>© 2026 MVP Tracker — projet indépendant, non affilié à Riot Games.</span>
+      <span>© 2026 MVP Tracker — projet indépendant. VALORANT est une marque de Riot Games, Inc. ; MVP Tracker n'est ni affilié, ni approuvé, ni sponsorisé par Riot Games.</span>
       <span>Fait avec ❤️ pour les joueurs qui veulent progresser.</span>
     </div>
   </div>
@@ -267,8 +269,7 @@
         throw new Error('Pas de .exe trouvé dans la release');
       }
     } catch (err) {
-      // Repli silencieux : le bouton garde son lien par défaut vers la page Releases.
-      if (sub) sub.textContent = 'Récupère la dernière version depuis la page Releases ci-dessous.';
+      if (sub) sub.textContent = "Impossible de récupérer la dernière version pour l'instant — réessaie dans un instant ou contacte-nous.";
     }
   })();
 </script>
