@@ -691,6 +691,16 @@ section { position: relative; padding: 7rem 0; }
   gap: 1.5rem;
 }
 
+/* Grille à exactement 4 cartes : 2 colonnes fixes, pour que la 4e se
+   retrouve sous la 2e (2x2) plutôt que seule sous la 1re (3+1). */
+.card-grid-2 {
+  grid-template-columns: repeat(2, 1fr);
+}
+
+@media (max-width: 640px) {
+  .card-grid-2 { grid-template-columns: 1fr; }
+}
+
 .card {
   position: relative;
   padding: 2rem;
