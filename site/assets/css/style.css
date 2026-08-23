@@ -247,6 +247,9 @@ img { max-width: 100%; display: block; }
   .nav .container {
     padding-left: 1rem;
     padding-right: 1rem;
+    /* Le léger décalage vers la gauche du bandeau desktop pousse le menu
+       déroulant mobile hors de l'écran (texte coupé à gauche) — annulé ici. */
+    transform: none;
   }
   .nav-inner {
     height: 70px;
