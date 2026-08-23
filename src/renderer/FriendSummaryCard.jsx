@@ -2,12 +2,12 @@ import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { friendLabel } from './friendsShared.jsx';
 import { usePlayerCardArt, useRankTiers } from './rankData.js';
-import { useAgentIcons, useAgentRoles } from './agentIcons.js';
+import { useAgentPortraits, useAgentRoles } from './agentIcons.js';
 
 function FriendSummaryCard({ profile, preview, online }) {
   const { t } = useTranslation();
   const rankTiers = useRankTiers();
-  const agentIcons = useAgentIcons();
+  const agentPortraits = useAgentPortraits();
   const agentRoles = useAgentRoles();
   const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
 
@@ -24,7 +24,7 @@ function FriendSummaryCard({ profile, preview, online }) {
 
   const displayedLabel = friendLabel(profile);
   const roleIcon = profile.main_role ? roleIconByName.get(profile.main_role) : null;
-  const agentIcon = profile.main_agent ? agentIcons.get(profile.main_agent) : null;
+  const agentPortrait = profile.main_agent ? agentPortraits.get(profile.main_agent) : null;
 
   return (
     <div className="friend-summary-card">
@@ -35,6 +35,15 @@ function FriendSummaryCard({ profile, preview, online }) {
           '--rank-color': tier?.color,
         }}
       >
+        {profile.main_role && (
+          <span className="friend-summary-role-badge">
+            {roleIcon && <img src={roleIcon} alt="" />}
+            {profile.main_role}
+          </span>
+        )}
+
+        {agentPortrait && <img className="friend-summary-hero-portrait" src={agentPortrait} alt={profile.main_agent} />}
+
         <div className="friend-summary-banner-overlay">
           <div className="friend-summary-avatar-wrap">
             <div className="friend-summary-avatar">
@@ -48,27 +57,13 @@ function FriendSummaryCard({ profile, preview, online }) {
           </div>
           <div className="friend-summary-identity">
             <span className="friend-summary-name">{displayedLabel}</span>
-            <span className="friend-summary-tag">{profile.riot_name}#{profile.riot_tag}</span>
+            <span className="friend-summary-tag">
+              {profile.riot_name}#{profile.riot_tag}
+              {profile.main_agent && ` · ${profile.main_agent}`}
+            </span>
           </div>
         </div>
       </div>
-
-      {(profile.main_role || profile.main_agent) && (
-        <div className="friend-card-loadout">
-          {profile.main_role && (
-            <span className="friend-card-loadout-item">
-              {roleIcon && <img src={roleIcon} alt="" />}
-              {profile.main_role}
-            </span>
-          )}
-          {profile.main_agent && (
-            <span className="friend-card-loadout-item">
-              {agentIcon && <img src={agentIcon} alt="" />}
-              {profile.main_agent}
-            </span>
-          )}
-        </div>
-      )}
 
       {preview === undefined && <p className="label friend-summary-loading">{t('friends.loadingPreview')}</p>}
       {preview === null && <p className="label friend-summary-loading">{t('friends.previewUnavailable')}</p>}
