@@ -3,8 +3,8 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>Roadmap — MVP Tracker</title>
-<meta name="description" content="Ce qui est déjà fait, ce qui arrive bientôt et ce qui est envisagé pour MVP Tracker." />
+<title>Discord — MVP Tracker</title>
+<meta name="description" content="Rejoins la communauté MVP Tracker sur Discord : entraide, retours sur l'app, avant-premières et partage de configs." />
 <link rel="icon" href="assets/logo.png" />
 <link rel="preconnect" href="https://fonts.googleapis.com" />
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -28,10 +28,9 @@
       <a href="index.html">Accueil</a>
       <a href="fonctionnalites.html">Fonctionnalités</a>
       <a href="a-propos.html">À propos</a>
-      <a href="roadmap.html" class="active">Roadmap</a>
+      <a href="roadmap.html">Roadmap</a>
       <a href="telecharger.html">Télécharger</a>
-      <a href="discord.html">Discord</a>
-      <a href="en/roadmap.html" title="English version">EN</a>
+      <a href="en/discord.html" title="English version">EN</a>
     </div>
     <div class="nav-actions">
       <a href="telecharger.html" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
@@ -44,78 +43,54 @@
   <div class="glow-field">
     <span class="glow glow-a"></span>
     <span class="glow glow-b"></span>
+    <span class="glow glow-c"></span>
   </div>
   <div class="grid-bg"></div>
-  <img src="assets/agents/omen.png" alt="" class="hero-agent hero-agent-l" data-depth="14" />
-  <img src="assets/agents/neon.png" alt="" class="hero-agent hero-agent-r" data-depth="18" />
+  <img src="assets/agents/jett.png" alt="" class="hero-agent hero-agent-l" data-depth="14" />
+  <img src="assets/agents/sage.png" alt="" class="hero-agent hero-agent-r" data-depth="16" />
   <div class="container" style="position: relative; z-index: 2;">
-    <span class="eyebrow">Roadmap</span>
-    <h1><span class="gradient-text" data-split>Où on en est</span></h1>
-    <p>Le projet avance module par module. Voilà ce qui est fait, et ce qui arrive.</p>
-    <div class="page-head-stats stagger">
-      <div class="page-head-stat">
-        <strong class="text-accent">4</strong>
-        <span>modules terminés</span>
-      </div>
-      <div class="page-head-stat">
-        <strong style="color: var(--gold);">1</strong>
-        <span>en cours</span>
-      </div>
+    <span class="eyebrow"><span class="pulse-dot"></span> Communauté</span>
+    <h1><span class="gradient-text" data-split>Rejoins le Discord</span></h1>
+    <p>
+      Entraide entre joueurs, retours directs sur l'app, avant-premières des nouvelles
+      fonctionnalités, et partage de configs (crosshairs, sensibilités, stratégies).
+    </p>
+    <div class="hero-ctas">
+      <a href="https://discord.gg/NyZbTsM7D2" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>
+        Rejoindre le serveur
+      </a>
     </div>
   </div>
 </header>
 
-<section>
+<section style="padding-top: 3rem;">
   <div class="container">
-    <div class="timeline">
+    <div class="section-head reveal">
+      <span class="eyebrow">Pourquoi rejoindre</span>
+      <h2>Ce que tu trouveras <span class="text-accent">sur le serveur</span></h2>
+    </div>
 
-      <div class="tl-item done reveal">
-        <span class="tl-badge done">Terminé</span>
-        <h3>V1 — Le cœur du tracker</h3>
-        <p>
-          Connexion à l'API Valorant, historique de matchs, stats par agent et par map,
-          performance par tranche horaire, monitoring réseau et détection de tilt.
-          Les quatre piliers qui font l'identité du projet.
-        </p>
+    <div class="card-grid stagger">
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>Entraide entre joueurs</h3>
+        <p>Pose tes questions, échange sur tes parties, trouve des coéquipiers pour progresser ensemble.</p>
       </div>
-
-      <div class="tl-item done reveal">
-        <span class="tl-badge done">Terminé</span>
-        <h3>Analyse avancée</h3>
-        <p>
-          Heatmap de morts et de kills, analyse tactique (clutchs, timings, distances,
-          économie), graphiques de progression, Hall of Fame et 75 succès.
-        </p>
+      <div class="card">
+        <div class="card-icon">🛠️</div>
+        <h3>Retours directs</h3>
+        <p>Signale un bug, propose une idée de fonctionnalité — c'est là que la roadmap se construit avec vous.</p>
       </div>
-
-      <div class="tl-item done reveal">
-        <span class="tl-badge done">Terminé</span>
-        <h3>Outils & entraînement</h3>
-        <p>
-          Bibliothèque de crosshairs, tableau de stratégie par map, analyse de composition
-          d'équipe, simulation d'achat, catalogue de skins, session guidée, puzzle du jour
-          et paris perso.
-        </p>
+      <div class="card">
+        <div class="card-icon">🚀</div>
+        <h3>Avant-premières</h3>
+        <p>Les nouvelles fonctionnalités sont testées et annoncées en premier sur le Discord, avant tout le monde.</p>
       </div>
-
-      <div class="tl-item done reveal">
-        <span class="tl-badge done">Terminé</span>
-        <h3>Comptes en ligne & social</h3>
-        <p>
-          Compte MVP Tracker avec authentification, Riot ID lié, profil personnalisable,
-          système d'amis, messagerie privée en temps réel, statut en ligne et notifications.
-        </p>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h3>Partage de configs</h3>
+        <p>Crosshairs, sensibilités, stratégies par map — la bibliothèque de l'app, mais en discussion directe.</p>
       </div>
-
-      <div class="tl-item soon reveal">
-        <span class="tl-badge soon">En cours</span>
-        <h3>Ouverture au public</h3>
-        <p>
-          Installeur Windows signé, guide pas-à-pas pour obtenir sa clé API gratuite en quelques secondes,
-          et infrastructure dimensionnée pour encaisser plus qu'un cercle de testeurs.
-        </p>
-      </div>
-
     </div>
   </div>
 </section>
@@ -123,9 +98,11 @@
 <section style="padding-top: 0;">
   <div class="container">
     <div class="cta-panel reveal">
-      <h2>Une idée, une remarque ?</h2>
-      <p>Les retours des joueurs orientent directement la suite — écris-nous.</p>
-      <a href="contact.html" class="btn btn-primary" data-magnetic>Nous contacter</a>
+      <h2>Prêt à nous rejoindre ?</h2>
+      <p>C'est gratuit, ça prend 10 secondes, et ça aide directement le projet à grandir.</p>
+      <a href="https://discord.gg/NyZbTsM7D2" class="btn btn-primary" target="_blank" rel="noopener" data-magnetic>
+        Rejoindre le Discord
+      </a>
     </div>
   </div>
 </section>
