@@ -858,6 +858,15 @@ section { position: relative; padding: 7rem 0; }
 .stage-frame.active { opacity: 1; transform: scale(1.025); }
 .stage-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
 
+/* Captures hautes et étroites (popups) plutôt que des fenêtres d'app larges —
+   on affiche l'image en entier plutôt que de la rogner façon "cover". */
+.stage-frame-contain img {
+  object-fit: contain;
+  object-position: center;
+  padding: 2rem 0;
+  box-sizing: border-box;
+}
+
 .showcase-caption {
   margin-top: 1.1rem;
   font-size: 0.9rem;
