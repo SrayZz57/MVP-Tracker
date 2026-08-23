@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { FriendAvatar, friendLabel } from './friendsShared.jsx';
-import { useRankTiers } from './rankData.js';
+import { friendLabel } from './friendsShared.jsx';
+import { usePlayerCardArt, useRankTiers } from './rankData.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 
 function FriendSummaryCard({ profile, preview, online }) {
@@ -11,6 +11,9 @@ function FriendSummaryCard({ profile, preview, online }) {
   const agentRoles = useAgentRoles();
   const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
 
+  const avatarCardUuid = profile.avatar_card_uuid ?? preview?.cardUuid;
+  const avatarArt = usePlayerCardArt(avatarCardUuid);
+
   const roleIconByName = useMemo(() => {
     const map = new Map();
     agentRoles.forEach(({ roleName, roleIcon }) => {
@@ -19,13 +22,34 @@ function FriendSummaryCard({ profile, preview, online }) {
     return map;
   }, [agentRoles]);
 
+  const displayedLabel = friendLabel(profile);
+  const roleIcon = profile.main_role ? roleIconByName.get(profile.main_role) : null;
+  const agentIcon = profile.main_agent ? agentIcons.get(profile.main_agent) : null;
+
   return (
-    <>
-      <div className="friend-card-header">
-        <FriendAvatar profile={profile} size={56} online={online} />
-        <div className="friend-card-identity">
-          <span className="friend-card-name">{friendLabel(profile)}</span>
-          <span className="label">{profile.riot_name}#{profile.riot_tag}</span>
+    <div className="friend-summary-card">
+      <div
+        className={`friend-summary-banner ${tier?.color ? 'rank-glow' : ''}`}
+        style={{
+          backgroundImage: avatarArt.banner ? `url(${avatarArt.banner})` : undefined,
+          '--rank-color': tier?.color,
+        }}
+      >
+        <div className="friend-summary-banner-overlay">
+          <div className="friend-summary-avatar-wrap">
+            <div className="friend-summary-avatar">
+              {avatarArt.icon ? (
+                <img src={avatarArt.icon} alt="" />
+              ) : (
+                <span>{displayedLabel.charAt(0)}</span>
+              )}
+            </div>
+            {online && <span className="friend-online-dot friend-summary-online-dot" title={t('friends.online')} />}
+          </div>
+          <div className="friend-summary-identity">
+            <span className="friend-summary-name">{displayedLabel}</span>
+            <span className="friend-summary-tag">{profile.riot_name}#{profile.riot_tag}</span>
+          </div>
         </div>
       </div>
 
@@ -33,33 +57,39 @@ function FriendSummaryCard({ profile, preview, online }) {
         <div className="friend-card-loadout">
           {profile.main_role && (
             <span className="friend-card-loadout-item">
-              {roleIconByName.get(profile.main_role) && <img src={roleIconByName.get(profile.main_role)} alt="" />}
+              {roleIcon && <img src={roleIcon} alt="" />}
               {profile.main_role}
             </span>
           )}
           {profile.main_agent && (
             <span className="friend-card-loadout-item">
-              {agentIcons.get(profile.main_agent) && <img src={agentIcons.get(profile.main_agent)} alt="" />}
+              {agentIcon && <img src={agentIcon} alt="" />}
               {profile.main_agent}
             </span>
           )}
         </div>
       )}
 
-      <div className="card">
-        {preview === undefined && <p className="label">{t('friends.loadingPreview')}</p>}
-        {preview === null && <p className="label">{t('friends.previewUnavailable')}</p>}
-        {preview && (
-          <div className="friend-card-stats">
-            <div className="friend-card-rank">
-              {tier?.icon && <img src={tier.icon} alt="" />}
-              <span>{tier?.tierName ?? t('friends.unranked')}{preview.rank ? ` — ${preview.rank.rr} RR` : ''}</span>
+      {preview === undefined && <p className="label friend-summary-loading">{t('friends.loadingPreview')}</p>}
+      {preview === null && <p className="label friend-summary-loading">{t('friends.previewUnavailable')}</p>}
+      {preview && (
+        <div className="friend-summary-stats">
+          <div className="friend-summary-stat friend-summary-stat-rank">
+            {tier?.icon && <img src={tier.icon} alt="" />}
+            <div className="friend-summary-stat-text">
+              <span className="value">{tier?.tierName ?? t('friends.unranked')}</span>
+              {preview.rank && <span className="label">{preview.rank.rr} RR</span>}
             </div>
-            <span className="label">{t('friends.accountLevel', { level: preview.accountLevel })}</span>
           </div>
-        )}
-      </div>
-    </>
+          <div className="friend-summary-stat">
+            <div className="friend-summary-stat-text">
+              <span className="value">{preview.accountLevel}</span>
+              <span className="label">{t('friends.level')}</span>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
   );
 }
 

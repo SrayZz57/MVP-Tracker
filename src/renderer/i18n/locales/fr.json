@@ -472,6 +472,7 @@
     "previewUnavailable": "Profil indisponible pour le moment",
     "unranked": "Non classé",
     "accountLevel": "Niveau {{level}}",
+    "level": "Niveau de compte",
     "viewProfile": "Voir le profil",
     "sendMessage": "Envoyer un message",
     "removeFriend": "Retirer cet ami"

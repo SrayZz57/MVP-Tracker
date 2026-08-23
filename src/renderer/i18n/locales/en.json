@@ -472,6 +472,7 @@
     "previewUnavailable": "Profile unavailable right now",
     "unranked": "Unranked",
     "accountLevel": "Level {{level}}",
+    "level": "Account level",
     "viewProfile": "View profile",
     "sendMessage": "Send a message",
     "removeFriend": "Remove this friend"
