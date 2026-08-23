@@ -723,6 +723,9 @@ function App() {
             <h2>{currentTabMeta?.labelKey ? t(currentTabMeta.labelKey) : ''}</h2>
           </div>
           <SearchBar initialSettings={settings} onSearch={setSettings} />
+          <button onClick={data.refresh} disabled={data.loading} className="refresh">
+            {data.loading ? t('nav.loading') : t('nav.refresh')}
+          </button>
           <button
             className="discord-button"
             title={t('nav.discordTitle')}
@@ -735,9 +738,6 @@ function App() {
               />
             </svg>
             <span>Discord</span>
-          </button>
-          <button onClick={data.refresh} disabled={data.loading} className="refresh">
-            {data.loading ? t('nav.loading') : t('nav.refresh')}
           </button>
           <LanguageToggle />
           <TopbarIconButton
