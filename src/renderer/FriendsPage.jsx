@@ -2,18 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
-import { useRankTiers } from './rankData.js';
+import FriendSummaryModal from './FriendSummaryModal.jsx';
 
 function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, apiKey }) {
   const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
-  const rankTiers = useRankTiers();
   // Aperçu (rang, niveau) de chaque ami — chargé à part des `friendships` :
   // c'est un appel HenrikDev en direct (comme rechercher n'importe quel Riot
   // ID public), pas une donnée stockée, donc on la garde en cache local plutôt
   // que de la refaire à chaque re-render.
   const [friendPreviews, setFriendPreviews] = useState({});
+  const [openSummaryFor, setOpenSummaryFor] = useState(null);
 
   const [searchName, setSearchName] = useState('');
   const [searchTag, setSearchTag] = useState('');
@@ -193,34 +193,20 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
         {accepted.length === 0 ? (
           <p className="label">{t('friends.noFriendsYet')}</p>
         ) : (
-          <div className="friend-card-grid">
+          <div className="friend-list">
             {accepted.map((f) => {
               const p = otherProfile(f);
-              const preview = friendPreviews[p.id];
-              const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
               return (
-                <div key={f.id} className="friend-card">
-                  <div className="friend-card-header">
-                    <FriendAvatar profile={p} size={44} online={onlineFriendIds.has(p.id)} />
-                    <div className="friend-card-identity">
-                      <span className="friend-card-name">{friendLabel(p)}</span>
-                      <span className="label">{p.riot_name}#{p.riot_tag}</span>
-                    </div>
-                  </div>
-                  <div className="friend-card-body">
-                    {preview === undefined && <span className="label">{t('friends.loadingPreview')}</span>}
-                    {preview === null && <span className="label">{t('friends.previewUnavailable')}</span>}
-                    {preview && (
-                      <div className="friend-card-stats">
-                        <div className="friend-card-rank">
-                          {tier?.icon && <img src={tier.icon} alt="" />}
-                          <span>{tier?.tierName ?? t('friends.unranked')}{preview.rank ? ` — ${preview.rank.rr} RR` : ''}</span>
-                        </div>
-                        <span className="label">{t('friends.accountLevel', { level: preview.accountLevel })}</span>
-                      </div>
-                    )}
-                  </div>
-                  <div className="friend-card-actions">
+                <div key={f.id} className="friend-request-row">
+                  <button
+                    className="friend-avatar-button"
+                    title={t('friends.viewProfile')}
+                    onClick={() => setOpenSummaryFor(p)}
+                  >
+                    <FriendAvatar profile={p} size={36} online={onlineFriendIds.has(p.id)} />
+                  </button>
+                  <span>{friendLabel(p)}</span>
+                  <div className="friend-request-actions friend-request-actions-lg">
                     <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}>💬</button>
                     <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}>✕</button>
                   </div>
@@ -230,6 +216,15 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
           </div>
         )}
       </div>
+
+      {openSummaryFor && (
+        <FriendSummaryModal
+          profile={openSummaryFor}
+          preview={friendPreviews[openSummaryFor.id]}
+          online={onlineFriendIds.has(openSummaryFor.id)}
+          onClose={() => setOpenSummaryFor(null)}
+        />
+      )}
     </div>
   );
 }
