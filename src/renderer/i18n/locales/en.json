@@ -1039,6 +1039,12 @@
     "settingsHint": "Signed in with your MVP Tracker account — your linked Riot ID stays independent from this account.",
     "emailLabel": "Email address",
     "signOut": "🚪 Sign out",
+    "forgotPassword": "Forgot your password?",
+    "forgotPasswordSending": "Sending...",
+    "forgotPasswordSent": "Email sent — check your inbox to reset your password.",
+    "forgotPasswordError": "Failed to send — try again in a moment.",
+    "contactTitle": "✉️ Contact us",
+    "contactHint": "An issue, a suggestion, a question? Write to us directly.",
     "choosePhoto": "🖼️ Choose a profile photo",
     "chooseFavoriteAgent": "🎯 Choose your favorite agent"
   },

@@ -6,6 +6,9 @@ import { computeRoleDistribution } from './performanceCharts.js';
 import { excludeDeathmatch, groupStats, overallWinrate } from './valorantStats.js';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
+import { supabase } from './supabaseClient.js';
+
+const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
 // Noms de rôles issus de valorant-api.com (appelée en fr-FR) — hors périmètre
 // de cette passe de traduction (voir CLAUDE.md / plan i18n), comparés tels
@@ -24,6 +27,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
   const [nameDraft, setNameDraft] = useState(profile.display_name ?? '');
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
+  const [resetStatus, setResetStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
 
   const avatarCardUuid = profile.avatar_card_uuid ?? myRank?.cardUuid;
   const avatarArt = usePlayerCardArt(avatarCardUuid);
@@ -79,6 +83,15 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
   }, [rankedMatches, mySettings.name, mySettings.tag]);
 
   const memberSince = formatMemberSince(profile.created_at, i18n.language === 'en' ? 'en-US' : 'fr-FR');
+
+  const handleForgotPassword = async () => {
+    if (!email) return;
+    setResetStatus('sending');
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: 'mvptracker://reset-password',
+    });
+    setResetStatus(error ? 'error' : 'sent');
+  };
 
   const handleSaveName = async () => {
     const trimmed = nameDraft.trim();
@@ -223,8 +236,26 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
             <span>{email}</span>
           </p>
         )}
-        <button className="sidebar-signout account-signout" onClick={onSignOut}>
-          {t('account.signOut')}
+        <div className="account-settings-actions">
+          <button className="sidebar-signout account-signout" onClick={onSignOut}>
+            {t('account.signOut')}
+          </button>
+          <button className="account-forgot-password" onClick={handleForgotPassword} disabled={resetStatus === 'sending'}>
+            {resetStatus === 'sending' ? t('account.forgotPasswordSending') : t('account.forgotPassword')}
+          </button>
+        </div>
+        {resetStatus === 'sent' && <p className="label account-reset-status">{t('account.forgotPasswordSent')}</p>}
+        {resetStatus === 'error' && <p className="warning account-reset-status">{t('account.forgotPasswordError')}</p>}
+      </div>
+
+      <div className="card">
+        <h3>{t('account.contactTitle')}</h3>
+        <p className="label">{t('account.contactHint')}</p>
+        <button
+          className="account-contact-button"
+          onClick={() => window.electronAPI.openExternal(`mailto:${CONTACT_EMAIL}`)}
+        >
+          ✉️ {CONTACT_EMAIL}
         </button>
       </div>
 

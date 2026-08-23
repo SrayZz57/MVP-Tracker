@@ -5242,6 +5242,39 @@ input[type='color'] {
   gap: 0.4rem;
 }
 
+.account-settings-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-top: 0.5rem;
+}
+
+.account-forgot-password {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+.account-forgot-password:hover {
+  color: var(--accent);
+}
+
+.account-reset-status {
+  margin-top: 0.5rem;
+}
+
+.account-contact-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
 .account-email-row {
   display: flex;
   align-items: center;
