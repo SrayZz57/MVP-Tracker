@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { usePlayerCardArt } from './rankData.js';
 
-export const PROFILE_FIELDS = 'id, riot_name, riot_tag, display_name, avatar_card_uuid';
+export const PROFILE_FIELDS = 'id, riot_name, riot_tag, display_name, avatar_card_uuid, main_role, main_agent';
 
 export function initials(name) {
   const base = (name || '?').replace(/#.*$/, '').trim();

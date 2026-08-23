@@ -599,6 +599,7 @@ function App() {
             onlineFriendIds={onlineFriendIds}
             initialFriendId={pendingOpenFriendId}
             onConsumedInitialFriendId={() => setPendingOpenFriendId(null)}
+            apiKey={settings?.apiKey}
           />
         );
       case 'friends':

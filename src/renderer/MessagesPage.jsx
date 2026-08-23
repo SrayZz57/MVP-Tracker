@@ -2,13 +2,18 @@ import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
+import FriendSummaryCard from './FriendSummaryCard.jsx';
 
-function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = null, onConsumedInitialFriendId }) {
+function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = null, onConsumedInitialFriendId, apiKey }) {
   const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [unreadFrom, setUnreadFrom] = useState(new Set());
+  // Même principe que dans l'onglet Amis : aperçu (rang, niveau) chargé en
+  // direct via HenrikDev, mis en cache par profil pour ne pas le refaire à
+  // chaque fois qu'on rouvre la même conversation.
+  const [friendPreviews, setFriendPreviews] = useState({});
 
   const [messages, setMessages] = useState([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
@@ -66,6 +71,15 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
   const otherProfile = (f) => (f.requester_id === myId ? f.addressee : f.requester);
   const selectedFriendship = friendships.find((f) => otherProfile(f).id === selectedFriendId);
   const selectedProfile = selectedFriendship ? otherProfile(selectedFriendship) : null;
+
+  useEffect(() => {
+    if (!apiKey || !selectedProfile || friendPreviews[selectedProfile.id] !== undefined) return;
+    window.electronAPI
+      .previewRiotAccount({ name: selectedProfile.riot_name, tag: selectedProfile.riot_tag, apiKey })
+      .then((preview) => setFriendPreviews((prev) => ({ ...prev, [selectedProfile.id]: preview })))
+      .catch(() => setFriendPreviews((prev) => ({ ...prev, [selectedProfile.id]: null })));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedProfile?.id, apiKey]);
 
   const openConversation = async (friendId) => {
     setSelectedFriendId(friendId);
@@ -214,6 +228,16 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
           </>
         )}
       </div>
+
+      {selectedProfile && (
+        <div className="messages-friend-panel card">
+          <FriendSummaryCard
+            profile={selectedProfile}
+            preview={friendPreviews[selectedProfile.id]}
+            online={onlineFriendIds.has(selectedProfile.id)}
+          />
+        </div>
+      )}
     </div>
   );
 }
