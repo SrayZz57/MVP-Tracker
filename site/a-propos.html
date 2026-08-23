@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>À propos — MVP Tracker</title>
+<meta name="description" content="Pourquoi MVP Tracker existe, l'histoire du projet et la vision derrière l'application." />
+<link rel="icon" href="assets/logo.png" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<link rel="stylesheet" href="assets/css/style.css" />
+</head>
+<body>
+
+<div class="grain"></div>
+<div class="cursor-dot"></div>
+<div class="cursor-ring"></div>
+<div class="scroll-progress"></div>
+
+<nav class="nav">
+  <div class="container nav-inner">
+    <a href="index.html" class="nav-brand">
+      <img src="assets/logo.png" alt="" />
+      MVP Tracker
+    </a>
+    <div class="nav-links">
+      <a href="index.html">Accueil</a>
+      <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="a-propos.html" class="active">À propos</a>
+      <a href="roadmap.html">Roadmap</a>
+      <a href="telecharger.html">Télécharger</a>
+      <a href="en/about.html" title="English version">EN</a>
+    </div>
+    <div class="nav-actions">
+      <a href="telecharger.html" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
+      <button class="nav-toggle" aria-label="Menu">☰</button>
+    </div>
+  </div>
+</nav>
+
+<header class="page-head">
+  <div class="glow-field">
+    <span class="glow glow-a"></span>
+    <span class="glow glow-b"></span>
+  </div>
+  <div class="grid-bg"></div>
+  <img src="assets/agents/jett.png" alt="" class="hero-agent hero-agent-l" data-depth="14" />
+  <img src="assets/agents/chamber.png" alt="" class="hero-agent hero-agent-r" data-depth="16" />
+  <div class="container" style="position: relative; z-index: 2;">
+    <span class="eyebrow">À propos</span>
+    <h1><span class="gradient-text" data-split>Pourquoi ce projet existe</span></h1>
+    <p>Un tracker né d'une frustration simple : personne ne relie vraiment ta performance à ce qui l'entoure.</p>
+  </div>
+</header>
+
+<!-- ====================== ORIGINE ====================== -->
+<section>
+  <div class="container">
+    <div class="split reveal">
+      <div>
+        <span class="eyebrow">Le déclic</span>
+        <h3>Un mauvais match, et une question sans réponse</h3>
+        <p>
+          Comme beaucoup de joueurs, l'idée est partie d'une frustration classique : après une session
+          difficile, impossible de savoir si c'était vraiment une mauvaise performance, un pic de ping,
+          l'heure tardive, ou juste une série noire. Les trackers existants donnent un score. Aucun ne
+          donne de réponse.
+        </p>
+        <p>
+          MVP Tracker est né de cette question simple : et si on croisait enfin ces données au lieu de
+          les laisser chacune dans leur coin ?
+        </p>
+      </div>
+      <div class="split-media" data-tilt="6" style="aspect-ratio: 4/3; display: flex; align-items: center; justify-content: center; background: linear-gradient(160deg, var(--surface), var(--bg-soft));">
+        <img src="assets/logo.png" alt="" style="width: 45%; filter: drop-shadow(0 0 50px rgba(255,70,85,0.35));" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== VISION ====================== -->
+<section style="background: linear-gradient(180deg, transparent, rgba(255,70,85,0.035), transparent);">
+  <div class="container">
+    <div class="section-head reveal">
+      <span class="eyebrow">La vision</span>
+      <h2>Occuper l'angle que <span class="text-accent">personne d'autre</span> ne prend</h2>
+      <p>Trois convictions qui guident chaque décision produit.</p>
+    </div>
+
+    <div class="card-grid stagger">
+      <div class="card">
+        <div class="card-icon">🔗</div>
+        <h3>Croiser plutôt qu'empiler</h3>
+        <p>
+          Ajouter un énième graphique de K/D n'aide personne. Ce qui compte, c'est relier la perf au
+          réseau, au rythme de vie, à l'état mental — les vraies causes, pas juste les symptômes.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🧭</div>
+        <h3>Un module à la fois</h3>
+        <p>
+          Le projet avance par briques solides plutôt que par une longue liste de promesses. Chaque
+          fonctionnalité livrée est déjà utilisée avant que la suivante ne commence.
+        </p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🎯</div>
+        <h3>Honnête sur ses limites</h3>
+        <p>
+          Pas de fausse précision : quand une donnée n'est pas fiable ou pas disponible, l'app le dit
+          plutôt que d'inventer un chiffre pour faire joli.
+        </p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== COMMENT C'EST FAIT ====================== -->
+<section>
+  <div class="container">
+    <div class="split reverse reveal">
+      <div>
+        <span class="eyebrow">Sous le capot</span>
+        <h3>Une vraie app de bureau, pas un site de plus</h3>
+        <p>
+          MVP Tracker tourne en local sur ta machine — tes matchs sont mis en cache chez toi, consultables
+          même hors ligne. Le compte en ligne ne sert qu'au strict nécessaire : lier ton Riot ID une fois,
+          synchroniser ton profil, et permettre le social (amis, messagerie).
+        </p>
+        <ul class="check-list">
+          <li>Construit en React et Electron</li>
+          <li>Base de données locale, aucune donnée de match envoyée à un tiers</li>
+          <li>Comptes et social hébergés sur une infrastructure séparée et sécurisée</li>
+          <li>Code source ouvert sur GitHub</li>
+        </ul>
+      </div>
+      <div class="split-media" data-tilt="6">
+        <img src="assets/screens/stats.png" alt="Écran Stats de MVP Tracker" />
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ====================== CTA ====================== -->
+<section style="padding-top: 0;">
+  <div class="container">
+    <div class="cta-panel reveal">
+      <span class="eyebrow">Envie d'en savoir plus ?</span>
+      <h2>Découvre <span class="text-accent">ce que l'app sait faire</span></h2>
+      <p>Ou jette un œil au code — le projet est entièrement ouvert.</p>
+      <div class="hero-ctas">
+        <a href="fonctionnalites.html" class="btn btn-primary" data-magnetic>Voir les fonctionnalités</a>
+        <a href="https://github.com/SrayZz57/MVP-Tracker" class="btn btn-ghost">Voir le code sur GitHub</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <a href="index.html" class="nav-brand" style="margin-bottom: 1rem;">
+          <img src="assets/logo.png" alt="" />
+          MVP Tracker
+        </a>
+        <p class="footer-about">
+          Le tracker Valorant qui relie performance, réseau et rythme de vie.
+          Application desktop Windows, gratuite.
+        </p>
+      </div>
+      <div>
+        <h4>Navigation</h4>
+        <div class="footer-links">
+          <a href="index.html">Accueil</a>
+          <a href="fonctionnalites.html">Fonctionnalités</a>
+          <a href="a-propos.html">À propos</a>
+          <a href="roadmap.html">Roadmap</a>
+          <a href="telecharger.html">Télécharger</a>
+        </div>
+      </div>
+      <div>
+        <h4>Projet</h4>
+        <div class="footer-links">
+          <a href="https://github.com/SrayZz57/MVP-Tracker">GitHub</a>
+          <a href="telecharger.html#faq">Questions fréquentes</a>
+        </div>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <span>© 2026 MVP Tracker — projet indépendant, non affilié à Riot Games.</span>
+      <span>Fait avec ❤️ pour les joueurs qui veulent progresser.</span>
+    </div>
+  </div>
+</footer>
+
+<script src="assets/js/app.js"></script>
+</body>
+</html>

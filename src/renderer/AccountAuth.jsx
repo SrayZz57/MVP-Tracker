@@ -1,14 +1,15 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 
-const TITLES = {
-  signin: 'Connecte-toi à ton compte.',
-  signup: 'Crée ton compte pour commencer.',
-  forgot: 'Réinitialise ton mot de passe.',
-  reset: 'Entre le code reçu par mail et ton nouveau mot de passe.',
-};
-
 function AccountAuth() {
+  const { t } = useTranslation();
+  const TITLES = {
+    signin: t('auth.titles.signin'),
+    signup: t('auth.titles.signup'),
+    forgot: t('auth.titles.forgot'),
+    reset: t('auth.titles.reset'),
+  };
   const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot' | 'reset'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -42,7 +43,7 @@ function AccountAuth() {
     }
 
     if (mode === 'signup') {
-      setInfo('Compte créé — vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.');
+      setInfo(t('auth.signupSuccess'));
     }
     // En connexion, onAuthStateChange (écouté dans App.jsx) prend le relais automatiquement.
   };
@@ -64,14 +65,14 @@ function AccountAuth() {
       return;
     }
     setMode('reset');
-    setInfo('Email envoyé — clique le lien qu\'il contient (sur ce PC), ou tape le code ci-dessous.');
+    setInfo(t('auth.resetEmailSent'));
   };
 
   const handleResetPassword = async (event) => {
     event.preventDefault();
     resetMessages();
     if (newPassword !== confirmPassword) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('auth.passwordMismatch'));
       return;
     }
     setLoading(true);
@@ -114,21 +115,21 @@ function AccountAuth() {
         <form className="account-auth-form" onSubmit={handleSubmit}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <input
             type="password"
-            placeholder="Mot de passe"
+            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             minLength={6}
             required
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'Chargement...' : mode === 'signup' ? 'Créer mon compte' : 'Se connecter'}
+            {loading ? t('auth.loading') : mode === 'signup' ? t('auth.createAccount') : t('auth.signIn')}
           </button>
         </form>
       )}
@@ -137,13 +138,13 @@ function AccountAuth() {
         <form className="account-auth-form" onSubmit={handleSendReset}>
           <input
             type="email"
-            placeholder="Email"
+            placeholder={t('auth.emailPlaceholder')}
             value={email}
             onChange={(e) => setEmail(e.target.value)}
             required
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'Envoi...' : 'Envoyer le code / lien'}
+            {loading ? t('auth.sending') : t('auth.sendCode')}
           </button>
         </form>
       )}
@@ -153,14 +154,14 @@ function AccountAuth() {
           <input
             type="text"
             inputMode="numeric"
-            placeholder="Code reçu par mail"
+            placeholder={t('auth.codePlaceholder')}
             value={code}
             onChange={(e) => setCode(e.target.value)}
             required
           />
           <input
             type="password"
-            placeholder="Nouveau mot de passe"
+            placeholder={t('auth.newPasswordPlaceholder')}
             value={newPassword}
             onChange={(e) => setNewPassword(e.target.value)}
             minLength={6}
@@ -168,14 +169,14 @@ function AccountAuth() {
           />
           <input
             type="password"
-            placeholder="Confirme le mot de passe"
+            placeholder={t('auth.confirmPasswordPlaceholder')}
             value={confirmPassword}
             onChange={(e) => setConfirmPassword(e.target.value)}
             minLength={6}
             required
           />
           <button type="submit" disabled={loading}>
-            {loading ? 'Validation...' : 'Réinitialiser le mot de passe'}
+            {loading ? t('auth.validating') : t('auth.resetPassword')}
           </button>
         </form>
       )}
@@ -185,13 +186,13 @@ function AccountAuth() {
 
       {mode === 'signin' && (
         <button type="button" className="account-auth-switch" onClick={() => switchMode('forgot')}>
-          Mot de passe oublié ?
+          {t('auth.forgotPassword')}
         </button>
       )}
 
       {(mode === 'forgot' || mode === 'reset') && (
         <button type="button" className="account-auth-switch" onClick={() => switchMode('signin')}>
-          ← Retour à la connexion
+          {t('auth.backToSignin')}
         </button>
       )}
 
@@ -201,7 +202,7 @@ function AccountAuth() {
           className="account-auth-switch"
           onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
         >
-          {mode === 'signup' ? 'Déjà un compte ? Se connecter' : "Pas encore de compte ? S'inscrire"}
+          {mode === 'signup' ? t('auth.alreadyHaveAccount') : t('auth.noAccountYet')}
         </button>
       )}
     </div>

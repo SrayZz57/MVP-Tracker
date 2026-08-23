@@ -36,47 +36,47 @@ export function buildWeekRecap(weekAllMatches, name, tag) {
   };
 }
 
-function overviewParagraph(recap) {
+function overviewParagraph(t, recap) {
   const { games, winrate } = recap;
-  const gamesText = `${games} match${games > 1 ? 's' : ''} cette semaine`;
+  const gamesText = t('weekly.narrative.gamesThisWeek', { count: games });
 
   if (winrate === null) {
-    return `${gamesText}, sans assez de rounds décisifs pour dégager un vrai winrate — une semaine surtout faite de découverte ou de modes annexes.`;
+    return t('weekly.narrative.overviewNoWinrate', { gamesText });
   }
   if (winrate >= 60) {
-    return `Grosse semaine : ${gamesText}, avec ${winrate.toFixed(0)}% de victoires. Ce genre de série ne tombe pas du ciel, profites-en.`;
+    return t('weekly.narrative.overviewGreat', { gamesText, winrate: winrate.toFixed(0) });
   }
   if (winrate >= 45) {
-    return `Semaine équilibrée : ${gamesText}, ${winrate.toFixed(0)}% de victoires. Ni une remontée fulgurante ni une dégringolade, du solide.`;
+    return t('weekly.narrative.overviewBalanced', { gamesText, winrate: winrate.toFixed(0) });
   }
-  return `Semaine plus compliquée : ${gamesText}, seulement ${winrate.toFixed(0)}% de victoires. Ça arrive, l'important est de repartir sur de bonnes bases.`;
+  return t('weekly.narrative.overviewHard', { gamesText, winrate: winrate.toFixed(0) });
 }
 
-function highlightsParagraph(recap) {
+function highlightsParagraph(t, recap) {
   const parts = [];
   if (recap.bestAgent) {
-    parts.push(`Tu as surtout tourné sur ${recap.bestAgent.key} (${recap.bestAgent.games} parties)`);
+    parts.push(t('weekly.narrative.mostPlayedAgent', { agent: recap.bestAgent.key, count: recap.bestAgent.games }));
   }
   if (recap.bestMap) {
-    parts.push(`ta meilleure map a été ${recap.bestMap.key} avec ${recap.bestMap.winrate.toFixed(0)}% de winrate`);
+    parts.push(t('weekly.narrative.bestMapText', { map: recap.bestMap.key, percent: recap.bestMap.winrate.toFixed(0) }));
   }
   if (recap.worstMap) {
-    parts.push(`${recap.worstMap.key} a été plus difficile (${recap.worstMap.winrate.toFixed(0)}%)`);
+    parts.push(t('weekly.narrative.worstMapText', { map: recap.worstMap.key, percent: recap.worstMap.winrate.toFixed(0) }));
   }
   if (recap.bestKd !== null) {
-    parts.push(`avec un pic à ${recap.bestKd.toFixed(2)} de K/D sur ton meilleur match`);
+    parts.push(t('weekly.narrative.bestKdText', { kd: recap.bestKd.toFixed(2) }));
   }
 
   if (parts.length === 0) return null;
   return `${parts.join(', ')}.`.replace(/^./, (c) => c.toUpperCase());
 }
 
-function rankParagraph(currentRank, previousRank) {
+function rankParagraph(t, currentRank, previousRank) {
   if (!currentRank) return null;
   const currentText = `${currentRank.tierName} (${currentRank.rr} RR)`;
 
   if (!previousRank) {
-    return `Côté classement, tu es actuellement ${currentText} — premier snapshot enregistré, on pourra comparer la semaine prochaine.`;
+    return t('weekly.narrative.rankFirstSnapshot', { current: currentText });
   }
 
   const previousText = `${previousRank.tierName} (${previousRank.rr} RR)`;
@@ -86,26 +86,28 @@ function rankParagraph(currentRank, previousRank) {
   const sameTier = previousRank.tierId === currentRank.tierId;
 
   if (sameTier && previousRank.rr === currentRank.rr) {
-    return `Ton rang n'a pas bougé cette semaine : toujours ${currentText}.`;
+    return t('weekly.narrative.rankUnchanged', { current: currentText });
   }
   if (sameTier) {
     return currentRank.rr > previousRank.rr
-      ? `Tu progresses : de ${previousText} à ${currentText}.`
-      : `Petit recul cette semaine : de ${previousText} à ${currentText}. Rien d'irréversible.`;
+      ? t('weekly.narrative.rankUp', { previous: previousText, current: currentText })
+      : t('weekly.narrative.rankDown', { previous: previousText, current: currentText });
   }
   return currentRank.tierId > previousRank.tierId
-    ? `Tu progresses : de ${previousText} à ${currentText}.`
-    : `Petit recul cette semaine : de ${previousText} à ${currentText}. Rien d'irréversible.`;
+    ? t('weekly.narrative.rankUp', { previous: previousText, current: currentText })
+    : t('weekly.narrative.rankDown', { previous: previousText, current: currentText });
 }
 
 // Génère 2-3 paragraphes à partir de règles simples (pas d'IA générative) —
 // même logique que playerProfile.js : combiner des vraies stats en phrases
-// lisibles, avec de la variation selon les tranches de valeurs.
-export function generateNarrative(recap, currentRank, previousRank) {
-  const paragraphs = [overviewParagraph(recap)];
-  const highlights = highlightsParagraph(recap);
+// lisibles, avec de la variation selon les tranches de valeurs. `t` reçu en
+// paramètre : le texte est figé dans la langue active au moment de la
+// génération, puis sauvegardé tel quel (comme les suggestions d'objectifs).
+export function generateNarrative(t, recap, currentRank, previousRank) {
+  const paragraphs = [overviewParagraph(t, recap)];
+  const highlights = highlightsParagraph(t, recap);
   if (highlights) paragraphs.push(highlights);
-  const rankText = rankParagraph(currentRank, previousRank);
+  const rankText = rankParagraph(t, currentRank, previousRank);
   if (rankText) paragraphs.push(rankText);
   return paragraphs;
 }

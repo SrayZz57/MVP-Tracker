@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function IconPickerModal({ title, items, onSelect, onClose }) {
+  const { t } = useTranslation();
   const [search, setSearch] = useState('');
 
   const filtered = useMemo(() => {
@@ -12,18 +14,18 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card card-picker-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
         <h3>{title}</h3>
         <input
           type="text"
-          placeholder="Rechercher..."
+          placeholder={t('common.searchPlaceholder')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="card-picker-search"
           autoFocus
         />
         {items.length === 0 ? (
-          <p className="label">Chargement...</p>
+          <p className="label">{t('auth.loading')}</p>
         ) : (
           <div className="card-picker-grid">
             {filtered.map((item) => (

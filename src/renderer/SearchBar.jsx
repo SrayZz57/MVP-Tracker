@@ -1,6 +1,8 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function SearchBar({ initialSettings, onSearch }) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialSettings?.name ?? '');
   const [tag, setTag] = useState(initialSettings?.tag ?? '');
   const [apiKey, setApiKey] = useState(initialSettings?.apiKey ?? '');
@@ -18,10 +20,10 @@ function SearchBar({ initialSettings, onSearch }) {
   return (
     <form onSubmit={handleSubmit} className="search-bar">
       <div className="search-bar-riotid">
-        <input placeholder="Pseudo" value={name} onChange={(e) => setName(e.target.value)} required />
+        <input placeholder={t('linkRiot.usernamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
         <span className="search-bar-hash">#</span>
         <input
-          placeholder="Tag"
+          placeholder={t('linkRiot.tagPlaceholder')}
           value={tag}
           onChange={(e) => setTag(e.target.value)}
           required
@@ -29,14 +31,14 @@ function SearchBar({ initialSettings, onSearch }) {
         />
       </div>
       <input
-        placeholder="Clé API HenrikDev"
+        placeholder={t('linkRiot.apiKeyPlaceholder')}
         type="password"
         value={apiKey}
         onChange={(e) => setApiKey(e.target.value)}
         required
         className="search-bar-key"
       />
-      <button type="submit">🔍 Rechercher</button>
+      <button type="submit">{t('linkRiot.search')}</button>
     </form>
   );
 }

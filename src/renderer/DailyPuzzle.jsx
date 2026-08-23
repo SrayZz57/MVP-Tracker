@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { ECONOMY_TIERS } from './valorantStats.js';
 import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS } from './dailyPuzzle.js';
 import Skeleton from './Skeleton.jsx';
@@ -8,11 +9,12 @@ function todayKey() {
   return `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}-${String(now.getDate()).padStart(2, '0')}`;
 }
 
-function economyLabel(tierId) {
-  return ECONOMY_TIERS.find((t) => t.id === tierId)?.label ?? '?';
+function economyTierId(tierId) {
+  return ECONOMY_TIERS.find((t) => t.id === tierId)?.id ?? null;
 }
 
 function DailyPuzzle({ settings, matches }) {
+  const { t } = useTranslation();
   const [puzzle, setPuzzle] = useState(undefined); // undefined = chargement, null = indisponible
   const [history, setHistory] = useState([]);
   const date = useMemo(() => todayKey(), []);
@@ -67,52 +69,49 @@ function DailyPuzzle({ settings, matches }) {
       ? (answeredHistory.filter((h) => h.correct === 1).length / answeredHistory.length) * 100
       : null;
 
+  const chosenOption = puzzle && puzzle.choice ? PUZZLE_OPTIONS.find((o) => o.id === puzzle.choice) : null;
+
   return (
     <div>
       <div className="card">
-        <h3>🧩 Puzzle tactique du jour</h3>
-        <p className="label">
-          Une vraie situation tirée d'un de tes matchs, sans le résultat. Choisis ce que tu aurais fait, puis
-          découvre ce qu'il s'est réellement passé — et si ça correspond à ta façon de jouer.
-        </p>
+        <h3>{t('puzzle.title')}</h3>
+        <p className="label">{t('puzzle.description')}</p>
 
         {puzzle === undefined && <Skeleton lines={4} />}
 
-        {puzzle === null && (
-          <p>Pas encore assez de matchs classés en cache pour générer un puzzle — reviens après quelques parties.</p>
-        )}
+        {puzzle === null && <p>{t('puzzle.notEnoughMatches')}</p>}
 
         {puzzle && (
           <>
             <div className="stat-tiles">
               <div className="stat-tile">
                 <div className="value">{puzzle.situation.map}</div>
-                <div className="label">Round {puzzle.situation.roundNumber}</div>
+                <div className="label">{t('puzzle.roundLabel', { n: puzzle.situation.roundNumber })}</div>
               </div>
               <div className="stat-tile">
                 <div className="value">
                   {puzzle.situation.scoreBefore.mine} - {puzzle.situation.scoreBefore.theirs}
                 </div>
-                <div className="label">Score avant ce round</div>
+                <div className="label">{t('puzzle.scoreBefore')}</div>
               </div>
               <div className="stat-tile">
-                <div className="value">{economyLabel(puzzle.situation.myEconomyTier)}</div>
-                <div className="label">Ton économie</div>
+                <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.myEconomyTier)}`)}</div>
+                <div className="label">{t('puzzle.myEconomy')}</div>
               </div>
               <div className="stat-tile">
-                <div className="value">{economyLabel(puzzle.situation.enemyEconomyTier)}</div>
-                <div className="label">Économie adverse (moyenne)</div>
+                <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.enemyEconomyTier)}`)}</div>
+                <div className="label">{t('puzzle.enemyEconomy')}</div>
               </div>
             </div>
 
             {!puzzle.answered ? (
               <>
-                <p style={{ marginTop: '1rem', fontWeight: 600 }}>Vu ce contexte, qu'aurais-tu fait ce round ?</p>
+                <p style={{ marginTop: '1rem', fontWeight: 600 }}>{t('puzzle.question')}</p>
                 <div className="puzzle-options">
                   {PUZZLE_OPTIONS.map((option) => (
                     <button key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
                       <span className="puzzle-option-icon">{option.icon}</span>
-                      {option.label}
+                      {t(option.labelKey)}
                     </button>
                   ))}
                 </div>
@@ -120,13 +119,15 @@ function DailyPuzzle({ settings, matches }) {
             ) : (
               <div className={`puzzle-reveal ${puzzle.correct ? 'correct' : 'incorrect'}`}>
                 <div className="puzzle-reveal-title">
-                  {puzzle.correct ? '✅ Ça correspond à ce que tu as fait' : '❌ Ce round-là, tu as joué différemment'}
+                  {puzzle.correct ? t('puzzle.matchesReveal') : t('puzzle.notMatchReveal')}
                 </div>
-                <p>{buildRevealText(puzzle.situation)}</p>
+                <p>{buildRevealText(t, puzzle.situation)}</p>
                 <p className="label">
-                  Ton choix ({PUZZLE_OPTIONS.find((o) => o.id === puzzle.choice)?.label}) était classé "
-                  {PUZZLE_OPTIONS.find((o) => o.id === puzzle.choice)?.bucket === 'aggressive' ? 'agressif' : 'patient'}
-                  " — ta façon de jouer ce round-là a été "{puzzle.situation.actualBucket === 'aggressive' ? 'agressive' : 'patiente'}".
+                  {t('puzzle.choiceWas', {
+                    choice: chosenOption ? t(chosenOption.labelKey) : '',
+                    bucket: chosenOption?.bucket === 'aggressive' ? t('puzzle.bucketAggressive') : t('puzzle.bucketPatient'),
+                    actual: puzzle.situation.actualBucket === 'aggressive' ? t('puzzle.bucketAggressiveFem') : t('puzzle.bucketPatientFem'),
+                  })}
                 </p>
               </div>
             )}
@@ -135,23 +136,21 @@ function DailyPuzzle({ settings, matches }) {
       </div>
 
       <div className="card">
-        <h3>📜 Historique</h3>
+        <h3>{t('puzzle.historyTitle')}</h3>
         {successRate !== null && (
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value">{successRate.toFixed(0)}%</div>
-              <div className="label">Taux de bonnes décisions</div>
+              <div className="label">{t('puzzle.successRate')}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{answeredHistory.length}</div>
-              <div className="label">Puzzles résolus</div>
+              <div className="label">{t('puzzle.puzzlesSolved')}</div>
             </div>
           </div>
         )}
         {history.length === 0 ? (
-          <p className="label" style={{ marginTop: '0.75rem' }}>
-            Aucun puzzle résolu pour l'instant.
-          </p>
+          <p className="label" style={{ marginTop: '0.75rem' }}>{t('puzzle.noHistory')}</p>
         ) : (
           <div className="puzzle-history-list">
             {history.map((h) => {
@@ -161,7 +160,7 @@ function DailyPuzzle({ settings, matches }) {
                   <span className="puzzle-history-date">{h.date}</span>
                   <span className="puzzle-history-map">{situation.map}</span>
                   <span className={`buy-round-badge ${h.answered_at === null ? '' : h.correct === 1 ? 'coherent' : 'questionable'}`}>
-                    {h.answered_at === null ? '⏳ Pas encore répondu' : h.correct === 1 ? '✅ Bonne intuition' : '❌ Loupé'}
+                    {h.answered_at === null ? t('puzzle.notAnsweredYet') : h.correct === 1 ? t('puzzle.goodIntuition') : t('puzzle.missed')}
                   </span>
                 </div>
               );

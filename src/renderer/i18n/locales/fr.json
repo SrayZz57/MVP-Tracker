@@ -1,0 +1,1106 @@
+{
+  "nav": {
+    "sections": {
+      "performance": "Performance",
+      "myAccount": "Mon compte",
+      "network": "Réseau",
+      "training": "Entraînement",
+      "tools": "Outils"
+    },
+    "tabs": {
+      "stats": "Stats",
+      "form": "Perf & Forme",
+      "tilt": "Tilt",
+      "heatmap": "Heatmap",
+      "analyse": "Analyse",
+      "social": "Coéquipiers & Rivaux",
+      "graphiques": "Graphiques",
+      "myHallOfFame": "Mon Hall of Fame",
+      "mySocial": "Mes coéquipiers & rivaux",
+      "myCollection": "Ma collection",
+      "network": "Réseau",
+      "session": "Session guidée",
+      "puzzle": "Puzzle du jour",
+      "bets": "Paris perso",
+      "crosshairs": "Crosshairs",
+      "strategy": "Stratégie",
+      "skins": "Skins",
+      "composition": "Composition",
+      "buySimulator": "Simulation d'achat",
+      "wiki": "Wiki",
+      "messages": "Messages",
+      "friends": "Amis",
+      "account": "Mon compte"
+    },
+    "rankUnavailable": "Rang indisponible",
+    "myAccountTitle": "Mon compte",
+    "signOut": "Se déconnecter du compte",
+    "loading": "Chargement...",
+    "refresh": "Rafraîchir",
+    "error": "Erreur : {{message}}",
+    "linkingInProgress": "Liaison de ton compte en cours...",
+    "unreadMessages": "Messages",
+    "friendsTitle": "Amis"
+  },
+  "common": {
+    "language": "Langue",
+    "searchPlaceholder": "Rechercher...",
+    "fetchingData": "Récupération des données…",
+    "economyTiers": {
+      "eco": "Éco",
+      "semi": "Semi-buy",
+      "full": "Full buy"
+    }
+  },
+  "postmortemHistory": {
+    "title": "🪞 Auto-évaluation post-match",
+    "noneYet": "Pas encore de double check répondu — la popup apparaît après un nouveau match tant que tu ne l'as pas fermée.",
+    "hint": "Compare ce que tu ressentais après un match à ce que tes stats montraient vraiment.",
+    "overallAccuracy_one": "Justesse globale ({{count}} match évalué)",
+    "overallAccuracy_other": "Justesse globale ({{count}} matchs évalués)",
+    "last5": "Sur les 5 derniers",
+    "correctCount": "{{correct}}/{{total}} justes"
+  },
+  "composition": {
+    "title": "🧩 Composition",
+    "description": "Choisis une map et 5 agents pour voir l'équilibre des rôles, un avis communautaire par agent/map, et comment tu performes toi-même avec ces agents sur cette map.",
+    "chooseMap": "— choisir une map —",
+    "chooseAgent": "— agent —",
+    "mostPlayedAgents": "⚡ Tes agents les plus joués :",
+    "quickpickGames_one": "{{count}} partie",
+    "quickpickGames_other": "{{count}} parties",
+    "quickpickWinrateSuffix": " — {{percent}}% winrate",
+    "compoScore": "Score de la compo sur {{map}}",
+    "roleBalance": "Équilibre des rôles",
+    "mapFit": "Fit agents / map (avis communauté)",
+    "disclaimer": "⚠️ Score indicatif, pas une prédiction de winrate : moitié équilibre des rôles (règles générales), moitié avis communautaires sur les meilleurs agents par map, figés au {{date}}. La méta change à chaque patch — un agent non noté « S/A » n'est pas forcément mauvais, juste non cité comme meilleur choix par les sources consultées à cette date.",
+    "compoBalanceTitle": "Équilibre de la compo",
+    "chooseAgentsForNotes": "Choisis 5 agents pour voir les remarques.",
+    "yourExperienceOn": "Ton vécu sur {{map}}",
+    "gamesKdaMeta_one": "{{count}} partie — K/D/A {{k}}/{{d}}/{{a}}",
+    "gamesKdaMeta_other": "{{count}} parties — K/D/A {{k}}/{{d}}/{{a}}",
+    "neverPlayed": "Jamais joué cet agent sur cette map.",
+    "notes": {
+      "noController": "Aucun contrôleur : pas de fumigène pour bloquer les angles, risqué sur la plupart des maps.",
+      "noInitiator": "Aucun initiateur : ça peut être difficile de rentrer sur les sites sans info.",
+      "noSentinel": "Aucune sentinelle : pas de piège/info automatique, surveille les flancs manuellement.",
+      "noDuelist": "Aucun duelliste : possible manque de prise d'espace/d'entrée.",
+      "tooManyDuelists": "Beaucoup de duellistes : bonne pression, mais attention au manque d'info/soutien.",
+      "balanced": "Les 4 rôles sont couverts — base de compo équilibrée."
+    }
+  },
+  "social": {
+    "you": "Toi",
+    "notEnoughSynergyData": "Pas encore assez de matchs avec les mêmes coéquipiers pour dégager un réseau.",
+    "gamesCount_one": "{{count}} partie",
+    "gamesCount_other": "{{count}} parties",
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "synergyTitle": "🤝 Synergie d'équipe",
+    "synergyHint": "Ton winrate avec chacun de tes coéquipiers récurrents (au moins 2 parties ensemble) — plus le lien est épais et vert, mieux ça se passe quand vous êtes dans la même équipe.",
+    "agentNemesisTitle": "⚔️ Tes nemesis — agents",
+    "agentNemesisHint": "Les agents adverses contre qui ton ratio kills/morts est le plus faible.",
+    "notEnoughAgentDuels": "Pas encore assez de duels enregistrés contre un même agent.",
+    "killsDeathsMeta": "{{kills}} kills / {{deaths}} morts",
+    "playerNemesisTitle": "🎭 Tes nemesis — joueurs",
+    "playerNemesisHint": "Les adversaires croisés plusieurs fois contre qui ton winrate est le plus faible.",
+    "notEnoughRepeatOpponents": "Pas encore assez de matchs contre les mêmes adversaires.",
+    "crossedMatches_one": "{{count}} match croisé",
+    "crossedMatches_other": "{{count}} matchs croisés"
+  },
+  "charts": {
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "notEnoughData": "Pas encore assez de données.",
+    "notEnoughDataForChart": "Pas encore assez de données pour un graphique.",
+    "gamesCount_one": "{{count}} partie",
+    "gamesCount_other": "{{count}} parties",
+    "title": "📈 Graphiques",
+    "description": "Un résumé visuel de tes stats, calculé à partir de ton historique en cache.",
+    "rankedMatches": "Matchs classés",
+    "globalWinrate": "Winrate global",
+    "avgKd": "K/D moyen",
+    "hsAccuracy": "Précision tête",
+    "dayPeriodTitle": "🗓️ Performance par jour et moment de la journée",
+    "dayPeriodHint": "Winrate par créneau — plus la case est bleue, meilleur est ton winrate à ce moment-là.",
+    "kdTrendTitle": "📉 K/D sur les 20 derniers matchs",
+    "winrateTrendTitle": "📊 Winrate glissant (fenêtre de 5 matchs)",
+    "mapWinrateTitle": "🗺️ Winrate par map",
+    "roleDistributionTitle": "🎭 Répartition par rôle",
+    "matchLabel": "Match {{n}}"
+  },
+  "rankMomentum": {
+    "title": "📈 Progression",
+    "notReady_one": "Encore {{count}} match classé avant de pouvoir comparer ta forme récente à ton niveau habituel.",
+    "notReady_other": "Encore {{count}} matchs classés avant de pouvoir comparer ta forme récente à ton niveau habituel.",
+    "trending": "🚀 Tes performances dépassent nettement ta moyenne habituelle depuis un moment — tu es peut-être prêt à monter.",
+    "stable": "Ta forme récente est dans la continuité de ta moyenne habituelle.",
+    "kdVsUsual": "K/D récent vs habituel",
+    "winrateVsUsual": "Winrate récent vs habituel",
+    "accuracyVsUsual": "Précision récente vs habituelle",
+    "vs": "vs {{value}}",
+    "hint": "Comparaison sur tes 10 derniers matchs classés vs les précédents — pas de moyenne de joueurs de ton rang (donnée non disponible publiquement), juste toi comparé à toi-même."
+  },
+  "crosshairs": {
+    "libraryTitle": "🎯 Bibliothèque de crosshairs",
+    "libraryDescription_one": "Pioche parmi {{count}} crosshair de joueurs pro, ou ajoute tes propres codes. Tout ce que tu enregistres va dans ta bibliothèque personnelle en bas de page.",
+    "libraryDescription_other": "Pioche parmi {{count}} crosshairs de joueurs pro, ou ajoute tes propres codes. Tout ce que tu enregistres va dans ta bibliothèque personnelle en bas de page.",
+    "proTitle": "🏆 Crosshairs de pros",
+    "proHint": "Codes publiés par des joueurs pro (source : thespike.gg)",
+    "proSearchPlaceholder": "🔍 Chercher un pro (ex : TenZ, ScreaM...)",
+    "resultsCount_one": "{{count}} résultat",
+    "resultsCount_other": "{{count}} résultats",
+    "noProMatch": "Aucun pro ne correspond à cette recherche.",
+    "addToLibrary": "+ Ajouter à ma bibliothèque",
+    "showLess": "▲ Voir moins",
+    "showMore": "▼ Voir plus ({{count}})",
+    "addCustomTitle": "✏️ Ajouter un code perso",
+    "namePlaceholder": "Nom",
+    "codePlaceholder": "Code crosshair (ex : 0;P;c;1;...)",
+    "colorPlaceholder": "Couleur (ex : Cyan)",
+    "imageOptional": "Image (optionnel)",
+    "previewAlt": "Aperçu du crosshair",
+    "previewPlaceholder": "Aperçu",
+    "save": "Enregistrer",
+    "libraryCount": "📁 Ta bibliothèque ({{count}})",
+    "libraryEmpty": "Aucun crosshair enregistré pour l'instant — pioche dans le catalogue pro ci-dessus ou ajoute ton propre code.",
+    "copy": "Copier",
+    "delete": "Supprimer",
+    "invalidCode": "Code crosshair invalide"
+  },
+  "strategy": {
+    "tools": {
+      "select": "🖱️ Sélection",
+      "pan": "🖐️ Déplacer la vue",
+      "pencil": "✏️ Dessin libre",
+      "line": "／ Ligne",
+      "rect": "▭ Rectangle",
+      "ellipse": "⬭ Ellipse",
+      "text": "T Texte"
+    },
+    "layers": {
+      "drawing": "Dessin",
+      "icons": "Icônes",
+      "text": "Texte"
+    },
+    "mapSection": "🗺️ Carte",
+    "zoomOut": "Zoom arrière",
+    "zoomIn": "Zoom avant",
+    "resetView": "⟲ Réinitialiser la vue",
+    "drawSection": "✏️ Dessin",
+    "color": "Couleur",
+    "delete": "🗑️ Supprimer",
+    "agentsSection": "🧑‍🚀 Agents & capacités",
+    "chooseAgent": "— choisir un agent —",
+    "placePosition": "📍 Placer la position",
+    "chooseAbility": "— capacité —",
+    "placeAbility": "✨ Placer la capacité",
+    "iconsSection": "👁️ Icônes & ligne de vue",
+    "spike": "◈ Spike",
+    "sightlineTitle": "Ligne de vue (FOV réel 103°). Glisse le point blanc à sa pointe pour la pivoter librement, ou utilise « Lier à un joueur » pour la fixer sur une position déjà placée.",
+    "sightline": "👁️ Ligne de vue",
+    "orient": "Orienter :",
+    "rotateMinus": "Pivoter -15°",
+    "rotatePlus": "Pivoter +15°",
+    "detachFromPlayer": "🔓 Détacher du joueur",
+    "clickOnPlayer": "🔒 Clique sur un joueur sur la carte… (Échap pour annuler)",
+    "linkToPlayer": "🔒 Lier à un joueur",
+    "layersSection": "📚 Calques visibles",
+    "save": "💾 Sauvegarder",
+    "namePlaceholder": "Nom de la stratégie",
+    "saveBtn": "Sauvegarder",
+    "exportPng": "📷 Exporter en PNG",
+    "savedStrategies": "📂 Stratégies — {{map}}",
+    "noSavedStrategies": "Aucune stratégie sauvegardée pour cette map.",
+    "deleteTitle": "Supprimer",
+    "defaultText": "Texte"
+  },
+  "skins": {
+    "views": {
+      "catalog": "Catalogue",
+      "wishlist": "Wishlist"
+    },
+    "ownedTitle": "Dans ta collection",
+    "wishlistedTitle": "En wishlist",
+    "catalogTitle_one": "Catalogue ({{count}} skin)",
+    "catalogTitle_other": "Catalogue ({{count}} skins)",
+    "searchPlaceholder": "Rechercher un skin...",
+    "allWeapons": "Toutes les armes",
+    "allTiers": "Toutes les raretés",
+    "priceMin": "Prix min (VP)",
+    "priceMax": "Prix max (VP)",
+    "showLess": "▲ Voir moins",
+    "showMore": "▼ Voir plus ({{count}})",
+    "wishlistTitle_one": "Wishlist ({{count}})",
+    "wishlistTitle_other": "Wishlist ({{count}})",
+    "emptyWishlist": "Aucun skin en wishlist pour l'instant — ajoutes-en depuis le catalogue.",
+    "close": "✕ Fermer",
+    "edition": "{{tier}} Edition — {{weapon}}",
+    "preview": "Aperçu",
+    "estimatedPrice": "Prix estimé (rareté {{tier}})",
+    "euroApprox": "≈ en euros (1000 VP = 10€)",
+    "removeFromWishlist": "★ Retirer de la wishlist",
+    "addToWishlist": "☆ Ajouter à ma wishlist",
+    "removeOwned": "✓ Je le possède (retirer)",
+    "addOwned": "+ Je possède ce skin",
+    "colorVariants": "Variantes de couleur",
+    "totalValue_one": "Valeur totale de ta collection ({{count}} skin possédé)",
+    "totalValue_other": "Valeur totale de ta collection ({{count}} skins possédés)",
+    "myCollectionTitle": "💎 Ma collection",
+    "emptyCollection": "Aucun skin marqué comme possédé pour l'instant — ajoutes-en depuis le catalogue (onglet Skins).",
+    "removeFromCollection": "Retirer de ma collection"
+  },
+  "session": {
+    "title": "🎬 Session guidée",
+    "description": "Génère un plan de session basé sur tes vraies stats : créneau horaire actuel, dernière stratégie sauvegardée sur ta map récente, et ton état de forme/tilt en ce moment.",
+    "newSession": "🔄 Nouvelle session",
+    "launch": "▶️ Lancer ma session",
+    "checklistTitle": "Checklist de session",
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "warmupTitle_one": "{{count}} minute d'échauffement",
+    "warmupTitle_other": "{{count}} minutes d'échauffement",
+    "strategyReviewTitle": "Revoir la stratégie « {{name}} » sur {{map}}",
+    "strategyReviewDetail": "Direction l'onglet Stratégie pour la consulter avant de lancer tes matchs.",
+    "noStrategyTitle": "Aucune stratégie sauvegardée sur {{map}}",
+    "noStrategyDetail": "L'occasion d'en créer une dans l'onglet Stratégie avant de jouer.",
+    "tiltedTitle": "Signes de tilt détectés récemment",
+    "tiltedDetail_one": "Objectif réduit pour aujourd'hui — fais une pause après {{count}} match si ça ne va pas mieux.",
+    "tiltedDetail_other": "Objectif réduit pour aujourd'hui — fais une pause après {{count}} matchs si ça ne va pas mieux.",
+    "calmTitle": "Pas de signe de tilt",
+    "calmDetail": "Tu peux enchaîner tes matchs normalement.",
+    "objectiveTitle": "Objectif du jour",
+    "warmupNoData": "Pas encore assez de données sur ce créneau horaire ({{slot}}) — échauffement standard.",
+    "warmupGood": "Tu performes bien sur ce créneau ({{slot}}, {{percent}}% winrate) — un échauffement court suffit.",
+    "warmupBad": "Ton winrate est plus faible sur ce créneau ({{slot}}, {{percent}}%) — prends plus de temps pour t'échauffer avant de lancer des classées.",
+    "objectiveWithMap_one": "{{count}} match sur {{map}}, viser {{hsTarget}}%+ de précision tête",
+    "objectiveWithMap_other": "{{count}} matchs sur {{map}}, viser {{hsTarget}}%+ de précision tête",
+    "objectiveNoMap_one": "{{count}} match, viser {{hsTarget}}%+ de précision tête",
+    "objectiveNoMap_other": "{{count}} matchs, viser {{hsTarget}}%+ de précision tête"
+  },
+  "puzzle": {
+    "options": {
+      "duelEarly": "Chercher le duel dès le début du round",
+      "rushSite": "Rusher un site avec l'équipe",
+      "waitInfo": "Jouer patient, attendre une info avant d'engager",
+      "save": "Save, ne pas risquer le stuff"
+    },
+    "reveal": {
+      "noAction": "Tu n'as ni tué ni été tué ce round-là (ou c'est arrivé très tard) — un round discret pour toi.",
+      "firstKillAt": "Tu as fait ton premier kill à {{seconds}}s dans le round.",
+      "diedAt": "Tu es mort à {{seconds}}s dans le round.",
+      "roundWon": "Le round a été gagné.",
+      "roundLost": "Le round a été perdu."
+    },
+    "title": "🧩 Puzzle tactique du jour",
+    "description": "Une vraie situation tirée d'un de tes matchs, sans le résultat. Choisis ce que tu aurais fait, puis découvre ce qu'il s'est réellement passé — et si ça correspond à ta façon de jouer.",
+    "notEnoughMatches": "Pas encore assez de matchs classés en cache pour générer un puzzle — reviens après quelques parties.",
+    "roundLabel": "Round {{n}}",
+    "scoreBefore": "Score avant ce round",
+    "myEconomy": "Ton économie",
+    "enemyEconomy": "Économie adverse (moyenne)",
+    "question": "Vu ce contexte, qu'aurais-tu fait ce round ?",
+    "matchesReveal": "✅ Ça correspond à ce que tu as fait",
+    "notMatchReveal": "❌ Ce round-là, tu as joué différemment",
+    "choiceWas": "Ton choix ({{choice}}) était classé « {{bucket}} » — ta façon de jouer ce round-là a été « {{actual}} ».",
+    "bucketAggressive": "agressif",
+    "bucketPatient": "patient",
+    "bucketAggressiveFem": "agressive",
+    "bucketPatientFem": "patiente",
+    "historyTitle": "📜 Historique",
+    "successRate": "Taux de bonnes décisions",
+    "puzzlesSolved": "Puzzles résolus",
+    "noHistory": "Aucun puzzle résolu pour l'instant.",
+    "notAnsweredYet": "⏳ Pas encore répondu",
+    "goodIntuition": "✅ Bonne intuition",
+    "missed": "❌ Loupé"
+  },
+  "bets": {
+    "title": "🎰 Paris perso",
+    "pointsUnit": "pts",
+    "accumulatedPoints": "Points accumulés",
+    "description": "Avant de lancer une session, parie virtuellement sur ta perf. Le pari se résout tout seul dès que ton prochain match apparaît dans l'historique.",
+    "currentBetTitle": "Pari en cours",
+    "waitingNextMatch": "En attente de ton prochain match pour être résolu automatiquement.",
+    "cancelBet": "Annuler le pari",
+    "placeBetTitle": "🎲 Placer un pari",
+    "placeBetBtn": "Placer le pari",
+    "historyTitle": "📜 Historique des paris",
+    "noHistory": "Aucun pari résolu pour l'instant.",
+    "wonPoints": "✅ +{{points}} pts",
+    "lostPoints": "❌ 0 pt",
+    "types": {
+      "kills": "Faire X+ kills",
+      "duelWinrate": "Gagner plus de X% de mes duels",
+      "hsPercent": "Avoir X%+ de précision tête",
+      "win": "Gagner ce match"
+    },
+    "describe": {
+      "kills": "Faire {{threshold}}+ kills",
+      "duelWinrate": "Gagner plus de {{threshold}}% de mes duels",
+      "hsPercent": "Avoir {{threshold}}%+ de précision tête",
+      "win": "Gagner ce match"
+    }
+  },
+  "buySim": {
+    "noRoundData": "Aucun match avec données de round en cache pour l'instant.",
+    "coherentRounds_one": "{{coherent}}/{{total}} round cohérent ({{percent}}%)",
+    "coherentRounds_other": "{{coherent}}/{{total}} rounds cohérents ({{percent}}%)",
+    "coherent": "✅ Cohérent",
+    "toReview": "⚠️ À vérifier",
+    "availableCredits": "Crédits disponibles",
+    "chooseAgentOptional": "— agent (optionnel) —",
+    "noWeapon": "Aucune arme",
+    "noShield": "Pas de bouclier",
+    "creditsSuffix": "{{cost}} crédits",
+    "remainingCredits": "Crédits restants",
+    "tooLowBudget": "Budget trop faible pour une arme ou un bouclier — garde tes crédits pour le prochain round.",
+    "abilitiesOf": "Capacités de {{agent}}",
+    "free": "Gratuite",
+    "costsResearched": "Coûts recherchés le {{date}} (wiki officiel Riot){{suffix}}",
+    "costsResearchedSuffixWithRemaining": " — comparés aux {{remaining}} crédits restants après arme + bouclier.",
+    "costsResearchedSuffixPeriod": ".",
+    "noAbilityCosts": "Pas encore de coûts de capacités fiables pour {{agent}} — non couvert par la source utilisée (agent récent ou kit atypique).",
+    "disclaimer": "Arme et bouclier basés sur les vrais prix du shop (API officielle). Les coûts de capacités ne sont exposés par aucune API — recherchés manuellement sur le wiki Riot, disponibles pour une partie du roster seulement (voir ci-dessus si ton agent n'est pas couvert).",
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "roundAnalysisTitle": "💰 Analyse d'achat round par round",
+    "roundAnalysisHint": "Compare ton achat réel à ce que l'économie moyenne de ton équipe permettait ce round-là.",
+    "calculatorTitle": "🧮 Calculateur de budget",
+    "calculatorHint": "Entre tes crédits disponibles pour voir le meilleur achat possible.",
+    "explanation": {
+      "coherent": "Achat cohérent : {{tier}}, comme l'économie de l'équipe le permettait.",
+      "tooHigh": "Tu as fait un {{actual}} alors que l'économie d'équipe pointait plutôt vers un {{recommended}}.",
+      "tooLow": "Tu as joué en {{actual}} alors que l'équipe avait les moyens d'un {{recommended}}."
+    },
+    "roleNoteDuelist": "En tant que duelliste, priorise l'arme sur le bouclier si tu dois trancher : tu vas au contact, une arme forte compte plus.",
+    "roleNoteDefensive": "En tant que {{role}}, le bouclier complet vaut le coup même avec une arme plus faible : tu es souvent en retrait."
+  },
+  "wiki": {
+    "title": "📖 Wiki Valorant",
+    "description": "Toutes les infos de référence — agents, armes, maps et rangs — pour découvrir ou revoir les bases sans sortir de l'appli.",
+    "categories": {
+      "agents": "🧑‍🚀 Agents",
+      "weapons": "🔫 Armes",
+      "maps": "🗺️ Maps",
+      "ranks": "🏅 Rangs"
+    },
+    "close": "✕ Fermer",
+    "abilities": "Capacités",
+    "weaponCategories": {
+      "Pistols": "Pistolets",
+      "SMGs": "Mitraillettes",
+      "Shotguns": "Fusils à pompe",
+      "Rifles": "Fusils d'assaut",
+      "Sniper Rifles": "Fusils de précision",
+      "Heavy Weapons": "Armes lourdes"
+    },
+    "credits": "{{cost}} crédits",
+    "fireRate": "Cadence de tir (coups/s)",
+    "magazineSize": "Taille du chargeur",
+    "reloadTime": "Temps de rechargement",
+    "damageByDistance": "Dégâts par distance",
+    "distance": "Distance",
+    "head": "Tête",
+    "body": "Corps",
+    "legs": "Jambes",
+    "noWeaponStats": "Pas de statistiques détaillées pour cette arme.",
+    "minimap": "Minimap",
+    "ranksHint": "Du plus haut au plus bas."
+  },
+  "detail": {
+    "close": "✕ Fermer",
+    "gamesPlayed": "Parties jouées",
+    "winrate": "Winrate",
+    "avgKda": "K/D/A moyen",
+    "playtimeKills": "Temps de jeu ({{count}} kills)",
+    "mostUsedWeapons": "Armes les plus utilisées",
+    "noData": "Aucune donnée.",
+    "killsCount": "{{count}} kills",
+    "winrateByMap": "Winrate par map",
+    "gamesKda_one": "{{count}} partie — {{k}}/{{d}}/{{a}}",
+    "gamesKda_other": "{{count}} parties — {{k}}/{{d}}/{{a}}",
+    "assistNote": "Note : l'API ne distingue pas les assistances faites via une capacité de celles faites à l'arme — seul le total d'assistances est disponible, déjà affiché ailleurs dans l'app.",
+    "totalKills": "Kills au total",
+    "avgKillDistance": "Distance moyenne des kills",
+    "killsByMap": "Kills par map",
+    "killsByAgent": "Kills par agent",
+    "weaponHitNote": "Riot ne rattache pas les tirs (tête/corps/jambes) à une arme précise — seule la précision globale, tous armes confondues, est disponible (déjà affichée dans « Stats globales »).",
+    "attackDefense": "Attaque / Défense",
+    "attackWinrate_one": "Winrate en attaque ({{count}} round)",
+    "attackWinrate_other": "Winrate en attaque ({{count}} rounds)",
+    "defenseWinrate_one": "Winrate en défense ({{count}} round)",
+    "defenseWinrate_other": "Winrate en défense ({{count}} rounds)",
+    "unknownRounds_one": "{{count}} round non déterminable (pas de pose de spike ni de fin par le temps).",
+    "unknownRounds_other": "{{count}} rounds non déterminables (pas de pose de spike ni de fin par le temps).",
+    "agentsOnMap": "Agents joués sur cette map",
+    "agentUsageLine": "{{percent}}% ({{count}} matchs)",
+    "killsByWeaponOnMap": "Kills par arme sur cette map",
+    "players": "Joueurs",
+    "redTeam": "Équipe Rouge",
+    "blueTeam": "Équipe Bleue",
+    "myKillsByWeapon": "Mes kills par arme sur ce match",
+    "noKillsRecorded": "Aucun kill enregistré.",
+    "roundByRound": "Round par round",
+    "result": "Résultat",
+    "end": "Fin",
+    "myKills": "Mes kills",
+    "damage": "Dégâts",
+    "score": "Score",
+    "died": "Mort ?",
+    "myEconomy": "Mon économie",
+    "won": "Gagné",
+    "lost": "Perdu",
+    "yes": "Oui",
+    "no": "Non",
+    "pointsAbbr": "pts"
+  },
+  "friends": {
+    "online": "En ligne",
+    "loading": "Chargement...",
+    "addFriendTitle": "👥 Ajouter un ami",
+    "usernamePlaceholder": "Pseudo",
+    "tagPlaceholder": "Tag",
+    "noPlayerFound": "Aucun joueur MVP Tracker avec ce Riot ID.",
+    "requestSent": "Demande envoyée ✓",
+    "add": "Ajouter",
+    "incomingRequests": "📨 Demandes reçues",
+    "accept": "Accepter",
+    "decline": "Refuser",
+    "outgoingRequests": "📤 Demandes envoyées",
+    "cancel": "Annuler",
+    "friendsCount": "🤝 Amis ({{count}})",
+    "noFriendsYet": "Pas encore d'amis — cherche un Riot ID ci-dessus.",
+    "sendMessage": "Envoyer un message",
+    "removeFriend": "Retirer cet ami"
+  },
+  "messages": {
+    "conversationsTitle": "💬 Conversations",
+    "addFriendsHint": "Ajoute des amis depuis l'onglet 👥 pour pouvoir leur écrire.",
+    "chooseAFriend": "Choisis un ami dans la liste pour démarrer une conversation.",
+    "online": "En ligne",
+    "offline": "Hors ligne",
+    "remove": "Retirer",
+    "loading": "Chargement...",
+    "noMessagesYet": "Pas encore de message — dis bonjour !",
+    "messagePlaceholder": "Écris un message...",
+    "send": "Envoyer"
+  },
+  "hallOfFame": {
+    "title": "🏆 Hall of Fame",
+    "description": "Tes meilleurs records personnels, détectés automatiquement dans ton historique de matchs — mis à jour dès qu'un nouveau record tombe.",
+    "noneUnlockedYet": "Pas encore débloqué — continue à jouer.",
+    "bestAce": "Meilleur ace",
+    "killsInRound": "kills en un round",
+    "longestWinStreak": "Plus longue série de victoires",
+    "winsInARow": "victoires d'affilée",
+    "bestClutch": "Meilleur clutch",
+    "won": "gagné",
+    "bestKdaMatch": "Meilleur KDA sur un match",
+    "achievementsTitle": "🏅 Succès ({{unlocked}}/{{total}})",
+    "achievementsHint": "Débloqués automatiquement dès que tu atteins le seuil, à partir des mêmes données que les records ci-dessus.",
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "roundLabel": "round {{n}}",
+    "streakRange": "Du {{start}} au {{end}}",
+    "kdaExtra": "KDA {{value}}",
+    "distanceExtra": "{{distance}}m — {{weapon}}",
+    "longRangeDuelContext": "{{percent}}% de winrate sur {{count}} duels longue portée",
+    "veryLongRangeDuelContext": "{{percent}}% de winrate sur {{count}} duels très longue portée",
+    "careerHsContext": "{{percent}}% de moyenne carrière",
+    "agentsPlayedContext": "{{count}} agent(s) différents joués",
+    "mapsPlayedContext": "{{count}} map(s) différentes jouées",
+    "modesPlayedContext": "{{count}} mode(s) différents essayés",
+    "matchesTotalContext": "{{count}} matchs au total",
+    "winsTotalContext": "{{count}} victoires au total",
+    "killsTotalContext": "{{count}} kills au total",
+    "hoursTotalContext": "{{hours}}h au total",
+    "agentKillsContext": "{{count}} kills avec {{agent}}",
+    "agentGamesContext": "{{count}} parties avec {{agent}}",
+    "weaponKillsContext": "{{count}} kills avec {{weapon}}",
+    "clutchesContext": "{{count}} clutch(s) gagné(s) au total",
+    "firstBloodContext": "{{count}} premier(s) sang au total",
+    "plantsContext": "{{count}} pose(s) au total",
+    "defusesContext": "{{count}} désamorçage(s) au total",
+    "overtimeContext": "{{rounds}} rounds — {{map}}, {{date}}",
+    "groups": {
+      "multiKills": {
+        "label": "Multi-kills",
+        "items": {
+          "triple": { "title": "Triple kill", "description": "3 kills en un seul round" },
+          "quadra": { "title": "Quadra kill", "description": "4 kills en un seul round" },
+          "ace": { "title": "Ace", "description": "5 kills en un seul round" }
+        }
+      },
+      "winStreaks": {
+        "label": "Séries de victoires",
+        "items": {
+          "streak3": { "title": "Série de 3", "description": "3 victoires d'affilée" },
+          "streak5": { "title": "Série de 5", "description": "5 victoires d'affilée" },
+          "streak8": { "title": "Série de 8", "description": "8 victoires d'affilée" }
+        }
+      },
+      "clutches": {
+        "label": "Clutchs",
+        "items": {
+          "clutch1": { "title": "Clutch 1v1", "description": "Gagner un round en infériorité 1v1" },
+          "clutch2": { "title": "Clutch 1v2", "description": "Gagner un round en infériorité 1v2" },
+          "clutch3": { "title": "Clutch 1v3", "description": "Gagner un round en infériorité 1v3" },
+          "clutch4": { "title": "Clutch légendaire", "description": "Gagner un round en infériorité 1v4 ou plus" }
+        }
+      },
+      "kdaMatch": {
+        "label": "KDA sur un match",
+        "items": {
+          "kda2": { "title": "KDA 2.0+", "description": "(kills + assists) / morts ≥ 2 sur un match" },
+          "kda3": { "title": "KDA 3.0+", "description": "(kills + assists) / morts ≥ 3 sur un match" },
+          "kda4": { "title": "KDA 4.0+", "description": "(kills + assists) / morts ≥ 4 sur un match" },
+          "kda5": { "title": "KDA 5.0+", "description": "(kills + assists) / morts ≥ 5 sur un match" }
+        }
+      },
+      "accuracy": {
+        "label": "Précision",
+        "items": {
+          "hs30": { "title": "30% précision tête", "description": "30%+ de headshots sur un match" },
+          "longrangeduel": { "title": "Sniper occasionnel", "description": "Winrate ≥ 50% dans tes duels longue portée (20-35m), sur au moins 5 duels" },
+          "verylongrangeduel": { "title": "Sniper d'élite", "description": "Winrate ≥ 60% dans tes duels très longue portée (35m+), sur au moins 5 duels" },
+          "careerHs20": { "title": "20% précision tête (carrière)", "description": "Moyenne de précision tête ≥ 20% sur tout ton historique" },
+          "careerHs28": { "title": "28% précision tête (carrière)", "description": "Moyenne de précision tête ≥ 28% sur tout ton historique" }
+        }
+      },
+      "killsPerMatch": {
+        "label": "Kills sur un match",
+        "items": {
+          "kills20": { "title": "20+ kills", "description": "20 kills ou plus sur un seul match" },
+          "kills25": { "title": "25+ kills", "description": "25 kills ou plus sur un seul match" },
+          "kills30": { "title": "30+ kills", "description": "30 kills ou plus sur un seul match" }
+        }
+      },
+      "distance": {
+        "label": "Distance",
+        "items": {
+          "dist30": { "title": "Kill à 30m+", "description": "Un kill à 30 mètres ou plus" },
+          "dist45": { "title": "Kill à 45m+", "description": "Un kill à 45 mètres ou plus" },
+          "dist60": { "title": "Kill à 60m+", "description": "Un kill à 60 mètres ou plus — quasi la traversée d'une map" }
+        }
+      },
+      "versatility": {
+        "label": "Polyvalence",
+        "items": {
+          "agents5": { "title": "5 agents joués", "description": "5 agents différents dans ton historique" },
+          "agents10": { "title": "10 agents joués", "description": "10 agents différents dans ton historique" },
+          "agents15": { "title": "15 agents joués", "description": "15 agents différents dans ton historique" },
+          "maps5": { "title": "5 maps différentes", "description": "5 maps différentes dans ton historique" },
+          "maps8": { "title": "8 maps différentes", "description": "8 maps différentes dans ton historique" },
+          "modes3": { "title": "3 modes de jeu", "description": "3 modes de jeu différents essayés" },
+          "modes5": { "title": "5 modes de jeu", "description": "5 modes de jeu différents essayés" }
+        }
+      },
+      "perfection": {
+        "label": "Perfection",
+        "items": {
+          "perfect": { "title": "Match parfait", "description": "Gagner un match sans mourir une seule fois" }
+        }
+      },
+      "matchVolume": {
+        "label": "Volume de matchs",
+        "items": {
+          "matches10": { "title": "10 matchs joués", "description": "10 matchs dans ton historique" },
+          "matches50": { "title": "50 matchs joués", "description": "50 matchs dans ton historique" },
+          "matches100": { "title": "100 matchs joués", "description": "100 matchs dans ton historique" },
+          "matches250": { "title": "250 matchs joués", "description": "250 matchs dans ton historique" },
+          "matches500": { "title": "500 matchs joués", "description": "500 matchs dans ton historique" }
+        }
+      },
+      "totalWins": {
+        "label": "Victoires cumulées",
+        "items": {
+          "wins10": { "title": "10 victoires", "description": "10 matchs gagnés au total" },
+          "wins50": { "title": "50 victoires", "description": "50 matchs gagnés au total" },
+          "wins100": { "title": "100 victoires", "description": "100 matchs gagnés au total" },
+          "wins250": { "title": "250 victoires", "description": "250 matchs gagnés au total" }
+        }
+      },
+      "totalKills": {
+        "label": "Kills cumulés",
+        "items": {
+          "totalkills100": { "title": "100 kills", "description": "100 kills au total sur tout ton historique" },
+          "totalkills500": { "title": "500 kills", "description": "500 kills au total sur tout ton historique" },
+          "totalkills1000": { "title": "1000 kills", "description": "1000 kills au total sur tout ton historique" },
+          "totalkills2500": { "title": "2500 kills", "description": "2500 kills au total sur tout ton historique" },
+          "totalkills5000": { "title": "5000 kills", "description": "5000 kills au total sur tout ton historique" }
+        }
+      },
+      "playtime": {
+        "label": "Temps de jeu",
+        "items": {
+          "hours10": { "title": "10 heures de jeu", "description": "10 heures cumulées dans ton historique" },
+          "hours50": { "title": "50 heures de jeu", "description": "50 heures cumulées dans ton historique" },
+          "hours100": { "title": "100 heures de jeu", "description": "100 heures cumulées dans ton historique" },
+          "hours250": { "title": "250 heures de jeu", "description": "250 heures cumulées dans ton historique" }
+        }
+      },
+      "agentMastery": {
+        "label": "Maîtrise d'agent",
+        "items": {
+          "agentkills100": { "title": "100 kills avec un agent", "description": "100 kills cumulés avec ton agent le plus joué" },
+          "agentkills500": { "title": "500 kills avec un agent", "description": "500 kills cumulés avec ton agent le plus joué" },
+          "agentkills1000": { "title": "1000 kills avec un agent", "description": "1000 kills cumulés avec ton agent le plus joué" },
+          "agentgames10": { "title": "Agent de cœur", "description": "10 parties avec le même agent" },
+          "agentgames50": { "title": "Agent principal", "description": "50 parties avec le même agent" },
+          "agentgames100": { "title": "Agent signature", "description": "100 parties avec le même agent" }
+        }
+      },
+      "weaponMastery": {
+        "label": "Maîtrise d'arme",
+        "items": {
+          "weaponkills50": { "title": "50 kills avec une arme", "description": "50 kills cumulés avec ton arme la plus utilisée" },
+          "weaponkills150": { "title": "150 kills avec une arme", "description": "150 kills cumulés avec ton arme la plus utilisée" },
+          "weaponkills300": { "title": "300 kills avec une arme", "description": "300 kills cumulés avec ton arme la plus utilisée" }
+        }
+      },
+      "composure": {
+        "label": "Sang-froid",
+        "items": {
+          "clutches1": { "title": "Premier clutch", "description": "Gagner ton premier round en clutch" },
+          "clutches5": { "title": "5 clutchs gagnés", "description": "5 rounds gagnés en clutch au total" },
+          "clutches15": { "title": "15 clutchs gagnés", "description": "15 rounds gagnés en clutch au total" },
+          "clutches30": { "title": "30 clutchs gagnés", "description": "30 rounds gagnés en clutch au total" }
+        }
+      },
+      "firstBlood": {
+        "label": "Premier sang",
+        "items": {
+          "firstblood10": { "title": "10 premiers sangs", "description": "Premier kill du round, 10 fois au total" },
+          "firstblood50": { "title": "50 premiers sangs", "description": "Premier kill du round, 50 fois au total" },
+          "firstblood150": { "title": "150 premiers sangs", "description": "Premier kill du round, 150 fois au total" }
+        }
+      },
+      "spike": {
+        "label": "Spike",
+        "items": {
+          "plants10": { "title": "10 spikes posés", "description": "Poser la spike, 10 fois au total" },
+          "plants50": { "title": "50 spikes posés", "description": "Poser la spike, 50 fois au total" },
+          "plants150": { "title": "150 spikes posés", "description": "Poser la spike, 150 fois au total" },
+          "defuses5": { "title": "5 spikes désamorcés", "description": "Désamorcer la spike, 5 fois au total" },
+          "defuses25": { "title": "25 spikes désamorcés", "description": "Désamorcer la spike, 25 fois au total" },
+          "defuses75": { "title": "75 spikes désamorcés", "description": "Désamorcer la spike, 75 fois au total" }
+        }
+      },
+      "endurance": {
+        "label": "Endurance",
+        "items": {
+          "overtime": { "title": "Prolongation", "description": "Jouer un match qui va en prolongation (16 rounds ou plus)" },
+          "doubleovertime": { "title": "Double prolongation", "description": "Jouer un match de 24 rounds ou plus" }
+        }
+      }
+    }
+  },
+  "result": {
+    "win": "Victoire",
+    "loss": "Défaite",
+    "draw": "Match nul",
+    "noTeam": "Sans équipe"
+  },
+  "stats": {
+    "scopeLabel": "📊 Voir les stats de cette page pour :",
+    "scope": {
+      "all": "Tout",
+      "ranked": "Classé",
+      "unrated": "Non classé"
+    },
+    "allActs": "Tous les actes",
+    "matchesCount_one": "{{count}} match",
+    "matchesCount_other": "{{count}} matchs",
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "peak": "🏆 Peak {{tier}}",
+    "kdProgressionTitle_one": "📈 Progression du K/D ({{count}} dernier match)",
+    "kdProgressionTitle_other": "📈 Progression du K/D ({{count}} derniers matchs)",
+    "kdAvg": "K/D moyen",
+    "bestMatch": "Meilleur match",
+    "worstMatch": "Pire match",
+    "trend": "Tendance (2e moitié vs 1re)",
+    "periodRecap": "Bilan de la période",
+    "draws_one": "({{count}} nul)",
+    "draws_other": "({{count}} nuls)",
+    "winPercentage": "{{percent}} de victoires",
+    "periodHint": "Du plus ancien (gauche) au plus récent (droite)",
+    "globalStatsTitle_one": "Stats globales ({{count}} match)",
+    "globalStatsTitle_other": "Stats globales ({{count}} matchs)",
+    "head": "Tête",
+    "body": "Corps",
+    "legs": "Jambes",
+    "topWeapons": "Armes les plus utilisées",
+    "noWeaponData": "Aucune donnée d'arme pour l'instant.",
+    "killsCount_one": "{{count}} kill",
+    "killsCount_other": "{{count}} kills",
+    "statsByAgent": "Stats par agent",
+    "noDataYet": "Pas encore de données.",
+    "gamesCount_one": "{{count}} partie",
+    "gamesCount_other": "{{count}} parties",
+    "favoriteWeapon": "arme préférée : {{weapon}}",
+    "showLess": "▲ Voir moins",
+    "showMore": "▼ Voir plus ({{count}})",
+    "statsByMap": "Stats par map",
+    "winrateLabel": "winrate",
+    "statsByRole": "Stats par rôle",
+    "statsByMode": "Stats par mode",
+    "matchHistory_one": "Historique de matchs ({{count}})",
+    "matchHistory_other": "Historique de matchs ({{count}})",
+    "allModes": "Tous les modes",
+    "hitBreakdown": " — Tête {{hs}}% / Corps {{bs}}% / Jambes {{ls}}%"
+  },
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
+  },
+  "form": {
+    "noDataYet": "Pas encore de données.",
+    "gamesCount_one": "{{count}} partie",
+    "gamesCount_other": "{{count}} parties",
+    "recentForm": "Forme récente",
+    "notEnoughData": "Pas assez de données",
+    "currentStreak": "Série actuelle ({{type}})",
+    "noStreak": "—",
+    "kdRecent_one": "K/D sur {{count}} dernier match",
+    "kdRecent_other": "K/D sur {{count}} derniers matchs",
+    "kdOverall": "K/D moyenne générale",
+    "bestTimeToPlay": "🌟 Meilleur moment pour jouer",
+    "winratePlays_one": "{{percent}}% winrate ({{count}} partie)",
+    "winratePlays_other": "{{percent}}% winrate ({{count}} parties)",
+    "bestMomentHint": "Calculé sur les créneaux/jours avec au moins 2 parties jouées.",
+    "statsByTimeSlot": "Stats par tranche horaire",
+    "statsByWeekday": "Stats par jour de la semaine"
+  },
+  "network": {
+    "status": "📡 Statut",
+    "detected": "Valorant détecté",
+    "notDetected": "Valorant non détecté",
+    "pingGeneral": "Ping (connexion générale)",
+    "pingHistory": "📈 Historique récent du ping",
+    "notEnoughReadings": "Pas encore assez de relevés récents pour tracer une courbe.",
+    "recentReadings_one": "{{count}} dernier relevé",
+    "recentReadings_other": "{{count}} derniers relevés",
+    "sparklineMeta": "moy. {{avg}} ms — min {{min}} — max {{max}}",
+    "deathCorrelation": "💀 Corrélation ping / morts",
+    "notEnoughNetworkData": "Pas encore assez de données réseau pendant tes matchs pour calculer une corrélation (il faut avoir l'appli ouverte pendant que tu joues).",
+    "deathsInSpike": "morts en pic",
+    "totalDeathsAnalyzed": "Morts analysées au total",
+    "duringPingSpike": "Pendant un pic de ping",
+    "correlationSummary": "Soit {{percent}}% de tes morts analysées qui ont eu lieu pendant un pic de ping (ping 30% au-dessus de la moyenne de la partie)."
+  },
+  "tilt": {
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "tiltedTitle": "Signes de tilt détectés",
+    "calmTitle": "Pas de signe de tilt",
+    "lossStreak": "{{count}} défaites d'affilée. ",
+    "perfDegradation": "Perf en baisse sur les 3 derniers matchs (K/D {{recentKd}} vs moyenne {{overallKd}}). ",
+    "breakSuggestion": "Une pause pourrait aider.",
+    "allGood": "Continue comme ça, rien à signaler pour l'instant.",
+    "recentResults": "🎯 Derniers résultats",
+    "dotsHint": "Du plus récent (à gauche) au plus ancien (à droite) — vert = victoire, rouge = défaite.",
+    "frequencyTitle": "📈 Fréquence de tilt (historique)",
+    "notEnoughMatches": "Pas encore assez de matchs pour calculer une fréquence.",
+    "tiltedMatchesPercent": "de tes matchs en tilt",
+    "matchesInTiltStreak": "matchs dans une série de tilt",
+    "totalMatchesAnalyzed": "matchs analysés au total",
+    "frequencyHint": "Un match compte comme « en tilt » s'il fait partie d'une série de 3 défaites consécutives ou plus, sur tout ton historique en cache — pas juste la situation actuelle.",
+    "whatIsWatched": "📊 Ce qui est surveillé",
+    "lossStreakLabel": "Défaites d'affilée (seuil : 3)",
+    "last3Kd": "K/D sur les 3 derniers matchs",
+    "ofOverallAverage": "...de ta moyenne générale (seuil : 70%)",
+    "howItWorks": "ℹ️ Comment ça marche",
+    "howItWorksIntro": "Un signe de tilt est détecté si l'une de ces deux conditions est vraie :",
+    "rule1": "3 défaites d'affilée ou plus",
+    "rule2": "K/D sur les 3 derniers matchs inférieur à 70% de ta moyenne générale"
+  },
+  "profile": {
+    "cardTitle": "🧬 Profil ADN",
+    "notReady_one": "Encore {{count}} match classé avant de pouvoir générer ton profil de joueur.",
+    "notReady_other": "Encore {{count}} matchs classés avant de pouvoir générer ton profil de joueur.",
+    "scores": {
+      "aggression": "Agressivité",
+      "stability": "Stabilité mentale",
+      "versatility": "Polyvalence",
+      "clutch": "Clutch factor"
+    },
+    "basedOn": "Basé sur {{matches}} matchs classés — {{agents}} agent(s) différents, {{firstBloods}} premier(s) sang, {{clutches}} situation(s) de clutch.",
+    "archetypes": {
+      "duelistImpulsive": {
+        "title": "Duelist impulsif",
+        "text": "Tu prends l'initiative en premier sur la plupart des rounds, mais les mauvaises passes te font vite décrocher. Un vrai moteur d'agression, à condition de savoir freiner après une série de défaites."
+      },
+      "clutchFragger": {
+        "title": "Fragger clutch",
+        "text": "Tu ouvres les rounds et tu fermes les situations serrées : une combinaison rare d'agressivité et de sang-froid en fin de round."
+      },
+      "entryFragger": {
+        "title": "Entry fragger",
+        "text": "Tu es souvent le premier au contact, que ce soit pour ouvrir l'espace de ton équipe ou tomber en premier. Un rôle exigeant qui pèse beaucoup sur le début de round."
+      },
+      "versatileTactician": {
+        "title": "Tacticien polyvalent",
+        "text": "Tu passes d'un agent à l'autre sans perdre en régularité, et tu encaisses les mauvaises séries sans t'effondrer. Le profil flexible d'un joueur qui s'adapte à l'équipe."
+      },
+      "inconsistentPlayer": {
+        "title": "Joueur en dents de scie",
+        "text": "Tes séries de défaites ont tendance à s'enchaîner et à peser sur ta perf. Le module Tilt peut t'aider à repérer le bon moment pour souffler."
+      },
+      "closer": {
+        "title": "Closeur",
+        "text": "Tu ne domines peut-être pas le début de round, mais tu es clutch : tu convertis un nombre de situations à 1 contre plusieurs au-dessus de la moyenne."
+      },
+      "specialist": {
+        "title": "Spécialiste",
+        "text": "Tu restes fidèle à un petit noyau d'agents plutôt que de tourner. Une expertise ciblée, au prix d'un peu de flexibilité en cas de besoin de switch."
+      },
+      "balancedPlayer": {
+        "title": "Joueur équilibré",
+        "text": "Rien ne ressort fortement dans un sens ou l'autre pour l'instant — un profil stable, sans excès ni faiblesse marquée sur les axes suivis."
+      }
+    }
+  },
+  "goals": {
+    "widgetTitle": "Objectifs personnels",
+    "panelTitle": "🎯 Objectifs",
+    "noActiveGoals": "Aucun objectif actif — ajoute une suggestion ci-dessous.",
+    "markReached": "✓ Marquer atteint",
+    "delete": "✕ Supprimer",
+    "doneCount_one": "{{count}} objectif terminé",
+    "doneCount_other": "{{count}} objectifs terminés",
+    "suggestionsTitle": "✨ Suggestions basées sur tes stats",
+    "suggestionDetail": " — actuellement {{baseline}}, viser {{target}}",
+    "addSuggestion": "+ Ajouter",
+    "customPlaceholder": "Ex : Améliorer mon positionnement en défense",
+    "cancel": "Annuler",
+    "add": "Ajouter",
+    "addCustomGoal": "+ Objectif libre (texte)",
+    "suggestion": {
+      "hsPercent": "Précision tête (global)",
+      "winrate": "Winrate global",
+      "kd": "K/D global",
+      "mapWinrate": "Winrate sur {{map}}",
+      "agentWinrate": "Winrate avec {{agent}}"
+    }
+  },
+  "weekly": {
+    "widgetTitle": "Ta semaine",
+    "notchLabel": "SEMAINE",
+    "title": "SEMAINE DERNIÈRE",
+    "noMatches": "Aucun match la semaine dernière — le wrapped se remplira à partir de lundi prochain.",
+    "gamesPlayed": "parties jouées",
+    "winrate": "Winrate",
+    "kdAverage": "K/D moyen",
+    "hsPrecision": "Précision tête",
+    "mostPlayed": "🎮 Le plus joué : {{agent}} ({{count}} parties)",
+    "bestMap": "🗺️ Meilleure map : {{map}} ({{percent}}% winrate)",
+    "bestKd": "🔥 Meilleur K/D : {{kd}}",
+    "exportBtn": "📷 Exporter en image",
+    "exporting": "Export en cours...",
+    "narrativeTitle": "📖 Ton récit de la semaine",
+    "hint": "📅 Chaque lundi, ce wrapped se remet à zéro et récapitule les 7 jours précédents — reviens ici en début de semaine pour voir ton résumé et le partager si tu veux.",
+    "previousWeeks": "Semaines précédentes",
+    "weekOf": "Semaine du {{date}}",
+    "narrative": {
+      "gamesThisWeek_one": "{{count}} match cette semaine",
+      "gamesThisWeek_other": "{{count}} matchs cette semaine",
+      "overviewNoWinrate": "{{gamesText}}, sans assez de rounds décisifs pour dégager un vrai winrate — une semaine surtout faite de découverte ou de modes annexes.",
+      "overviewGreat": "Grosse semaine : {{gamesText}}, avec {{winrate}}% de victoires. Ce genre de série ne tombe pas du ciel, profites-en.",
+      "overviewBalanced": "Semaine équilibrée : {{gamesText}}, {{winrate}}% de victoires. Ni une remontée fulgurante ni une dégringolade, du solide.",
+      "overviewHard": "Semaine plus compliquée : {{gamesText}}, seulement {{winrate}}% de victoires. Ça arrive, l'important est de repartir sur de bonnes bases.",
+      "mostPlayedAgent": "Tu as surtout tourné sur {{agent}} ({{count}} parties)",
+      "bestMapText": "ta meilleure map a été {{map}} avec {{percent}}% de winrate",
+      "worstMapText": "{{map}} a été plus difficile ({{percent}}%)",
+      "bestKdText": "avec un pic à {{kd}} de K/D sur ton meilleur match",
+      "rankFirstSnapshot": "Côté classement, tu es actuellement {{current}} — premier snapshot enregistré, on pourra comparer la semaine prochaine.",
+      "rankUnchanged": "Ton rang n'a pas bougé cette semaine : toujours {{current}}.",
+      "rankUp": "Tu progresses : de {{previous}} à {{current}}.",
+      "rankDown": "Petit recul cette semaine : de {{previous}} à {{current}}. Rien d'irréversible."
+    }
+  },
+  "postmortem": {
+    "promptTitle": "🪞 Double check post-match",
+    "promptSubtitle": "{{map}} — avant de voir tes vraies stats, réponds vite fait à ces 3 questions.",
+    "later": "Plus tard",
+    "seeResult": "Voir le résultat",
+    "resultTitle": "🪞 Perception vs réalité",
+    "resultHeading": "{{icon}} {{question}} — tu as répondu \"{{answer}}\"",
+    "close": "Fermer",
+    "questions": {
+      "overall": "Tu penses avoir bien joué ce match ?",
+      "duels": "Tu penses avoir gagné tes duels ?",
+      "aim": "Tu penses avoir eu une bonne précision (tête) ?"
+    },
+    "answers": {
+      "yes": "Oui",
+      "average": "Moyen",
+      "no": "Non"
+    },
+    "comparison": {
+      "notEnoughData": "Pas assez de données pour comparer sur cette question.",
+      "overall": "K/D de ce match : {{matchKd}} — ta moyenne générale est de {{overallKd}}.",
+      "duels": "{{kills}} kills pour {{deaths}} morts ce match.",
+      "aim": "Précision tête ce match : {{hsPercent}} — ta moyenne est de {{overallHs}}."
+    }
+  },
+  "welcome": {
+    "tagline": "Cherche un joueur — toi-même ou n'importe qui d'autre. Ça ne change rien à ton compte, c'est juste pour consulter un tracker.",
+    "apiKeyHelp": "La clé API sert à récupérer tes matchs depuis HenrikDev (le service que l'appli utilise pour parler à Valorant) — c'est gratuit. Marche à suivre :",
+    "apiKeyStep1": "Clique sur le bouton ci-dessous — ça ouvre le site HenrikDev dans ton navigateur.",
+    "apiKeyStep2": "Connecte-toi (avec ton compte Discord si demandé), puis va dans « API Keys » dans le menu de gauche.",
+    "apiKeyStep3": "Clique sur « Generate New Key » et choisis le type « Basic » — c'est celui qui est gratuit.",
+    "apiKeyStep4": "Copie le long code généré, reviens ici, et colle-le dans le champ « Clé API HenrikDev » ci-dessus.",
+    "getApiKey": "🔑 Obtenir ma clé API HenrikDev"
+  },
+  "accountGreeting": {
+    "title": "Content de te revoir",
+    "tagline": "Ton compte est lié à ce profil Valorant :",
+    "enter": "👉 Voir mon compte",
+    "searchOther": "🔍 Chercher un autre joueur"
+  },
+  "linkRiot": {
+    "title": "Lier ton compte Riot",
+    "tagline": "Dernière étape avant de commencer.",
+    "disclaimerWarning": "Utilise ton PROPRE pseudo Riot ici.",
+    "disclaimerPrefix": "Cette recherche va lier",
+    "disclaimerDefinitively": "définitivement",
+    "disclaimerMiddle": "ce compte Valorant à ton compte MVP Tracker — c'est lui qui déterminera tes objectifs, ton Hall of Fame, ta collection de skins, etc. Ce n'est",
+    "disclaimerNot": "pas",
+    "disclaimerSuffix": "l'endroit pour consulter le tracker de quelqu'un d'autre — ça, tu pourras le faire librement une fois connecté, sans que ça touche à ton compte.",
+    "usernamePlaceholder": "Pseudo",
+    "tagPlaceholder": "Tag",
+    "apiKeyPlaceholder": "Clé API HenrikDev",
+    "searching": "Recherche...",
+    "search": "🔍 Rechercher",
+    "confirmTagline": "C'est bien toi ?",
+    "confirmYes": "✅ Oui, c'est moi — lier ce compte",
+    "confirmNo": "↺ Non, recommencer",
+    "alreadyLinkedError": "Ce compte Riot est déjà lié à un autre compte MVP Tracker — chaque Riot ID ne peut être lié qu'à un seul compte à la fois.",
+    "genericLinkError": "La liaison a échoué. Réessaie dans un instant."
+  },
+  "auth": {
+    "titles": {
+      "signin": "Connecte-toi à ton compte.",
+      "signup": "Crée ton compte pour commencer.",
+      "forgot": "Réinitialise ton mot de passe.",
+      "reset": "Entre le code reçu par mail et ton nouveau mot de passe."
+    },
+    "signupSuccess": "Compte créé — vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.",
+    "resetEmailSent": "Email envoyé — clique le lien qu'il contient (sur ce PC), ou tape le code ci-dessous.",
+    "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
+    "emailPlaceholder": "Email",
+    "passwordPlaceholder": "Mot de passe",
+    "loading": "Chargement...",
+    "createAccount": "Créer mon compte",
+    "signIn": "Se connecter",
+    "sending": "Envoi...",
+    "sendCode": "Envoyer le code / lien",
+    "codePlaceholder": "Code reçu par mail",
+    "newPasswordPlaceholder": "Nouveau mot de passe",
+    "confirmPasswordPlaceholder": "Confirme le mot de passe",
+    "validating": "Validation...",
+    "resetPassword": "Réinitialiser le mot de passe",
+    "forgotPassword": "Mot de passe oublié ?",
+    "backToSignin": "← Retour à la connexion",
+    "alreadyHaveAccount": "Déjà un compte ? Se connecter",
+    "noAccountYet": "Pas encore de compte ? S'inscrire"
+  },
+  "setNewPassword": {
+    "tagline": "Choisis ton nouveau mot de passe.",
+    "validate": "Valider le nouveau mot de passe"
+  },
+  "account": {
+    "changePhoto": "Changer la photo",
+    "clickToEdit": "Cliquer pour modifier",
+    "riotIdLinked": "Riot ID lié : {{name}}#{{tag}}",
+    "memberSince": " · Membre depuis le {{date}}",
+    "rankedTracked": "Matchs classés trackés",
+    "globalWinrate": "Winrate global",
+    "globalKd": "K/D global",
+    "playerProfileTitle": "🎭 Profil de joueur",
+    "playerProfileHint": "Choisis toi-même ton rôle et ton agent fétiche — ça n'a pas besoin de coller à tes stats.",
+    "yourRole": "Ton rôle",
+    "yourFavoriteAgent": "Ton agent fétiche",
+    "chooseAgent": "Choisir un agent...",
+    "changeAgent": "✏️ Changer",
+    "suggestionPrefix_one": "💡 D'après ta {{count}} partie trackée, tu joues surtout",
+    "suggestionPrefix_other": "💡 D'après tes {{count}} parties trackées, tu joues surtout",
+    "suggestionGamesCount_one": "({{count}} partie)",
+    "suggestionGamesCount_other": "({{count}} parties)",
+    "suggestionJoin": " sur ",
+    "realRoleDistribution": "Répartition réelle de tes rôles joués",
+    "settingsTitle": "⚙️ Compte",
+    "settingsHint": "Connecté avec ton compte MVP Tracker — ton Riot ID lié reste indépendant de ce compte.",
+    "emailLabel": "Adresse mail",
+    "signOut": "🚪 Se déconnecter",
+    "choosePhoto": "🖼️ Choisir une photo de profil",
+    "chooseFavoriteAgent": "🎯 Choisir ton agent fétiche"
+  },
+  "heatmap": {
+    "title": "🔥 Heatmap",
+    "description": "Visualise où tu meurs (ou tues) le plus souvent sur chaque map, à partir de tous tes matchs en cache.",
+    "modes": {
+      "deaths": "💀 Où je meurs",
+      "kills": "🔫 Où je kill"
+    },
+    "sides": {
+      "all": "Tous les côtés",
+      "attack": "⚔️ Attaque",
+      "defense": "🛡️ Défense"
+    },
+    "allWeapons": "Toutes les armes",
+    "pointsAnalyzed_one": "📍 {{count}} point analysé",
+    "pointsAnalyzed_other": "📍 {{count}} points analysés",
+    "legendLow": "faible",
+    "legendHigh": "élevé",
+    "periods": {
+      "morning": "Matin",
+      "afternoon": "Après-midi",
+      "evening": "Soir",
+      "night": "Nuit"
+    },
+    "grid": {
+      "gamesCount_one": "{{count}} partie",
+      "gamesCount_other": "{{count}} parties",
+      "winrateSuffix": " — {{percent}}% winrate",
+      "peakSuffix": " — ton meilleur créneau",
+      "noData": "Aucune donnée"
+    }
+  },
+  "analyse": {
+    "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",
+    "timingTitle_one": "⏱️ Timing des morts ({{count}} mort analysée)",
+    "timingTitle_other": "⏱️ Timing des morts ({{count}} morts analysées)",
+    "noDataYet": "Pas encore de données.",
+    "deathsCount_one": "{{count}} mort",
+    "deathsCount_other": "{{count}} morts",
+    "timingHint": "Beaucoup de morts en entrée (0-20s) = tu prends l'initiative tôt (parfois trop). Beaucoup en fin de round = tu tiens tes positions mais te fais peut-être surprendre en fin de temps.",
+    "distanceTitle": "📏 Duels par distance",
+    "notEnoughData": "Pas encore assez de données.",
+    "avgKillDistance": "Distance moyenne de tes kills",
+    "avgDeathDistance": "Distance moyenne de tes morts",
+    "winrateGap": "Écart winrate courte → longue distance",
+    "killsDeathsMeta": "{{kills}} kill(s) / {{deaths}} mort(s)",
+    "distanceHint": "Riot n'expose pas les tirs manqués, donc impossible de calculer une vraie précision de tir. Ce qui est affiché ici est le taux de victoire en duel (tes kills vs tes morts) selon la distance qui te séparait de l'adversaire au moment du kill — le meilleur indicateur disponible pour voir si ton aim tient à distance. Distance approximative (basée sur les unités du moteur du jeu, ≈ 1 unité = 1 cm).",
+    "clutchTitle": "🎯 Clutchs",
+    "noClutch": "Aucune situation de clutch détectée pour l'instant.",
+    "clutchWinrate": "Winrate en clutch",
+    "attempts": "Tentatives",
+    "wins": "Gagnés",
+    "clutchHint": "Un clutch = tu es le dernier vivant de ton équipe alors qu'au moins un adversaire est encore en vie.",
+    "economyTitle": "💰 Impact de l'économie",
+    "roundsMeta_one": "{{count}} round",
+    "roundsMeta_other": "{{count}} rounds",
+    "timingBuckets": {
+      "early": "Entrée (0-20s)",
+      "mid": "Milieu de round (20-60s)",
+      "late": "Fin de round (60s+)"
+    },
+    "distanceBuckets": {
+      "close": "Courte (< 8m)",
+      "mid": "Moyenne (8-20m)",
+      "long": "Longue (20-35m)",
+      "verylong": "Très longue (35m+)"
+    }
+  }
+}

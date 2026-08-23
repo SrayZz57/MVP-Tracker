@@ -34,7 +34,7 @@
 html {
   scroll-behavior: smooth;
   /* La barre de nav collante ne doit pas masquer les ancres. */
-  scroll-padding-top: 90px;
+  scroll-padding-top: 120px;
 }
 
 body {
@@ -134,25 +134,42 @@ img { max-width: 100%; display: block; }
   border-bottom-color: var(--border);
 }
 
+.nav .container {
+  /* Pousse logo et bouton près du bord gauche, et laisse un peu plus de
+     vide à droite — décale tout le contenu de la barre vers la gauche. */
+  padding-left: 0.5rem;
+  padding-right: clamp(4rem, 10vw, 12rem);
+}
+
+/* Flex + space-between avec exactement 3 enfants (brand, links, actions) :
+   ça garantit un écart identique de chaque côté des onglets, peu importe
+   que le logo et le bouton n'aient pas la même largeur — contrairement à
+   une grille à colonnes égales, qui centre la colonne mais pas l'espace
+   visuel entre les éléments. */
 .nav-inner {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 1.5rem;
-  height: 74px;
+  height: 104px;
+}
+
+.nav-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
 .nav-brand {
   display: flex;
   align-items: center;
-  gap: 0.7rem;
+  gap: 0.3rem;
   font-family: 'Chakra Petch', sans-serif;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 2.1rem;
   letter-spacing: 0.02em;
 }
 
-.nav-brand img { width: 34px; height: 34px; object-fit: contain; }
+.nav-brand img { width: 72px; height: 72px; object-fit: contain; }
 
 .nav-links {
   display: flex;
@@ -357,6 +374,44 @@ section { position: relative; padding: 7rem 0; }
 
 .hero-inner { position: relative; z-index: 2; text-align: center; }
 
+/* Grand logo + wordmark : le vrai moment de marque en haut de la page. */
+.hero-brand {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1.1rem;
+  margin-bottom: 2.2rem;
+  opacity: 0;
+  animation: brand-in 0.9s var(--ease) 0.1s forwards;
+}
+
+@keyframes brand-in {
+  from { opacity: 0; transform: translateY(-14px) scale(0.94); }
+  to   { opacity: 1; transform: none; }
+}
+
+.hero-logo-big {
+  width: clamp(180px, 22vw, 260px);
+  height: clamp(180px, 22vw, 260px);
+  object-fit: contain;
+  filter: drop-shadow(0 0 60px rgba(255, 70, 85, 0.5));
+  animation: logo-breathe 5s ease-in-out infinite;
+}
+
+@keyframes logo-breathe {
+  0%, 100% { transform: scale(1); filter: drop-shadow(0 0 60px rgba(255, 70, 85, 0.5)); }
+  50%      { transform: scale(1.035); filter: drop-shadow(0 0 80px rgba(255, 70, 85, 0.65)); }
+}
+
+.hero-wordmark {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: clamp(1.6rem, 3.2vw, 2.3rem);
+  letter-spacing: 0.28em;
+  color: var(--text);
+  text-transform: uppercase;
+}
+
 .hero h1 {
   font-size: clamp(2.5rem, 7vw, 5.2rem);
   margin-bottom: 1.5rem;
@@ -425,6 +480,63 @@ section { position: relative; padding: 7rem 0; }
 @media (max-width: 1100px) { .hero-agent { opacity: 0.22; height: 60vh; } }
 @media (max-width: 760px)  { .hero-agent { display: none; } }
 
+/* --- Mini-cartes flottantes dans le hero ----------------------------------
+   Comblent le vide au-dessus du titre et rappellent le contenu réel de
+   l'app sans y mettre une vraie capture (trop lourd visuellement ici). */
+.hero-chips {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.hero-chip {
+  position: absolute;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.75rem 1.1rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-bright);
+  background: rgba(20, 24, 33, 0.65);
+  backdrop-filter: blur(14px);
+  box-shadow: 0 20px 45px -20px rgba(0, 0, 0, 0.85);
+  animation: chip-float 7s ease-in-out infinite;
+  pointer-events: auto;
+}
+
+.hero-chip-icon {
+  width: 34px; height: 34px;
+  flex-shrink: 0;
+  display: grid;
+  place-items: center;
+  font-size: 1.05rem;
+  border-radius: 10px;
+  background: rgba(255, 70, 85, 0.12);
+  border: 1px solid rgba(255, 70, 85, 0.25);
+}
+
+.hero-chip div { display: flex; flex-direction: column; gap: 0.1rem; }
+.hero-chip strong { font-size: 0.82rem; font-weight: 600; white-space: nowrap; }
+.hero-chip span { font-size: 0.72rem; color: var(--text-faint); white-space: nowrap; }
+
+.chip-1 { top: 17%;  left: 7%;  animation-delay: 0s; }
+.chip-2 { top: 13%;  right: 8%; animation-delay: -2.4s; }
+.chip-3 { top: 40%;  right: 3%; animation-delay: -4.8s; }
+
+@keyframes chip-float {
+  0%, 100% { transform: translateY(0); }
+  50%      { transform: translateY(-12px); }
+}
+
+@media (max-width: 1150px) {
+  .chip-3 { display: none; }
+}
+
+@media (max-width: 860px) {
+  .hero-chips { display: none; }
+}
+
 /* Indicateur "défile" en bas du hero. */
 .scroll-hint {
   position: absolute;
@@ -470,8 +582,6 @@ section { position: relative; padding: 7rem 0; }
   animation: marquee 32s linear infinite;
   will-change: transform;
 }
-
-.marquee:hover .marquee-track { animation-play-state: paused; }
 
 .marquee-item {
   display: inline-flex;
@@ -683,7 +793,9 @@ section { position: relative; padding: 7rem 0; }
   transition: opacity 0.5s var(--ease), transform 0.6s var(--ease);
 }
 
-.stage-frame.active { opacity: 1; transform: scale(1); }
+/* scale(1.02), pas 1 — grignote un tout petit bord de l'image pour masquer
+   un éventuel liseré clair sur le pourtour de la capture d'origine. */
+.stage-frame.active { opacity: 1; transform: scale(1.025); }
 .stage-frame img { width: 100%; height: 100%; object-fit: cover; object-position: top left; }
 
 .showcase-caption {
@@ -718,6 +830,10 @@ section { position: relative; padding: 7rem 0; }
   box-shadow: 0 30px 70px -35px rgba(0, 0, 0, 1);
   transform-style: preserve-3d;
 }
+
+/* Léger zoom pour grignoter un éventuel liseré clair au bord des captures
+   d'app — le conteneur (overflow: hidden) masque le dépassement. */
+.split-media img { transform: scale(1.025); }
 
 .check-list { list-style: none; display: flex; flex-direction: column; gap: 0.7rem; }
 
@@ -906,6 +1022,60 @@ footer {
 
 .page-head h1 { font-size: clamp(2.2rem, 5vw, 3.6rem); margin-bottom: 1rem; }
 .page-head p  { color: var(--text-dim); max-width: 620px; margin: 0 auto; }
+
+/* Rangée de pastilles sous le paragraphe d'intro — ancrages rapides ou
+   petits repères de confiance selon la page, pour occuper l'espace avec du
+   contenu utile plutôt qu'un vide décoratif. */
+.page-head-pills {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 0.6rem;
+  margin-top: 2rem;
+}
+
+.page-head-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: var(--text-dim);
+  padding: 0.5rem 1rem;
+  border-radius: 999px;
+  border: 1px solid var(--border-bright);
+  background: rgba(255, 255, 255, 0.03);
+  transition: border-color 0.2s var(--ease), color 0.2s var(--ease), transform 0.2s var(--ease);
+}
+
+a.page-head-pill:hover {
+  border-color: var(--accent);
+  color: var(--text);
+  transform: translateY(-2px);
+}
+
+/* Petite rangée de compteurs, utilisée sur la roadmap. */
+.page-head-stats {
+  display: flex;
+  justify-content: center;
+  gap: clamp(1.5rem, 5vw, 3.5rem);
+  margin-top: 2.4rem;
+  flex-wrap: wrap;
+}
+
+.page-head-stat { text-align: center; }
+
+.page-head-stat strong {
+  display: block;
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 1.8rem;
+  font-weight: 700;
+}
+
+.page-head-stat span { font-size: 0.76rem; color: var(--text-faint); }
+
+/* Deuxième agent, en miroir du premier, pour équilibrer les en-têtes. */
+.page-head .hero-agent { top: 0; bottom: auto; height: 100%; opacity: 0.16; }
 
 /* --- Divers -------------------------------------------------------------- */
 .faq-item {

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { PERIODS } from '../performanceCharts.js';
+import { dayLabelKey } from '../valorantStats.js';
 
 function sequentialColor(value) {
   const alpha = 0.18 + (Math.min(100, Math.max(0, value)) / 100) * 0.72;
@@ -9,6 +11,7 @@ function sequentialColor(value) {
 const MIN_GAMES_FOR_PEAK = 3;
 
 function HeatmapGrid({ grid }) {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -36,16 +39,22 @@ function HeatmapGrid({ grid }) {
         <span className="heatmap-grid-row-label" />
         {PERIODS.map((p) => (
           <span key={p.id} className="heatmap-grid-col-label">
-            {p.icon} {p.label}
+            {p.icon} {t(`heatmap.periods.${p.id}`)}
           </span>
         ))}
       </div>
       {grid.map((row, rowIndex) => (
         <div key={row.day} className="heatmap-grid-row">
-          <span className="heatmap-grid-row-label">{row.day}</span>
+          <span className="heatmap-grid-row-label">{t(dayLabelKey(row.day))}</span>
           {row.periods.map((cell, colIndex) => {
             const delay = (rowIndex * PERIODS.length + colIndex) * 22;
             const isPeak = `${row.day}-${cell.id}` === peakId;
+            const tooltip =
+              cell.games > 0
+                ? t('heatmap.grid.gamesCount', { count: cell.games }) +
+                  t('heatmap.grid.winrateSuffix', { percent: cell.winrate.toFixed(0) }) +
+                  (isPeak ? t('heatmap.grid.peakSuffix') : '')
+                : t('heatmap.grid.noData');
             return (
               <div
                 key={cell.id}
@@ -56,7 +65,7 @@ function HeatmapGrid({ grid }) {
                   transform: mounted ? 'scale(1)' : 'scale(0.8)',
                   transitionDelay: `${delay}ms`,
                 }}
-                title={cell.games > 0 ? `${cell.games} partie(s) — ${cell.winrate.toFixed(0)}% winrate${isPeak ? ' — ton meilleur créneau' : ''}` : 'Aucune donnée'}
+                title={tooltip}
               >
                 {isPeak && <span className="heatmap-grid-cell-star">★</span>}
                 {cell.winrate !== null ? `${cell.winrate.toFixed(0)}%` : '–'}

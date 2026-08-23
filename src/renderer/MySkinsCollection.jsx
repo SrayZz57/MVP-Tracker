@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
@@ -8,6 +9,7 @@ import CountUp from './CountUp.jsx';
 // dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
 // donnée intrinsèquement personnelle (pas liée au joueur qu'on suit).
 function MySkinsCollection() {
+  const { t } = useTranslation();
   const catalog = useSkinsCatalog();
   const [collection, setCollection] = useState([]);
   const [wishlist, setWishlist] = useState([]);
@@ -64,14 +66,14 @@ function MySkinsCollection() {
               </div>
             </div>
           </div>
-          <div className="label">Valeur totale de ta collection ({collectionSkins.length} skins possédés)</div>
+          <div className="label">{t('skins.totalValue', { count: collectionSkins.length })}</div>
         </div>
       </div>
 
       <div className="card">
-        <h3>💎 Ma collection</h3>
+        <h3>{t('skins.myCollectionTitle')}</h3>
         {collectionSkins.length === 0 ? (
-          <p>Aucun skin marqué comme possédé pour l'instant — ajoutes-en depuis le catalogue (onglet Skins).</p>
+          <p>{t('skins.emptyCollection')}</p>
         ) : (
           <div className="skin-grid">
             {collectionSkins.map((skin) => (
@@ -94,7 +96,7 @@ function MySkinsCollection() {
                   />
                   <span className="label">VP</span>
                 </div>
-                <button onClick={() => handleToggleCollection(skin)}>Retirer de ma collection</button>
+                <button onClick={() => handleToggleCollection(skin)}>{t('skins.removeFromCollection')}</button>
               </div>
             ))}
           </div>

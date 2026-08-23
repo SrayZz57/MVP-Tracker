@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { POST_MORTEM_QUESTIONS, ANSWER_LEVELS, computeActualAnswers, gradeAnswers, buildComparisonText } from './postMortem.js';
 
 function todayKey() {
@@ -7,6 +8,7 @@ function todayKey() {
 }
 
 function PostMortemModal({ settings, matches }) {
+  const { t } = useTranslation();
   const latestMatch = matches[0] ?? null;
   const matchId = latestMatch?.metadata?.matchid ?? null;
 
@@ -48,12 +50,17 @@ function PostMortemModal({ settings, matches }) {
   async function handleSubmit() {
     const actual = computeActualAnswers(latestMatch, matches, settings.name, settings.tag);
     const results = gradeAnswers(answers, actual ?? {});
-    await window.electronAPI.saveMatchAssessment(
-      matchId,
-      todayKey(),
-      latestMatch.metadata?.map ?? null,
-      JSON.stringify(results),
-    );
+    try {
+      await window.electronAPI.saveMatchAssessment(
+        matchId,
+        todayKey(),
+        latestMatch.metadata?.map ?? null,
+        JSON.stringify(results),
+      );
+    } catch (err) {
+      console.error('[postmortem] échec de l\'enregistrement :', err.message);
+      return;
+    }
     setGraded(results);
     setStatus('answered');
   }
@@ -63,14 +70,13 @@ function PostMortemModal({ settings, matches }) {
       <div className="postmortem-modal card">
         {status === 'prompting' ? (
           <>
-            <h3>🪞 Double check post-match</h3>
+            <h3>{t('postmortem.promptTitle')}</h3>
             <p className="label">
-              {latestMatch.metadata?.map ?? '?'} — avant de voir tes vraies stats, réponds vite fait à ces 3
-              questions.
+              {t('postmortem.promptSubtitle', { map: latestMatch.metadata?.map ?? '?' })}
             </p>
             {POST_MORTEM_QUESTIONS.map((q) => (
               <div key={q.id} className="postmortem-question">
-                <p>{q.text}</p>
+                <p>{t(q.textKey)}</p>
                 <div className="postmortem-answers">
                   {ANSWER_LEVELS.map((level) => (
                     <button
@@ -78,37 +84,40 @@ function PostMortemModal({ settings, matches }) {
                       className={answers[q.id] === level.id ? 'strategy-tool active' : 'strategy-tool'}
                       onClick={() => selectAnswer(q.id, level.id)}
                     >
-                      {level.label}
+                      {t(level.labelKey)}
                     </button>
                   ))}
                 </div>
               </div>
             ))}
             <div className="postmortem-actions">
-              <button onClick={handleDismiss}>Plus tard</button>
+              <button onClick={handleDismiss}>{t('postmortem.later')}</button>
               <button className="refresh" onClick={handleSubmit} disabled={!allAnswered}>
-                Voir le résultat
+                {t('postmortem.seeResult')}
               </button>
             </div>
           </>
         ) : (
           <>
-            <h3>🪞 Perception vs réalité</h3>
+            <h3>{t('postmortem.resultTitle')}</h3>
             {graded.map((r) => (
               <div
                 key={r.id}
                 className={`postmortem-result ${r.correct === null ? '' : r.correct ? 'correct' : 'incorrect'}`}
               >
                 <div className="postmortem-result-title">
-                  {r.correct === null ? 'ℹ️' : r.correct ? '✅' : '❌'} {r.question} — tu as répondu "
-                  {ANSWER_LEVELS.find((l) => l.id === r.userAnswer)?.label}"
+                  {t('postmortem.resultHeading', {
+                    icon: r.correct === null ? 'ℹ️' : r.correct ? '✅' : '❌',
+                    question: t(r.textKey),
+                    answer: t(ANSWER_LEVELS.find((l) => l.id === r.userAnswer)?.labelKey),
+                  })}
                 </div>
-                <p className="label">{buildComparisonText(r)}</p>
+                <p className="label">{buildComparisonText(t, r)}</p>
               </div>
             ))}
             <div className="postmortem-actions">
               <button className="refresh" onClick={handleDismiss}>
-                Fermer
+                {t('postmortem.close')}
               </button>
             </div>
           </>

@@ -1,13 +1,51 @@
 :root {
-  --bg: #0f1115;
-  --surface: #1b1e25;
-  --surface-alt: #23262f;
-  --border: #2c303a;
-  --text: #e6e6ea;
-  --text-muted: #9a9ea8;
+  /* Surfaces — échelle plus profonde et plus contrastée qu'avant, pour que
+     les niveaux se lisent comme des matières empilées et non comme des
+     rectangles à bordure. */
+  --bg: #0a0c11;
+  --bg-deep: #06070a;
+  --surface: #161922;
+  --surface-alt: #1e222c;
+  --surface-hi: #272c38;
+  --border: #252a35;
+  --border-strong: #343a48;
+
+  --text: #edeef2;
+  --text-muted: #8b909d;
+  --text-dim: #5f6572;
+
   --accent: #ff4655;
-  --accent-hover: #ff5c6a;
+  --accent-hover: #ff6472;
+  --accent-deep: #d81f31;
+  --accent-soft: rgba(255, 70, 85, 0.13);
+  --accent-glow: rgba(255, 70, 85, 0.45);
+
+  --good: #3ddc84;
   --warning: #ffb84d;
+
+  --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
+  --font-body: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+
+  /* Élévation à deux couches : une ombre de contact courte et dense + une
+     ombre ambiante large et diffuse. Une seule ombre floue donne toujours cet
+     aspect "carte web" plat ; deux couches imitent une vraie source de lumière. */
+  --elev-1: 0 1px 2px rgba(0, 0, 0, 0.5), 0 3px 10px rgba(0, 0, 0, 0.28);
+  --elev-2: 0 2px 4px rgba(0, 0, 0, 0.55), 0 10px 30px rgba(0, 0, 0, 0.38);
+  --elev-3: 0 4px 8px rgba(0, 0, 0, 0.6), 0 24px 60px rgba(0, 0, 0, 0.5);
+
+  /* Liseré clair sur l'arête haute : simule la lumière qui accroche le bord
+     d'une surface physique. C'est ce détail qui sépare une UI sombre premium
+     d'une UI sombre plate. */
+  --edge-light: inset 0 1px 0 rgba(255, 255, 255, 0.055);
+  --edge-light-strong: inset 0 1px 0 rgba(255, 255, 255, 0.09);
+
+  --r-sm: 8px;
+  --r-md: 12px;
+  --r-lg: 16px;
+  --r-xl: 20px;
+
+  --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
 }
 
 * {
@@ -15,44 +53,149 @@
 }
 
 body {
-  font-family:
-    -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial,
-    sans-serif;
+  font-family: var(--font-body);
   margin: 0;
-  background: radial-gradient(circle at top, #171a21, var(--bg) 55%);
+  background: var(--bg);
   color: var(--text);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Atmosphère ambiante : deux halos colorés qui dérivent très lentement.
+   Fixé derrière tout le reste, ça donne à l'app une présence "vivante" au
+   lieu d'un aplat statique — sans jamais distraire puisque le mouvement est
+   trop lent pour être suivi consciemment. */
+body::before {
+  content: '';
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(38% 42% at 18% 8%, rgba(255, 70, 85, 0.13), transparent 68%),
+    radial-gradient(34% 38% at 88% 82%, rgba(90, 120, 255, 0.09), transparent 70%),
+    radial-gradient(50% 50% at 50% 0%, rgba(255, 255, 255, 0.028), transparent 72%);
+  animation: aurora-drift 46s var(--ease-in-out) infinite alternate;
+}
+
+@keyframes aurora-drift {
+  from {
+    transform: translate3d(0, 0, 0) scale(1);
+  }
+  to {
+    transform: translate3d(2.5%, -2%, 0) scale(1.09);
+  }
+}
+
+/* Grain fin sur toute la surface : casse le banding des dégradés sombres et
+   donne une texture de matière plutôt qu'un aplat numérique. */
+body::after {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  pointer-events: none;
+  opacity: 0.035;
+  background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+
+@media (prefers-reduced-motion: reduce) {
+  body::before {
+    animation: none;
+  }
+}
+
+/* Tous les chiffres de stats en chasse fixe : sans ça, chaque rafraîchissement
+   fait "sauter" les valeurs en largeur puisque les glyphes n'ont pas la même
+   avance. Indispensable sur un tracker où les nombres se mettent à jour. */
+.stat-tile .value,
+.kpi-tile-value,
+.account-tile-value,
+.comp-score-value,
+.trophy-value,
+.stat-bar-value,
+.weapon-bar-count,
+.heatmap-grid-cell,
+table td {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: 'tnum' 1;
 }
 
 ::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+  width: 11px;
+  height: 11px;
 }
 
 ::-webkit-scrollbar-track {
-  background: var(--bg);
+  background: transparent;
 }
 
+/* Barre de défilement discrète, détachée du bord par une bordure transparente
+   (technique du padding via background-clip) — elle se lit comme un élément
+   flottant et non comme une gouttière collée au bord de la fenêtre. */
 ::-webkit-scrollbar-thumb {
-  background: var(--border);
-  border-radius: 6px;
+  background: #333a48;
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+  transition: background 0.2s ease;
 }
 
 ::-webkit-scrollbar-thumb:hover {
   background: var(--accent);
+  background-clip: content-box;
+}
+
+::selection {
+  background: rgba(255, 70, 85, 0.32);
+  color: #fff;
 }
 
 h1,
 h2,
-h3 {
+h3,
+h4 {
   margin: 0 0 0.5rem;
+  font-family: var(--font-display);
   font-weight: 600;
+  letter-spacing: -0.005em;
 }
 
+h1 {
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+/* `.label` sert de texte secondaire (aides, précisions, légendes) dans toute
+   l'app, mais n'avait jusqu'ici aucun style global : ces phrases s'affichaient
+   au même poids visuel que le contenu principal. Les subordonner rétablit une
+   hiérarchie de lecture sur tous les écrans d'un coup. Les contextes qui ont
+   déjà leur propre `.label` (tuiles de stats, jauges…) restent prioritaires. */
+.label {
+  color: var(--text-muted);
+  font-size: 0.85rem;
+  line-height: 1.55;
+}
+
+/* Titre de carte : le filet de séparation part de l'accent et se dissout,
+   au lieu d'une bordure grise uniforme d'un bord à l'autre. Donne une
+   direction de lecture au lieu d'un simple trait. */
 .card > h3:first-child {
-  padding-bottom: 0.6rem;
-  margin-bottom: 0.85rem;
-  border-bottom: 1px solid var(--border);
-  letter-spacing: 0.01em;
+  position: relative;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.9rem;
+  font-size: 1rem;
+  letter-spacing: 0.005em;
+}
+
+.card > h3:first-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.5), var(--border) 22%, transparent 92%);
 }
 
 .app {
@@ -69,8 +212,10 @@ h3 {
 .sidebar {
   width: 254px;
   flex-shrink: 0;
-  background: linear-gradient(180deg, #1a1d25 0%, #14161d 100%);
+  background: linear-gradient(180deg, rgba(26, 30, 40, 0.92) 0%, rgba(13, 15, 21, 0.96) 100%);
+  backdrop-filter: blur(18px) saturate(1.25);
   border-right: 1px solid var(--border);
+  box-shadow: inset -1px 0 0 rgba(255, 255, 255, 0.022);
   display: flex;
   flex-direction: column;
   padding: 1.4rem 0.85rem;
@@ -91,14 +236,24 @@ h3 {
 .sidebar-brand {
   display: flex;
   align-items: center;
-  gap: 0.75rem;
-  font-weight: 800;
-  font-size: 1.12rem;
-  letter-spacing: 0.01em;
+  gap: 0.7rem;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.2rem;
+  letter-spacing: -0.01em;
   padding: 0.2rem 0.5rem 1.4rem;
   margin-bottom: 1.1rem;
   position: relative;
   flex-shrink: 0;
+}
+
+/* Le nom de l'app en dégradé clair→accent : signature de marque discrète,
+   reprise du même traitement que les chiffres héros. */
+.sidebar-brand span {
+  background: linear-gradient(96deg, #fff 18%, #ffb3ba 78%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
 }
 
 .sidebar-brand::after {
@@ -112,8 +267,8 @@ h3 {
 }
 
 .sidebar-brand img {
-  height: 34px;
-  width: 34px;
+  height: 52px;
+  width: 52px;
   object-fit: contain;
   filter: drop-shadow(0 0 10px rgba(255, 70, 85, 0.7));
 }
@@ -212,15 +367,16 @@ h3 {
 
 .sidebar-link-icon {
   font-size: 1rem;
-  width: 1.75rem;
-  height: 1.75rem;
+  width: 1.8rem;
+  height: 1.8rem;
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  border-radius: 7px;
-  background: rgba(255, 255, 255, 0.03);
-  transition: transform 0.18s ease, background 0.18s ease;
+  border-radius: var(--r-sm);
+  background: rgba(255, 255, 255, 0.035);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  transition: transform 0.22s var(--ease-out), background 0.22s var(--ease-out), box-shadow 0.22s var(--ease-out);
 }
 
 .sidebar-link:hover {
@@ -242,11 +398,13 @@ h3 {
   position: absolute;
   left: 0;
   right: 0;
-  border-radius: 10px;
-  background: linear-gradient(90deg, rgba(255, 70, 85, 0.2), rgba(255, 70, 85, 0.05));
-  border: 1px solid rgba(255, 70, 85, 0.35);
-  box-shadow: 0 4px 14px rgba(255, 70, 85, 0.12), inset 0 0 0 1px rgba(255, 70, 85, 0.08);
-  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), height 0.28s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.15s ease;
+  border-radius: var(--r-md);
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.24), rgba(255, 70, 85, 0.04) 72%, transparent);
+  border: 1px solid rgba(255, 70, 85, 0.3);
+  box-shadow:
+    0 4px 16px rgba(255, 70, 85, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.07);
+  transition: transform 0.32s var(--ease-out), height 0.32s var(--ease-out), opacity 0.15s ease;
   z-index: 0;
   pointer-events: none;
 }
@@ -372,13 +530,16 @@ h3 {
 }
 
 .topbar {
+  position: relative;
+  z-index: 5;
   display: flex;
   align-items: center;
   gap: 1.5rem;
   padding: 1rem 1.75rem;
-  background: rgba(27, 30, 37, 0.7);
-  backdrop-filter: blur(10px);
+  background: linear-gradient(180deg, rgba(24, 28, 37, 0.82), rgba(18, 21, 28, 0.68));
+  backdrop-filter: blur(20px) saturate(1.3);
   border-bottom: 1px solid var(--border);
+  box-shadow: var(--edge-light), 0 8px 26px rgba(0, 0, 0, 0.24);
   flex-wrap: wrap;
 }
 
@@ -395,8 +556,10 @@ h3 {
 
 .topbar-title h2 {
   margin: 0;
-  font-size: 1.15rem;
-  letter-spacing: 0.01em;
+  font-family: var(--font-display);
+  font-size: 1.22rem;
+  font-weight: 600;
+  letter-spacing: -0.012em;
 }
 
 .content {
@@ -807,6 +970,19 @@ h3 {
   margin: 0;
 }
 
+.welcome-api-steps {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+  margin: 0;
+  padding-left: 1.25rem;
+  text-align: left;
+}
+
+.welcome-api-steps li {
+  margin-bottom: 0.3rem;
+}
+
 .welcome-api-link {
   background: transparent;
   border: 1px solid var(--accent);
@@ -860,18 +1036,34 @@ h3 {
 }
 
 .card {
-  background: linear-gradient(180deg, var(--surface) 0%, #191c23 100%);
+  position: relative;
+  background: linear-gradient(168deg, rgba(38, 43, 56, 0.72) 0%, var(--surface) 42%, #12151d 100%);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 1rem 1.25rem;
+  border-radius: var(--r-lg);
+  padding: 1.15rem 1.35rem;
   margin-bottom: 1.25rem;
-  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.18);
-  transition: border-color 0.15s ease, box-shadow 0.15s ease, transform 0.15s ease;
+  box-shadow: var(--elev-1), var(--edge-light);
+  transition:
+    border-color 0.22s var(--ease-out),
+    box-shadow 0.22s var(--ease-out),
+    transform 0.22s var(--ease-out);
+}
+
+/* Reflet de lumière rasante en haut à gauche — le pendant du liseré d'arête,
+   qui suggère d'où vient la lumière et donne du volume à la carte. */
+.card::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  pointer-events: none;
+  background: radial-gradient(120% 80% at 0% 0%, rgba(255, 255, 255, 0.045), transparent 58%);
 }
 
 .card:hover {
-  border-color: #3a3f4c;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  border-color: var(--border-strong);
+  box-shadow: var(--elev-2), var(--edge-light-strong);
+  transform: translateY(-1px);
 }
 
 .loading-state {
@@ -907,39 +1099,82 @@ h3 {
 }
 
 .stat-tile {
+  position: relative;
   flex: 1;
   min-width: 110px;
-  background: linear-gradient(160deg, var(--surface-alt) 0%, rgba(255, 255, 255, 0.02) 100%);
+  background: linear-gradient(162deg, var(--surface-hi) 0%, var(--surface-alt) 55%, #1a1e27 100%);
   border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 0.85rem 1rem;
+  border-radius: var(--r-md);
+  padding: 1rem 1rem 0.9rem;
   text-align: center;
-  transition: transform 0.15s ease, border-color 0.15s ease;
+  overflow: hidden;
+  box-shadow: var(--edge-light);
+  transition:
+    transform 0.22s var(--ease-out),
+    border-color 0.22s var(--ease-out),
+    box-shadow 0.22s var(--ease-out);
+}
+
+/* Trait d'accent en haut de la tuile, révélé au survol : donne un retour
+   visuel net sans déplacer ni redimensionner quoi que ce soit. */
+.stat-tile::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 18%;
+  right: 18%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, var(--accent), transparent);
+  opacity: 0;
+  transition: opacity 0.22s var(--ease-out), left 0.3s var(--ease-out), right 0.3s var(--ease-out);
 }
 
 .stat-tile:hover {
   transform: translateY(-2px);
-  border-color: #3a3f4c;
+  border-color: var(--border-strong);
+  box-shadow: var(--elev-1), var(--edge-light-strong);
 }
 
+.stat-tile:hover::after {
+  opacity: 0.85;
+  left: 6%;
+  right: 6%;
+}
+
+/* Le chiffre est l'élément héros : police display, corps généreux, chasse
+   resserrée et dégradé vertical qui l'éclaire par le haut. */
 .stat-tile .value {
-  font-size: 1.7rem;
+  font-family: var(--font-display);
+  font-size: 2rem;
   font-weight: 700;
-  color: var(--accent);
-  text-shadow: 0 0 12px rgba(255, 70, 85, 0.4);
+  line-height: 1.05;
+  letter-spacing: -0.025em;
+  /* Dégradé clair→accent appliqué au texte. Quand un composant impose une
+     couleur sémantique en ligne (vert = bon, rouge = mauvais), celle-ci
+     l'emporte et masque le dégradé — comportement voulu. L'ombre portée reste
+     donc neutre : une lueur rouge sur un chiffre vert jurerait. */
+  background: linear-gradient(180deg, #fff 8%, var(--accent) 92%);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  /* drop-shadow (et non text-shadow) : avec `color: transparent`, un
+     text-shadow peindrait des glyphes pleins visibles derrière le dégradé. */
+  filter: drop-shadow(0 2px 10px rgba(0, 0, 0, 0.5));
   white-space: nowrap;
 }
 
 .stat-tile .value.compact {
-  font-size: 1.25rem;
+  font-size: 1.35rem;
+  letter-spacing: -0.015em;
 }
 
 .stat-tile .label {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
+  font-weight: 500;
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.04em;
-  margin-top: 0.25rem;
+  letter-spacing: 0.08em;
+  margin-top: 0.4rem;
 }
 
 .weapon-bar-row {
@@ -969,10 +1204,11 @@ h3 {
 
 .weapon-bar-track {
   flex: 1;
-  background: var(--surface-alt);
-  border-radius: 4px;
+  background: #0e1117;
+  border-radius: 999px;
   height: 10px;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55);
 }
 
 /* Toutes les barres de progression de l'app démarrent à 0% et se remplissent
@@ -1000,11 +1236,11 @@ h3 {
 
 .weapon-bar-fill {
   display: block;
-  background: var(--accent);
+  background: linear-gradient(180deg, #ff7a86, var(--accent) 60%, var(--accent-deep));
   height: 100%;
-  border-radius: 4px;
-  box-shadow: 0 0 6px rgba(255, 70, 85, 0.6);
-  transition: width 0.3s ease;
+  border-radius: 999px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 10px rgba(255, 70, 85, 0.5);
+  transition: width 0.3s var(--ease-out);
 }
 
 .weapon-bar-count {
@@ -1263,29 +1499,35 @@ h3 {
   object-fit: contain;
 }
 
+/* Jauge creusée dans la surface : rail en creux (ombre interne) + remplissage
+   lumineux posé dedans. Beaucoup plus lisible qu'une barre plate, et l'échelle
+   reste perceptible même quand le remplissage est très faible. */
 .stat-bar-track {
+  position: relative;
   flex: 1;
-  background: var(--surface-alt);
-  border-radius: 4px;
-  height: 14px;
+  background: #0e1117;
+  border-radius: 999px;
+  height: 13px;
   overflow: hidden;
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.55), inset 0 -1px 0 rgba(255, 255, 255, 0.03);
 }
 
 .stat-bar-fill {
   display: block;
   height: 100%;
-  border-radius: 4px;
-  background: var(--text-muted);
+  border-radius: 999px;
+  background: linear-gradient(180deg, #b6bcc9, #7e8595);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.28);
 }
 
 .stat-bar-fill.good {
-  background: #3ddc84;
-  box-shadow: 0 0 8px rgba(61, 220, 132, 0.6);
+  background: linear-gradient(180deg, #6ff0a8, var(--good) 60%, #24a862);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.35), 0 0 12px rgba(61, 220, 132, 0.5);
 }
 
 .stat-bar-fill.bad {
-  background: var(--accent);
-  box-shadow: 0 0 8px rgba(255, 70, 85, 0.6);
+  background: linear-gradient(180deg, #ff7a86, var(--accent) 60%, var(--accent-deep));
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.3), 0 0 12px rgba(255, 70, 85, 0.5);
 }
 
 .stat-bar-value {
@@ -1546,16 +1788,24 @@ table {
 th,
 td {
   text-align: left;
-  padding: 0.4rem 0.6rem;
-  border-bottom: 1px solid var(--border);
+  padding: 0.5rem 0.65rem;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.045);
 }
 
 th {
-  color: var(--text-muted);
-  font-weight: 500;
-  font-size: 0.8rem;
+  color: var(--text-dim);
+  font-family: var(--font-display);
+  font-weight: 600;
+  font-size: 0.72rem;
   text-transform: uppercase;
-  letter-spacing: 0.03em;
+  letter-spacing: 0.09em;
+  border-bottom-color: var(--border-strong);
+}
+
+/* Zébrage très léger : sur un tableau round-par-round dense, suivre une ligne
+   à l'horizontale devient nettement plus facile qu'avec de simples filets. */
+tbody tr:nth-child(even) {
+  background: rgba(255, 255, 255, 0.016);
 }
 
 tr.clickable {
@@ -1564,28 +1814,42 @@ tr.clickable {
 }
 
 tr.clickable:hover {
-  background-color: var(--surface-alt);
+  background-color: rgba(255, 70, 85, 0.07);
 }
 
 button {
-  background: var(--surface-alt);
+  background: linear-gradient(180deg, var(--surface-hi), var(--surface-alt));
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--r-sm);
   padding: 0.5rem 1rem;
   cursor: pointer;
-  font-size: 0.9rem;
-  transition: border-color 0.15s ease, transform 0.1s ease, box-shadow 0.15s ease;
+  font-family: inherit;
+  font-size: 0.88rem;
+  font-weight: 500;
+  box-shadow: var(--edge-light);
+  transition:
+    border-color 0.2s var(--ease-out),
+    transform 0.14s var(--ease-out),
+    box-shadow 0.2s var(--ease-out),
+    background 0.2s var(--ease-out);
 }
 
 button:hover:not(:disabled):not(.weekly-notch) {
-  border-color: var(--accent);
+  border-color: rgba(255, 70, 85, 0.55);
+  background: linear-gradient(180deg, #2c3240, var(--surface-hi));
+  box-shadow: var(--edge-light-strong), 0 4px 14px rgba(0, 0, 0, 0.3);
   transform: translateY(-1px);
 }
 
 button:active:not(:disabled):not(.weekly-notch) {
-  transform: translateY(0) scale(0.96);
+  transform: translateY(0) scale(0.97);
   transition-duration: 0.05s;
+}
+
+button:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
 }
 
 button:disabled {
@@ -1593,37 +1857,60 @@ button:disabled {
   cursor: default;
 }
 
+/* Action principale : dégradé rouge avec liseré clair en haut — le bouton
+   doit lire comme une touche physique éclairée, pas comme un aplat de
+   couleur. La lueur portée reste sous le bouton (et non tout autour) pour
+   suggérer qu'il flotte au-dessus de la surface. */
 .refresh,
 form button[type='submit'] {
-  background: var(--accent);
-  border-color: var(--accent);
-  color: white;
-  box-shadow: 0 0 10px rgba(255, 70, 85, 0.5);
+  background: linear-gradient(180deg, var(--accent-hover), var(--accent) 55%, var(--accent-deep));
+  border-color: rgba(255, 120, 130, 0.5);
+  color: #fff;
+  font-weight: 600;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.28),
+    0 2px 8px rgba(216, 31, 49, 0.4),
+    0 6px 20px rgba(255, 70, 85, 0.22);
 }
 
 .refresh:hover:not(:disabled),
 form button[type='submit']:hover:not(:disabled) {
-  background: var(--accent-hover);
-  border-color: var(--accent-hover);
-  box-shadow: 0 0 14px rgba(255, 70, 85, 0.8);
+  background: linear-gradient(180deg, #ff7a86, var(--accent-hover) 55%, var(--accent));
+  border-color: rgba(255, 150, 160, 0.65);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.35),
+    0 3px 10px rgba(216, 31, 49, 0.45),
+    0 10px 30px rgba(255, 70, 85, 0.34);
 }
 
 input,
 select {
-  background: var(--surface-alt);
+  /* Champ "creusé" dans la surface (ombre interne) plutôt que posé dessus —
+     l'inverse exact du traitement des boutons, ce qui rend saisie et action
+     immédiatement distinguables au premier coup d'œil. */
+  background: #12151c;
   color: var(--text);
   border: 1px solid var(--border);
-  border-radius: 6px;
-  padding: 0.45rem 0.6rem;
-  font-size: 0.9rem;
-  transition: border-color 0.15s ease, box-shadow 0.15s ease;
+  border-radius: var(--r-sm);
+  padding: 0.5rem 0.7rem;
+  font-family: inherit;
+  font-size: 0.88rem;
+  box-shadow: inset 0 2px 5px rgba(0, 0, 0, 0.35);
+  transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s var(--ease-out);
+}
+
+input::placeholder {
+  color: var(--text-dim);
 }
 
 input:focus,
 select:focus {
   outline: none;
+  background: #151922;
   border-color: var(--accent);
-  box-shadow: 0 0 0 3px rgba(255, 70, 85, 0.15);
+  box-shadow:
+    inset 0 2px 5px rgba(0, 0, 0, 0.3),
+    0 0 0 3px rgba(255, 70, 85, 0.16);
 }
 
 label {
@@ -2053,7 +2340,10 @@ li {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.7);
+  /* Flou de l'arrière-plan plutôt qu'un simple voile noir : la modale se
+     détache par la profondeur de champ, comme une mise au point optique. */
+  background: rgba(4, 5, 8, 0.62);
+  backdrop-filter: blur(10px) saturate(0.85);
   display: flex;
   align-items: flex-start;
   justify-content: center;
@@ -2069,13 +2359,14 @@ li {
 }
 
 .modal-card {
-  background: var(--bg);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  background: linear-gradient(172deg, #1c212b 0%, #12151d 60%, #0d1015 100%);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-xl);
   width: 100%;
   max-width: 900px;
-  padding: 1.5rem;
+  padding: 1.6rem;
   position: relative;
+  box-shadow: var(--elev-3), var(--edge-light-strong);
   animation: modal-card-pop-in 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
@@ -4726,6 +5017,18 @@ input[type='color'] {
   border: 2px solid var(--bg);
 }
 
+.topbar-icon-dot {
+  position: absolute;
+  top: -1px;
+  right: -1px;
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: #3ddc84;
+  box-shadow: 0 0 6px rgba(61, 220, 132, 0.6);
+  border: 2px solid var(--bg);
+}
+
 .topbar-account-button {
   flex-shrink: 0;
   width: 42px;
@@ -4916,6 +5219,14 @@ input[type='color'] {
   width: auto;
   padding: 0.5rem 1rem;
   gap: 0.4rem;
+}
+
+.account-email-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin: 0.75rem 0;
+  font-size: 0.9rem;
 }
 
 .account-role-picker {
@@ -5238,8 +5549,10 @@ input[type='color'] {
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: 12px 12px 12px 2px;
-  padding: 0.5rem 0.8rem;
-  font-size: 0.88rem;
+  padding: 0.65rem 1rem;
+  /* S'agrandit avec la largeur de fenêtre — minuscule sur un petit écran,
+     lisible confortablement une fois la fenêtre maximisée sur un grand. */
+  font-size: clamp(0.88rem, 0.65vw + 0.65rem, 1.15rem);
   word-break: break-word;
 }
 
@@ -5260,6 +5573,8 @@ input[type='color'] {
 
 .messages-input-row input {
   flex: 1;
+  font-size: clamp(0.9rem, 0.5vw + 0.7rem, 1.05rem);
+  padding: 0.6rem 0.8rem;
 }
 
 .messages-input-row button {

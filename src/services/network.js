@@ -1,5 +1,5 @@
 import { exec } from 'node:child_process';
-import { existsSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
 const LOCKFILE_PATH = path.join(
@@ -13,8 +13,31 @@ const LOCKFILE_PATH = path.join(
 const PING_TARGET = '1.1.1.1';
 const LATENCY_REGEX = /(?:temps|time)[=<](\d+)/i;
 
+// Le lockfile ("name:pid:port:password:protocol") n'est pas toujours effacé
+// proprement à la fermeture de Riot (crash, fermeture forcée, session Windows
+// coupée) — sa seule présence sur le disque ne prouve donc pas que le client
+// tourne encore, seulement qu'il a tourné à un moment donné. On vérifie en
+// plus que le PID qu'il contient correspond à un processus toujours actif.
 export function isValorantRunning() {
-  return existsSync(LOCKFILE_PATH);
+  if (!existsSync(LOCKFILE_PATH)) return false;
+
+  let pid;
+  try {
+    pid = Number(readFileSync(LOCKFILE_PATH, 'utf-8').split(':')[1]);
+  } catch {
+    return false;
+  }
+  if (!pid) return false;
+
+  try {
+    // Signal 0 ne tue rien, ne fait que tester l'existence du processus.
+    process.kill(pid, 0);
+    return true;
+  } catch (err) {
+    // EPERM = le processus existe mais appartient à un autre utilisateur
+    // (toujours "en cours"). Tout le reste (ESRCH...) = PID mort, lockfile périmé.
+    return err.code === 'EPERM';
+  }
 }
 
 export function pingOnce(target = PING_TARGET) {

@@ -1,9 +1,11 @@
+import { useTranslation } from 'react-i18next';
 import { usePlayerCardArt, useRankTiers } from './rankData.js';
 
 // Aperçu compact d'un profil Valorant (bannière, icône, pseudo, rang) —
 // réutilisé sur l'écran de confirmation de liaison et sur l'écran d'accueil
 // une fois le compte lié.
 function RiotProfilePreview({ name, tag, cardUuid, rank }) {
+  const { t } = useTranslation();
   const rankTiers = useRankTiers();
   const art = usePlayerCardArt(cardUuid);
   const tier = rank ? rankTiers.get(rank.tierId) : null;
@@ -28,7 +30,7 @@ function RiotProfilePreview({ name, tag, cardUuid, rank }) {
               </span>
             </div>
           ) : (
-            <div className="riot-preview-rank label">Rang indisponible</div>
+            <div className="riot-preview-rank label">{t('nav.rankUnavailable')}</div>
           )}
         </div>
       </div>

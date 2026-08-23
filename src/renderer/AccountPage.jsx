@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { usePlayerCardArt, useAllPlayerCards } from './rankData.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { computeRoleDistribution } from './performanceCharts.js';
@@ -6,14 +7,18 @@ import { excludeDeathmatch, groupStats, overallWinrate } from './valorantStats.j
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
 
+// Noms de rôles issus de valorant-api.com (appelée en fr-FR) — hors périmètre
+// de cette passe de traduction (voir CLAUDE.md / plan i18n), comparés tels
+// quels à profile.main_role et aux clés de roleIconByName.
 const ROLES = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
 
-function formatMemberSince(isoDate) {
+function formatMemberSince(isoDate, locale) {
   if (!isoDate) return null;
-  return new Date(isoDate).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' });
+  return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignOut }) {
+function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, onSignOut }) {
+  const { t, i18n } = useTranslation();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
   const [nameDraft, setNameDraft] = useState(profile.display_name ?? '');
@@ -73,7 +78,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
     return all && all.avgDeaths > 0 ? all.avgKills / all.avgDeaths : null;
   }, [rankedMatches, mySettings.name, mySettings.tag]);
 
-  const memberSince = formatMemberSince(profile.created_at);
+  const memberSince = formatMemberSince(profile.created_at, i18n.language === 'en' ? 'en-US' : 'fr-FR');
 
   const handleSaveName = async () => {
     const trimmed = nameDraft.trim();
@@ -90,7 +95,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
         style={{ backgroundImage: avatarArt.banner ? `url(${avatarArt.banner})` : undefined }}
       >
         <div className="profile-header-overlay">
-          <button className="account-avatar-button" onClick={() => setAvatarPickerOpen(true)} title="Changer la photo">
+          <button className="account-avatar-button" onClick={() => setAvatarPickerOpen(true)} title={t('account.changePhoto')}>
             {avatarArt.icon ? (
               <img src={avatarArt.icon} alt="" className="profile-card-icon" />
             ) : (
@@ -124,14 +129,14 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
                 </button>
               </div>
             ) : (
-              <h2 className="account-name-display" onClick={() => setEditingName(true)} title="Cliquer pour modifier">
+              <h2 className="account-name-display" onClick={() => setEditingName(true)} title={t('account.clickToEdit')}>
                 {displayedName}
                 <span className="account-name-pencil">✏️</span>
               </h2>
             )}
             <p className="label">
-              Riot ID lié : {mySettings.name}#{mySettings.tag}
-              {memberSince && ` · Membre depuis le ${memberSince}`}
+              {t('account.riotIdLinked', { name: mySettings.name, tag: mySettings.tag })}
+              {memberSince && t('account.memberSince', { date: memberSince })}
             </p>
           </div>
         </div>
@@ -139,24 +144,24 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
 
       <div className="account-summary-tiles">
         <div className="card account-tile">
-          <span className="account-tile-label">Matchs classés trackés</span>
+          <span className="account-tile-label">{t('account.rankedTracked')}</span>
           <span className="account-tile-value">{totalGames}</span>
         </div>
         <div className="card account-tile">
-          <span className="account-tile-label">Winrate global</span>
+          <span className="account-tile-label">{t('account.globalWinrate')}</span>
           <span className="account-tile-value">{winrate !== null ? `${winrate.toFixed(0)}%` : '—'}</span>
         </div>
         <div className="card account-tile">
-          <span className="account-tile-label">K/D global</span>
+          <span className="account-tile-label">{t('account.globalKd')}</span>
           <span className="account-tile-value">{kd !== null ? kd.toFixed(2) : '—'}</span>
         </div>
       </div>
 
       <div className="card">
-        <h3>🎭 Profil de joueur</h3>
-        <p className="label">Choisis toi-même ton rôle et ton agent fétiche — ça n'a pas besoin de coller à tes stats.</p>
+        <h3>{t('account.playerProfileTitle')}</h3>
+        <p className="label">{t('account.playerProfileHint')}</p>
 
-        <h4 className="account-subsection-title">Ton rôle</h4>
+        <h4 className="account-subsection-title">{t('account.yourRole')}</h4>
         <div className="account-role-picker">
           {ROLES.map((role) => (
             <button
@@ -170,7 +175,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
           ))}
         </div>
 
-        <h4 className="account-subsection-title">Ton agent fétiche</h4>
+        <h4 className="account-subsection-title">{t('account.yourFavoriteAgent')}</h4>
         <button className="account-agent-picker" onClick={() => setAgentPickerOpen(true)}>
           {profile.main_agent && agentIcons.get(profile.main_agent) ? (
             <>
@@ -178,23 +183,23 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
               <span>{profile.main_agent}</span>
             </>
           ) : (
-            <span className="label">Choisir un agent...</span>
+            <span className="label">{t('account.chooseAgent')}</span>
           )}
-          <span className="account-agent-picker-edit">✏️ Changer</span>
+          <span className="account-agent-picker-edit">{t('account.changeAgent')}</span>
         </button>
 
         {(suggestedRole || suggestedAgent) && (
           <p className="label account-suggestion">
-            💡 D'après tes {totalGames} partie(s) trackée(s), tu joues surtout{' '}
+            {t('account.suggestionPrefix', { count: totalGames })}{' '}
             {suggestedRole && (
               <>
                 <strong>{suggestedRole.role}</strong> ({suggestedRole.percent.toFixed(0)}%)
               </>
             )}
-            {suggestedRole && suggestedAgent && ' sur '}
+            {suggestedRole && suggestedAgent && t('account.suggestionJoin')}
             {suggestedAgent && (
               <>
-                <strong>{suggestedAgent.key}</strong> ({suggestedAgent.games} partie(s))
+                <strong>{suggestedAgent.key}</strong> {t('account.suggestionGamesCount', { count: suggestedAgent.games })}
               </>
             )}
             .
@@ -203,23 +208,29 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
 
         {roleDistribution.length > 0 && (
           <>
-            <h4 className="account-subsection-title">Répartition réelle de tes rôles joués</h4>
+            <h4 className="account-subsection-title">{t('account.realRoleDistribution')}</h4>
             <RoleStackedBar rows={roleDistribution} />
           </>
         )}
       </div>
 
       <div className="card">
-        <h3>⚙️ Compte</h3>
-        <p className="label">Connecté avec ton compte MVP Tracker — ton Riot ID lié reste indépendant de ce compte.</p>
+        <h3>{t('account.settingsTitle')}</h3>
+        <p className="label">{t('account.settingsHint')}</p>
+        {email && (
+          <p className="account-email-row">
+            <span className="account-tile-label">{t('account.emailLabel')}</span>
+            <span>{email}</span>
+          </p>
+        )}
         <button className="sidebar-signout account-signout" onClick={onSignOut}>
-          🚪 Se déconnecter
+          {t('account.signOut')}
         </button>
       </div>
 
       {avatarPickerOpen && (
         <IconPickerModal
-          title="🖼️ Choisir une photo de profil"
+          title={t('account.choosePhoto')}
           items={cardItems}
           onSelect={(uuid) => {
             onUpdate({ avatar_card_uuid: uuid });
@@ -231,7 +242,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, onUpdate, onSignO
 
       {agentPickerOpen && (
         <IconPickerModal
-          title="🎯 Choisir ton agent fétiche"
+          title={t('account.chooseFavoriteAgent')}
           items={agentItems}
           onSelect={(name) => {
             onUpdate({ main_agent: name });

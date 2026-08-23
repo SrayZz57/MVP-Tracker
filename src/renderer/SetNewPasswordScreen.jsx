@@ -1,7 +1,9 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 
 function SetNewPasswordScreen({ onDone }) {
+  const { t } = useTranslation();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
@@ -11,7 +13,7 @@ function SetNewPasswordScreen({ onDone }) {
     event.preventDefault();
     setError(null);
     if (password !== confirmPassword) {
-      setError('Les deux mots de passe ne correspondent pas.');
+      setError(t('auth.passwordMismatch'));
       return;
     }
     setLoading(true);
@@ -37,12 +39,12 @@ function SetNewPasswordScreen({ onDone }) {
       </div>
 
       <h1>MVP Tracker</h1>
-      <p className="welcome-tagline">Choisis ton nouveau mot de passe.</p>
+      <p className="welcome-tagline">{t('setNewPassword.tagline')}</p>
 
       <form className="account-auth-form" onSubmit={handleSubmit}>
         <input
           type="password"
-          placeholder="Nouveau mot de passe"
+          placeholder={t('auth.newPasswordPlaceholder')}
           value={password}
           onChange={(e) => setPassword(e.target.value)}
           minLength={6}
@@ -51,14 +53,14 @@ function SetNewPasswordScreen({ onDone }) {
         />
         <input
           type="password"
-          placeholder="Confirme le mot de passe"
+          placeholder={t('auth.confirmPasswordPlaceholder')}
           value={confirmPassword}
           onChange={(e) => setConfirmPassword(e.target.value)}
           minLength={6}
           required
         />
         <button type="submit" disabled={loading}>
-          {loading ? 'Validation...' : 'Valider le nouveau mot de passe'}
+          {loading ? t('auth.validating') : t('setNewPassword.validate')}
         </button>
       </form>
 

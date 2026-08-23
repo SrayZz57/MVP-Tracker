@@ -43,6 +43,7 @@ db.exec(`
 db.exec(`
   CREATE TABLE IF NOT EXISTS ping_samples (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
+    puuid TEXT NOT NULL DEFAULT '',
     timestamp INTEGER NOT NULL,
     latency_ms INTEGER
   )
@@ -88,17 +89,48 @@ db.exec(`
   )
 `);
 
+// UNIQUE(match_id, puuid) — pas match_id seul : un match partagé entre deux
+// comptes suivis (ou une simple re-tentative) faisait échouer silencieusement
+// l'enregistrement dès qu'une ligne existait déjà pour ce match_id, peu importe
+// le compte (même bug de fond que celui corrigé sur la table matches).
 db.exec(`
   CREATE TABLE IF NOT EXISTS match_assessments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     puuid TEXT NOT NULL DEFAULT '',
-    match_id TEXT NOT NULL UNIQUE,
+    match_id TEXT NOT NULL,
     date TEXT NOT NULL,
     map TEXT,
     answers_json TEXT NOT NULL,
-    created_at INTEGER NOT NULL
+    created_at INTEGER NOT NULL,
+    UNIQUE(match_id, puuid)
   )
 `);
+
+// Migration pour les bases créées avant ce correctif.
+(function migrateAssessmentsUnique() {
+  const existingSql = db
+    .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'match_assessments'`)
+    .get()?.sql;
+  if (!existingSql || existingSql.includes('UNIQUE(match_id, puuid)')) return;
+  db.exec('ALTER TABLE match_assessments RENAME TO match_assessments_legacy');
+  db.exec(`
+    CREATE TABLE match_assessments (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      puuid TEXT NOT NULL DEFAULT '',
+      match_id TEXT NOT NULL,
+      date TEXT NOT NULL,
+      map TEXT,
+      answers_json TEXT NOT NULL,
+      created_at INTEGER NOT NULL,
+      UNIQUE(match_id, puuid)
+    )
+  `);
+  db.exec(
+    `INSERT OR IGNORE INTO match_assessments (puuid, match_id, date, map, answers_json, created_at)
+     SELECT puuid, match_id, date, map, answers_json, created_at FROM match_assessments_legacy`,
+  );
+  db.exec('DROP TABLE match_assessments_legacy');
+})();
 
 db.exec(`
   CREATE TABLE IF NOT EXISTS weekly_narratives (
@@ -164,6 +196,7 @@ addPuuidColumn('strategies');
 addPuuidColumn('crosshairs');
 addPuuidColumn('bets');
 addPuuidColumn('match_assessments');
+addPuuidColumn('ping_samples');
 
 function recreateWithCompositeUnique(table, columns, uniqueCols) {
   if (tableHasColumn(table, 'puuid')) {
@@ -222,7 +255,7 @@ recreateWithCompositeUnique(
 // actuellement configuré, pour ne pas perdre l'historique déjà là.
 export function backfillLegacyPuuid(puuid) {
   if (!puuid) return;
-  ['strategies', 'crosshairs', 'bets', 'match_assessments', 'puzzles', 'weekly_narratives'].forEach((table) => {
+  ['strategies', 'crosshairs', 'bets', 'match_assessments', 'puzzles', 'weekly_narratives', 'ping_samples'].forEach((table) => {
     db.prepare(`UPDATE ${table} SET puuid = ? WHERE puuid = ''`).run(puuid);
   });
 }
@@ -246,15 +279,18 @@ export function getCachedMatches(puuid) {
   return rows.map((row) => JSON.parse(row.data));
 }
 
-export function savePingSample(latencyMs) {
-  db.prepare('INSERT INTO ping_samples (timestamp, latency_ms) VALUES (?, ?)').run(
+export function savePingSample(puuid, latencyMs) {
+  db.prepare('INSERT INTO ping_samples (puuid, timestamp, latency_ms) VALUES (?, ?, ?)').run(
+    puuid,
     Date.now(),
     latencyMs,
   );
 }
 
-export function getAllPingSamples() {
-  return db.prepare('SELECT timestamp, latency_ms FROM ping_samples ORDER BY timestamp ASC').all();
+export function getAllPingSamples(puuid) {
+  return db
+    .prepare('SELECT timestamp, latency_ms FROM ping_samples WHERE puuid = ? ORDER BY timestamp ASC')
+    .all(puuid);
 }
 
 export function saveCrosshair(puuid, name, code, color, image) {
@@ -336,7 +372,7 @@ export function getAssessmentForMatch(puuid, matchId) {
 
 export function saveAssessment(puuid, matchId, date, map, answersJson) {
   db.prepare(
-    'INSERT INTO match_assessments (puuid, match_id, date, map, answers_json, created_at) VALUES (?, ?, ?, ?, ?, ?)',
+    'INSERT OR REPLACE INTO match_assessments (puuid, match_id, date, map, answers_json, created_at) VALUES (?, ?, ?, ?, ?, ?)',
   ).run(puuid, matchId, date, map || null, answersJson, Date.now());
   return getAssessmentForMatch(puuid, matchId);
 }

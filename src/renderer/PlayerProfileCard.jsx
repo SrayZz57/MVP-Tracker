@@ -1,11 +1,12 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { computePlayerProfile } from './playerProfile.js';
 
-const SCORE_LABELS = {
-  aggression: { label: 'Agressivité', icon: '⚔️' },
-  stability: { label: 'Stabilité mentale', icon: '🧘' },
-  versatility: { label: 'Polyvalence', icon: '🔄' },
-  clutch: { label: 'Clutch factor', icon: '🎯' },
+const SCORE_ICONS = {
+  aggression: '⚔️',
+  stability: '🧘',
+  versatility: '🔄',
+  clutch: '🎯',
 };
 
 function scoreColor(value) {
@@ -16,6 +17,7 @@ function scoreColor(value) {
 }
 
 function PlayerProfileCard({ settings, matches }) {
+  const { t } = useTranslation();
   const profile = useMemo(
     () => computePlayerProfile(matches, settings.name, settings.tag),
     [matches, settings.name, settings.tag],
@@ -24,10 +26,9 @@ function PlayerProfileCard({ settings, matches }) {
   if (!profile.ready) {
     return (
       <div className="card profile-adn-card">
-        <h3>🧬 Profil ADN</h3>
+        <h3>{t('profile.cardTitle')}</h3>
         <p className="label">
-          Encore {profile.minMatches - profile.matchesAnalyzed} match(s) classé(s) avant de pouvoir générer ton
-          profil de joueur.
+          {t('profile.notReady', { count: profile.minMatches - profile.matchesAnalyzed })}
         </p>
       </div>
     );
@@ -35,17 +36,17 @@ function PlayerProfileCard({ settings, matches }) {
 
   return (
     <div className="card profile-adn-card">
-      <h3>🧬 Profil ADN</h3>
-      <div className="profile-adn-title">{profile.title}</div>
-      <p className="label">{profile.text}</p>
+      <h3>{t('profile.cardTitle')}</h3>
+      <div className="profile-adn-title">{t(`profile.archetypes.${profile.archetype}.title`)}</div>
+      <p className="label">{t(`profile.archetypes.${profile.archetype}.text`)}</p>
 
       <div className="profile-adn-bars">
-        {Object.entries(SCORE_LABELS).map(([key, meta]) => {
+        {Object.entries(SCORE_ICONS).map(([key, icon]) => {
           const value = profile.scores[key];
           return (
             <div key={key} className="stat-bar-row">
               <span className="stat-bar-label">
-                {meta.icon} {meta.label}
+                {icon} {t(`profile.scores.${key}`)}
               </span>
               <span className="stat-bar-track">
                 <span
@@ -60,8 +61,12 @@ function PlayerProfileCard({ settings, matches }) {
       </div>
 
       <p className="label profile-adn-meta">
-        Basé sur {profile.matchesAnalyzed} matchs classés — {profile.distinctAgents} agent(s) différents,{' '}
-        {profile.firstBloods} premier(s) sang, {profile.clutchAttempts} situation(s) de clutch.
+        {t('profile.basedOn', {
+          matches: profile.matchesAnalyzed,
+          agents: profile.distinctAgents,
+          firstBloods: profile.firstBloods,
+          clutches: profile.clutchAttempts,
+        })}
       </p>
     </div>
   );

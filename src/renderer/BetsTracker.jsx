@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
 
 function BetsTracker({ settings, matches }) {
+  const { t, i18n } = useTranslation();
   const [pending, setPending] = useState(undefined); // undefined = chargement, null = aucun
   const [history, setHistory] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
@@ -45,7 +47,7 @@ function BetsTracker({ settings, matches }) {
 
   function handlePlaceBet() {
     const baselineMatchId = matches[0]?.metadata?.matchid ?? null;
-    const def = BET_TYPES.find((t) => t.id === type);
+    const def = BET_TYPES.find((bt) => bt.id === type);
     window.electronAPI.createBet(type, def.needsThreshold ? threshold : null, baselineMatchId).then(() => refresh());
   }
 
@@ -54,12 +56,12 @@ function BetsTracker({ settings, matches }) {
     window.electronAPI.cancelBet(pending.id).then(() => refresh());
   }
 
-  const selectedDef = BET_TYPES.find((t) => t.id === type);
+  const selectedDef = BET_TYPES.find((bt) => bt.id === type);
 
   return (
     <div>
       <div className="card comp-score-card">
-        <h3>🎰 Paris perso</h3>
+        <h3>{t('bets.title')}</h3>
         <div className="comp-score-main">
           <div
             className="comp-score-ring"
@@ -67,15 +69,12 @@ function BetsTracker({ settings, matches }) {
           >
             <div className="comp-score-ring-inner">
               <div className="comp-score-value" style={{ color: '#ffc857' }}><CountUp value={totalPoints} /></div>
-              <div className="comp-score-max">pts</div>
+              <div className="comp-score-max">{t('bets.pointsUnit')}</div>
             </div>
           </div>
-          <div className="label">Points accumulés</div>
+          <div className="label">{t('bets.accumulatedPoints')}</div>
         </div>
-        <p className="label">
-          Avant de lancer une session, parie virtuellement sur ta perf. Le pari se résout tout seul dès que ton
-          prochain match apparaît dans l'historique.
-        </p>
+        <p className="label">{t('bets.description')}</p>
       </div>
 
       <div className={pending ? 'card tilt-card calm' : 'card'}>
@@ -85,20 +84,20 @@ function BetsTracker({ settings, matches }) {
           <div className="tilt-card-header">
             <span className="tilt-card-badge">⏳</span>
             <div>
-              <h3>Pari en cours</h3>
-              <p style={{ fontWeight: 600 }}>{describeBet(pending.type, pending.threshold)}</p>
-              <p className="label">En attente de ton prochain match pour être résolu automatiquement.</p>
-              <button onClick={handleCancelBet}>Annuler le pari</button>
+              <h3>{t('bets.currentBetTitle')}</h3>
+              <p style={{ fontWeight: 600 }}>{describeBet(t, pending.type, pending.threshold)}</p>
+              <p className="label">{t('bets.waitingNextMatch')}</p>
+              <button onClick={handleCancelBet}>{t('bets.cancelBet')}</button>
             </div>
           </div>
         ) : (
           <>
-            <h3>🎲 Placer un pari</h3>
+            <h3>{t('bets.placeBetTitle')}</h3>
             <div className="buy-calc-panel">
               <select value={type} onChange={(e) => setType(e.target.value)}>
-                {BET_TYPES.map((t) => (
-                  <option key={t.id} value={t.id}>
-                    {t.label}
+                {BET_TYPES.map((bt) => (
+                  <option key={bt.id} value={bt.id}>
+                    {t(bt.labelKey)}
                   </option>
                 ))}
               </select>
@@ -112,7 +111,7 @@ function BetsTracker({ settings, matches }) {
                 />
               )}
               <button className="refresh" onClick={handlePlaceBet}>
-                Placer le pari
+                {t('bets.placeBetBtn')}
               </button>
             </div>
           </>
@@ -120,17 +119,17 @@ function BetsTracker({ settings, matches }) {
       </div>
 
       <div className="card">
-        <h3>📜 Historique des paris</h3>
+        <h3>{t('bets.historyTitle')}</h3>
         {history.length === 0 ? (
-          <p>Aucun pari résolu pour l'instant.</p>
+          <p>{t('bets.noHistory')}</p>
         ) : (
           <div className="puzzle-history-list">
             {history.map((h) => (
               <div key={h.id} className="puzzle-history-row">
-                <span className="puzzle-history-date">{new Date(h.resolved_at).toLocaleDateString('fr-FR')}</span>
-                <span className="puzzle-history-map">{describeBet(h.type, h.threshold)}</span>
+                <span className="puzzle-history-date">{new Date(h.resolved_at).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}</span>
+                <span className="puzzle-history-map">{describeBet(t, h.type, h.threshold)}</span>
                 <span className={`buy-round-badge ${h.won ? 'coherent' : 'questionable'}`}>
-                  {h.won ? `✅ +${h.points} pts` : '❌ 0 pt'}
+                  {h.won ? t('bets.wonPoints', { points: h.points }) : t('bets.lostPoints')}
                 </span>
               </div>
             ))}

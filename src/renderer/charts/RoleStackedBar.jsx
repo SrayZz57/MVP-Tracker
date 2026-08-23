@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 // Ordre fixe (jamais recyclé) — 4 premiers slots de la palette catégorielle
 // validée CVD (voir dataviz skill) contre la surface sombre de l'appli.
@@ -10,6 +11,7 @@ export const ROLE_COLORS = {
 };
 
 function RoleStackedBar({ rows }) {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -18,7 +20,7 @@ function RoleStackedBar({ rows }) {
   }, []);
 
   if (!rows || rows.length === 0) {
-    return <p>Pas encore assez de données.</p>;
+    return <p>{t('charts.notEnoughData')}</p>;
   }
 
   return (
@@ -29,7 +31,7 @@ function RoleStackedBar({ rows }) {
             key={r.role}
             className="stacked-bar-segment"
             style={{ width: mounted ? `${r.percent}%` : '0%', background: ROLE_COLORS[r.role] }}
-            title={`${r.role} — ${r.percent.toFixed(0)}% (${r.games} parties)`}
+            title={`${r.role} — ${r.percent.toFixed(0)}% (${t('charts.gamesCount', { count: r.games })})`}
           />
         ))}
       </div>

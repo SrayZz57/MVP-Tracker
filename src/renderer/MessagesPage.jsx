@@ -1,8 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 
 function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = null, onConsumedInitialFriendId }) {
+  const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
@@ -127,14 +129,14 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     if (error) console.error('[messages] échec de l\'envoi :', error.message);
   };
 
-  if (loading) return <p className="label">Chargement...</p>;
+  if (loading) return <p className="label">{t('messages.loading')}</p>;
 
   return (
     <div className="messages-page">
       <div className="messages-sidebar card">
-        <h3>💬 Conversations</h3>
+        <h3>{t('messages.conversationsTitle')}</h3>
         {friendships.length === 0 ? (
-          <p className="label">Ajoute des amis depuis l'onglet 👥 pour pouvoir leur écrire.</p>
+          <p className="label">{t('messages.addFriendsHint')}</p>
         ) : (
           <div className="friend-list">
             {friendships.map((f) => {
@@ -158,7 +160,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
       <div className="messages-thread card">
         {!selectedProfile ? (
           <div className="messages-empty">
-            <p className="label">Choisis un ami dans la liste pour démarrer une conversation.</p>
+            <p className="label">{t('messages.chooseAFriend')}</p>
           </div>
         ) : (
           <>
@@ -167,23 +169,23 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
               <div className="messages-thread-header-info">
                 <span>{friendLabel(selectedProfile)}</span>
                 <span className="messages-thread-header-status">
-                  {onlineFriendIds.has(selectedProfile.id) ? 'En ligne' : 'Hors ligne'}
+                  {onlineFriendIds.has(selectedProfile.id) ? t('messages.online') : t('messages.offline')}
                 </span>
               </div>
               <button
                 className="messages-remove-friend"
                 onClick={() => removeFriend(selectedFriendship.id)}
-                title="Retirer cet ami"
+                title={t('friends.removeFriend')}
               >
-                Retirer
+                {t('messages.remove')}
               </button>
             </div>
 
             <div className="messages-thread-body">
               {messagesLoading ? (
-                <p className="label">Chargement...</p>
+                <p className="label">{t('messages.loading')}</p>
               ) : messages.length === 0 ? (
-                <p className="label">Pas encore de message — dis bonjour !</p>
+                <p className="label">{t('messages.noMessagesYet')}</p>
               ) : (
                 messages.map((msg) => (
                   <div
@@ -200,13 +202,13 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
             <form onSubmit={handleSend} className="messages-input-row">
               <input
                 type="text"
-                placeholder="Écris un message..."
+                placeholder={t('messages.messagePlaceholder')}
                 value={draft}
                 onChange={(e) => setDraft(e.target.value)}
                 maxLength={2000}
               />
               <button type="submit" disabled={!draft.trim()}>
-                Envoyer
+                {t('messages.send')}
               </button>
             </form>
           </>

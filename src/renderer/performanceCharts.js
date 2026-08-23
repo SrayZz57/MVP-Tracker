@@ -79,7 +79,8 @@ export function computeRoleDistribution(matches, name, tag, agentRoles) {
 
 // Tendance K/D et winrate glissant sur les derniers matchs, du plus ancien au
 // plus récent (même fenêtre que la progression K/D déjà affichée sur Stats).
-export function computeTrend(matches, name, tag, limit = 20) {
+// `t` reçu en paramètre pour traduire les labels d'axe X à la génération.
+export function computeTrend(t, matches, name, tag, limit = 20) {
   const recent = excludeDeathmatch(matches).slice(0, limit).reverse();
   const rollingWindow = 5;
 
@@ -101,7 +102,7 @@ export function computeTrend(matches, name, tag, limit = 20) {
     const start = Math.max(0, i - rollingWindow + 1);
     const windowSlice = results.slice(start, i + 1);
     const wins = windowSlice.reduce((sum, v) => sum + v, 0);
-    return { label: `Match ${i + 1}`, value: (wins / windowSlice.length) * 100 };
+    return { label: t('charts.matchLabel', { n: i + 1 }), value: (wins / windowSlice.length) * 100 };
   });
 
   return { kd, winrateRolling };

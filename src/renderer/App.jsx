@@ -1,4 +1,5 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import useValorantData from './useValorantData.js';
 import StatsTab from './tabs/StatsTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
@@ -36,48 +37,51 @@ import { useOnlinePresence } from './presence.js';
 import { useRankTiers, usePlayerCardArt } from './rankData.js';
 import logo from '../assets/logo.png';
 
+// `labelKey` plutôt que du texte en dur — cette structure est au niveau
+// module (hors composant), donc pas d'accès à `t()` ici ; la traduction se
+// fait au rendu, dans App().
 const NAV_SECTIONS = [
   {
-    label: 'Performance',
+    sectionKey: 'nav.sections.performance',
     tabs: [
-      { id: 'stats', label: 'Stats', icon: '📊' },
-      { id: 'forme', label: 'Perf & Forme', icon: '⏰' },
-      { id: 'tilt', label: 'Tilt', icon: '😤' },
-      { id: 'heatmap', label: 'Heatmap', icon: '🔥' },
-      { id: 'analyse', label: 'Analyse', icon: '🧠' },
-      { id: 'social', label: 'Coéquipiers & Rivaux', icon: '🤝' },
-      { id: 'graphiques', label: 'Graphiques', icon: '📈' },
+      { id: 'stats', labelKey: 'nav.tabs.stats', icon: '📊' },
+      { id: 'forme', labelKey: 'nav.tabs.form', icon: '⏰' },
+      { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: '😤' },
+      { id: 'heatmap', labelKey: 'nav.tabs.heatmap', icon: '🔥' },
+      { id: 'analyse', labelKey: 'nav.tabs.analyse', icon: '🧠' },
+      { id: 'social', labelKey: 'nav.tabs.social', icon: '🤝' },
+      { id: 'graphiques', labelKey: 'nav.tabs.graphiques', icon: '📈' },
     ],
   },
   {
-    label: 'Mon compte',
+    sectionKey: 'nav.sections.myAccount',
     tabs: [
-      { id: 'my-hall-of-fame', label: 'Mon Hall of Fame', icon: '🏆' },
-      { id: 'my-social', label: 'Mes coéquipiers & rivaux', icon: '🤝' },
-      { id: 'my-skins-collection', label: 'Ma collection', icon: '💎' },
+      { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: '🏆' },
+      { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: '🤝' },
+      { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: '💎' },
     ],
   },
   {
-    label: 'Réseau',
-    tabs: [{ id: 'reseau', label: 'Réseau', icon: '📶' }],
+    sectionKey: 'nav.sections.network',
+    tabs: [{ id: 'reseau', labelKey: 'nav.tabs.network', icon: '📶' }],
   },
   {
-    label: 'Entraînement',
+    sectionKey: 'nav.sections.training',
     tabs: [
-      { id: 'session', label: 'Session guidée', icon: '🎬' },
-      { id: 'puzzle', label: 'Puzzle du jour', icon: '🎲' },
-      { id: 'bets', label: 'Paris perso', icon: '🎰' },
+      { id: 'session', labelKey: 'nav.tabs.session', icon: '🎬' },
+      { id: 'puzzle', labelKey: 'nav.tabs.puzzle', icon: '🎲' },
+      { id: 'bets', labelKey: 'nav.tabs.bets', icon: '🎰' },
     ],
   },
   {
-    label: 'Outils',
+    sectionKey: 'nav.sections.tools',
     tabs: [
-      { id: 'crosshairs', label: 'Crosshairs', icon: '🎯' },
-      { id: 'strategie', label: 'Stratégie', icon: '🗺️' },
-      { id: 'skins', label: 'Skins', icon: '💎' },
-      { id: 'composition', label: 'Composition', icon: '🧩' },
-      { id: 'buy-simulator', label: "Simulation d'achat", icon: '💰' },
-      { id: 'wiki', label: 'Wiki', icon: '📖' },
+      { id: 'crosshairs', labelKey: 'nav.tabs.crosshairs', icon: '🎯' },
+      { id: 'strategie', labelKey: 'nav.tabs.strategy', icon: '🗺️' },
+      { id: 'skins', labelKey: 'nav.tabs.skins', icon: '💎' },
+      { id: 'composition', labelKey: 'nav.tabs.composition', icon: '🧩' },
+      { id: 'buy-simulator', labelKey: 'nav.tabs.buySimulator', icon: '💰' },
+      { id: 'wiki', labelKey: 'nav.tabs.wiki', icon: '📖' },
     ],
   },
 ];
@@ -85,6 +89,7 @@ const NAV_SECTIONS = [
 const ALL_TABS = NAV_SECTIONS.flatMap((s) => s.tabs);
 
 function SidebarProfile({ settings, rank, onClick }) {
+  const { t } = useTranslation();
   const rankTiers = useRankTiers();
   const playerCardArt = usePlayerCardArt(rank?.cardUuid);
   const currentTier = rank ? rankTiers.get(rank.tierId) : null;
@@ -105,23 +110,28 @@ function SidebarProfile({ settings, rank, onClick }) {
             <span>{rank.tierName}</span>
           </div>
         ) : (
-          <div className="sidebar-profile-rank label">Rang indisponible</div>
+          <div className="sidebar-profile-rank label">{t('nav.rankUnavailable')}</div>
         )}
       </div>
     </button>
   );
 }
 
-function TopbarIconButton({ icon, badge, active, onClick, title }) {
+// `badge` (rouge) = quelque chose qui demande une action (message non lu,
+// demande d'ami en attente). `dot` (vert) = simple statut informatif (un ami
+// est en ligne) — jamais rouge, pour ne pas le confondre avec une demande.
+function TopbarIconButton({ icon, badge, dot, active, onClick, title }) {
   return (
     <button className={active ? 'topbar-icon-button active' : 'topbar-icon-button'} onClick={onClick} title={title}>
       <span>{icon}</span>
       {badge > 0 && <span className="topbar-icon-badge">{badge}</span>}
+      {!badge && dot && <span className="topbar-icon-dot" />}
     </button>
   );
 }
 
 function TopbarAccountButton({ profile, myRank, active, onClick }) {
+  const { t } = useTranslation();
   const avatarCardUuid = profile?.avatar_card_uuid ?? myRank?.cardUuid;
   const avatarArt = usePlayerCardArt(avatarCardUuid);
 
@@ -129,7 +139,7 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
     <button
       className={active ? 'topbar-account-button active' : 'topbar-account-button'}
       onClick={onClick}
-      title="Mon compte"
+      title={t('nav.myAccountTitle')}
     >
       {avatarArt.icon ? (
         <img src={avatarArt.icon} alt="" />
@@ -140,7 +150,27 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
   );
 }
 
+// Bascule FR/EN — persistée via electron-store, indépendante de tout le
+// reste (compte, profil consulté). Le libellé affiché est celui de la
+// langue qu'on OBTIENDRAIT en cliquant, pas la langue actuelle.
+function LanguageToggle() {
+  const { i18n } = useTranslation();
+  const next = i18n.language === 'fr' ? 'en' : 'fr';
+
+  const switchLanguage = () => {
+    i18n.changeLanguage(next);
+    window.electronAPI.saveLanguage(next);
+  };
+
+  return (
+    <button className="topbar-icon-button" onClick={switchLanguage} title={i18n.language === 'fr' ? 'English' : 'Français'}>
+      <span style={{ fontWeight: 700, fontSize: '0.78rem' }}>{next.toUpperCase()}</span>
+    </button>
+  );
+}
+
 function App() {
+  const { t, i18n } = useTranslation();
   const [settings, setSettings] = useState(undefined);
   const [activeTab, setActiveTab] = useState('stats');
   const data = useValorantData(settings);
@@ -246,6 +276,7 @@ function App() {
   // qu'un compte sans lien Supabase ne se relie pas silencieusement avec un
   // ancien puuid local laissé par un autre compte.
   const [linkingRiot, setLinkingRiot] = useState(false);
+  const [linkError, setLinkError] = useState(null);
   // Écran d'accueil léger (aperçu + choix) affiché à chaque lancement une
   // fois le compte lié, avant d'entrer dans l'app proprement dite.
   const [enteredApp, setEnteredApp] = useState(false);
@@ -253,6 +284,10 @@ function App() {
 
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
+    window.electronAPI.getLanguage().then((lang) => {
+      if (lang && lang !== i18n.language) i18n.changeLanguage(lang);
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Matchs du compte LIÉ, indépendants de qui est actuellement affiché — le
@@ -335,6 +370,11 @@ function App() {
       .then(({ error }) => {
         if (error) {
           console.error('[profiles] échec de la liaison Riot ID :', error.message);
+          // Code Postgres 23505 = violation de contrainte unique — ici la
+          // contrainte sur riot_puuid, qui empêche qu'un même compte Riot
+          // soit lié à deux comptes MVP Tracker différents.
+          setLinkError(error.code === '23505' ? 'duplicate' : 'generic');
+          setLinkingRiot(false);
           return;
         }
         setProfile({
@@ -404,13 +444,15 @@ function App() {
             <span className="welcome-orb welcome-orb-3" />
             <span className="welcome-orb welcome-orb-4" />
           </div>
-          <p className="label">Liaison de ton compte en cours...</p>
+          <p className="label">{t('nav.linkingInProgress')}</p>
         </div>
       );
     }
     return (
       <LinkRiotAccount
+        linkError={linkError}
         onConfirmed={(confirmedSettings) => {
+          setLinkError(null);
           window.electronAPI.saveSettings(confirmedSettings);
           setSettings(confirmedSettings);
           setLinkingRiot(true);
@@ -542,6 +584,7 @@ function App() {
             mySettings={mySettings}
             myMatches={myMatches}
             myRank={myRank}
+            email={session.user.email}
             onUpdate={updateProfile}
             onSignOut={() => supabase.auth.signOut()}
           />
@@ -553,12 +596,12 @@ function App() {
 
   const currentTabMeta =
     activeTab === 'account'
-      ? { icon: '👤', label: 'Mon compte' }
+      ? { icon: '👤', labelKey: 'nav.tabs.account' }
       : activeTab === 'messages'
-        ? { icon: '💬', label: 'Messages' }
+        ? { icon: '💬', labelKey: 'nav.tabs.messages' }
         : activeTab === 'friends'
-          ? { icon: '👥', label: 'Amis' }
-          : ALL_TABS.find((t) => t.id === activeTab);
+          ? { icon: '👥', labelKey: 'nav.tabs.friends' }
+          : ALL_TABS.find((tab) => tab.id === activeTab);
 
   return (
     <div className="app app-with-sidebar">
@@ -578,14 +621,14 @@ function App() {
             }}
           />
           {NAV_SECTIONS.map((section) => {
-            const collapsed = collapsedSections.has(section.label);
+            const collapsed = collapsedSections.has(section.sectionKey);
             return (
-              <div key={section.label} className="sidebar-section">
+              <div key={section.sectionKey} className="sidebar-section">
                 <button
                   className={collapsed ? 'sidebar-section-label collapsed' : 'sidebar-section-label'}
-                  onClick={() => toggleSection(section.label)}
+                  onClick={() => toggleSection(section.sectionKey)}
                 >
-                  {section.label}
+                  {t(section.sectionKey)}
                   <span className="sidebar-section-chevron">▾</span>
                 </button>
                 {!collapsed &&
@@ -596,7 +639,7 @@ function App() {
                       onClick={() => setActiveTab(tab.id)}
                     >
                       <span className="sidebar-link-icon">{tab.icon}</span>
-                      {tab.label}
+                      {t(tab.labelKey)}
                       {tab.id === 'messages' && socialNotificationCount > 0 && (
                         <span className="sidebar-link-badge">{socialNotificationCount}</span>
                       )}
@@ -629,7 +672,7 @@ function App() {
           />
           <button
             className="sidebar-signout"
-            title="Se déconnecter du compte"
+            title={t('nav.signOut')}
             onClick={() => supabase.auth.signOut()}
           >
             🚪
@@ -641,23 +684,25 @@ function App() {
         <header className="topbar">
           <div className="topbar-title">
             <span className="topbar-title-icon">{currentTabMeta?.icon}</span>
-            <h2>{currentTabMeta?.label}</h2>
+            <h2>{currentTabMeta?.labelKey ? t(currentTabMeta.labelKey) : ''}</h2>
           </div>
           <SearchBar initialSettings={settings} onSearch={setSettings} />
           <button onClick={data.refresh} disabled={data.loading} className="refresh">
-            {data.loading ? 'Chargement...' : 'Rafraîchir'}
+            {data.loading ? t('nav.loading') : t('nav.refresh')}
           </button>
+          <LanguageToggle />
           <TopbarIconButton
             icon="💬"
-            title="Messages"
+            title={t('nav.unreadMessages')}
             badge={unreadFriendIds.size}
             active={activeTab === 'messages'}
             onClick={() => setActiveTab('messages')}
           />
           <TopbarIconButton
             icon="👥"
-            title="Amis"
+            title={t('nav.friendsTitle')}
             badge={pendingRequestCount}
+            dot={onlineFriendIds.size > 0}
             active={activeTab === 'friends'}
             onClick={() => setActiveTab('friends')}
           />
@@ -669,7 +714,7 @@ function App() {
           />
         </header>
 
-        {data.error && <p className="warning">Erreur : {data.error}</p>}
+        {data.error && <p className="warning">{t('nav.error', { message: data.error })}</p>}
 
         <main className="content" key={activeTab}>
           {renderValorantTab()}

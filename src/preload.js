@@ -12,6 +12,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   },
   getSettings: () => ipcRenderer.invoke('settings:get'),
   saveSettings: (settings) => ipcRenderer.invoke('settings:set', settings),
+  getLanguage: () => ipcRenderer.invoke('language:get'),
+  saveLanguage: (language) => ipcRenderer.invoke('language:set', language),
   setLinkedPuuid: (puuid) => ipcRenderer.invoke('account:set-linked-puuid', puuid),
   getMatches: (settings) => ipcRenderer.invoke('valorant:get-matches', settings),
   previewRiotAccount: (payload) => ipcRenderer.invoke('valorant:preview-account', payload),

@@ -4,16 +4,18 @@ import { findMe, hitStats, excludeDeathmatch, formStats, overallHsPercent } from
 // comparée à un signal réel du match (K/D vs moyenne perso, kills/deaths du
 // match, précision tête vs moyenne perso) — pas de jugement de "bon jeu" dans
 // l'absolu, juste un écart perception / stats mesurables.
+// `textKey`/id de niveau restent des codes internes traduits à l'affichage
+// (via t()), jamais comparés en tant que texte affiché.
 export const POST_MORTEM_QUESTIONS = [
-  { id: 'overall', text: 'Tu penses avoir bien joué ce match ?' },
-  { id: 'duels', text: 'Tu penses avoir gagné tes duels ?' },
-  { id: 'aim', text: 'Tu penses avoir eu une bonne précision (tête) ?' },
+  { id: 'overall', textKey: 'postmortem.questions.overall' },
+  { id: 'duels', textKey: 'postmortem.questions.duels' },
+  { id: 'aim', textKey: 'postmortem.questions.aim' },
 ];
 
 export const ANSWER_LEVELS = [
-  { id: 'oui', label: 'Oui' },
-  { id: 'moyen', label: 'Moyen' },
-  { id: 'non', label: 'Non' },
+  { id: 'oui', labelKey: 'postmortem.answers.yes' },
+  { id: 'moyen', labelKey: 'postmortem.answers.average' },
+  { id: 'non', labelKey: 'postmortem.answers.no' },
 ];
 
 // Calcule ce que les stats réelles du match disent pour chaque question,
@@ -56,7 +58,7 @@ export function gradeAnswers(userAnswers, actualAnswers) {
     const userAnswer = userAnswers[q.id] ?? null;
     return {
       id: q.id,
-      question: q.text,
+      textKey: q.textKey,
       userAnswer,
       actual,
       correct: actual !== null && userAnswer !== null ? actual === userAnswer : null,
@@ -65,20 +67,23 @@ export function gradeAnswers(userAnswers, actualAnswers) {
   });
 }
 
-export function buildComparisonText(result) {
-  if (result.actual === null) return "Pas assez de données pour comparer sur cette question.";
+export function buildComparisonText(t, result) {
+  if (result.actual === null) return t('postmortem.comparison.notEnoughData');
 
   if (result.id === 'overall') {
     const { matchKd, overallKd } = result.detail;
-    return `K/D de ce match : ${matchKd.toFixed(2)} — ta moyenne générale est de ${overallKd.toFixed(2)}.`;
+    return t('postmortem.comparison.overall', { matchKd: matchKd.toFixed(2), overallKd: overallKd.toFixed(2) });
   }
   if (result.id === 'duels') {
     const { kills, deaths } = result.detail;
-    return `${kills} kills pour ${deaths} morts ce match.`;
+    return t('postmortem.comparison.duels', { kills, deaths });
   }
   if (result.id === 'aim') {
     const { hsPercent, overallHs } = result.detail;
-    return `Précision tête ce match : ${hsPercent === null ? '?' : hsPercent.toFixed(0) + '%'} — ta moyenne est de ${overallHs === null ? '?' : overallHs.toFixed(0) + '%'}.`;
+    return t('postmortem.comparison.aim', {
+      hsPercent: hsPercent === null ? '?' : `${hsPercent.toFixed(0)}%`,
+      overallHs: overallHs === null ? '?' : `${overallHs.toFixed(0)}%`,
+    });
   }
   return '';
 }

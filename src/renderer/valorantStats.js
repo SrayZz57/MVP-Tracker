@@ -317,6 +317,21 @@ export function resultLabel(match, me) {
   return won ? 'Victoire' : 'Défaite';
 }
 
+// resultLabel() reste en français en interne — c'est la valeur comparée un
+// peu partout dans le code (=== 'Victoire' etc.), donc la changer casserait
+// beaucoup de logique existante. Ce petit helper sert uniquement à choisir
+// la bonne clé de traduction *à l'affichage*, sans toucher à la logique.
+const RESULT_LABEL_KEYS = {
+  Victoire: 'result.win',
+  Défaite: 'result.loss',
+  'Match nul': 'result.draw',
+  'Sans équipe': 'result.noTeam',
+};
+
+export function resultLabelKey(label) {
+  return RESULT_LABEL_KEYS[label] ?? null;
+}
+
 export function matchScore(match, me) {
   if (!me?.team) return null;
   const myKey = me.team.toLowerCase();
@@ -602,6 +617,23 @@ export function dayOfWeek(match) {
   const gameStart = match?.metadata?.game_start;
   if (!gameStart) return null;
   return DAY_LABELS[new Date(gameStart * 1000).getDay()];
+}
+
+// Même principe que resultLabelKey() : le nom de jour reste en français en
+// interne (clé de tri via WEEK_ORDER, clé d'icône dans FormTab), seule la
+// traduction à l'affichage passe par ce helper.
+const DAY_LABEL_KEYS = {
+  Lundi: 'days.monday',
+  Mardi: 'days.tuesday',
+  Mercredi: 'days.wednesday',
+  Jeudi: 'days.thursday',
+  Vendredi: 'days.friday',
+  Samedi: 'days.saturday',
+  Dimanche: 'days.sunday',
+};
+
+export function dayLabelKey(day) {
+  return DAY_LABEL_KEYS[day] ?? null;
 }
 
 export function overallHsPercent(matches, name, tag) {

@@ -9,61 +9,25 @@ function bucket(score) {
   return 'low';
 }
 
-// Combinaisons de buckets (agressivité/stabilité/polyvalence/clutch) → titre +
-// description. Règles simples et lisibles, pas un modèle prédictif — juste une
-// façon de résumer 4 scores dérivés de vraies stats en une phrase.
+// Combinaisons de buckets (agressivité/stabilité/polyvalence/clutch) → un
+// simple archétype (clé i18n) — le vrai titre/texte est résolu à l'affichage
+// dans PlayerProfileCard.jsx via t('profile.archetypes.<key>.*'), pour rester
+// traduisible. Règles simples et lisibles, pas un modèle prédictif — juste
+// une façon de résumer 4 scores dérivés de vraies stats en une phrase.
 function describeProfile({ aggression, stability, versatility, clutch }) {
   const a = bucket(aggression);
   const s = bucket(stability);
   const v = bucket(versatility);
   const c = bucket(clutch);
 
-  if (a === 'high' && s === 'low') {
-    return {
-      title: 'Duelist impulsif',
-      text: "Tu prends l'initiative en premier sur la plupart des rounds, mais les mauvaises passes te font vite décrocher. Un vrai moteur d'agression, à condition de savoir freiner après une série de défaites.",
-    };
-  }
-  if (a === 'high' && c === 'high') {
-    return {
-      title: 'Fragger clutch',
-      text: "Tu ouvres les rounds et tu fermes les situations serrées : une combinaison rare d'agressivité et de sang-froid en fin de round.",
-    };
-  }
-  if (a === 'high') {
-    return {
-      title: 'Entry fragger',
-      text: "Tu es souvent le premier au contact, que ce soit pour ouvrir l'espace de ton équipe ou tomber en premier. Un rôle exigeant qui pèse beaucoup sur le début de round.",
-    };
-  }
-  if (v === 'high' && s === 'high') {
-    return {
-      title: 'Tacticien polyvalent',
-      text: "Tu passes d'un agent à l'autre sans perdre en régularité, et tu encaisses les mauvaises séries sans t'effondrer. Le profil flexible d'un joueur qui s'adapte à l'équipe.",
-    };
-  }
-  if (s === 'low') {
-    return {
-      title: 'Joueur en dents de scie',
-      text: "Tes séries de défaites ont tendance à s'enchaîner et à peser sur ta perf. Le module Tilt peut t'aider à repérer le bon moment pour souffler.",
-    };
-  }
-  if (c === 'high') {
-    return {
-      title: 'Closeur',
-      text: 'Tu ne domines peut-être pas le début de round, mais tu es clutch : tu convertis un nombre de situations à 1 contre plusieurs au-dessus de la moyenne.',
-    };
-  }
-  if (v === 'low') {
-    return {
-      title: 'Spécialiste',
-      text: "Tu restes fidèle à un petit noyau d'agents plutôt que de tourner. Une expertise ciblée, au prix d'un peu de flexibilité en cas de besoin de switch.",
-    };
-  }
-  return {
-    title: 'Joueur équilibré',
-    text: "Rien ne ressort fortement dans un sens ou l'autre pour l'instant — un profil stable, sans excès ni faiblesse marquée sur les axes suivis.",
-  };
+  if (a === 'high' && s === 'low') return 'duelistImpulsive';
+  if (a === 'high' && c === 'high') return 'clutchFragger';
+  if (a === 'high') return 'entryFragger';
+  if (v === 'high' && s === 'high') return 'versatileTactician';
+  if (s === 'low') return 'inconsistentPlayer';
+  if (c === 'high') return 'closer';
+  if (v === 'low') return 'specialist';
+  return 'balancedPlayer';
 }
 
 // Calcule 4 scores /100 à partir des données déjà collectées par les autres
@@ -90,7 +54,7 @@ export function computePlayerProfile(matches, name, tag) {
     clutch: clutch.attempts >= 3 ? clutch.winrate : null,
   };
 
-  const { title, text } = describeProfile(scores);
+  const archetype = describeProfile(scores);
 
   return {
     ready: true,
@@ -100,7 +64,6 @@ export function computePlayerProfile(matches, name, tag) {
     firstBloods: fb.firstBloods,
     firstDeaths: fb.firstDeaths,
     clutchAttempts: clutch.attempts,
-    title,
-    text,
+    archetype,
   };
 }

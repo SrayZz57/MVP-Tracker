@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { toPng } from 'html-to-image';
 import { matchesInCurrentWeek, lastCompletedWeekStart, weekStartKey } from './valorantStats.js';
 import { buildWeekRecap, generateNarrative } from './weeklyNarrative.js';
@@ -6,6 +7,7 @@ import { useAgentPortraits } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 
 function WeeklyRecapCard({ settings, matches, rank }) {
+  const { t } = useTranslation();
   const portraits = useAgentPortraits();
   const rankTiers = useRankTiers();
   const cardRef = useRef(null);
@@ -35,7 +37,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
       const previous = await window.electronAPI.getPreviousWeeklyNarrative(weekKey);
       const previousRank = previous?.rank_json ? JSON.parse(previous.rank_json) : null;
       const currentRank = rank ? { tierId: rank.tierId, tierName: rank.tierName, rr: rank.rr } : null;
-      const paragraphs = generateNarrative(recap, currentRank, previousRank);
+      const paragraphs = generateNarrative(t, recap, currentRank, previousRank);
 
       await window.electronAPI.saveWeeklyNarrative(
         weekKey,
@@ -50,7 +52,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
     return () => {
       cancelled = true;
     };
-  }, [recap, weekKey, rank]);
+  }, [recap, weekKey, rank, t]);
 
   useEffect(() => {
     if (!open) return;
@@ -75,8 +77,8 @@ function WeeklyRecapCard({ settings, matches, rank }) {
 
   return (
     <>
-      <button className="weekly-notch" onClick={() => setOpen(true)} title="Ta semaine">
-        <span>SEMAINE</span>
+      <button className="weekly-notch" onClick={() => setOpen(true)} title={t('weekly.widgetTitle')}>
+        <span>{t('weekly.notchLabel')}</span>
       </button>
 
       {open && (
@@ -86,7 +88,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
 
             {!recap ? (
               <div className="weekly-recap-card weekly-recap-empty">
-                <p>Aucun match la semaine dernière — le wrapped se remplira à partir de lundi prochain.</p>
+                <p>{t('weekly.noMatches')}</p>
               </div>
             ) : (
               <div className="weekly-recap-wrap">
@@ -96,7 +98,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
                   style={portrait ? { backgroundImage: `url(${portrait})` } : undefined}
                 >
                   <div className="weekly-recap-overlay">
-                    <div className="weekly-recap-title">SEMAINE DERNIÈRE</div>
+                    <div className="weekly-recap-title">{t('weekly.title')}</div>
 
                     <div className="weekly-recap-identity">
                       <div className="weekly-recap-name">
@@ -112,60 +114,57 @@ function WeeklyRecapCard({ settings, matches, rank }) {
 
                     <div className="weekly-recap-hero">
                       <div className="weekly-recap-hero-value">{recap.games}</div>
-                      <div className="weekly-recap-hero-label">parties jouées</div>
+                      <div className="weekly-recap-hero-label">{t('weekly.gamesPlayed')}</div>
                     </div>
 
                     <div className="weekly-recap-stats">
                       <div className="weekly-recap-stat">
                         <div className="value">{recap.winrate === null ? '?' : `${recap.winrate.toFixed(0)}%`}</div>
-                        <div className="label">Winrate</div>
+                        <div className="label">{t('weekly.winrate')}</div>
                       </div>
                       <div className="weekly-recap-stat">
                         <div className="value">{recap.kd === null ? '?' : recap.kd.toFixed(2)}</div>
-                        <div className="label">K/D moyen</div>
+                        <div className="label">{t('weekly.kdAverage')}</div>
                       </div>
                       <div className="weekly-recap-stat">
                         <div className="value">{recap.hsPercent === null ? '?' : `${recap.hsPercent.toFixed(0)}%`}</div>
-                        <div className="label">Précision tête</div>
+                        <div className="label">{t('weekly.hsPrecision')}</div>
                       </div>
                     </div>
 
                     <div className="weekly-recap-highlights">
                       {recap.bestAgent && (
-                        <p>🎮 Le plus joué : <strong>{recap.bestAgent.key}</strong> ({recap.bestAgent.games} parties)</p>
+                        <p>{t('weekly.mostPlayed', { agent: recap.bestAgent.key, count: recap.bestAgent.games })}</p>
                       )}
                       {recap.bestMap && (
-                        <p>🗺️ Meilleure map : <strong>{recap.bestMap.key}</strong> ({recap.bestMap.winrate.toFixed(0)}% winrate)</p>
+                        <p>{t('weekly.bestMap', { map: recap.bestMap.key, percent: recap.bestMap.winrate.toFixed(0) })}</p>
                       )}
-                      {recap.bestKd !== null && <p>🔥 Meilleur K/D : <strong>{recap.bestKd.toFixed(2)}</strong></p>}
+                      {recap.bestKd !== null && <p>{t('weekly.bestKd', { kd: recap.bestKd.toFixed(2) })}</p>}
                     </div>
                   </div>
                 </div>
 
                 <button className="show-more-btn" onClick={handleExport} disabled={exporting}>
-                  {exporting ? 'Export en cours...' : '📷 Exporter en image'}
+                  {exporting ? t('weekly.exporting') : t('weekly.exportBtn')}
                 </button>
 
                 {narrative && (
                   <div className="weekly-narrative">
-                    <h4>📖 Ton récit de la semaine</h4>
+                    <h4>{t('weekly.narrativeTitle')}</h4>
                     {narrative.map((paragraph, i) => (
                       <p key={i}>{paragraph}</p>
                     ))}
                   </div>
                 )}
 
-                <p className="weekly-drawer-hint">
-                  📅 Chaque lundi, ce wrapped se remet à zéro et récapitule les 7 jours précédents — reviens ici en
-                  début de semaine pour voir ton résumé et le partager si tu veux.
-                </p>
+                <p className="weekly-drawer-hint">{t('weekly.hint')}</p>
 
                 {history.length > 0 && (
                   <div className="weekly-narrative-history">
-                    <h4>Semaines précédentes</h4>
+                    <h4>{t('weekly.previousWeeks')}</h4>
                     {history.map((row) => (
                       <div key={row.id} className="weekly-narrative-history-item">
-                        <div className="weekly-narrative-history-date">Semaine du {row.week_start}</div>
+                        <div className="weekly-narrative-history-date">{t('weekly.weekOf', { date: row.week_start })}</div>
                         {JSON.parse(row.narrative_json).map((paragraph, i) => (
                           <p key={i}>{paragraph}</p>
                         ))}

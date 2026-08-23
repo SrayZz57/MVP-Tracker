@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function PostMortemHistory() {
+  const { t } = useTranslation();
   const [history, setHistory] = useState([]);
 
   useEffect(() => {
@@ -10,11 +12,8 @@ function PostMortemHistory() {
   if (history.length === 0) {
     return (
       <div className="card">
-        <h3>🪞 Auto-évaluation post-match</h3>
-        <p>
-          Pas encore de double check répondu — la popup apparaît après un nouveau match tant que tu ne l'as pas
-          fermée.
-        </p>
+        <h3>{t('postmortemHistory.title')}</h3>
+        <p>{t('postmortemHistory.noneYet')}</p>
       </div>
     );
   }
@@ -32,16 +31,16 @@ function PostMortemHistory() {
 
   return (
     <div className="card">
-      <h3>🪞 Auto-évaluation post-match</h3>
-      <p className="label">Compare ce que tu ressentais après un match à ce que tes stats montraient vraiment.</p>
+      <h3>{t('postmortemHistory.title')}</h3>
+      <p className="label">{t('postmortemHistory.hint')}</p>
       <div className="stat-tiles">
         <div className="stat-tile">
           <div className="value">{overallRate === null ? '?' : `${overallRate.toFixed(0)}%`}</div>
-          <div className="label">Justesse globale ({history.length} matchs évalués)</div>
+          <div className="label">{t('postmortemHistory.overallAccuracy', { count: history.length })}</div>
         </div>
         <div className="stat-tile">
           <div className="value">{recentRate === null ? '?' : `${recentRate.toFixed(0)}%`}</div>
-          <div className="label">Sur les 5 derniers</div>
+          <div className="label">{t('postmortemHistory.last5')}</div>
         </div>
       </div>
 
@@ -54,7 +53,7 @@ function PostMortemHistory() {
               <span className="puzzle-history-date">{h.date}</span>
               <span className="puzzle-history-map">{h.map ?? '?'}</span>
               <span className="puzzle-history-status">
-                {correctCount}/{results.length} justes
+                {t('postmortemHistory.correctCount', { correct: correctCount, total: results.length })}
               </span>
             </div>
           );

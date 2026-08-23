@@ -1,25 +1,18 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useAgentsData } from './agentIcons.js';
 import { useWeaponsData } from './weaponIcons.js';
 import { useMapsData, useMapMinimaps } from './mapImages.js';
 import { useRankLadder } from './rankData.js';
 
 const CATEGORIES = [
-  { id: 'agents', label: '🧑‍🚀 Agents' },
-  { id: 'weapons', label: '🔫 Armes' },
-  { id: 'maps', label: '🗺️ Maps' },
-  { id: 'ranks', label: '🏅 Rangs' },
+  { id: 'agents', labelKey: 'wiki.categories.agents' },
+  { id: 'weapons', labelKey: 'wiki.categories.weapons' },
+  { id: 'maps', labelKey: 'wiki.categories.maps' },
+  { id: 'ranks', labelKey: 'wiki.categories.ranks' },
 ];
 
 const WEAPON_CATEGORY_ORDER = ['Pistols', 'SMGs', 'Shotguns', 'Rifles', 'Sniper Rifles', 'Heavy Weapons'];
-const WEAPON_CATEGORY_LABELS = {
-  Pistols: 'Pistolets',
-  SMGs: 'Mitraillettes',
-  Shotguns: 'Fusils à pompe',
-  Rifles: "Fusils d'assaut",
-  'Sniper Rifles': 'Fusils de précision',
-  'Heavy Weapons': 'Armes lourdes',
-};
 
 const PLACEABLE_SLOTS = ['Ability1', 'Ability2', 'Grenade', 'Ultimate'];
 
@@ -55,12 +48,13 @@ function AgentGrid({ agents, onSelect }) {
 }
 
 function AgentModal({ agent, onClose }) {
+  const { t } = useTranslation();
   const abilities = agent.abilities.filter((a) => PLACEABLE_SLOTS.includes(a.slot) && a.displayIcon);
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
 
         <div className="agent-modal-header" style={{ borderColor: `${agentAccent(agent)}66` }}>
           <img src={agent.displayIcon} alt="" className="agent-modal-avatar" style={{ borderColor: agentAccent(agent) }} />
@@ -77,7 +71,7 @@ function AgentModal({ agent, onClose }) {
         )}
 
         <div className="card">
-          <h3>Capacités</h3>
+          <h3>{t('wiki.abilities')}</h3>
           <div className="wiki-ability-list">
             {abilities.map((ability) => (
               <div key={ability.slot} className="wiki-ability-row">
@@ -96,6 +90,7 @@ function AgentModal({ agent, onClose }) {
 }
 
 function WeaponGrid({ weaponsByCategory, onSelect }) {
+  const { t } = useTranslation();
   return (
     <>
       {WEAPON_CATEGORY_ORDER.map((category) => {
@@ -103,13 +98,13 @@ function WeaponGrid({ weaponsByCategory, onSelect }) {
         if (!weapons || weapons.length === 0) return null;
         return (
           <div key={category} className="card">
-            <h3>{WEAPON_CATEGORY_LABELS[category] ?? category}</h3>
+            <h3>{t(`wiki.weaponCategories.${category}`, { defaultValue: category })}</h3>
             <div className="wiki-grid wiki-grid-compact">
               {weapons.map((weapon) => (
                 <div key={weapon.uuid} className="wiki-card wiki-card-compact" onClick={() => onSelect(weapon)}>
                   <img src={weapon.displayIcon} alt="" className="wiki-weapon-icon" />
                   <div className="wiki-card-title">{weapon.displayName}</div>
-                  <div className="wiki-card-subtitle">{weapon.shopData.cost} crédits</div>
+                  <div className="wiki-card-subtitle">{t('wiki.credits', { cost: weapon.shopData.cost })}</div>
                 </div>
               ))}
             </div>
@@ -121,17 +116,18 @@ function WeaponGrid({ weaponsByCategory, onSelect }) {
 }
 
 function WeaponModal({ weapon, onClose }) {
+  const { t } = useTranslation();
   const stats = weapon.weaponStats;
 
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
 
         <div className="modal-banner" style={{ backgroundImage: `url(${weapon.displayIcon})`, backgroundSize: 'contain' }}>
           <div className="modal-banner-text">
             <h2>{weapon.displayName}</h2>
-            <p>{WEAPON_CATEGORY_LABELS[weapon.shopData.category] ?? weapon.shopData.category} — {weapon.shopData.cost} crédits</p>
+            <p>{t(`wiki.weaponCategories.${weapon.shopData.category}`, { defaultValue: weapon.shopData.category })} — {t('wiki.credits', { cost: weapon.shopData.cost })}</p>
           </div>
         </div>
 
@@ -141,28 +137,28 @@ function WeaponModal({ weapon, onClose }) {
               <div className="stat-tiles">
                 <div className="stat-tile">
                   <div className="value">{stats.fireRate}</div>
-                  <div className="label">Cadence de tir (coups/s)</div>
+                  <div className="label">{t('wiki.fireRate')}</div>
                 </div>
                 <div className="stat-tile">
                   <div className="value">{stats.magazineSize}</div>
-                  <div className="label">Taille du chargeur</div>
+                  <div className="label">{t('wiki.magazineSize')}</div>
                 </div>
                 <div className="stat-tile">
                   <div className="value">{stats.reloadTimeSeconds}s</div>
-                  <div className="label">Temps de rechargement</div>
+                  <div className="label">{t('wiki.reloadTime')}</div>
                 </div>
               </div>
             </div>
 
             <div className="card">
-              <h3>Dégâts par distance</h3>
+              <h3>{t('wiki.damageByDistance')}</h3>
               <table>
                 <thead>
                   <tr>
-                    <th>Distance</th>
-                    <th>Tête</th>
-                    <th>Corps</th>
-                    <th>Jambes</th>
+                    <th>{t('wiki.distance')}</th>
+                    <th>{t('wiki.head')}</th>
+                    <th>{t('wiki.body')}</th>
+                    <th>{t('wiki.legs')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -179,7 +175,7 @@ function WeaponModal({ weapon, onClose }) {
             </div>
           </>
         ) : (
-          <p>Pas de statistiques détaillées pour cette arme.</p>
+          <p>{t('wiki.noWeaponStats')}</p>
         )}
       </div>
     </div>
@@ -210,10 +206,11 @@ function MapGrid({ maps, onSelect }) {
 }
 
 function MapModal({ map, minimapUrl, onClose }) {
+  const { t } = useTranslation();
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
 
         <div className="modal-banner" style={{ backgroundImage: `url(${map.splash})` }}>
           <div className="modal-banner-text">
@@ -230,7 +227,7 @@ function MapModal({ map, minimapUrl, onClose }) {
 
         {minimapUrl && (
           <div className="card">
-            <h3>Minimap</h3>
+            <h3>{t('wiki.minimap')}</h3>
             <img src={minimapUrl} alt="" className="wiki-minimap" />
           </div>
         )}
@@ -286,6 +283,7 @@ function RankLadder({ ladder }) {
 }
 
 function Wiki() {
+  const { t } = useTranslation();
   const [category, setCategory] = useState('agents');
   const [selectedAgent, setSelectedAgent] = useState(null);
   const [selectedWeapon, setSelectedWeapon] = useState(null);
@@ -315,11 +313,8 @@ function Wiki() {
   return (
     <div>
       <div className="card">
-        <h3>📖 Wiki Valorant</h3>
-        <p className="label">
-          Toutes les infos de référence — agents, armes, maps et rangs — pour découvrir ou revoir les bases sans
-          sortir de l'appli.
-        </p>
+        <h3>{t('wiki.title')}</h3>
+        <p className="label">{t('wiki.description')}</p>
         <div className="filter-bar">
           {CATEGORIES.map((c) => (
             <button
@@ -327,7 +322,7 @@ function Wiki() {
               className={c.id === category ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setCategory(c.id)}
             >
-              {c.label}
+              {t(c.labelKey)}
             </button>
           ))}
         </div>
@@ -349,7 +344,7 @@ function Wiki() {
 
       {category === 'ranks' && (
         <div className="card">
-          <p className="label">Du plus haut au plus bas.</p>
+          <p className="label">{t('wiki.ranksHint')}</p>
           <RankLadder ladder={rankLadder} />
         </div>
       )}

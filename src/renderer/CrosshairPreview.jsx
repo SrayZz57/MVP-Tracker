@@ -1,4 +1,5 @@
 import { useId, useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const PALETTE_HEX = {
   0: 'FFFFFF',
@@ -131,12 +132,13 @@ function lineSegments(spec, keyPrefix) {
 }
 
 function CrosshairPreview({ code }) {
+  const { t } = useTranslation();
   const parsed = useMemo(() => parseCrosshair(code), [code]);
   const rawId = useId();
   const uid = rawId.replace(/:/g, '');
 
   if (!parsed) {
-    return <p style={{ color: 'red' }}>Code crosshair invalide</p>;
+    return <p style={{ color: 'red' }}>{t('crosshairs.invalidCode')}</p>;
   }
 
   return (

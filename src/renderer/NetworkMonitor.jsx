@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function NetworkMonitor() {
+  const { t } = useTranslation();
   const [status, setStatus] = useState({ valorantRunning: false, latestPing: null });
 
   useEffect(() => {
@@ -14,10 +16,10 @@ function NetworkMonitor() {
 
   return (
     <div className="card">
-      <h3>📡 Statut</h3>
+      <h3>{t('network.status')}</h3>
       <div className={`network-status-banner ${status.valorantRunning ? 'online' : ''}`}>
         <span className="status-dot-lg" />
-        {status.valorantRunning ? 'Valorant détecté' : 'Valorant non détecté'}
+        {status.valorantRunning ? t('network.detected') : t('network.notDetected')}
       </div>
       {status.valorantRunning && (
         <div className="stat-tiles">
@@ -25,7 +27,7 @@ function NetworkMonitor() {
             <div className={`ping-value ${pingClass}`}>
               {status.latestPing === null ? '...' : `${status.latestPing} ms`}
             </div>
-            <div className="label">Ping (connexion générale)</div>
+            <div className="label">{t('network.pingGeneral')}</div>
           </div>
         </div>
       )}

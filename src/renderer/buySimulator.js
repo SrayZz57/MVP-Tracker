@@ -1,6 +1,5 @@
 import { excludeDeathmatch, findMe, ECONOMY_TIERS } from './valorantStats.js';
 
-const TIER_LABELS = { eco: 'Éco', semi: 'Semi-buy', full: 'Full buy' };
 const TIER_ORDER = { eco: 0, semi: 1, full: 2 };
 
 function tierFor(value) {
@@ -19,7 +18,7 @@ function availableBefore(economy) {
 // loadout_value, classé en éco/semi/full) à ce que l'économie moyenne de son
 // équipe ce round-là pouvait raisonnablement se permettre. Un décalage entre
 // les deux (dans un sens ou l'autre) est marqué "discutable" avec explication.
-export function analyzeRoundBuys(match, name, tag) {
+export function analyzeRoundBuys(t, match, name, tag) {
   const me = findMe(match, name, tag);
   if (!me?.puuid || !me?.team) return [];
 
@@ -36,17 +35,20 @@ export function analyzeRoundBuys(match, name, tag) {
       const actualTier = tierFor(myPs.economy?.loadout_value ?? 0);
       const diff = TIER_ORDER[actualTier] - TIER_ORDER[recommendedTier];
 
+      const actualLabel = t(`common.economyTiers.${actualTier}`).toLowerCase();
+      const recommendedLabel = t(`common.economyTiers.${recommendedTier}`).toLowerCase();
+
       let verdict;
       let explanation;
       if (diff === 0) {
         verdict = 'coherent';
-        explanation = `Achat cohérent : ${TIER_LABELS[actualTier].toLowerCase()}, comme l'économie de l'équipe le permettait.`;
+        explanation = t('buySim.explanation.coherent', { tier: actualLabel });
       } else if (diff > 0) {
         verdict = 'questionable';
-        explanation = `Tu as fait un ${TIER_LABELS[actualTier].toLowerCase()} alors que l'économie d'équipe pointait plutôt vers un ${TIER_LABELS[recommendedTier].toLowerCase()}.`;
+        explanation = t('buySim.explanation.tooHigh', { actual: actualLabel, recommended: recommendedLabel });
       } else {
         verdict = 'questionable';
-        explanation = `Tu as joué en ${TIER_LABELS[actualTier].toLowerCase()} alors que l'équipe avait les moyens d'un ${TIER_LABELS[recommendedTier].toLowerCase()}.`;
+        explanation = t('buySim.explanation.tooLow', { actual: actualLabel, recommended: recommendedLabel });
       }
 
       return {
@@ -99,7 +101,7 @@ function bestAffordableWeapon(weapons, budget) {
 // s'il reste la place pour une arme correcte, sinon bouclier léger, sinon
 // arme seule. Le "en fonction de ton agent" se limite à un conseil de
 // priorité selon le rôle (donnée réelle), pas à des capacités précises.
-export function recommendBuy(credits, weapons, armors, agentRole) {
+export function recommendBuy(t, credits, weapons, armors, agentRole) {
   if (weapons.length === 0 || armors.length === 0) return null;
 
   const heavyShield = armors.find((a) => a.cost === 1000) ?? null;
@@ -128,9 +130,9 @@ export function recommendBuy(credits, weapons, armors, agentRole) {
 
   const roleNote =
     agentRole === 'Duelliste'
-      ? "En tant que duelliste, priorise l'arme sur le bouclier si tu dois trancher : tu vas au contact, une arme forte compte plus."
+      ? t('buySim.roleNoteDuelist')
       : agentRole === 'Sentinelle' || agentRole === 'Contrôleur'
-        ? 'En tant que ' + agentRole.toLowerCase() + ', le bouclier complet vaut le coup même avec une arme plus faible : tu es souvent en retrait.'
+        ? t('buySim.roleNoteDefensive', { role: agentRole.toLowerCase() })
         : null;
 
   return {

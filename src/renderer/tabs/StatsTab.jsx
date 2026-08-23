@@ -1,7 +1,9 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import {
   findMe,
   resultLabel,
+  resultLabelKey,
   matchScore,
   hitStats,
   weaponKillsFor,
@@ -26,18 +28,22 @@ import LoadingState from '../LoadingState.jsx';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
 
+// `id` reste la vraie valeur de filtrage (comparée à match.metadata.mode_id),
+// seul le libellé affiché passe par la traduction (voir `labelKey`).
 const SCOPE_OPTIONS = [
-  { id: '', label: 'Tout' },
-  { id: 'competitive', label: 'Classé' },
-  { id: 'unrated', label: 'Non classé' },
+  { id: '', labelKey: 'stats.scope.all' },
+  { id: 'competitive', labelKey: 'stats.scope.ranked' },
+  { id: 'unrated', labelKey: 'stats.scope.unrated' },
 ];
 
-function renderModeStats(title, rows, icons) {
+// Fonction utilitaire (pas un composant) : reçoit `t` en paramètre plutôt que
+// d'appeler useTranslation() elle-même.
+function renderModeStats(t, title, rows, icons) {
   return (
     <div className="card">
       <h3>{title}</h3>
       {rows.length === 0 ? (
-        <p>Pas encore de données.</p>
+        <p>{t('stats.noDataYet')}</p>
       ) : (
         rows.map((row) => (
           <div key={row.key} className="stat-bar-row">
@@ -53,7 +59,7 @@ function renderModeStats(title, rows, icons) {
             </span>
             <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
             <span className="stat-bar-meta">
-              {row.games} parties — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+              {t('stats.gamesCount', { count: row.games })} — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
             </span>
           </div>
         ))
@@ -65,12 +71,13 @@ function renderModeStats(title, rows, icons) {
 const AGENT_CARDS_PAGE_SIZE = 5;
 
 function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
+  const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
   const visibleRows = showAll ? rows : rows.slice(0, AGENT_CARDS_PAGE_SIZE);
 
   return (
     <div className="card">
-      <h3>Stats par agent</h3>
+      <h3>{t('stats.statsByAgent')}</h3>
       <div className="map-card-list">
         {visibleRows.map((row) => {
           const image = portraits.get(row.key);
@@ -88,7 +95,7 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
                 <div className="agent-card-badge-value">
                   {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}
                 </div>
-                <div className="agent-card-badge-label">winrate</div>
+                <div className="agent-card-badge-label">{t('stats.winrateLabel')}</div>
               </div>
               <div className="agent-card-info">
                 <div className="agent-card-title-row">
@@ -96,10 +103,10 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
                   <span className="agent-card-title">{row.key}</span>
                 </div>
                 <div className="agent-card-stats">
-                  <span className="label">{row.games} parties</span>
+                  <span className="label">{t('stats.gamesCount', { count: row.games })}</span>
                   <span className="label">K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}</span>
-                  <span className="label">{kills} kills</span>
-                  {topWeapon && <span className="label">arme préférée : {topWeapon[0]}</span>}
+                  <span className="label">{t('stats.killsCount', { count: kills })}</span>
+                  {topWeapon && <span className="label">{t('stats.favoriteWeapon', { weapon: topWeapon[0] })}</span>}
                 </div>
               </div>
               <div
@@ -112,7 +119,7 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
       </div>
       {rows.length > AGENT_CARDS_PAGE_SIZE && (
         <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
-          {showAll ? '▲ Voir moins' : `▼ Voir plus (${rows.length - AGENT_CARDS_PAGE_SIZE})`}
+          {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - AGENT_CARDS_PAGE_SIZE })}
         </button>
       )}
     </div>
@@ -122,12 +129,13 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
 const MAP_CARDS_PAGE_SIZE = 5;
 
 function MapCards({ rows, mapImages, onRowClick }) {
+  const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
   const visibleRows = showAll ? rows : rows.slice(0, MAP_CARDS_PAGE_SIZE);
 
   return (
     <div className="card">
-      <h3>Stats par map</h3>
+      <h3>{t('stats.statsByMap')}</h3>
       <div className="map-card-list">
         {visibleRows.map((row) => {
           const image = mapImages.get(row.key);
@@ -141,7 +149,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
               <div className="map-card-overlay">
                 <div className="map-card-title">{row.key}</div>
                 <div className="map-card-stats">
-                  {row.games} parties — {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`} winrate — K/D/A{' '}
+                  {t('stats.gamesCount', { count: row.games })} — {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`} {t('stats.winrateLabel')} — K/D/A{' '}
                   {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
                 </div>
               </div>
@@ -151,7 +159,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
       </div>
       {rows.length > MAP_CARDS_PAGE_SIZE && (
         <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
-          {showAll ? '▲ Voir moins' : `▼ Voir plus (${rows.length - MAP_CARDS_PAGE_SIZE})`}
+          {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - MAP_CARDS_PAGE_SIZE })}
         </button>
       )}
     </div>
@@ -159,6 +167,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
 }
 
 function StatsTab({ settings, matches, rank, loading }) {
+  const { t } = useTranslation();
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
   const agentRoles = useAgentRoles();
@@ -330,13 +339,13 @@ function StatsTab({ settings, matches, rank, loading }) {
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
-    return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
+    return <p>{t('stats.noMatchesYet')}</p>;
   }
 
   return (
     <div>
       <div className="card stats-scope-card">
-        <span className="stats-scope-label">📊 Voir les stats de cette page pour :</span>
+        <span className="stats-scope-label">{t('stats.scopeLabel')}</span>
         <div className="strategy-tool-group">
           {SCOPE_OPTIONS.map((opt) => (
             <button
@@ -348,7 +357,7 @@ function StatsTab({ settings, matches, rank, loading }) {
                 setShowAllMatches(false);
               }}
             >
-              {opt.label}
+              {t(opt.labelKey)}
             </button>
           ))}
         </div>
@@ -361,7 +370,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             }}
             className="stats-scope-act-select"
           >
-            <option value="">Tous les actes</option>
+            <option value="">{t('stats.allActs')}</option>
             {availableActs.map((act) => (
               <option key={act.id} value={act.id}>
                 {act.label}
@@ -371,8 +380,8 @@ function StatsTab({ settings, matches, rank, loading }) {
         )}
         {(scope || actFilter) && (
           <span className="label">
-            {scopedMatches.length} match(s)
-            {scope ? ` ${SCOPE_OPTIONS.find((o) => o.id === scope)?.label.toLowerCase()}` : ''}
+            {t('stats.matchesCount', { count: scopedMatches.length })}
+            {scope ? ` ${t(SCOPE_OPTIONS.find((o) => o.id === scope)?.labelKey).toLowerCase()}` : ''}
             {actFilter ? ` — ${availableActs.find((a) => a.id === actFilter)?.label}` : ''}
           </span>
         )}
@@ -419,14 +428,14 @@ function StatsTab({ settings, matches, rank, loading }) {
                   <div className="profile-peak-badge">
                     {peakTier?.icon && <img src={peakTier.icon} alt={rank.peakTierName} />}
                     <span>
-                      🏆 Peak {rank.peakTierName}
+                      {t('stats.peak', { tier: rank.peakTierName })}
                       {seasonNames.get(rank.peakSeasonUuid) ? ` — ${seasonNames.get(rank.peakSeasonUuid)}` : ''}
                     </span>
                   </div>
                 )}
               </div>
             ) : (
-              <p className="label">Rang indisponible</p>
+              <p className="label">{t('nav.rankUnavailable')}</p>
             )}
           </div>
         </div>
@@ -436,26 +445,26 @@ function StatsTab({ settings, matches, rank, loading }) {
       <RankMomentumCard settings={settings} matches={matches} />
 
       <div className="card">
-        <h3>📈 Progression du K/D ({kdProgression.length} derniers matchs)</h3>
+        <h3>{t('stats.kdProgressionTitle', { count: kdProgression.length })}</h3>
         {kdStats && (
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value"><CountUp value={kdStats.avg} decimals={2} /></div>
-              <div className="label">K/D moyen</div>
+              <div className="label">{t('stats.kdAvg')}</div>
             </div>
             <div className="stat-tile">
               <div className="value"><CountUp value={kdStats.best} decimals={2} /></div>
-              <div className="label">Meilleur match</div>
+              <div className="label">{t('stats.bestMatch')}</div>
             </div>
             <div className="stat-tile">
               <div className="value"><CountUp value={kdStats.worst} decimals={2} /></div>
-              <div className="label">Pire match</div>
+              <div className="label">{t('stats.worstMatch')}</div>
             </div>
             <div className="stat-tile">
               <div className="value" style={{ color: kdStats.trend >= 0 ? '#3ddc84' : 'var(--accent)' }}>
                 {kdStats.trend >= 0 ? '▲' : '▼'} {Math.abs(kdStats.trend).toFixed(2)}
               </div>
-              <div className="label">Tendance (2e moitié vs 1re)</div>
+              <div className="label">{t('stats.trend')}</div>
             </div>
           </div>
         )}
@@ -464,50 +473,54 @@ function StatsTab({ settings, matches, rank, loading }) {
             <LineChart data={kdProgression} color="#ff4655" />
           </div>
           <div className="kd-period-panel">
-            <h4>Bilan de la période</h4>
+            <h4>{t('stats.periodRecap')}</h4>
             <div className="kd-period-score">
               <span className="kd-period-wins">{periodResults.wins}V</span>
               <span className="kd-period-sep">—</span>
               <span className="kd-period-losses">{periodResults.losses}D</span>
-              {periodResults.draws > 0 && <span className="label">({periodResults.draws} nul)</span>}
+              {periodResults.draws > 0 && (
+                <span className="label">{t('stats.draws', { count: periodResults.draws })}</span>
+              )}
             </div>
             <p className="label">
-              {periodResults.winrate === null ? '?' : `${periodResults.winrate.toFixed(0)}%`} de victoires
+              {t('stats.winPercentage', {
+                percent: periodResults.winrate === null ? '?' : `${periodResults.winrate.toFixed(0)}%`,
+              })}
             </p>
             <div className="streak-dots">
               {periodResults.results.map((r) => (
                 <span
                   key={r.id}
                   className={`streak-dot ${r.label === 'Victoire' ? 'win' : r.label === 'Défaite' ? 'loss' : 'neutral'}`}
-                  title={`${r.map ?? '?'} — ${r.label}`}
+                  title={`${r.map ?? '?'} — ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
                 />
               ))}
             </div>
-            <p className="label kd-period-hint">Du plus ancien (gauche) au plus récent (droite)</p>
+            <p className="label kd-period-hint">{t('stats.periodHint')}</p>
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h3>Stats globales ({scopedMatches.length} matchs)</h3>
+        <h3>{t('stats.globalStatsTitle', { count: scopedMatches.length })}</h3>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value">{globalStats.hsPercent === null ? '?' : `${globalStats.hsPercent.toFixed(1)}%`}</div>
-            <div className="label">Tête</div>
+            <div className="label">{t('stats.head')}</div>
           </div>
           <div className="stat-tile">
             <div className="value">{globalStats.bsPercent === null ? '?' : `${globalStats.bsPercent.toFixed(1)}%`}</div>
-            <div className="label">Corps</div>
+            <div className="label">{t('stats.body')}</div>
           </div>
           <div className="stat-tile">
             <div className="value">{globalStats.lsPercent === null ? '?' : `${globalStats.lsPercent.toFixed(1)}%`}</div>
-            <div className="label">Jambes</div>
+            <div className="label">{t('stats.legs')}</div>
           </div>
         </div>
 
-        <h3 style={{ marginTop: '1.25rem' }}>Armes les plus utilisées</h3>
+        <h3 style={{ marginTop: '1.25rem' }}>{t('stats.topWeapons')}</h3>
         {globalStats.weaponRanking.length === 0 ? (
-          <p>Aucune donnée d'arme pour l'instant.</p>
+          <p>{t('stats.noWeaponData')}</p>
         ) : (
           (() => {
             const maxCount = globalStats.weaponRanking[0][1];
@@ -520,7 +533,7 @@ function StatsTab({ settings, matches, rank, loading }) {
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxCount) * 100}%` }} />
                 </span>
-                <span className="weapon-bar-count">{count} kills</span>
+                <span className="weapon-bar-count">{t('stats.killsCount', { count })}</span>
               </div>
             ));
           })()
@@ -536,11 +549,11 @@ function StatsTab({ settings, matches, rank, loading }) {
         onRowClick={(name) => setSelectedAgent(name)}
       />
       <MapCards rows={mapStats} mapImages={mapImages} onRowClick={(mapName) => setSelectedMap(mapName)} />
-      {renderModeStats('Stats par rôle', roleStats, roleIcons)}
-      {renderModeStats('Stats par mode', modeStats)}
+      {renderModeStats(t, t('stats.statsByRole'), roleStats, roleIcons)}
+      {renderModeStats(t, t('stats.statsByMode'), modeStats)}
 
       <div className="card">
-        <h3>Historique de matchs ({filteredMatches.length})</h3>
+        <h3>{t('stats.matchHistory', { count: filteredMatches.length })}</h3>
         <div className="filter-bar">
           <select
             value={modeFilter}
@@ -549,7 +562,7 @@ function StatsTab({ settings, matches, rank, loading }) {
               setShowAllMatches(false);
             }}
           >
-            <option value="">Tous les modes</option>
+            <option value="">{t('stats.allModes')}</option>
             {availableModes.map(([id, label]) => (
               <option key={id} value={id}>{label}</option>
             ))}
@@ -560,6 +573,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             const me = findMe(match, settings.name, settings.tag);
             const { hsPercent, bsPercent, lsPercent } = hitStats(me);
             const label = resultLabel(match, me);
+            const displayLabel = resultLabelKey(label) ? t(resultLabelKey(label)) : label;
             const score = matchScore(match, me);
             const resultClass = label === 'Victoire' ? 'match-win' : label === 'Défaite' ? 'match-loss' : '';
             return (
@@ -576,10 +590,10 @@ function StatsTab({ settings, matches, rank, loading }) {
                   {me?.character ?? '?'} — {' '}
                   {me?.stats?.kills ?? '?'}/{me?.stats?.deaths ?? '?'}/{me?.stats?.assists ?? '?'}
                   {hsPercent !== null &&
-                    ` — Tête ${hsPercent.toFixed(0)}% / Corps ${bsPercent.toFixed(0)}% / Jambes ${lsPercent.toFixed(0)}%`}
+                    t('stats.hitBreakdown', { hs: hsPercent.toFixed(0), bs: bsPercent.toFixed(0), ls: lsPercent.toFixed(0) })}
                 </span>
                 <span className={`result-badge ${resultClass}`}>
-                  {label}
+                  {displayLabel}
                   {score && ` (${score})`}
                 </span>
               </div>
@@ -588,7 +602,7 @@ function StatsTab({ settings, matches, rank, loading }) {
         </div>
         {filteredMatches.length > MATCH_HISTORY_PAGE_SIZE && (
           <button className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
-            {showAllMatches ? '▲ Voir moins' : `▼ Voir plus (${filteredMatches.length - MATCH_HISTORY_PAGE_SIZE})`}
+            {showAllMatches ? t('stats.showLess') : t('stats.showMore', { count: filteredMatches.length - MATCH_HISTORY_PAGE_SIZE })}
           </button>
         )}
       </div>

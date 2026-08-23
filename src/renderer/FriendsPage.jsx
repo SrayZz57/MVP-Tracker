@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 
 function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) {
+  const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -97,18 +99,18 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
     loadFriendships();
   };
 
-  if (loading) return <p className="label">Chargement...</p>;
+  if (loading) return <p className="label">{t('friends.loading')}</p>;
 
   return (
     <div className="friends-page">
       <div className="card">
-        <h3>👥 Ajouter un ami</h3>
+        <h3>{t('friends.addFriendTitle')}</h3>
         <form onSubmit={handleSearch} className="friend-search-form">
           <div className="search-bar-riotid">
-            <input placeholder="Pseudo" value={searchName} onChange={(e) => setSearchName(e.target.value)} required />
+            <input placeholder={t('friends.usernamePlaceholder')} value={searchName} onChange={(e) => setSearchName(e.target.value)} required />
             <span className="search-bar-hash">#</span>
             <input
-              placeholder="Tag"
+              placeholder={t('friends.tagPlaceholder')}
               value={searchTag}
               onChange={(e) => setSearchTag(e.target.value)}
               required
@@ -119,15 +121,15 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
             {searching ? '...' : '🔍'}
           </button>
         </form>
-        {searchResult === null && <p className="label">Aucun joueur MVP Tracker avec ce Riot ID.</p>}
+        {searchResult === null && <p className="label">{t('friends.noPlayerFound')}</p>}
         {searchResult && (
           <div className="friend-search-result">
             <FriendAvatar profile={searchResult} size={32} />
             <span>{friendLabel(searchResult)}</span>
             {requestSent ? (
-              <span className="label">Demande envoyée ✓</span>
+              <span className="label">{t('friends.requestSent')}</span>
             ) : (
-              <button onClick={sendFriendRequest}>Ajouter</button>
+              <button onClick={sendFriendRequest}>{t('friends.add')}</button>
             )}
           </div>
         )}
@@ -135,15 +137,15 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
 
       {incomingPending.length > 0 && (
         <div className="card">
-          <h3>📨 Demandes reçues</h3>
+          <h3>{t('friends.incomingRequests')}</h3>
           <div className="friend-list">
             {incomingPending.map((f) => (
               <div key={f.id} className="friend-request-row">
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
                 <div className="friend-request-actions">
-                  <button onClick={() => respondToRequest(f.id, true)} title="Accepter">✓</button>
-                  <button onClick={() => respondToRequest(f.id, false)} title="Refuser">✕</button>
+                  <button onClick={() => respondToRequest(f.id, true)} title={t('friends.accept')}>✓</button>
+                  <button onClick={() => respondToRequest(f.id, false)} title={t('friends.decline')}>✕</button>
                 </div>
               </div>
             ))}
@@ -153,13 +155,13 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
 
       {outgoingPending.length > 0 && (
         <div className="card">
-          <h3>📤 Demandes envoyées</h3>
+          <h3>{t('friends.outgoingRequests')}</h3>
           <div className="friend-list">
             {outgoingPending.map((f) => (
               <div key={f.id} className="friend-request-row">
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
-                <button onClick={() => cancelRequest(f.id)} title="Annuler">✕</button>
+                <button onClick={() => cancelRequest(f.id)} title={t('friends.cancel')}>✕</button>
               </div>
             ))}
           </div>
@@ -167,9 +169,9 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
       )}
 
       <div className="card">
-        <h3>🤝 Amis ({accepted.length})</h3>
+        <h3>{t('friends.friendsCount', { count: accepted.length })}</h3>
         {accepted.length === 0 ? (
-          <p className="label">Pas encore d'amis — cherche un Riot ID ci-dessus.</p>
+          <p className="label">{t('friends.noFriendsYet')}</p>
         ) : (
           <div className="friend-list">
             {accepted.map((f) => {
@@ -179,8 +181,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
                   <FriendAvatar profile={p} size={36} online={onlineFriendIds.has(p.id)} />
                   <span>{friendLabel(p)}</span>
                   <div className="friend-request-actions">
-                    <button onClick={() => onOpenConversation(p.id)} title="Envoyer un message">💬</button>
-                    <button onClick={() => removeFriend(f.id)} title="Retirer cet ami">✕</button>
+                    <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}>💬</button>
+                    <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}>✕</button>
                   </div>
                 </div>
               );

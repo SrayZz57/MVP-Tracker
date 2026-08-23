@@ -1,5 +1,7 @@
 import { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
+import ApiKeyHelp from './ApiKeyHelp.jsx';
 import logo from '../assets/logo.png';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
@@ -19,7 +21,8 @@ function WelcomeOrbs() {
 // recherche libre depuis la barre du haut, qui elle ne lie jamais de compte.
 // En deux temps : recherche (rien n'est encore enregistré) puis confirmation
 // avec aperçu du vrai profil avant la liaison définitive.
-function LinkRiotAccount({ onConfirmed }) {
+function LinkRiotAccount({ onConfirmed, linkError }) {
+  const { t } = useTranslation();
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
   const [apiKey, setApiKey] = useState('');
@@ -60,71 +63,63 @@ function LinkRiotAccount({ onConfirmed }) {
     <div className="welcome-screen">
       <WelcomeOrbs />
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
-      <h1>Lier ton compte Riot</h1>
+      <h1>{t('linkRiot.title')}</h1>
 
       {step === 'search' && (
         <>
-          <p className="welcome-tagline">Dernière étape avant de commencer.</p>
+          <p className="welcome-tagline">{t('linkRiot.tagline')}</p>
 
           <div className="link-riot-disclaimer">
             <span className="link-riot-disclaimer-icon">⚠️</span>
             <div>
-              <strong>Utilise ton PROPRE pseudo Riot ici.</strong>
+              <strong>{t('linkRiot.disclaimerWarning')}</strong>
               <p>
-                Cette recherche va lier <strong>définitivement</strong> ce compte Valorant à ton compte MVP Tracker
-                — c'est lui qui déterminera tes objectifs, ton Hall of Fame, ta collection de skins, etc. Ce n'est{' '}
-                <strong>pas</strong> l'endroit pour consulter le tracker de quelqu'un d'autre — ça, tu pourras le
-                faire librement une fois connecté, sans que ça touche à ton compte.
+                {t('linkRiot.disclaimerPrefix')} <strong>{t('linkRiot.disclaimerDefinitively')}</strong>{' '}
+                {t('linkRiot.disclaimerMiddle')} <strong>{t('linkRiot.disclaimerNot')}</strong>{' '}
+                {t('linkRiot.disclaimerSuffix')}
               </p>
             </div>
           </div>
 
           <form className="account-auth-form" onSubmit={handleSearch}>
             <div className="search-bar-riotid">
-              <input placeholder="Pseudo" value={name} onChange={(e) => setName(e.target.value)} required />
+              <input placeholder={t('linkRiot.usernamePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
               <span className="search-bar-hash">#</span>
-              <input placeholder="Tag" value={tag} onChange={(e) => setTag(e.target.value)} required />
+              <input placeholder={t('linkRiot.tagPlaceholder')} value={tag} onChange={(e) => setTag(e.target.value)} required />
             </div>
             <input
-              placeholder="Clé API HenrikDev"
+              placeholder={t('linkRiot.apiKeyPlaceholder')}
               type="password"
               value={apiKey}
               onChange={(e) => setApiKey(e.target.value)}
               required
             />
             <button type="submit" disabled={loading}>
-              {loading ? 'Recherche...' : '🔍 Rechercher'}
+              {loading ? t('linkRiot.searching') : t('linkRiot.search')}
             </button>
           </form>
 
           {error && <p className="warning">{error}</p>}
-
-          <div className="welcome-api-help">
-            <p>
-              La clé API sert à récupérer tes matchs depuis HenrikDev (le service que l'appli utilise pour parler à
-              Valorant) — c'est gratuit et ça prend 30 secondes.
+          {!error && linkError && (
+            <p className="warning">
+              {linkError === 'duplicate' ? t('linkRiot.alreadyLinkedError') : t('linkRiot.genericLinkError')}
             </p>
-            <button
-              type="button"
-              className="welcome-api-link"
-              onClick={() => window.electronAPI.openExternal('https://api.henrikdev.xyz/dashboard/')}
-            >
-              🔑 Obtenir ma clé API HenrikDev
-            </button>
-          </div>
+          )}
+
+          <ApiKeyHelp />
         </>
       )}
 
       {step === 'confirm' && preview && (
         <>
-          <p className="welcome-tagline">C'est bien toi ?</p>
+          <p className="welcome-tagline">{t('linkRiot.confirmTagline')}</p>
           <RiotProfilePreview name={preview.name} tag={preview.tag} cardUuid={preview.cardUuid} rank={preview.rank} />
           <div className="riot-confirm-actions">
             <button className="riot-confirm-yes" onClick={handleConfirm}>
-              ✅ Oui, c'est moi — lier ce compte
+              {t('linkRiot.confirmYes')}
             </button>
             <button className="riot-confirm-no" onClick={handleDeny}>
-              ↺ Non, recommencer
+              {t('linkRiot.confirmNo')}
             </button>
           </div>
         </>

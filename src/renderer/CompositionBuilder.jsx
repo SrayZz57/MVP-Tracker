@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
@@ -17,6 +18,7 @@ function scoreColor(value) {
 }
 
 function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
+  const { t } = useTranslation();
   const minimaps = useMapMinimaps();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
@@ -70,15 +72,12 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
   return (
     <div>
       <div className="card">
-        <h3>🧩 Composition</h3>
-        <p className="label">
-          Choisis une map et 5 agents pour voir l'équilibre des rôles, un avis communautaire par agent/map, et
-          comment tu performes toi-même avec ces agents sur cette map.
-        </p>
+        <h3>{t('composition.title')}</h3>
+        <p className="label">{t('composition.description')}</p>
 
         <div className="filter-bar">
           <select value={selectedMap} onChange={(e) => setSelectedMap(e.target.value)}>
-            <option value="">— choisir une map —</option>
+            <option value="">{t('composition.chooseMap')}</option>
             {mapNames.map((name) => (
               <option key={name} value={name}>{name}</option>
             ))}
@@ -99,7 +98,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
                   {tier && <span className={`comp-slot-tier tier-${tier}`}>{TIER_LABELS[tier]}</span>}
                 </div>
                 <select value={value} onChange={(e) => handleSlotChange(index, e.target.value)}>
-                  <option value="">— agent —</option>
+                  <option value="">{t('composition.chooseAgent')}</option>
                   {agentNames.map((name) => (
                     <option key={name} value={name}>{name}</option>
                   ))}
@@ -111,7 +110,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
 
         {mostPlayedAgents.length > 0 && (
           <div className="comp-quickpicks">
-            <span className="stats-scope-label">⚡ Tes agents les plus joués :</span>
+            <span className="stats-scope-label">{t('composition.mostPlayedAgents')}</span>
             <div className="comp-quickpick-list">
               {mostPlayedAgents.map((row) => (
                 <button
@@ -119,7 +118,10 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
                   className="comp-quickpick-chip"
                   disabled={slots.includes(row.key)}
                   onClick={() => handleQuickPick(row.key)}
-                  title={`${row.games} partie(s)${row.winrate !== null ? ` — ${row.winrate.toFixed(0)}% winrate` : ''}`}
+                  title={
+                    t('composition.quickpickGames', { count: row.games }) +
+                    (row.winrate !== null ? t('composition.quickpickWinrateSuffix', { percent: row.winrate.toFixed(0) }) : '')
+                  }
                 >
                   {agentIcons.get(row.key) && <img src={agentIcons.get(row.key)} alt="" />}
                   {row.key}
@@ -147,29 +149,24 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
                 <div className="comp-score-max">/100</div>
               </div>
             </div>
-            <div className="label">Score de la compo sur {selectedMap}</div>
+            <div className="label">{t('composition.compoScore', { map: selectedMap })}</div>
           </div>
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value">{score.roleScore}</div>
-              <div className="label">Équilibre des rôles</div>
+              <div className="label">{t('composition.roleBalance')}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{score.mapFitScore === null ? '?' : score.mapFitScore}</div>
-              <div className="label">Fit agents / map (avis communauté)</div>
+              <div className="label">{t('composition.mapFit')}</div>
             </div>
           </div>
-          <p className="label comp-disclaimer">
-            ⚠️ Score indicatif, pas une prédiction de winrate : moitié équilibre des rôles (règles générales), moitié
-            avis communautaires sur les meilleurs agents par map, figés au {MAP_TIER_SOURCE_DATE}. La méta change à
-            chaque patch — un agent non noté "S/A" n'est pas forcément mauvais, juste non cité comme meilleur choix
-            par les sources consultées à cette date.
-          </p>
+          <p className="label comp-disclaimer">{t('composition.disclaimer', { date: MAP_TIER_SOURCE_DATE })}</p>
         </div>
       )}
 
       <div className="card">
-        <h3>Équilibre de la compo</h3>
+        <h3>{t('composition.compoBalanceTitle')}</h3>
         <div className="stat-tiles">
           {Object.entries(analysis.counts).map(([role, count]) => (
             <div key={role} className="stat-tile">
@@ -180,14 +177,14 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
         </div>
         {analysis.notes.length === 0 ? (
           <p className="label" style={{ marginTop: '0.75rem' }}>
-            Choisis 5 agents pour voir les remarques.
+            {t('composition.chooseAgentsForNotes')}
           </p>
         ) : (
           <div className="comp-notes">
             {analysis.notes.map((note, i) => (
               <div key={i} className={`comp-note comp-note-${note.level}`}>
                 <span className="comp-note-icon">{NOTE_ICONS[note.level] ?? 'ℹ️'}</span>
-                {note.text}
+                {t(note.textKey)}
               </div>
             ))}
           </div>
@@ -196,7 +193,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
 
       {selectedMap && personalStats.length > 0 && (
         <div className="card">
-          <h3>Ton vécu sur {selectedMap}</h3>
+          <h3>{t('composition.yourExperienceOn', { map: selectedMap })}</h3>
           {personalStats.map(({ agent, stats }) => (
             <div key={agent} className="stat-bar-row">
               <span className="stat-bar-label">
@@ -215,11 +212,16 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
                     {stats.winrate === null ? '?' : `${stats.winrate.toFixed(0)}%`}
                   </span>
                   <span className="stat-bar-meta">
-                    {stats.games} partie(s) — K/D/A {stats.avgKills.toFixed(1)}/{stats.avgDeaths.toFixed(1)}/{stats.avgAssists.toFixed(1)}
+                    {t('composition.gamesKdaMeta', {
+                      count: stats.games,
+                      k: stats.avgKills.toFixed(1),
+                      d: stats.avgDeaths.toFixed(1),
+                      a: stats.avgAssists.toFixed(1),
+                    })}
                   </span>
                 </>
               ) : (
-                <span className="stat-bar-meta">Jamais joué cet agent sur cette map.</span>
+                <span className="stat-bar-meta">{t('composition.neverPlayed')}</span>
               )}
             </div>
           ))}

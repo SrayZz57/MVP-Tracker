@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import { usePlayerCardArt } from './rankData.js';
 
 export const PROFILE_FIELDS = 'id, riot_name, riot_tag, display_name, avatar_card_uuid';
@@ -13,6 +14,7 @@ export function friendLabel(profile) {
 }
 
 export function FriendAvatar({ profile, size = 40, online = false }) {
+  const { t } = useTranslation();
   const art = usePlayerCardArt(profile?.avatar_card_uuid);
   const label = profile?.display_name || profile?.riot_name || '?';
   return (
@@ -20,7 +22,7 @@ export function FriendAvatar({ profile, size = 40, online = false }) {
       <div className="friend-avatar">
         {art.icon ? <img src={art.icon} alt="" /> : <span>{initials(label)}</span>}
       </div>
-      {online && <span className="friend-online-dot" title="En ligne" />}
+      {online && <span className="friend-online-dot" title={t('friends.online')} />}
     </div>
   );
 }

@@ -1,11 +1,13 @@
 import { useMemo } from 'react';
-import { findMe, resultLabel, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
+import { useTranslation } from 'react-i18next';
+import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
 import LoadingState from '../LoadingState.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 
 function TiltTab({ settings, matches, loading }) {
+  const { t } = useTranslation();
   const form = useMemo(
     () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
     [matches, settings.name, settings.tag],
@@ -34,7 +36,7 @@ function TiltTab({ settings, matches, loading }) {
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
-    return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
+    return <p>{t('tilt.noMatchesYet')}</p>;
   }
 
   return (
@@ -43,41 +45,41 @@ function TiltTab({ settings, matches, loading }) {
         <div className="tilt-card-header">
           <span className="tilt-card-badge">{tilt.isTilted ? '⚠️' : '✅'}</span>
           <div>
-            <h3>{tilt.isTilted ? 'Signes de tilt détectés' : 'Pas de signe de tilt'}</h3>
+            <h3>{tilt.isTilted ? t('tilt.tiltedTitle') : t('tilt.calmTitle')}</h3>
             {tilt.isTilted ? (
               <p className="warning">
-                {tilt.lossStreakTilt && `${form.streakCount} défaites d'affilée. `}
+                {tilt.lossStreakTilt && t('tilt.lossStreak', { count: form.streakCount })}
                 {tilt.perfDegradation &&
-                  `Perf en baisse sur les 3 derniers matchs (K/D ${tilt.last3Kd.toFixed(2)} vs moyenne ${form.overallKd.toFixed(2)}). `}
-                Une pause pourrait aider.
+                  t('tilt.perfDegradation', { recentKd: tilt.last3Kd.toFixed(2), overallKd: form.overallKd.toFixed(2) })}
+                {t('tilt.breakSuggestion')}
               </p>
             ) : (
-              <p>Continue comme ça, rien à signaler pour l'instant.</p>
+              <p>{t('tilt.allGood')}</p>
             )}
           </div>
         </div>
       </div>
 
       <div className="card">
-        <h3>🎯 Derniers résultats</h3>
+        <h3>{t('tilt.recentResults')}</h3>
         <div className="streak-dots">
           {recentResults.map((r) => (
             <span
               key={r.id}
               className={`streak-dot ${r.label === 'Victoire' ? 'win' : r.label === 'Défaite' ? 'loss' : 'neutral'}`}
-              title={`${r.map ?? '?'} — ${r.label}`}
+              title={`${r.map ?? '?'} — ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
             />
           ))}
         </div>
         <p className="label" style={{ marginTop: '0.5rem' }}>
-          Du plus récent (à gauche) au plus ancien (à droite) — vert = victoire, rouge = défaite.
+          {t('tilt.dotsHint')}
         </p>
       </div>
 
       <div className="card">
-        <h3>📈 Fréquence de tilt (historique)</h3>
+        <h3>{t('tilt.frequencyTitle')}</h3>
         {frequency.total === 0 ? (
-          <p className="label">Pas encore assez de matchs pour calculer une fréquence.</p>
+          <p className="label">{t('tilt.notEnoughMatches')}</p>
         ) : (
           <>
             <div className="stat-tiles">
@@ -85,20 +87,19 @@ function TiltTab({ settings, matches, loading }) {
                 <div className="value" style={{ color: frequency.percent >= 20 ? 'var(--accent)' : undefined }}>
                   <CountUp value={frequency.percent} decimals={1} suffix="%" />
                 </div>
-                <div className="label">de tes matchs en tilt</div>
+                <div className="label">{t('tilt.tiltedMatchesPercent')}</div>
               </div>
               <div className="stat-tile">
                 <div className="value"><CountUp value={frequency.tiltedCount} /></div>
-                <div className="label">matchs dans une série de tilt</div>
+                <div className="label">{t('tilt.matchesInTiltStreak')}</div>
               </div>
               <div className="stat-tile">
                 <div className="value"><CountUp value={frequency.total} /></div>
-                <div className="label">matchs analysés au total</div>
+                <div className="label">{t('tilt.totalMatchesAnalyzed')}</div>
               </div>
             </div>
             <p className="label" style={{ marginTop: '0.75rem' }}>
-              Un match compte comme "en tilt" s'il fait partie d'une série de 3 défaites consécutives ou plus, sur
-              tout ton historique en cache — pas juste la situation actuelle.
+              {t('tilt.frequencyHint')}
             </p>
           </>
         )}
@@ -106,38 +107,38 @@ function TiltTab({ settings, matches, loading }) {
 
       <div className="tilt-columns">
         <div className="card">
-          <h3>📊 Ce qui est surveillé</h3>
+          <h3>{t('tilt.whatIsWatched')}</h3>
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
                 {form.streakType === 'Défaite' ? form.streakCount : 0}
               </div>
-              <div className="label">Défaites d'affilée (seuil : 3)</div>
+              <div className="label">{t('tilt.lossStreakLabel')}</div>
             </div>
             <div className="stat-tile">
               <div className="value" style={{ color: tilt.perfDegradation ? 'var(--accent)' : undefined }}>
                 {tilt.last3Kd === null ? '?' : tilt.last3Kd.toFixed(2)}
               </div>
-              <div className="label">K/D sur les 3 derniers matchs</div>
+              <div className="label">{t('tilt.last3Kd')}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{last3KdRatio === null ? '?' : `${(last3KdRatio * 100).toFixed(0)}%`}</div>
-              <div className="label">...de ta moyenne générale (seuil : 70%)</div>
+              <div className="label">{t('tilt.ofOverallAverage')}</div>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3>ℹ️ Comment ça marche</h3>
-          <p className="label">Un signe de tilt est détecté si l'une de ces deux conditions est vraie :</p>
+          <h3>{t('tilt.howItWorks')}</h3>
+          <p className="label">{t('tilt.howItWorksIntro')}</p>
           <div className="tilt-rule-list">
             <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
               <span className="tilt-rule-icon">{tilt.lossStreakTilt ? '🔴' : '⚪'}</span>
-              3 défaites d'affilée ou plus
+              {t('tilt.rule1')}
             </div>
             <div className={`tilt-rule ${tilt.perfDegradation ? 'active' : ''}`}>
               <span className="tilt-rule-icon">{tilt.perfDegradation ? '🔴' : '⚪'}</span>
-              K/D sur les 3 derniers matchs inférieur à 70% de ta moyenne générale
+              {t('tilt.rule2')}
             </div>
           </div>
         </div>

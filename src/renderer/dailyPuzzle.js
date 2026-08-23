@@ -5,10 +5,10 @@ import { excludeDeathmatch, findMe, ECONOMY_TIERS } from './valorantStats.js';
 // seule chose comparée à la réalité, pas un jugement de "bonne tactique"
 // dans l'absolu (impossible à établir avec les seules données de match).
 export const PUZZLE_OPTIONS = [
-  { id: 'duel_early', icon: '🔫', label: 'Chercher le duel dès le début du round', bucket: 'aggressive' },
-  { id: 'rush_site', icon: '⚡', label: "Rusher un site avec l'équipe", bucket: 'aggressive' },
-  { id: 'wait_info', icon: '🛡️', label: "Jouer patient, attendre une info avant d'engager", bucket: 'patient' },
-  { id: 'save', icon: '💰', label: "Save, ne pas risquer le stuff", bucket: 'patient' },
+  { id: 'duel_early', icon: '🔫', labelKey: 'puzzle.options.duelEarly', bucket: 'aggressive' },
+  { id: 'rush_site', icon: '⚡', labelKey: 'puzzle.options.rushSite', bucket: 'aggressive' },
+  { id: 'wait_info', icon: '🛡️', labelKey: 'puzzle.options.waitInfo', bucket: 'patient' },
+  { id: 'save', icon: '💰', labelKey: 'puzzle.options.save', bucket: 'patient' },
 ];
 
 const EARLY_ENGAGEMENT_MS = 20000;
@@ -121,18 +121,18 @@ export function gradeChoice(situation, optionId) {
   return option.bucket === situation.actualBucket;
 }
 
-export function buildRevealText(situation) {
+export function buildRevealText(t, situation) {
   const parts = [];
   if (situation.firstActionTime === null) {
-    parts.push("Tu n'as ni tué ni été tué ce round-là (ou c'est arrivé très tard) — un round discret pour toi.");
+    parts.push(t('puzzle.reveal.noAction'));
   } else {
     const seconds = (situation.firstActionTime / 1000).toFixed(0);
     parts.push(
       situation.myKilledFirst
-        ? `Tu as fait ton premier kill à ${seconds}s dans le round.`
-        : `Tu es mort à ${seconds}s dans le round.`,
+        ? t('puzzle.reveal.firstKillAt', { seconds })
+        : t('puzzle.reveal.diedAt', { seconds }),
     );
   }
-  parts.push(situation.roundWon ? 'Le round a été gagné.' : 'Le round a été perdu.');
+  parts.push(situation.roundWon ? t('puzzle.reveal.roundWon') : t('puzzle.reveal.roundLost'));
   return parts.join(' ');
 }

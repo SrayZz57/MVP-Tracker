@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { computeRankMomentum } from './rankMomentum.js';
 
 function fmt(value, suffix = '') {
@@ -6,6 +7,7 @@ function fmt(value, suffix = '') {
 }
 
 function RankMomentumCard({ settings, matches }) {
+  const { t } = useTranslation();
   const momentum = useMemo(
     () => computeRankMomentum(matches, settings.name, settings.tag),
     [matches, settings.name, settings.tag],
@@ -14,10 +16,9 @@ function RankMomentumCard({ settings, matches }) {
   if (!momentum.ready) {
     return (
       <div className="card">
-        <h3>📈 Progression</h3>
+        <h3>{t('rankMomentum.title')}</h3>
         <p className="label">
-          Encore {momentum.minGames - momentum.gamesAnalyzed} match(s) classé(s) avant de pouvoir comparer ta forme
-          récente à ton niveau habituel.
+          {t('rankMomentum.notReady', { count: momentum.minGames - momentum.gamesAnalyzed })}
         </p>
       </div>
     );
@@ -25,41 +26,35 @@ function RankMomentumCard({ settings, matches }) {
 
   return (
     <div className={`card ${momentum.trending ? 'highlight-card' : ''}`}>
-      <h3>📈 Progression</h3>
+      <h3>{t('rankMomentum.title')}</h3>
       {momentum.trending ? (
-        <p className="warning" style={{ fontWeight: 600 }}>
-          🚀 Tes performances dépassent nettement ta moyenne habituelle depuis un moment — tu es peut-être prêt à
-          monter.
-        </p>
+        <p className="warning" style={{ fontWeight: 600 }}>{t('rankMomentum.trending')}</p>
       ) : (
-        <p className="label">Ta forme récente est dans la continuité de ta moyenne habituelle.</p>
+        <p className="label">{t('rankMomentum.stable')}</p>
       )}
 
       <div className="stat-tiles">
         <div className="stat-tile">
           <div className="value">
-            {fmt(momentum.recentStats.kd)} <span className="label">vs {fmt(momentum.baselineStats.kd)}</span>
+            {fmt(momentum.recentStats.kd)} <span className="label">{t('rankMomentum.vs', { value: fmt(momentum.baselineStats.kd) })}</span>
           </div>
-          <div className="label">K/D récent vs habituel</div>
+          <div className="label">{t('rankMomentum.kdVsUsual')}</div>
         </div>
         <div className="stat-tile">
           <div className="value">
-            {fmt(momentum.recentStats.winrate, '%')} <span className="label">vs {fmt(momentum.baselineStats.winrate, '%')}</span>
+            {fmt(momentum.recentStats.winrate, '%')} <span className="label">{t('rankMomentum.vs', { value: fmt(momentum.baselineStats.winrate, '%') })}</span>
           </div>
-          <div className="label">Winrate récent vs habituel</div>
+          <div className="label">{t('rankMomentum.winrateVsUsual')}</div>
         </div>
         <div className="stat-tile">
           <div className="value">
-            {fmt(momentum.recentStats.hsPercent, '%')} <span className="label">vs {fmt(momentum.baselineStats.hsPercent, '%')}</span>
+            {fmt(momentum.recentStats.hsPercent, '%')} <span className="label">{t('rankMomentum.vs', { value: fmt(momentum.baselineStats.hsPercent, '%') })}</span>
           </div>
-          <div className="label">Précision récente vs habituelle</div>
+          <div className="label">{t('rankMomentum.accuracyVsUsual')}</div>
         </div>
       </div>
 
-      <p className="label" style={{ marginTop: '0.75rem' }}>
-        Comparaison sur tes 10 derniers matchs classés vs les précédents — pas de moyenne de joueurs de ton rang
-        (donnée non disponible publiquement), juste toi comparé à toi-même.
-      </p>
+      <p className="label" style={{ marginTop: '0.75rem' }}>{t('rankMomentum.hint')}</p>
     </div>
   );
 }

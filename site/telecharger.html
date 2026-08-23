@@ -27,11 +27,15 @@
     <div class="nav-links">
       <a href="index.html">Accueil</a>
       <a href="fonctionnalites.html">Fonctionnalités</a>
+      <a href="a-propos.html">À propos</a>
       <a href="roadmap.html">Roadmap</a>
       <a href="telecharger.html" class="active">Télécharger</a>
+      <a href="en/download.html" title="English version">EN</a>
     </div>
-    <a href="#obtenir" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
-    <button class="nav-toggle" aria-label="Menu">☰</button>
+    <div class="nav-actions">
+      <a href="#obtenir" class="btn btn-primary btn-sm" data-magnetic>Obtenir l'app</a>
+      <button class="nav-toggle" aria-label="Menu">☰</button>
+    </div>
   </div>
 </nav>
 
@@ -42,11 +46,18 @@
     <span class="glow glow-c"></span>
   </div>
   <div class="grid-bg"></div>
-  <img src="assets/agents/phoenix.png" alt="" class="hero-agent hero-agent-r" data-depth="16" style="opacity: 0.18; height: 48vh;" />
+  <img src="assets/agents/raze.png" alt="" class="hero-agent hero-agent-l" data-depth="14" />
+  <img src="assets/agents/phoenix.png" alt="" class="hero-agent hero-agent-r" data-depth="16" />
   <div class="container" style="position: relative; z-index: 2;">
     <span class="eyebrow"><span class="pulse-dot"></span> Test privé en cours</span>
     <h1><span class="gradient-text" data-split>Obtenir MVP Tracker</span></h1>
     <p>L'app tourne déjà au quotidien — elle est simplement encore réservée à un petit cercle de testeurs.</p>
+    <div class="page-head-pills">
+      <span class="page-head-pill">🪟 Windows 10 / 11</span>
+      <span class="page-head-pill">🆓 Gratuit</span>
+      <span class="page-head-pill">🔄 Mises à jour automatiques</span>
+      <span class="page-head-pill">🔒 Aucun mot de passe Riot demandé</span>
+    </div>
   </div>
 </header>
 
@@ -54,17 +65,22 @@
   <div class="container">
     <div class="cta-panel reveal" style="max-width: 720px; margin: 0 auto;">
       <div class="card-icon" style="margin: 0 auto 1.5rem;">🪟</div>
-      <h2>Pas encore public</h2>
-      <p>
-        MVP Tracker est en test privé le temps de finaliser l'installeur, la clé API partagée
-        et l'infrastructure. La version publique arrivera ici même, sur cette page.
+      <h2 id="download-title">Télécharger MVP Tracker</h2>
+      <p id="download-sub">
+        Récupération de la dernière version…
       </p>
       <div class="hero-ctas">
-        <a href="https://github.com/SrayZz57/MVP-Tracker" class="btn btn-primary" data-magnetic>Suivre le projet sur GitHub</a>
-        <a href="roadmap.html" class="btn btn-ghost">Voir ce qu'il reste à faire</a>
+        <a id="download-btn" href="https://github.com/SrayZz57/MVP-Tracker/releases/latest" class="btn btn-primary" data-magnetic>
+          Télécharger pour Windows
+        </a>
+        <a href="https://github.com/SrayZz57/MVP-Tracker/releases" class="btn btn-ghost">Voir toutes les versions</a>
       </div>
       <p style="margin-top: 1.75rem; font-size: 0.82rem; color: var(--text-faint);">
-        Windows 10 / 11 · Application desktop · Version de base gratuite
+        Windows 10 / 11 · Application desktop · Gratuit
+      </p>
+      <p style="margin-top: 0.6rem; font-size: 0.78rem; color: var(--text-faint);">
+        Il te faudra encore ta propre clé API HenrikDev au premier lancement (gratuite, 30 secondes) —
+        une clé partagée est en préparation.
       </p>
     </div>
   </div>
@@ -151,10 +167,7 @@
 
       <details class="faq-item">
         <summary>Est-ce que c'est payant ?</summary>
-        <p>
-          La version de base est gratuite. Un modèle freemium est envisagé à terme pour les
-          fonctionnalités les plus avancées, mais le tracker reste gratuit.
-        </p>
+        <p>MVP Tracker est gratuit.</p>
       </details>
 
       <details class="faq-item">
@@ -183,14 +196,6 @@
         </p>
       </details>
 
-      <details class="faq-item">
-        <summary>D'autres jeux sont-ils prévus ?</summary>
-        <p>
-          Peut-être, mais seulement si leur API publique est assez riche. Overwatch a déjà été
-          testé puis écarté : son API n'expose que des totaux cumulés, sans historique de matchs
-          ni stats par map — trop limité pour l'approche de MVP Tracker.
-        </p>
-      </details>
     </div>
   </div>
 </section>
@@ -205,7 +210,7 @@
         </a>
         <p class="footer-about">
           Le tracker Valorant qui relie performance, réseau et rythme de vie.
-          Application desktop Windows, gratuite dans sa version de base.
+          Application desktop Windows, gratuite.
         </p>
       </div>
       <div>
@@ -213,6 +218,7 @@
         <div class="footer-links">
           <a href="index.html">Accueil</a>
           <a href="fonctionnalites.html">Fonctionnalités</a>
+          <a href="a-propos.html">À propos</a>
           <a href="roadmap.html">Roadmap</a>
           <a href="telecharger.html">Télécharger</a>
         </div>
@@ -233,5 +239,38 @@
 </footer>
 
 <script src="assets/js/app.js"></script>
+<script>
+  // Va chercher le vrai lien de la dernière Release GitHub (API publique,
+  // pas besoin d'authentification) — le bouton reste à jour tout seul à
+  // chaque nouvelle version publiée, sans jamais retoucher cette page.
+  (async function loadLatestRelease() {
+    const btn = document.getElementById('download-btn');
+    const sub = document.getElementById('download-sub');
+    const title = document.getElementById('download-title');
+    if (!btn) return;
+
+    try {
+      const res = await fetch('https://api.github.com/repos/SrayZz57/MVP-Tracker/releases/latest');
+      if (!res.ok) throw new Error('API GitHub indisponible');
+      const release = await res.json();
+      const exeAsset = (release.assets || []).find((a) => a.name.endsWith('.exe'));
+
+      if (exeAsset) {
+        btn.href = exeAsset.browser_download_url;
+        btn.textContent = `Télécharger — ${release.tag_name}`;
+        if (title) title.textContent = 'Télécharger MVP Tracker';
+        if (sub) {
+          sub.textContent = `Dernière version : ${release.tag_name}, publiée le ` +
+            new Date(release.published_at).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) + '.';
+        }
+      } else {
+        throw new Error('Pas de .exe trouvé dans la release');
+      }
+    } catch (err) {
+      // Repli silencieux : le bouton garde son lien par défaut vers la page Releases.
+      if (sub) sub.textContent = 'Récupère la dernière version depuis la page Releases ci-dessous.';
+    }
+  })();
+</script>
 </body>
 </html>

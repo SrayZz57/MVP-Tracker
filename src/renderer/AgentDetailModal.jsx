@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import {
   weaponKillsForAgent,
   mapStatsForAgent,
@@ -18,6 +19,7 @@ function formatPlaytime(seconds) {
 }
 
 function AgentDetailModal({ character, matches, settings, onClose }) {
+  const { t } = useTranslation();
   const icons = useAgentIcons();
   const icon = icons.get(character);
   const roles = useAgentRoles();
@@ -42,7 +44,7 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
 
         <div className="agent-modal-header">
           {icon && <img src={icon} alt="" className="agent-modal-avatar" />}
@@ -61,31 +63,31 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value">{overall?.games ?? 0}</div>
-              <div className="label">Parties jouées</div>
+              <div className="label">{t('detail.gamesPlayed')}</div>
             </div>
             <div className="stat-tile">
               <div className="value" style={{ color: overall?.winrate === null || overall?.winrate === undefined ? undefined : overall.winrate >= 50 ? '#3ddc84' : 'var(--accent)' }}>
                 {overall?.winrate === null || overall?.winrate === undefined ? '?' : `${overall.winrate.toFixed(0)}%`}
               </div>
-              <div className="label">Winrate</div>
+              <div className="label">{t('detail.winrate')}</div>
             </div>
             <div className="stat-tile">
               <div className="value compact">
                 {overall ? `${overall.avgKills.toFixed(1)}/${overall.avgDeaths.toFixed(1)}/${overall.avgAssists.toFixed(1)}` : '?'}
               </div>
-              <div className="label">K/D/A moyen</div>
+              <div className="label">{t('detail.avgKda')}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{formatPlaytime(playtimeSeconds)}</div>
-              <div className="label">Temps de jeu ({totalKills} kills)</div>
+              <div className="label">{t('detail.playtimeKills', { count: totalKills })}</div>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3>Armes les plus utilisées</h3>
+          <h3>{t('detail.mostUsedWeapons')}</h3>
           {weaponKills.length === 0 ? (
-            <p>Aucune donnée.</p>
+            <p>{t('detail.noData')}</p>
           ) : (
             weaponKills.map(([weapon, count]) => (
               <div key={weapon} className="weapon-bar-row">
@@ -96,16 +98,16 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxWeaponCount) * 100}%` }} />
                 </span>
-                <span className="weapon-bar-count">{count} kills</span>
+                <span className="weapon-bar-count">{t('detail.killsCount', { count })}</span>
               </div>
             ))
           )}
         </div>
 
         <div className="card">
-          <h3>Winrate par map</h3>
+          <h3>{t('detail.winrateByMap')}</h3>
           {mapStats.length === 0 ? (
-            <p>Aucune donnée.</p>
+            <p>{t('detail.noData')}</p>
           ) : (
             mapStats.map((row) => (
               <div key={row.key} className="stat-bar-row">
@@ -121,17 +123,19 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
                 </span>
                 <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
                 <span className="stat-bar-meta">
-                  {row.games} partie(s) — {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+                  {t('detail.gamesKda', {
+                    count: row.games,
+                    k: row.avgKills.toFixed(1),
+                    d: row.avgDeaths.toFixed(1),
+                    a: row.avgAssists.toFixed(1),
+                  })}
                 </span>
               </div>
             ))
           )}
         </div>
 
-        <p className="label">
-          Note : l'API ne distingue pas les assistances faites via une capacité de celles faites à l'arme —
-          seul le total d'assistances est disponible, déjà affiché ailleurs dans l'app.
-        </p>
+        <p className="label">{t('detail.assistNote')}</p>
       </div>
     </div>
   );

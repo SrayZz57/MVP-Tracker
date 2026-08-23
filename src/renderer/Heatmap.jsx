@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useMapMinimaps, useMapCoordinates } from './mapImages.js';
 import { deathLocationsOnMap } from './valorantStats.js';
 
@@ -6,17 +7,18 @@ const CANVAS_SIZE = 640;
 const POINT_RADIUS = 26;
 
 const MODES = [
-  { id: 'deaths', label: '💀 Où je meurs' },
-  { id: 'kills', label: '🔫 Où je kill' },
+  { id: 'deaths', labelKey: 'heatmap.modes.deaths' },
+  { id: 'kills', labelKey: 'heatmap.modes.kills' },
 ];
 
 const SIDES = [
-  { id: 'all', label: 'Tous les côtés' },
-  { id: 'attack', label: '⚔️ Attaque' },
-  { id: 'defense', label: '🛡️ Défense' },
+  { id: 'all', labelKey: 'heatmap.sides.all' },
+  { id: 'attack', labelKey: 'heatmap.sides.attack' },
+  { id: 'defense', labelKey: 'heatmap.sides.defense' },
 ];
 
 function Heatmap({ settings, matches }) {
+  const { t } = useTranslation();
   const minimaps = useMapMinimaps();
   const mapCoordinates = useMapCoordinates();
   const [selectedMap, setSelectedMap] = useState('');
@@ -101,10 +103,8 @@ function Heatmap({ settings, matches }) {
   return (
     <div>
       <div className="card">
-        <h3>🔥 Heatmap</h3>
-        <p className="label">
-          Visualise où tu meurs (ou tues) le plus souvent sur chaque map, à partir de tous tes matchs en cache.
-        </p>
+        <h3>{t('heatmap.title')}</h3>
+        <p className="label">{t('heatmap.description')}</p>
 
         <div className="filter-bar">
           <select value={selectedMap} onChange={(e) => setSelectedMap(e.target.value)}>
@@ -118,7 +118,7 @@ function Heatmap({ settings, matches }) {
               className={m.id === mode ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setMode(m.id)}
             >
-              {m.label}
+              {t(m.labelKey)}
             </button>
           ))}
         </div>
@@ -130,20 +130,20 @@ function Heatmap({ settings, matches }) {
               className={s.id === side ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setSide(s.id)}
             >
-              {s.label}
+              {t(s.labelKey)}
             </button>
           ))}
           <select value={weapon} onChange={(e) => setWeapon(e.target.value)}>
-            <option value="">Toutes les armes</option>
+            <option value="">{t('heatmap.allWeapons')}</option>
             {weaponNames.map((w) => (
               <option key={w} value={w}>{w}</option>
             ))}
           </select>
-          <span className="heatmap-point-count">📍 {points.length} point(s) analysé(s)</span>
+          <span className="heatmap-point-count">{t('heatmap.pointsAnalyzed', { count: points.length })}</span>
           <div className="heatmap-legend">
-            <span>faible</span>
+            <span>{t('heatmap.legendLow')}</span>
             <span className={`heatmap-legend-bar ${mode}`} />
-            <span>élevé</span>
+            <span>{t('heatmap.legendHigh')}</span>
           </div>
         </div>
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import { PRO_CROSSHAIRS } from './crosshairPresets.js';
 
@@ -13,6 +14,7 @@ function normalizeText(value) {
 }
 
 function CrosshairLibrary() {
+  const { t } = useTranslation();
   const [crosshairs, setCrosshairs] = useState([]);
   const [name, setName] = useState('');
   const [code, setCode] = useState('');
@@ -71,81 +73,78 @@ function CrosshairLibrary() {
   return (
     <div>
       <div className="card crosshair-hero">
-        <h2>🎯 Bibliothèque de crosshairs</h2>
-        <p className="label">
-          Pioche parmi {PRO_CROSSHAIRS.length} crosshairs de joueurs pro, ou ajoute tes propres codes. Tout ce que tu
-          enregistres va dans ta bibliothèque personnelle en bas de page.
-        </p>
+        <h2>{t('crosshairs.libraryTitle')}</h2>
+        <p className="label">{t('crosshairs.libraryDescription', { count: PRO_CROSSHAIRS.length })}</p>
       </div>
 
       <div className="card">
-        <h3>🏆 Crosshairs de pros</h3>
-        <p className="label">Codes publiés par des joueurs pro (source : thespike.gg)</p>
+        <h3>{t('crosshairs.proTitle')}</h3>
+        <p className="label">{t('crosshairs.proHint')}</p>
         <div className="filter-bar">
           <input
             className="crosshair-pro-search"
-            placeholder="🔍 Chercher un pro (ex: TenZ, ScreaM...)"
+            placeholder={t('crosshairs.proSearchPlaceholder')}
             value={proSearch}
             onChange={(e) => setProSearch(e.target.value)}
           />
-          <span className="heatmap-point-count">{filteredPro.length} résultat(s)</span>
+          <span className="heatmap-point-count">{t('crosshairs.resultsCount', { count: filteredPro.length })}</span>
         </div>
         {filteredPro.length === 0 ? (
-          <p>Aucun pro ne correspond à cette recherche.</p>
+          <p>{t('crosshairs.noProMatch')}</p>
         ) : (
           <div className="crosshair-grid">
             {(showAllPro ? filteredPro : filteredPro.slice(0, PRO_PAGE_SIZE)).map((preset) => (
               <div key={preset.name} className="crosshair-item">
                 <CrosshairPreview code={preset.code} />
                 <p>{preset.name}</p>
-                <button onClick={() => handleUsePreset(preset)}>+ Ajouter à ma bibliothèque</button>
+                <button onClick={() => handleUsePreset(preset)}>{t('crosshairs.addToLibrary')}</button>
               </div>
             ))}
           </div>
         )}
         {filteredPro.length > PRO_PAGE_SIZE && (
           <button className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
-            {showAllPro ? '▲ Voir moins' : `▼ Voir plus (${filteredPro.length - PRO_PAGE_SIZE})`}
+            {showAllPro ? t('crosshairs.showLess') : t('crosshairs.showMore', { count: filteredPro.length - PRO_PAGE_SIZE })}
           </button>
         )}
       </div>
 
       <div className="card">
-        <h3>✏️ Ajouter un code perso</h3>
+        <h3>{t('crosshairs.addCustomTitle')}</h3>
         <form onSubmit={handleSave} className="crosshair-form">
           <div className="crosshair-form-fields">
-            <input placeholder="Nom" value={name} onChange={(e) => setName(e.target.value)} required />
+            <input placeholder={t('crosshairs.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
             <input
-              placeholder="Code crosshair (ex: 0;P;c;1;...)"
+              placeholder={t('crosshairs.codePlaceholder')}
               value={code}
               onChange={(e) => setCode(e.target.value)}
               required
             />
-            <input placeholder="Couleur (ex: Cyan)" value={color} onChange={(e) => setColor(e.target.value)} />
+            <input placeholder={t('crosshairs.colorPlaceholder')} value={color} onChange={(e) => setColor(e.target.value)} />
             <label>
-              Image (optionnel)
+              {t('crosshairs.imageOptional')}
               <input type="file" accept="image/*" onChange={handleImageChange} />
             </label>
           </div>
           <div className="crosshair-form-preview">
             {code.trim() !== '' ? (
               image ? (
-                <img src={image} alt="Aperçu du crosshair" className="crosshair-custom-preview" />
+                <img src={image} alt={t('crosshairs.previewAlt')} className="crosshair-custom-preview" />
               ) : (
                 <CrosshairPreview code={code.trim()} />
               )
             ) : (
-              <div className="crosshair-preview-placeholder">Aperçu</div>
+              <div className="crosshair-preview-placeholder">{t('crosshairs.previewPlaceholder')}</div>
             )}
-            <button type="submit">Enregistrer</button>
+            <button type="submit">{t('crosshairs.save')}</button>
           </div>
         </form>
       </div>
 
       <div className="card">
-        <h3>📁 Ta bibliothèque ({crosshairs.length})</h3>
+        <h3>{t('crosshairs.libraryCount', { count: crosshairs.length })}</h3>
         {crosshairs.length === 0 ? (
-          <p>Aucun crosshair enregistré pour l'instant — pioche dans le catalogue pro ci-dessus ou ajoute ton propre code.</p>
+          <p>{t('crosshairs.libraryEmpty')}</p>
         ) : (
           <div className="crosshair-grid">
             {crosshairs.map((ch) => (
@@ -158,8 +157,8 @@ function CrosshairLibrary() {
                 <p>{ch.name}</p>
                 {ch.color && <p className="label">{ch.color}</p>}
                 <div className="crosshair-item-actions">
-                  <button onClick={() => navigator.clipboard.writeText(ch.code)}>Copier</button>
-                  <button onClick={() => handleDelete(ch.id)}>Supprimer</button>
+                  <button onClick={() => navigator.clipboard.writeText(ch.code)}>{t('crosshairs.copy')}</button>
+                  <button onClick={() => handleDelete(ch.id)}>{t('crosshairs.delete')}</button>
                 </div>
               </div>
             ))}

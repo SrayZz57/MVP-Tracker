@@ -1,10 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const DEFAULT_WIDTH = 600;
 const HEIGHT = 240;
 const PADDING = 24;
 
 function LineChart({ data, color = '#ff4655', unit = '' }) {
+  const { t } = useTranslation();
   const [hovered, setHovered] = useState(null);
   const wrapRef = useRef(null);
   const [width, setWidth] = useState(DEFAULT_WIDTH);
@@ -21,7 +23,7 @@ function LineChart({ data, color = '#ff4655', unit = '' }) {
   }, []);
 
   if (!data || data.length === 0) {
-    return <p>Pas encore assez de données pour un graphique.</p>;
+    return <p>{t('charts.notEnoughDataForChart')}</p>;
   }
 
   const values = data.map((d) => d.value);

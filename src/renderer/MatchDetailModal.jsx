@@ -1,7 +1,9 @@
+import { useTranslation } from 'react-i18next';
 import { findMe, weaponKillsFor } from './valorantStats.js';
 import { useMapImages } from './mapImages.js';
 
 function TeamColumn({ title, players, agentIcons, className }) {
+  const { t } = useTranslation();
   return (
     <div className={`team-column ${className}`}>
       <h4>{title}</h4>
@@ -10,7 +12,7 @@ function TeamColumn({ title, players, agentIcons, className }) {
           {agentIcons.get(p.character) && <img src={agentIcons.get(p.character)} alt="" className="agent-icon" />}
           <span className="team-player-name">{p.name}#{p.tag}</span>
           <span className="team-player-stats">
-            {p.stats?.kills ?? '?'}/{p.stats?.deaths ?? '?'}/{p.stats?.assists ?? '?'} — {p.stats?.score ?? '?'} pts
+            {p.stats?.kills ?? '?'}/{p.stats?.deaths ?? '?'}/{p.stats?.assists ?? '?'} — {p.stats?.score ?? '?'} {t('detail.pointsAbbr')}
           </span>
         </div>
       ))}
@@ -19,6 +21,7 @@ function TeamColumn({ title, players, agentIcons, className }) {
 }
 
 function MatchDetailModal({ match, settings, agentIcons, onClose }) {
+  const { t } = useTranslation();
   const mapImages = useMapImages();
   const me = findMe(match, settings.name, settings.tag);
 
@@ -38,7 +41,7 @@ function MatchDetailModal({ match, settings, agentIcons, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
 
         <div className="modal-banner" style={mapSplash ? { backgroundImage: `url(${mapSplash})` } : undefined}>
           <div className="modal-banner-text">
@@ -48,39 +51,39 @@ function MatchDetailModal({ match, settings, agentIcons, onClose }) {
         </div>
 
         <div className="card">
-          <h3>Joueurs</h3>
+          <h3>{t('detail.players')}</h3>
           <div className="team-columns">
-            <TeamColumn title="Équipe Rouge" players={redTeam} agentIcons={agentIcons} className="team-red" />
-            <TeamColumn title="Équipe Bleue" players={blueTeam} agentIcons={agentIcons} className="team-blue" />
+            <TeamColumn title={t('detail.redTeam')} players={redTeam} agentIcons={agentIcons} className="team-red" />
+            <TeamColumn title={t('detail.blueTeam')} players={blueTeam} agentIcons={agentIcons} className="team-blue" />
           </div>
         </div>
 
         <div className="card">
-          <h3>Mes kills par arme sur ce match</h3>
+          <h3>{t('detail.myKillsByWeapon')}</h3>
           {weaponCounts.size === 0 ? (
-            <p>Aucun kill enregistré.</p>
+            <p>{t('detail.noKillsRecorded')}</p>
           ) : (
             [...weaponCounts.entries()]
               .sort((a, b) => b[1] - a[1])
               .map(([weapon, count]) => (
-                <p key={weapon}>{weapon} — {count} kills</p>
+                <p key={weapon}>{weapon} — {t('detail.killsCount', { count })}</p>
               ))
           )}
         </div>
 
         <div className="card">
-          <h3>Round par round</h3>
+          <h3>{t('detail.roundByRound')}</h3>
           <table>
             <thead>
               <tr>
                 <th>#</th>
-                <th>Résultat</th>
-                <th>Fin</th>
-                <th>Mes kills</th>
-                <th>Dégâts</th>
-                <th>Score</th>
-                <th>Mort ?</th>
-                <th>Mon économie</th>
+                <th>{t('detail.result')}</th>
+                <th>{t('detail.end')}</th>
+                <th>{t('detail.myKills')}</th>
+                <th>{t('detail.damage')}</th>
+                <th>{t('detail.score')}</th>
+                <th>{t('detail.died')}</th>
+                <th>{t('detail.myEconomy')}</th>
               </tr>
             </thead>
             <tbody>
@@ -96,13 +99,13 @@ function MatchDetailModal({ match, settings, agentIcons, onClose }) {
                   <tr key={index}>
                     <td>{index + 1}</td>
                     <td className={won ? 'result-win-text' : 'result-loss-text'}>
-                      {won ? 'Gagné' : 'Perdu'}
+                      {won ? t('detail.won') : t('detail.lost')}
                     </td>
                     <td>{round.end_type ?? '?'}</td>
                     <td>{myRoundStats?.kills ?? '?'}</td>
                     <td>{myRoundStats?.damage ?? '?'}</td>
                     <td>{myRoundStats?.score ?? '?'}</td>
-                    <td className={died ? 'result-loss-text' : 'result-win-text'}>{died ? 'Oui' : 'Non'}</td>
+                    <td className={died ? 'result-loss-text' : 'result-win-text'}>{died ? t('detail.yes') : t('detail.no')}</td>
                     <td>
                       {myRoundStats?.economy
                         ? `${myRoundStats.economy.loadout_value}¤ (${myRoundStats.economy.weapon?.name ?? '?'})`

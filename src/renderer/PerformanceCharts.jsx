@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent } from './valorantStats.js';
 import { computeMapWinrates, computeDayPeriodGrid, computeRoleDistribution, computeTrend } from './performanceCharts.js';
 import { useAgentRoles } from './agentIcons.js';
@@ -10,6 +11,7 @@ import LineChart from './charts/LineChart.jsx';
 import LoadingState from './LoadingState.jsx';
 
 function PerformanceCharts({ settings, matches, loading }) {
+  const { t } = useTranslation();
   const agentRoles = useAgentRoles();
   const ranked = useMemo(() => excludeDeathmatch(matches), [matches]);
 
@@ -24,8 +26,8 @@ function PerformanceCharts({ settings, matches, loading }) {
   }, [ranked, settings.name, settings.tag]);
 
   const mapWinrates = useMemo(
-    () => computeMapWinrates(matches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: `${r.games} parties` })),
-    [matches, settings.name, settings.tag],
+    () => computeMapWinrates(matches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: t('charts.gamesCount', { count: r.games }) })),
+    [matches, settings.name, settings.tag, t],
   );
 
   const dayPeriodGrid = useMemo(
@@ -39,52 +41,52 @@ function PerformanceCharts({ settings, matches, loading }) {
   );
 
   const trend = useMemo(
-    () => computeTrend(matches, settings.name, settings.tag, 20),
-    [matches, settings.name, settings.tag],
+    () => computeTrend(t, matches, settings.name, settings.tag, 20),
+    [t, matches, settings.name, settings.tag],
   );
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
-    return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
+    return <p>{t('charts.noMatchesYet')}</p>;
   }
 
   return (
     <div>
       <div className="card">
-        <h3>📈 Graphiques</h3>
-        <p className="label">Un résumé visuel de tes stats, calculé à partir de ton historique en cache.</p>
+        <h3>{t('charts.title')}</h3>
+        <p className="label">{t('charts.description')}</p>
         <div className="kpi-row">
-          <KpiTile icon="🎮" label="Matchs classés" value={kpis.games} />
-          <KpiTile icon="🏆" label="Winrate global" value={kpis.winrate} suffix="%" />
-          <KpiTile icon="⚔️" label="K/D moyen" value={kpis.kd} decimals={2} />
-          <KpiTile icon="🎯" label="Précision tête" value={kpis.hsPercent} suffix="%" />
+          <KpiTile icon="🎮" label={t('charts.rankedMatches')} value={kpis.games} />
+          <KpiTile icon="🏆" label={t('charts.globalWinrate')} value={kpis.winrate} suffix="%" />
+          <KpiTile icon="⚔️" label={t('charts.avgKd')} value={kpis.kd} decimals={2} />
+          <KpiTile icon="🎯" label={t('charts.hsAccuracy')} value={kpis.hsPercent} suffix="%" />
         </div>
       </div>
 
       <div className="card">
-        <h3>🗓️ Performance par jour et moment de la journée</h3>
-        <p className="label">Winrate par créneau — plus la case est bleue, meilleur est ton winrate à ce moment-là.</p>
+        <h3>{t('charts.dayPeriodTitle')}</h3>
+        <p className="label">{t('charts.dayPeriodHint')}</p>
         <HeatmapGrid grid={dayPeriodGrid} />
       </div>
 
       <div className="chart-grid-2">
         <div className="card">
-          <h3>📉 K/D sur les 20 derniers matchs</h3>
+          <h3>{t('charts.kdTrendTitle')}</h3>
           <LineChart data={trend.kd} color="#ff4655" />
         </div>
         <div className="card">
-          <h3>📊 Winrate glissant (fenêtre de 5 matchs)</h3>
+          <h3>{t('charts.winrateTrendTitle')}</h3>
           <LineChart data={trend.winrateRolling} color="#3987e5" unit="%" />
         </div>
       </div>
 
       <div className="card">
-        <h3>🗺️ Winrate par map</h3>
+        <h3>{t('charts.mapWinrateTitle')}</h3>
         <AnimatedBarList rows={mapWinrates} />
       </div>
 
       <div className="card">
-        <h3>🎭 Répartition par rôle</h3>
+        <h3>{t('charts.roleDistributionTitle')}</h3>
         <RoleStackedBar rows={roleDistribution} />
       </div>
     </div>

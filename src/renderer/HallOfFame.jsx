@@ -1,16 +1,17 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { computeHallOfFame } from './hallOfFame.js';
 import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
 import LoadingState from './LoadingState.jsx';
 
-function formatDate(ms) {
+function formatDate(locale, ms) {
   if (!ms) return '?';
-  return new Date(ms).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' });
+  return new Date(ms).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty }) {
+function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty, t }) {
   return (
     <div
       className={`trophy-card ${empty ? 'empty' : ''}`}
@@ -22,7 +23,7 @@ function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty }
           <span className="trophy-title">{title}</span>
         </div>
         {empty ? (
-          <p className="label">Pas encore débloqué — continue à jouer.</p>
+          <p className="label">{t('hallOfFame.noneUnlockedYet')}</p>
         ) : (
           <>
             <div className="trophy-value">
@@ -57,9 +58,11 @@ function AchievementBadge({ icon, title, description, unlocked, contextText, pro
 }
 
 function HallOfFame({ settings, matches, loading }) {
+  const { t, i18n } = useTranslation();
+  const locale = i18n.language === 'en' ? 'en-US' : 'fr-FR';
   const agentPortraits = useAgentPortraits();
   const hof = useMemo(() => computeHallOfFame(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
-  const achievementGroups = useMemo(() => deriveAchievements(hof), [hof]);
+  const achievementGroups = useMemo(() => deriveAchievements(t, i18n.language, hof), [t, i18n.language, hof]);
   const totalCount = achievementGroups.reduce((sum, g) => sum + g.items.length, 0);
   const unlockedCount = achievementGroups.reduce((sum, g) => sum + g.items.filter((i) => i.unlocked).length, 0);
   const [celebrate, setCelebrate] = useState(false);
@@ -85,67 +88,65 @@ function HallOfFame({ settings, matches, loading }) {
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
-    return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
+    return <p>{t('hallOfFame.noMatchesYet')}</p>;
   }
 
   return (
     <div>
       {celebrate && <ConfettiBurst />}
       <div className="card">
-        <h3>🏆 Hall of Fame</h3>
-        <p className="label">
-          Tes meilleurs records personnels, détectés automatiquement dans ton historique de matchs — mis à jour dès
-          qu'un nouveau record tombe.
-        </p>
+        <h3>{t('hallOfFame.title')}</h3>
+        <p className="label">{t('hallOfFame.description')}</p>
       </div>
 
       <div className="trophy-grid">
         <TrophyCard
+          t={t}
           icon="💥"
-          title="Meilleur ace"
+          title={t('hallOfFame.bestAce')}
           empty={!hof.bestAce}
           value={hof.bestAce?.kills}
-          valueLabel="kills en un round"
+          valueLabel={t('hallOfFame.killsInRound')}
           portrait={hof.bestAce && agentPortraits.get(hof.bestAce.agent)}
-          context={hof.bestAce && `${hof.bestAce.agent} — ${hof.bestAce.map}, round ${hof.bestAce.roundNumber} — ${formatDate(hof.bestAce.date)}`}
+          context={hof.bestAce && `${hof.bestAce.agent} — ${hof.bestAce.map}, ${t('hallOfFame.roundLabel', { n: hof.bestAce.roundNumber })} — ${formatDate(locale, hof.bestAce.date)}`}
         />
         <TrophyCard
+          t={t}
           icon="🔥"
-          title="Plus longue série de victoires"
+          title={t('hallOfFame.longestWinStreak')}
           empty={!hof.longestWinStreak}
           value={hof.longestWinStreak?.streak}
-          valueLabel="victoires d'affilée"
+          valueLabel={t('hallOfFame.winsInARow')}
           context={
             hof.longestWinStreak &&
-            `Du ${formatDate(hof.longestWinStreak.startDate)} au ${formatDate(hof.longestWinStreak.endDate)}`
+            t('hallOfFame.streakRange', { start: formatDate(locale, hof.longestWinStreak.startDate), end: formatDate(locale, hof.longestWinStreak.endDate) })
           }
         />
         <TrophyCard
+          t={t}
           icon="🎯"
-          title="Meilleur clutch"
+          title={t('hallOfFame.bestClutch')}
           empty={!hof.bestClutch}
           value={hof.bestClutch && `1v${hof.bestClutch.enemies}`}
-          valueLabel="gagné"
+          valueLabel={t('hallOfFame.won')}
           portrait={hof.bestClutch && agentPortraits.get(hof.bestClutch.agent)}
-          context={hof.bestClutch && `${hof.bestClutch.agent} — ${hof.bestClutch.map}, round ${hof.bestClutch.roundNumber} — ${formatDate(hof.bestClutch.date)}`}
+          context={hof.bestClutch && `${hof.bestClutch.agent} — ${hof.bestClutch.map}, ${t('hallOfFame.roundLabel', { n: hof.bestClutch.roundNumber })} — ${formatDate(locale, hof.bestClutch.date)}`}
         />
         <TrophyCard
+          t={t}
           icon="⭐"
-          title="Meilleur KDA sur un match"
+          title={t('hallOfFame.bestKdaMatch')}
           empty={!hof.bestKda}
           value={hof.bestKda?.kda.toFixed(2)}
           valueLabel={hof.bestKda && `${hof.bestKda.kills}/${hof.bestKda.deaths}/${hof.bestKda.assists}`}
           portrait={hof.bestKda && agentPortraits.get(hof.bestKda.agent)}
-          context={hof.bestKda && `${hof.bestKda.agent} — ${hof.bestKda.map} — ${formatDate(hof.bestKda.date)}`}
+          context={hof.bestKda && `${hof.bestKda.agent} — ${hof.bestKda.map} — ${formatDate(locale, hof.bestKda.date)}`}
         />
       </div>
 
       <div className="card">
-        <h3>🏅 Succès ({unlockedCount}/{totalCount})</h3>
-        <p className="label">
-          Débloqués automatiquement dès que tu atteins le seuil, à partir des mêmes données que les records
-          ci-dessus.
-        </p>
+        <h3>{t('hallOfFame.achievementsTitle', { unlocked: unlockedCount, total: totalCount })}</h3>
+        <p className="label">{t('hallOfFame.achievementsHint')}</p>
       </div>
 
       {achievementGroups.map((group) => (

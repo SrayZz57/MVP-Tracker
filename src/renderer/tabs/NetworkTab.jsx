@@ -1,4 +1,5 @@
 import { useMemo } from 'react';
+import { useTranslation } from 'react-i18next';
 import NetworkMonitor from '../NetworkMonitor.jsx';
 import { pingCorrelation } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
@@ -7,6 +8,7 @@ const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
 function PingGauge({ percent }) {
+  const { t } = useTranslation();
   const offset = CIRCUMFERENCE * (1 - percent / 100);
   const color = percent >= 30 ? 'var(--accent)' : percent >= 15 ? 'var(--warning)' : '#3ddc84';
 
@@ -24,7 +26,7 @@ function PingGauge({ percent }) {
       </svg>
       <div className="ping-gauge-center">
         <div className="value" style={{ color }}><CountUp value={percent} suffix="%" /></div>
-        <div className="label">morts en pic</div>
+        <div className="label">{t('network.deathsInSpike')}</div>
       </div>
     </div>
   );
@@ -35,13 +37,14 @@ const SPARKLINE_HEIGHT = 60;
 const SPARKLINE_SAMPLE_COUNT = 60;
 
 function PingSparkline({ samples }) {
+  const { t } = useTranslation();
   const recent = useMemo(
     () => [...samples].sort((a, b) => a.timestamp - b.timestamp).slice(-SPARKLINE_SAMPLE_COUNT),
     [samples],
   );
 
   if (recent.length < 2) {
-    return <p className="label">Pas encore assez de relevés récents pour tracer une courbe.</p>;
+    return <p className="label">{t('network.notEnoughReadings')}</p>;
   }
 
   const values = recent.map((s) => s.latency_ms);
@@ -70,14 +73,15 @@ function PingSparkline({ samples }) {
         <polyline points={points.join(' ')} style={{ stroke: color }} className="ping-sparkline-line" />
       </svg>
       <div className="ping-sparkline-meta">
-        <span>{recent.length} derniers relevés</span>
-        <span>moy. {avg.toFixed(0)} ms — min {min.toFixed(0)} — max {max.toFixed(0)}</span>
+        <span>{t('network.recentReadings', { count: recent.length })}</span>
+        <span>{t('network.sparklineMeta', { avg: avg.toFixed(0), min: min.toFixed(0), max: max.toFixed(0) })}</span>
       </div>
     </div>
   );
 }
 
 function NetworkTab({ settings, matches, pingSamples }) {
+  const { t } = useTranslation();
   const pingStats = useMemo(
     () => pingCorrelation(matches, pingSamples, settings.name, settings.tag),
     [matches, pingSamples, settings.name, settings.tag],
@@ -90,17 +94,14 @@ function NetworkTab({ settings, matches, pingSamples }) {
       <NetworkMonitor />
 
       <div className="card">
-        <h3>📈 Historique récent du ping</h3>
+        <h3>{t('network.pingHistory')}</h3>
         <PingSparkline samples={pingSamples} />
       </div>
 
       <div className="card">
-        <h3>💀 Corrélation ping / morts</h3>
+        <h3>{t('network.deathCorrelation')}</h3>
         {pingStats.deathsAnalyzed === 0 ? (
-          <p>
-            Pas encore assez de données réseau pendant tes matchs pour calculer une corrélation
-            (il faut avoir l'appli ouverte pendant que tu joues).
-          </p>
+          <p>{t('network.notEnoughNetworkData')}</p>
         ) : (
           <div className="ping-correlation-layout">
             <PingGauge percent={percent} />
@@ -108,16 +109,15 @@ function NetworkTab({ settings, matches, pingSamples }) {
               <div className="stat-tiles">
                 <div className="stat-tile">
                   <div className="value">{pingStats.deathsAnalyzed}</div>
-                  <div className="label">Morts analysées au total</div>
+                  <div className="label">{t('network.totalDeathsAnalyzed')}</div>
                 </div>
                 <div className="stat-tile">
                   <div className="value">{pingStats.deathsNearSpike}</div>
-                  <div className="label">Pendant un pic de ping</div>
+                  <div className="label">{t('network.duringPingSpike')}</div>
                 </div>
               </div>
               <p className="label" style={{ marginTop: '0.75rem' }}>
-                Soit {percent.toFixed(0)}% de tes morts analysées qui ont eu lieu pendant un pic de ping (ping 30%
-                au-dessus de la moyenne de la partie).
+                {t('network.correlationSummary', { percent: percent.toFixed(0) })}
               </p>
             </div>
           </div>

@@ -1,13 +1,14 @@
 import { useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { buildSessionPlan } from './sessionPlan.js';
 import LoadingState from './LoadingState.jsx';
 
-function buildChecklist(plan, latestStrategy) {
+function buildChecklist(t, plan, latestStrategy) {
   const items = [
     {
       id: 'warmup',
       icon: '🔥',
-      title: `${plan.warmup.minutes} minutes d'échauffement`,
+      title: t('session.warmupTitle', { count: plan.warmup.minutes }),
       detail: plan.warmup.reason,
       level: 'info',
     },
@@ -19,15 +20,15 @@ function buildChecklist(plan, latestStrategy) {
         ? {
             id: 'strategy',
             icon: '🗺️',
-            title: `Revoir la stratégie "${latestStrategy.name}" sur ${plan.targetMap}`,
-            detail: "Direction l'onglet Stratégie pour la consulter avant de lancer tes matchs.",
+            title: t('session.strategyReviewTitle', { name: latestStrategy.name, map: plan.targetMap }),
+            detail: t('session.strategyReviewDetail'),
             level: 'info',
           }
         : {
             id: 'strategy',
             icon: '🗺️',
-            title: `Aucune stratégie sauvegardée sur ${plan.targetMap}`,
-            detail: "L'occasion d'en créer une dans l'onglet Stratégie avant de jouer.",
+            title: t('session.noStrategyTitle', { map: plan.targetMap }),
+            detail: t('session.noStrategyDetail'),
             level: 'info',
           },
     );
@@ -38,15 +39,15 @@ function buildChecklist(plan, latestStrategy) {
       ? {
           id: 'tilt',
           icon: '⚠️',
-          title: 'Signes de tilt détectés récemment',
-          detail: `Objectif réduit pour aujourd'hui — fais une pause après ${plan.matchCount} matchs si ça ne va pas mieux.`,
+          title: t('session.tiltedTitle'),
+          detail: t('session.tiltedDetail', { count: plan.matchCount }),
           level: 'warning',
         }
       : {
           id: 'tilt',
           icon: '✅',
-          title: 'Pas de signe de tilt',
-          detail: 'Tu peux enchaîner tes matchs normalement.',
+          title: t('session.calmTitle'),
+          detail: t('session.calmDetail'),
           level: 'good',
         },
   );
@@ -54,7 +55,7 @@ function buildChecklist(plan, latestStrategy) {
   items.push({
     id: 'objective',
     icon: '🎯',
-    title: "Objectif du jour",
+    title: t('session.objectiveTitle'),
     detail: plan.objective,
     level: 'info',
   });
@@ -63,16 +64,17 @@ function buildChecklist(plan, latestStrategy) {
 }
 
 function SessionGuide({ settings, matches, loading: matchesLoading }) {
+  const { t } = useTranslation();
   const [plan, setPlan] = useState(null);
   const [latestStrategy, setLatestStrategy] = useState(null);
   const [checked, setChecked] = useState({});
   const [loading, setLoading] = useState(false);
 
-  const checklist = useMemo(() => (plan ? buildChecklist(plan, latestStrategy) : []), [plan, latestStrategy]);
+  const checklist = useMemo(() => (plan ? buildChecklist(t, plan, latestStrategy) : []), [t, plan, latestStrategy]);
 
   async function handleLaunch() {
     setLoading(true);
-    const newPlan = buildSessionPlan(matches, settings.name, settings.tag);
+    const newPlan = buildSessionPlan(t, matches, settings.name, settings.tag);
     setPlan(newPlan);
     setChecked({});
     if (newPlan.targetMap) {
@@ -90,26 +92,23 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
 
   if (matches.length === 0) {
     if (matchesLoading) return <LoadingState />;
-    return <p>Aucun match en cache pour l'instant — clique sur "Rafraîchir".</p>;
+    return <p>{t('session.noMatchesYet')}</p>;
   }
 
   return (
     <div>
       <div className="card">
-        <h3>🎬 Session guidée</h3>
-        <p className="label">
-          Génère un plan de session basé sur tes vraies stats : créneau horaire actuel, dernière stratégie
-          sauvegardée sur ta map récente, et ton état de forme/tilt en ce moment.
-        </p>
+        <h3>{t('session.title')}</h3>
+        <p className="label">{t('session.description')}</p>
         <button className="refresh" onClick={handleLaunch} disabled={loading}>
-          {plan ? '🔄 Nouvelle session' : '▶️ Lancer ma session'}
+          {plan ? t('session.newSession') : t('session.launch')}
         </button>
       </div>
 
       {plan && (
         <div className="card">
           <div className="achievement-group-header">
-            <h3>Checklist de session</h3>
+            <h3>{t('session.checklistTitle')}</h3>
             <span className="achievement-group-count">
               {Object.values(checked).filter(Boolean).length}/{checklist.length}
             </span>

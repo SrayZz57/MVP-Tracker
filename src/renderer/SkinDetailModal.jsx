@@ -1,8 +1,11 @@
+import { useTranslation } from 'react-i18next';
+
 function SkinDetailModal({ skin, isWishlisted, isOwned, onToggleWishlist, onToggleCollection, onClose }) {
+  const { t } = useTranslation();
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('skins.close')}</button>
 
         <div
           className="modal-banner"
@@ -10,13 +13,13 @@ function SkinDetailModal({ skin, isWishlisted, isOwned, onToggleWishlist, onTogg
         >
           <div className="modal-banner-text">
             <h2>{skin.name}</h2>
-            <p style={{ color: skin.tierColor }}>{skin.tierName} Edition — {skin.weaponName}</p>
+            <p style={{ color: skin.tierColor }}>{t('skins.edition', { tier: skin.tierName, weapon: skin.weaponName })}</p>
           </div>
         </div>
 
         {skin.video && (
           <div className="card">
-            <h3>Aperçu</h3>
+            <h3>{t('skins.preview')}</h3>
             <video src={skin.video} controls muted loop style={{ width: '100%', borderRadius: '8px' }} />
           </div>
         )}
@@ -25,26 +28,26 @@ function SkinDetailModal({ skin, isWishlisted, isOwned, onToggleWishlist, onTogg
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value">{skin.estimatedPriceVp} VP</div>
-              <div className="label">Prix estimé (rareté {skin.tierName})</div>
+              <div className="label">{t('skins.estimatedPrice', { tier: skin.tierName })}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{(skin.estimatedPriceVp * 0.01).toFixed(2)}€</div>
-              <div className="label">≈ en euros (1000 VP = 10€)</div>
+              <div className="label">{t('skins.euroApprox')}</div>
             </div>
           </div>
           <div className="skin-detail-actions">
             <button onClick={onToggleWishlist}>
-              {isWishlisted ? '★ Retirer de la wishlist' : '☆ Ajouter à ma wishlist'}
+              {isWishlisted ? t('skins.removeFromWishlist') : t('skins.addToWishlist')}
             </button>
             <button onClick={onToggleCollection}>
-              {isOwned ? '✓ Je le possède (retirer)' : '+ Je possède ce skin'}
+              {isOwned ? t('skins.removeOwned') : t('skins.addOwned')}
             </button>
           </div>
         </div>
 
         {skin.chromas.length > 1 && (
           <div className="card">
-            <h3>Variantes de couleur</h3>
+            <h3>{t('skins.colorVariants')}</h3>
             <div className="skin-chroma-row">
               {skin.chromas
                 .filter((chroma) => chroma.swatch)

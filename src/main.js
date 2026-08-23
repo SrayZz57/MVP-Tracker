@@ -176,6 +176,14 @@ ipcMain.handle('settings:set', (_event, settings) => {
   store.set('valorantSettings', settings);
 });
 
+// Préférence de langue de l'interface — globale à l'app, indépendante du
+// profil consulté ou du compte lié.
+ipcMain.handle('language:get', () => store.get('appLanguage') || 'fr');
+
+ipcMain.handle('language:set', (_event, language) => {
+  store.set('appLanguage', language);
+});
+
 // Le renderer appelle ceci dès qu'il connaît (ou perd) le compte MVP Tracker
 // lié — c'est cette valeur, pas valorantSettings.puuid, qui scope toutes les
 // données personnelles (voir currentPuuid() plus haut).
@@ -268,14 +276,14 @@ setInterval(async () => {
   const valorantRunning = isValorantRunning();
   const latestPing = valorantRunning ? await pingOnce() : null;
   networkStatus = { valorantRunning, latestPing };
-  if (valorantRunning && latestPing !== null) {
-    savePingSample(latestPing);
+  if (valorantRunning && latestPing !== null && currentPuuid()) {
+    savePingSample(currentPuuid(), latestPing);
   }
 }, 5000);
 
 ipcMain.handle('network:get-status', () => networkStatus);
 
-ipcMain.handle('network:get-ping-samples', () => getAllPingSamples());
+ipcMain.handle('network:get-ping-samples', () => (currentPuuid() ? getAllPingSamples(currentPuuid()) : []));
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { excludeDeathmatch, overallHsPercent, overallWinrate, formStats, groupStats } from './valorantStats.js';
 
 const MIN_GAMES_FOR_BREAKDOWN = 3;
@@ -34,7 +35,10 @@ function alreadyCovered(existingGoals, metric, subject) {
 
 // Propose des objectifs à partir des stats déjà calculées ailleurs dans l'app
 // (pas de saisie manuelle de cible : la cible est déduite du niveau actuel).
-function generateSuggestions(matches, settings, existingGoals) {
+// `t` reçu en paramètre : `label` est traduit au moment de la génération,
+// mais reste ensuite figé tel quel une fois l'objectif enregistré (comme
+// n'importe quelle donnée sauvegardée par l'utilisateur).
+function generateSuggestions(t, matches, settings, existingGoals) {
   const clean = excludeDeathmatch(matches);
   const suggestions = [];
 
@@ -42,7 +46,7 @@ function generateSuggestions(matches, settings, existingGoals) {
     const hs = overallHsPercent(matches, settings.name, settings.tag);
     const target = hs === null ? null : Math.round(Math.min(hs + 5, 45));
     if (hs !== null && target > hs) {
-      suggestions.push({ metric: 'hsPercent', label: 'Précision tête (global)', baseline: hs, target });
+      suggestions.push({ metric: 'hsPercent', label: t('goals.suggestion.hsPercent'), baseline: hs, target });
     }
   }
 
@@ -50,7 +54,7 @@ function generateSuggestions(matches, settings, existingGoals) {
     const wr = overallWinrate(clean, settings.name, settings.tag);
     const target = wr === null ? null : Math.round(Math.min(wr + 5, 70));
     if (wr !== null && target > wr) {
-      suggestions.push({ metric: 'winrate', label: 'Winrate global', baseline: wr, target });
+      suggestions.push({ metric: 'winrate', label: t('goals.suggestion.winrate'), baseline: wr, target });
     }
   }
 
@@ -58,7 +62,7 @@ function generateSuggestions(matches, settings, existingGoals) {
     const kd = formStats(clean, settings.name, settings.tag).overallKd;
     const target = kd === null ? null : Math.round((kd + 0.15) * 100) / 100;
     if (kd !== null && target > kd) {
-      suggestions.push({ metric: 'kd', label: 'K/D global', baseline: kd, target });
+      suggestions.push({ metric: 'kd', label: t('goals.suggestion.kd'), baseline: kd, target });
     }
   }
 
@@ -74,7 +78,7 @@ function generateSuggestions(matches, settings, existingGoals) {
     suggestions.push({
       metric: 'mapWinrate',
       subject: worstMap.key,
-      label: `Winrate sur ${worstMap.key}`,
+      label: t('goals.suggestion.mapWinrate', { map: worstMap.key }),
       baseline: worstMap.winrate,
       target: Math.round(Math.min(worstMap.winrate + 15, 70)),
     });
@@ -89,7 +93,7 @@ function generateSuggestions(matches, settings, existingGoals) {
     suggestions.push({
       metric: 'agentWinrate',
       subject: worstAgent.key,
-      label: `Winrate avec ${worstAgent.key}`,
+      label: t('goals.suggestion.agentWinrate', { agent: worstAgent.key }),
       baseline: worstAgent.winrate,
       target: Math.round(Math.min(worstAgent.winrate + 15, 70)),
     });
@@ -99,6 +103,7 @@ function generateSuggestions(matches, settings, existingGoals) {
 }
 
 function GoalsWidget({ matches, settings }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [goals, setGoals] = useState([]);
   const [showCustomForm, setShowCustomForm] = useState(false);
@@ -115,8 +120,8 @@ function GoalsWidget({ matches, settings }) {
     if (matches.length === 0) return [];
     // On exclut tout sujet déjà couvert par un objectif actif OU terminé,
     // pour ne jamais reproposer un objectif déjà réussi.
-    return generateSuggestions(matches, settings, goals);
-  }, [matches, settings, goals]);
+    return generateSuggestions(t, matches, settings, goals);
+  }, [t, matches, settings, goals]);
 
   const handleAddSuggestion = (suggestion) => {
     window.electronAPI.addGoal({ type: 'metric', ...suggestion }).then(setGoals);
@@ -135,19 +140,19 @@ function GoalsWidget({ matches, settings }) {
 
   return (
     <>
-      <button className="goals-widget-button" onClick={() => setOpen(!open)} title="Objectifs personnels">
+      <button className="goals-widget-button" onClick={() => setOpen(!open)} title={t('goals.widgetTitle')}>
         <span key={open} className="goals-widget-icon">🎯</span>
       </button>
 
       {open && (
         <div className="goals-widget-panel">
           <div className="goals-widget-header">
-            <h3>🎯 Objectifs</h3>
+            <h3>{t('goals.panelTitle')}</h3>
             <button className="goals-widget-close" onClick={() => setOpen(false)}>✕</button>
           </div>
 
           {activeGoals.length === 0 ? (
-            <p className="label">Aucun objectif actif — ajoute une suggestion ci-dessous.</p>
+            <p className="label">{t('goals.noActiveGoals')}</p>
           ) : (
             activeGoals.map((goal) => {
               if (goal.type === 'custom') {
@@ -179,8 +184,8 @@ function GoalsWidget({ matches, settings }) {
                     />
                   </div>
                   <div className="goal-actions">
-                    {reached && <button onClick={() => handleToggleDone(goal.id)}>✓ Marquer atteint</button>}
-                    <button onClick={() => handleDelete(goal.id)}>✕ Supprimer</button>
+                    {reached && <button onClick={() => handleToggleDone(goal.id)}>{t('goals.markReached')}</button>}
+                    <button onClick={() => handleDelete(goal.id)}>{t('goals.delete')}</button>
                   </div>
                 </div>
               );
@@ -189,7 +194,7 @@ function GoalsWidget({ matches, settings }) {
 
           {doneGoals.length > 0 && (
             <details className="goals-done-list">
-              <summary>{doneGoals.length} objectif(s) terminé(s)</summary>
+              <summary>{t('goals.doneCount', { count: doneGoals.length })}</summary>
               {doneGoals.map((goal) => (
                 <div key={goal.id} className="goal-row goal-row-done">
                   <span className="goal-label">✓ {goal.label}</span>
@@ -201,14 +206,16 @@ function GoalsWidget({ matches, settings }) {
 
           {suggestions.length > 0 && (
             <div className="goals-suggestions">
-              <h4>✨ Suggestions basées sur tes stats</h4>
+              <h4>{t('goals.suggestionsTitle')}</h4>
               {suggestions.map((s) => (
                 <div key={`${s.metric}-${s.subject ?? ''}`} className="goal-suggestion-row">
                   <div>
                     <span className="goal-label">{s.label}</span>
-                    <span className="goal-value"> — actuellement {s.baseline.toFixed(1)}, viser {s.target}</span>
+                    <span className="goal-value">
+                      {t('goals.suggestionDetail', { baseline: s.baseline.toFixed(1), target: s.target })}
+                    </span>
                   </div>
-                  <button onClick={() => handleAddSuggestion(s)}>+ Ajouter</button>
+                  <button onClick={() => handleAddSuggestion(s)}>{t('goals.addSuggestion')}</button>
                 </div>
               ))}
             </div>
@@ -217,19 +224,19 @@ function GoalsWidget({ matches, settings }) {
           {showCustomForm ? (
             <form className="goals-form" onSubmit={handleAddCustom}>
               <input
-                placeholder="Ex: Améliorer mon positionnement en défense"
+                placeholder={t('goals.customPlaceholder')}
                 value={customLabel}
                 onChange={(e) => setCustomLabel(e.target.value)}
                 required
               />
               <div className="goals-form-actions">
-                <button type="button" onClick={() => setShowCustomForm(false)}>Annuler</button>
-                <button type="submit">Ajouter</button>
+                <button type="button" onClick={() => setShowCustomForm(false)}>{t('goals.cancel')}</button>
+                <button type="submit">{t('goals.add')}</button>
               </div>
             </form>
           ) : (
             <button className="goals-add-btn" onClick={() => setShowCustomForm(true)}>
-              + Objectif libre (texte)
+              {t('goals.addCustomGoal')}
             </button>
           )}
         </div>

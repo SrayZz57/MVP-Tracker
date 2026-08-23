@@ -23,22 +23,22 @@ export function analyzeComposition(agentNames, agentRoles) {
 
   if (chosen.length === 5) {
     if (counts.Contrôleur === 0) {
-      notes.push({ level: 'warning', text: 'Aucun contrôleur : pas de fumigène pour bloquer les angles, risqué sur la plupart des maps.' });
+      notes.push({ level: 'warning', textKey: 'composition.notes.noController' });
     }
     if (counts.Initiateur === 0) {
-      notes.push({ level: 'warning', text: 'Aucun initiateur : ça peut être difficile de rentrer sur les sites sans info.' });
+      notes.push({ level: 'warning', textKey: 'composition.notes.noInitiator' });
     }
     if (counts.Sentinelle === 0) {
-      notes.push({ level: 'info', text: 'Aucune sentinelle : pas de piège/info automatique, surveille les flancs manuellement.' });
+      notes.push({ level: 'info', textKey: 'composition.notes.noSentinel' });
     }
     if (counts.Duelliste === 0) {
-      notes.push({ level: 'info', text: 'Aucun duelliste : possible manque de prise d\'espace/d\'entrée.' });
+      notes.push({ level: 'info', textKey: 'composition.notes.noDuelist' });
     }
     if (counts.Duelliste >= 3) {
-      notes.push({ level: 'info', text: 'Beaucoup de duellistes : bonne pression, mais attention au manque d\'info/soutien.' });
+      notes.push({ level: 'info', textKey: 'composition.notes.tooManyDuelists' });
     }
     if (counts.Duelliste >= 1 && counts.Initiateur >= 1 && counts.Contrôleur >= 1 && counts.Sentinelle >= 1) {
-      notes.push({ level: 'good', text: 'Les 4 rôles sont couverts — base de compo équilibrée.' });
+      notes.push({ level: 'good', textKey: 'composition.notes.balanced' });
     }
   }
 

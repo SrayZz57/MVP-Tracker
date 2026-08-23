@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
@@ -14,11 +15,11 @@ function normalizeText(text) {
 }
 
 const VIEWS = [
-  { id: 'catalogue', label: 'Catalogue' },
-  { id: 'wishlist', label: 'Wishlist' },
+  { id: 'catalogue', labelKey: 'skins.views.catalog' },
+  { id: 'wishlist', labelKey: 'skins.views.wishlist' },
 ];
 
-function SkinCard({ skin, onClick, isWishlisted, isOwned }) {
+function SkinCard({ skin, onClick, isWishlisted, isOwned, t }) {
   return (
     <div
       className="skin-card"
@@ -27,8 +28,8 @@ function SkinCard({ skin, onClick, isWishlisted, isOwned }) {
     >
       {(isWishlisted || isOwned) && (
         <div className="skin-card-badges">
-          {isOwned && <span className="skin-card-badge owned" title="Dans ta collection">✔</span>}
-          {isWishlisted && <span className="skin-card-badge wishlist" title="En wishlist">♥</span>}
+          {isOwned && <span className="skin-card-badge owned" title={t('skins.ownedTitle')}>✔</span>}
+          {isWishlisted && <span className="skin-card-badge wishlist" title={t('skins.wishlistedTitle')}>♥</span>}
         </div>
       )}
       <div className="skin-card-img-wrap">
@@ -42,6 +43,7 @@ function SkinCard({ skin, onClick, isWishlisted, isOwned }) {
 }
 
 function SkinsCatalog() {
+  const { t } = useTranslation();
   const catalog = useSkinsCatalog();
   const [view, setView] = useState('catalogue');
   const [wishlist, setWishlist] = useState([]);
@@ -117,42 +119,42 @@ function SkinsCatalog() {
             className={v.id === view ? 'tab active' : 'tab'}
             onClick={() => setView(v.id)}
           >
-            {v.label}
+            {t(v.labelKey)}
           </button>
         ))}
       </nav>
 
       {view === 'catalogue' && (
         <div className="card">
-          <h3>Catalogue ({filteredCatalog.length} skins)</h3>
+          <h3>{t('skins.catalogTitle', { count: filteredCatalog.length })}</h3>
           <div className="filter-bar">
             <input
-              placeholder="Rechercher un skin..."
+              placeholder={t('skins.searchPlaceholder')}
               value={search}
               onChange={(e) => setSearch(e.target.value)}
             />
             <select value={weaponFilter} onChange={(e) => setWeaponFilter(e.target.value)}>
-              <option value="">Toutes les armes</option>
+              <option value="">{t('skins.allWeapons')}</option>
               {weaponNames.map((w) => (
                 <option key={w} value={w}>{w}</option>
               ))}
             </select>
             <select value={tierFilter} onChange={(e) => setTierFilter(e.target.value)}>
-              <option value="">Toutes les raretés</option>
-              {tierNames.map((t) => (
-                <option key={t} value={t}>{t}</option>
+              <option value="">{t('skins.allTiers')}</option>
+              {tierNames.map((tierName) => (
+                <option key={tierName} value={tierName}>{tierName}</option>
               ))}
             </select>
             <input
               type="number"
-              placeholder="Prix min (VP)"
+              placeholder={t('skins.priceMin')}
               value={priceMin}
               onChange={(e) => setPriceMin(e.target.value)}
               style={{ width: '110px' }}
             />
             <input
               type="number"
-              placeholder="Prix max (VP)"
+              placeholder={t('skins.priceMax')}
               value={priceMax}
               onChange={(e) => setPriceMax(e.target.value)}
               style={{ width: '110px' }}
@@ -167,12 +169,13 @@ function SkinsCatalog() {
                 onClick={() => setSelectedSkin(skin)}
                 isWishlisted={wishlist.includes(skin.uuid)}
                 isOwned={collection.some((e) => e.uuid === skin.uuid)}
+                t={t}
               />
             ))}
           </div>
           {filteredCatalog.length > PAGE_SIZE && (
             <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
-              {showAll ? '▲ Voir moins' : `▼ Voir plus (${filteredCatalog.length - PAGE_SIZE})`}
+              {showAll ? t('skins.showLess') : t('skins.showMore', { count: filteredCatalog.length - PAGE_SIZE })}
             </button>
           )}
         </div>
@@ -180,9 +183,9 @@ function SkinsCatalog() {
 
       {view === 'wishlist' && (
         <div className="card">
-          <h3>Wishlist ({wishlistSkins.length})</h3>
+          <h3>{t('skins.wishlistTitle', { count: wishlistSkins.length })}</h3>
           {wishlistSkins.length === 0 ? (
-            <p>Aucun skin en wishlist pour l'instant — ajoutes-en depuis le catalogue.</p>
+            <p>{t('skins.emptyWishlist')}</p>
           ) : (
             <div className="skin-grid">
               {wishlistSkins.map((skin) => (
@@ -192,6 +195,7 @@ function SkinsCatalog() {
                   onClick={() => setSelectedSkin(skin)}
                   isWishlisted
                   isOwned={collection.some((e) => e.uuid === skin.uuid)}
+                  t={t}
                 />
               ))}
             </div>

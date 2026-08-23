@@ -1,3 +1,4 @@
+import { useTranslation } from 'react-i18next';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import logo from '../assets/logo.png';
 
@@ -7,6 +8,7 @@ const ORBS = [1, 2, 3, 4, 5, 6, 7];
 // rapide du profil suivi, avec le choix d'y entrer directement ou de chercher
 // un autre joueur (sans que ça touche au compte lié).
 function AccountGreeting({ settings, rank, onEnter, onSearchOther }) {
+  const { t } = useTranslation();
   return (
     <div className="welcome-screen">
       <div className="welcome-bg" aria-hidden="true">
@@ -15,17 +17,17 @@ function AccountGreeting({ settings, rank, onEnter, onSearchOther }) {
         ))}
       </div>
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
-      <h1>Content de te revoir</h1>
-      <p className="welcome-tagline">Ton compte est lié à ce profil Valorant :</p>
+      <h1>{t('accountGreeting.title')}</h1>
+      <p className="welcome-tagline">{t('accountGreeting.tagline')}</p>
 
       <RiotProfilePreview name={settings.name} tag={settings.tag} cardUuid={rank?.cardUuid} rank={rank} />
 
       <div className="riot-confirm-actions">
         <button className="riot-confirm-yes" onClick={onEnter}>
-          👉 Voir mon compte
+          {t('accountGreeting.enter')}
         </button>
         <button className="riot-confirm-no" onClick={onSearchOther}>
-          🔍 Chercher un autre joueur
+          {t('accountGreeting.searchOther')}
         </button>
       </div>
     </div>

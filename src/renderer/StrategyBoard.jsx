@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Canvas, Control, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
@@ -72,20 +73,22 @@ function attachSightlineControls(obj) {
   obj.controls = { ...obj.controls, rotateFree: createSightlineRotateControl() };
 }
 
+// labelKey plutôt que label : ces constantes sont au niveau module, hors de
+// tout composant, donc sans accès à t().
 const SHAPE_TOOLS = [
-  { key: 'select', label: '🖱️ Sélection' },
-  { key: 'pan', label: '🖐️ Déplacer la vue' },
-  { key: 'pencil', label: '✏️ Dessin libre' },
-  { key: 'line', label: '／ Ligne' },
-  { key: 'rect', label: '▭ Rectangle' },
-  { key: 'ellipse', label: '⬭ Ellipse' },
-  { key: 'text', label: 'T Texte' },
+  { key: 'select', labelKey: 'strategy.tools.select' },
+  { key: 'pan', labelKey: 'strategy.tools.pan' },
+  { key: 'pencil', labelKey: 'strategy.tools.pencil' },
+  { key: 'line', labelKey: 'strategy.tools.line' },
+  { key: 'rect', labelKey: 'strategy.tools.rect' },
+  { key: 'ellipse', labelKey: 'strategy.tools.ellipse' },
+  { key: 'text', labelKey: 'strategy.tools.text' },
 ];
 
 const LAYER_DEFS = [
-  { key: 'drawing', label: 'Dessin' },
-  { key: 'icons', label: 'Icônes' },
-  { key: 'text', label: 'Texte' },
+  { key: 'drawing', labelKey: 'strategy.layers.drawing' },
+  { key: 'icons', labelKey: 'strategy.layers.icons' },
+  { key: 'text', labelKey: 'strategy.layers.text' },
 ];
 
 function removeActiveObjects(canvas) {
@@ -115,6 +118,7 @@ function rescaleIcons(canvas) {
 }
 
 function StrategyBoard() {
+  const { t } = useTranslation();
   const minimaps = useMapMinimaps();
   const agentIcons = useAgentIcons();
   const agentAbilities = useAgentAbilities();
@@ -222,7 +226,7 @@ function StrategyBoard() {
       const pointer = canvas.getScenePoint(opt.e);
 
       if (currentTool === 'text') {
-        const text = new IText('Texte', {
+        const text = new IText(t('strategy.defaultText'), {
           left: pointer.x,
           top: pointer.y,
           fill: colorRef.current,
@@ -627,7 +631,7 @@ function StrategyBoard() {
     <div className="strategy-board">
       <div className="strategy-toolbar card">
         <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">🗺️ Carte</div>
+          <div className="strategy-section-label">{t('strategy.mapSection')}</div>
           <div className="strategy-toolbar-row">
             <select className="strategy-map-select" value={selectedMap} onChange={(e) => setSelectedMap(e.target.value)}>
               {mapNames.map((name) => (
@@ -637,30 +641,30 @@ function StrategyBoard() {
               ))}
             </select>
             <div className="strategy-tool-group">
-              <button className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title="Zoom arrière">
+              <button className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title={t('strategy.zoomOut')}>
                 🔍－
               </button>
-              <button className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title="Zoom avant">
+              <button className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title={t('strategy.zoomIn')}>
                 🔍＋
               </button>
             </div>
             <button className="strategy-tool" onClick={resetView}>
-              ⟲ Réinitialiser la vue
+              {t('strategy.resetView')}
             </button>
           </div>
         </div>
 
         <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">✏️ Dessin</div>
+          <div className="strategy-section-label">{t('strategy.drawSection')}</div>
           <div className="strategy-toolbar-row">
             <div className="strategy-tool-group">
-              {SHAPE_TOOLS.map((t) => (
+              {SHAPE_TOOLS.map((st) => (
                 <button
-                  key={t.key}
-                  className={t.key === tool ? 'strategy-tool active' : 'strategy-tool'}
-                  onClick={() => setTool(t.key)}
+                  key={st.key}
+                  className={st.key === tool ? 'strategy-tool active' : 'strategy-tool'}
+                  onClick={() => setTool(st.key)}
                 >
-                  {t.label}
+                  {t(st.labelKey)}
                 </button>
               ))}
             </div>
@@ -669,20 +673,20 @@ function StrategyBoard() {
               type="color"
               value={color}
               onChange={(e) => setColor(e.target.value)}
-              title="Couleur"
+              title={t('strategy.color')}
             />
 
             <button className="strategy-tool danger" onClick={handleDeleteSelection}>
-              🗑️ Supprimer
+              {t('strategy.delete')}
             </button>
           </div>
         </div>
 
         <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">🧑‍🚀 Agents & capacités</div>
+          <div className="strategy-section-label">{t('strategy.agentsSection')}</div>
           <div className="strategy-toolbar-row">
             <select value={selectedAgent} onChange={(e) => setSelectedAgent(e.target.value)}>
-              <option value="">— choisir un agent —</option>
+              <option value="">{t('strategy.chooseAgent')}</option>
               {[...agentIcons.keys()].sort().map((name) => (
                 <option key={name} value={name}>
                   {name}
@@ -690,7 +694,7 @@ function StrategyBoard() {
               ))}
             </select>
             <button className="strategy-tool" onClick={handleStampAgentPosition} disabled={!selectedAgent}>
-              📍 Placer la position
+              {t('strategy.placePosition')}
             </button>
 
             <select
@@ -698,7 +702,7 @@ function StrategyBoard() {
               onChange={(e) => setSelectedAbility(e.target.value)}
               disabled={!selectedAgent}
             >
-              <option value="">— capacité —</option>
+              <option value="">{t('strategy.chooseAbility')}</option>
               {abilitiesForAgent.map((ability) => (
                 <option key={ability.name} value={ability.name}>
                   {ability.name}
@@ -706,44 +710,44 @@ function StrategyBoard() {
               ))}
             </select>
             <button className="strategy-tool" onClick={handleStampAbility} disabled={!selectedAbility}>
-              ✨ Placer la capacité
+              {t('strategy.placeAbility')}
             </button>
           </div>
         </div>
 
         <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">👁️ Icônes & ligne de vue</div>
+          <div className="strategy-section-label">{t('strategy.iconsSection')}</div>
           <div className="strategy-toolbar-row">
             <button className="strategy-tool" onClick={handleStampSpike}>
-              ◈ Spike
+              {t('strategy.spike')}
             </button>
             <button
               className="strategy-tool"
-              title="Ligne de vue (FOV réel 103°). Glisse le point blanc à sa pointe pour la pivoter librement, ou utilise 'Lier à un joueur' pour la fixer sur une position déjà placée."
+              title={t('strategy.sightlineTitle')}
               onClick={handlePlaceSightline}
             >
-              👁️ Ligne de vue
+              {t('strategy.sightline')}
             </button>
             {selectedSightline && (
               <div className="strategy-sightline-controls">
-                <span className="strategy-inline-label">Orienter :</span>
-                <button className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title="Pivoter -15°">
+                <span className="strategy-inline-label">{t('strategy.orient')}</span>
+                <button className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title={t('strategy.rotateMinus')}>
                   ↺
                 </button>
-                <button className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title="Pivoter +15°">
+                <button className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title={t('strategy.rotatePlus')}>
                   ↻
                 </button>
                 {sightlineAttached ? (
                   <button className="strategy-tool" onClick={detachSightline}>
-                    🔓 Détacher du joueur
+                    {t('strategy.detachFromPlayer')}
                   </button>
                 ) : lockPicking ? (
                   <button className="strategy-tool active" onClick={cancelLockToPlayer}>
-                    🔒 Clique sur un joueur sur la carte… (Échap pour annuler)
+                    {t('strategy.clickOnPlayer')}
                   </button>
                 ) : (
                   <button className="strategy-tool" onClick={armLockToPlayer}>
-                    🔒 Lier à un joueur
+                    {t('strategy.linkToPlayer')}
                   </button>
                 )}
               </div>
@@ -752,7 +756,7 @@ function StrategyBoard() {
         </div>
 
         <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">📚 Calques visibles</div>
+          <div className="strategy-section-label">{t('strategy.layersSection')}</div>
           <div className="strategy-toolbar-row">
             {LAYER_DEFS.map((l) => (
               <label key={l.key} className="strategy-layer-toggle">
@@ -761,7 +765,7 @@ function StrategyBoard() {
                   checked={layers[l.key]}
                   onChange={(e) => setLayers((prev) => ({ ...prev, [l.key]: e.target.checked }))}
                 />
-                {l.label}
+                {t(l.labelKey)}
               </label>
             ))}
           </div>
@@ -774,25 +778,25 @@ function StrategyBoard() {
         </div>
 
         <div className="strategy-side card">
-          <h3>💾 Sauvegarder</h3>
+          <h3>{t('strategy.save')}</h3>
           <div className="strategy-save-row">
             <input
               type="text"
-              placeholder="Nom de la stratégie"
+              placeholder={t('strategy.namePlaceholder')}
               value={strategyName}
               onChange={(e) => setStrategyName(e.target.value)}
             />
             <button onClick={handleSave} disabled={!strategyName.trim()}>
-              Sauvegarder
+              {t('strategy.saveBtn')}
             </button>
           </div>
           <button className="strategy-export" onClick={handleExportPng}>
-            📷 Exporter en PNG
+            {t('strategy.exportPng')}
           </button>
 
-          <h3>📂 Stratégies — {selectedMap}</h3>
+          <h3>{t('strategy.savedStrategies', { map: selectedMap })}</h3>
           {strategies.length === 0 ? (
-            <p className="label">Aucune stratégie sauvegardée pour cette map.</p>
+            <p className="label">{t('strategy.noSavedStrategies')}</p>
           ) : (
             <ul className="strategy-list">
               {strategies.map((entry) => (
@@ -800,7 +804,7 @@ function StrategyBoard() {
                   <button className="strategy-list-name" onClick={() => handleLoadStrategy(entry)}>
                     {entry.name}
                   </button>
-                  <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title="Supprimer">
+                  <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title={t('strategy.deleteTitle')}>
                     ✕
                   </button>
                 </li>

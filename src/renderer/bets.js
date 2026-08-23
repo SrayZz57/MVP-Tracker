@@ -1,22 +1,22 @@
 import { findMe, resultLabel, hitStats } from './valorantStats.js';
 
 export const BET_TYPES = [
-  { id: 'kills', label: 'Faire X+ kills', needsThreshold: true, defaultThreshold: 20, suffix: 'kills' },
-  { id: 'duel_winrate', label: 'Gagner plus de X% de mes duels', needsThreshold: true, defaultThreshold: 50, suffix: '%' },
-  { id: 'hs_percent', label: 'Avoir X%+ de précision tête', needsThreshold: true, defaultThreshold: 25, suffix: '%' },
-  { id: 'win', label: 'Gagner ce match', needsThreshold: false, defaultThreshold: null, suffix: '' },
+  { id: 'kills', labelKey: 'bets.types.kills', needsThreshold: true, defaultThreshold: 20, suffix: 'kills' },
+  { id: 'duel_winrate', labelKey: 'bets.types.duelWinrate', needsThreshold: true, defaultThreshold: 50, suffix: '%' },
+  { id: 'hs_percent', labelKey: 'bets.types.hsPercent', needsThreshold: true, defaultThreshold: 25, suffix: '%' },
+  { id: 'win', labelKey: 'bets.types.win', needsThreshold: false, defaultThreshold: null, suffix: '' },
 ];
 
 const POINTS_ON_WIN = 10;
 
-export function describeBet(type, threshold) {
-  const def = BET_TYPES.find((t) => t.id === type);
+export function describeBet(t, type, threshold) {
+  const def = BET_TYPES.find((bt) => bt.id === type);
   if (!def) return '';
-  if (type === 'kills') return `Faire ${threshold}+ kills`;
-  if (type === 'duel_winrate') return `Gagner plus de ${threshold}% de mes duels`;
-  if (type === 'hs_percent') return `Avoir ${threshold}%+ de précision tête`;
-  if (type === 'win') return 'Gagner ce match';
-  return def.label;
+  if (type === 'kills') return t('bets.describe.kills', { threshold });
+  if (type === 'duel_winrate') return t('bets.describe.duelWinrate', { threshold });
+  if (type === 'hs_percent') return t('bets.describe.hsPercent', { threshold });
+  if (type === 'win') return t('bets.describe.win');
+  return t(def.labelKey);
 }
 
 // Compare un pari (type + seuil) à ce qui s'est réellement passé dans le

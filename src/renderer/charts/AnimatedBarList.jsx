@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 
 function sequentialColor(value) {
   const alpha = 0.35 + (Math.min(100, Math.max(0, value)) / 100) * 0.65;
@@ -9,6 +10,7 @@ function sequentialColor(value) {
 // porte la magnitude — cohérent avec le reste de l'appli (.stat-bar-row) mais
 // avec une entrée animée et une couleur dédiée aux graphiques.
 function AnimatedBarList({ rows }) {
+  const { t } = useTranslation();
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
@@ -17,7 +19,7 @@ function AnimatedBarList({ rows }) {
   }, []);
 
   if (!rows || rows.length === 0) {
-    return <p>Pas encore assez de données.</p>;
+    return <p>{t('charts.notEnoughData')}</p>;
   }
 
   return (

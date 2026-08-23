@@ -1,8 +1,10 @@
+import { useTranslation } from 'react-i18next';
 import { weaponDetailStats } from './valorantStats.js';
 import { useAgentIcons } from './agentIcons.js';
 import { useMapMinimaps } from './mapImages.js';
 
 function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
+  const { t } = useTranslation();
   const agentIcons = useAgentIcons();
   const minimaps = useMapMinimaps();
   const stats = weaponDetailStats(matches, settings.name, settings.tag, weapon);
@@ -13,7 +15,7 @@ function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>✕ Fermer</button>
+        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
 
         <div className="agent-modal-header">
           {weaponIcon && <img src={weaponIcon} alt="" className="agent-modal-avatar weapon-modal-avatar" />}
@@ -24,19 +26,19 @@ function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value">{stats.totalKills}</div>
-              <div className="label">Kills au total</div>
+              <div className="label">{t('detail.totalKills')}</div>
             </div>
             <div className="stat-tile">
               <div className="value">{stats.avgDistance === null ? '?' : `${stats.avgDistance.toFixed(0)}m`}</div>
-              <div className="label">Distance moyenne des kills</div>
+              <div className="label">{t('detail.avgKillDistance')}</div>
             </div>
           </div>
         </div>
 
         <div className="card">
-          <h3>Kills par map</h3>
+          <h3>{t('detail.killsByMap')}</h3>
           {stats.byMap.length === 0 ? (
-            <p>Aucune donnée.</p>
+            <p>{t('detail.noData')}</p>
           ) : (
             stats.byMap.map(([map, count]) => (
               <div key={map} className="weapon-bar-row">
@@ -47,16 +49,16 @@ function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxMapCount) * 100}%` }} />
                 </span>
-                <span className="weapon-bar-count">{count} kills</span>
+                <span className="weapon-bar-count">{t('detail.killsCount', { count })}</span>
               </div>
             ))
           )}
         </div>
 
         <div className="card">
-          <h3>Kills par agent</h3>
+          <h3>{t('detail.killsByAgent')}</h3>
           {stats.byAgent.length === 0 ? (
-            <p>Aucune donnée.</p>
+            <p>{t('detail.noData')}</p>
           ) : (
             stats.byAgent.map(([agent, count]) => (
               <div key={agent} className="weapon-bar-row">
@@ -67,16 +69,13 @@ function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
                 <span className="weapon-bar-track">
                   <span className="weapon-bar-fill" style={{ width: `${(count / maxAgentCount) * 100}%` }} />
                 </span>
-                <span className="weapon-bar-count">{count} kills</span>
+                <span className="weapon-bar-count">{t('detail.killsCount', { count })}</span>
               </div>
             ))
           )}
         </div>
 
-        <p className="label">
-          Riot ne rattache pas les tirs (tête/corps/jambes) à une arme précise — seule la précision globale, tous
-          armes confondues, est disponible (déjà affichée dans "Stats globales").
-        </p>
+        <p className="label">{t('detail.weaponHitNote')}</p>
       </div>
     </div>
   );
