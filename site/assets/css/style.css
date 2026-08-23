@@ -149,7 +149,7 @@ img { max-width: 100%; display: block; }
   padding-right: 0.5rem;
   /* Léger décalage de tout le bandeau vers la gauche par rapport au centrage
      par défaut du conteneur. */
-  transform: translateX(-1.25rem);
+  transform: translateX(-2.5rem);
 }
 
 /* Flex + space-between avec exactement 3 enfants (brand, links, actions) :
