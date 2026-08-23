@@ -40,7 +40,8 @@
     "error": "Erreur : {{message}}",
     "linkingInProgress": "Liaison de ton compte en cours...",
     "unreadMessages": "Messages",
-    "friendsTitle": "Amis"
+    "friendsTitle": "Amis",
+    "discordTitle": "Rejoindre le Discord"
   },
   "common": {
     "language": "Langue",
@@ -467,6 +468,10 @@
     "cancel": "Annuler",
     "friendsCount": "🤝 Amis ({{count}})",
     "noFriendsYet": "Pas encore d'amis — cherche un Riot ID ci-dessus.",
+    "loadingPreview": "Chargement du profil...",
+    "previewUnavailable": "Profil indisponible pour le moment",
+    "unranked": "Non classé",
+    "accountLevel": "Niveau {{level}}",
     "sendMessage": "Envoyer un message",
     "removeFriend": "Retirer cet ami"
   },

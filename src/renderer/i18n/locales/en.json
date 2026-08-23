@@ -40,7 +40,8 @@
     "error": "Error: {{message}}",
     "linkingInProgress": "Linking your account...",
     "unreadMessages": "Messages",
-    "friendsTitle": "Friends"
+    "friendsTitle": "Friends",
+    "discordTitle": "Join the Discord"
   },
   "common": {
     "language": "Language",
@@ -467,6 +468,10 @@
     "cancel": "Cancel",
     "friendsCount": "🤝 Friends ({{count}})",
     "noFriendsYet": "No friends yet — search for a Riot ID above.",
+    "loadingPreview": "Loading profile...",
+    "previewUnavailable": "Profile unavailable right now",
+    "unranked": "Unranked",
+    "accountLevel": "Level {{level}}",
     "sendMessage": "Send a message",
     "removeFriend": "Remove this friend"
   },

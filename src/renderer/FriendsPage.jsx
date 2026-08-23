@@ -2,11 +2,18 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
+import { useRankTiers } from './rankData.js';
 
-function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) {
+function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, apiKey }) {
   const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
+  const rankTiers = useRankTiers();
+  // Aperçu (rang, niveau) de chaque ami — chargé à part des `friendships` :
+  // c'est un appel HenrikDev en direct (comme rechercher n'importe quel Riot
+  // ID public), pas une donnée stockée, donc on la garde en cache local plutôt
+  // que de la refaire à chaque re-render.
+  const [friendPreviews, setFriendPreviews] = useState({});
 
   const [searchName, setSearchName] = useState('');
   const [searchTag, setSearchTag] = useState('');
@@ -49,6 +56,19 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
   );
 
   const otherProfile = (f) => (f.requester_id === myId ? f.addressee : f.requester);
+
+  useEffect(() => {
+    if (!apiKey) return;
+    accepted.forEach((f) => {
+      const p = otherProfile(f);
+      if (!p || friendPreviews[p.id] !== undefined) return;
+      window.electronAPI
+        .previewRiotAccount({ name: p.riot_name, tag: p.riot_tag, apiKey })
+        .then((preview) => setFriendPreviews((prev) => ({ ...prev, [p.id]: preview })))
+        .catch(() => setFriendPreviews((prev) => ({ ...prev, [p.id]: null })));
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [accepted, apiKey]);
 
   const handleSearch = async (event) => {
     event.preventDefault();
@@ -173,14 +193,34 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation }) 
         {accepted.length === 0 ? (
           <p className="label">{t('friends.noFriendsYet')}</p>
         ) : (
-          <div className="friend-list">
+          <div className="friend-card-grid">
             {accepted.map((f) => {
               const p = otherProfile(f);
+              const preview = friendPreviews[p.id];
+              const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
               return (
-                <div key={f.id} className="friend-request-row">
-                  <FriendAvatar profile={p} size={36} online={onlineFriendIds.has(p.id)} />
-                  <span>{friendLabel(p)}</span>
-                  <div className="friend-request-actions">
+                <div key={f.id} className="friend-card">
+                  <div className="friend-card-header">
+                    <FriendAvatar profile={p} size={44} online={onlineFriendIds.has(p.id)} />
+                    <div className="friend-card-identity">
+                      <span className="friend-card-name">{friendLabel(p)}</span>
+                      <span className="label">{p.riot_name}#{p.riot_tag}</span>
+                    </div>
+                  </div>
+                  <div className="friend-card-body">
+                    {preview === undefined && <span className="label">{t('friends.loadingPreview')}</span>}
+                    {preview === null && <span className="label">{t('friends.previewUnavailable')}</span>}
+                    {preview && (
+                      <div className="friend-card-stats">
+                        <div className="friend-card-rank">
+                          {tier?.icon && <img src={tier.icon} alt="" />}
+                          <span>{tier?.tierName ?? t('friends.unranked')}{preview.rank ? ` — ${preview.rank.rr} RR` : ''}</span>
+                        </div>
+                        <span className="label">{t('friends.accountLevel', { level: preview.accountLevel })}</span>
+                      </div>
+                    )}
+                  </div>
+                  <div className="friend-card-actions">
                     <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}>💬</button>
                     <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}>✕</button>
                   </div>
