@@ -60,11 +60,13 @@
 
     <div class="reveal">
       <span class="eyebrow">Short version</span>
-      <h2>No reselling, no tracking, no ads</h2>
+      <h2>No reselling, no ads</h2>
       <p>
-        MVP Tracker has no analytics tool, no ad tracker, no third-party cookies built in. Nothing you do in
-        the app is sold or shared for commercial purposes — there isn't even infrastructure to do that. The
-        project is built by one person, for the real use of Valorant players.
+        Nothing you do in the app or on this site is sold or shared for commercial purposes — there isn't even
+        infrastructure to do that. The only audience-measurement tool used is Google Analytics, on this site
+        only (never inside the desktop app), and only if you accept it — see
+        <a href="#cookies">Cookies and analytics</a> below. The project is built by one person, for the real use
+        of Valorant players.
       </p>
     </div>
 
@@ -129,6 +131,23 @@
       </ul>
       <p>
         Each of these services has its own privacy policy, independent of MVP Tracker.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;" id="cookies">
+      <span class="eyebrow">Cookies and analytics</span>
+      <h3>Google Analytics, only if you accept it</h3>
+      <p>
+        The site (not the desktop app) shows a banner on first load, asking you to accept or decline Google
+        Analytics. Until you accept, no Google script is loaded and no cookie is set. If you accept, Google
+        Analytics measures which pages are visited and where traffic comes from (IP address anonymized), only
+        to understand how the site is used — never for advertising, and this data is never linked to your MVP
+        Tracker account. It's processed by Google Ireland Limited, and may be transferred to the United States
+        under the EU-US Data Privacy Framework.
+      </p>
+      <p>
+        You can change your mind anytime:
+        <button type="button" class="btn btn-ghost btn-sm" data-manage-cookies style="margin-left: 0.3rem;">Manage cookies</button>
       </p>
     </div>
 
@@ -227,5 +246,6 @@
 </footer>
 
 <script src="../assets/js/app.js"></script>
+<script src="../assets/js/analytics.js"></script>
 </body>
 </html>

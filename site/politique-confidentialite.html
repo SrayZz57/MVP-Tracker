@@ -60,12 +60,13 @@
 
     <div class="reveal">
       <span class="eyebrow">En bref</span>
-      <h2>Aucune revente, aucun tracking, aucune pub</h2>
+      <h2>Aucune revente, aucune pub</h2>
       <p>
-        MVP Tracker n'intègre aucun outil d'analytics, aucun tracker publicitaire, aucun cookie tiers. Rien de
-        ce que tu fais dans l'app n'est vendu ni partagé à des fins commerciales — il n'existe même pas
-        d'infrastructure pour le faire. Le projet est développé par une seule personne, pour l'usage réel de
-        joueurs Valorant.
+        Rien de ce que tu fais dans l'app ou sur le site n'est vendu ni partagé à des fins commerciales — il
+        n'existe même pas d'infrastructure pour le faire. Le seul outil de mesure d'audience utilisé est Google
+        Analytics, uniquement sur ce site (jamais dans l'app desktop), et seulement si tu l'acceptes — voir la
+        section <a href="#cookies">Cookies et analytics</a> ci-dessous. Le projet est développé par une seule
+        personne, pour l'usage réel de joueurs Valorant.
       </p>
     </div>
 
@@ -132,6 +133,24 @@
       </ul>
       <p>
         Chacun de ces services a ses propres règles de confidentialité, indépendantes de MVP Tracker.
+      </p>
+    </div>
+
+    <div class="reveal" style="margin-top: 3rem;" id="cookies">
+      <span class="eyebrow">Cookies et analytics</span>
+      <h3>Google Analytics, seulement si tu l'acceptes</h3>
+      <p>
+        Le site (pas l'app desktop) propose une bannière au premier chargement, qui te demande d'accepter ou de
+        refuser Google Analytics. Tant que tu n'as pas accepté, aucun script Google n'est chargé et aucun
+        cookie n'est déposé. Si tu acceptes, Google Analytics mesure les pages consultées et la provenance du
+        trafic (adresse IP anonymisée), dans le seul but de comprendre l'usage du site — jamais à des fins
+        publicitaires, et ces données ne sont pas croisées avec ton compte MVP Tracker. Elles sont traitées par
+        Google Ireland Limited, susceptibles d'être transférées vers les États-Unis dans le cadre du Data
+        Privacy Framework UE-US.
+      </p>
+      <p>
+        Tu peux changer d'avis à tout moment :
+        <button type="button" class="btn btn-ghost btn-sm" data-manage-cookies style="margin-left: 0.3rem;">Gérer mes cookies</button>
       </p>
     </div>
 
@@ -233,5 +252,6 @@
 </footer>
 
 <script src="assets/js/app.js"></script>
+<script src="assets/js/analytics.js"></script>
 </body>
 </html>
