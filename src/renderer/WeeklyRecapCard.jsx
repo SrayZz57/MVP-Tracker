@@ -78,6 +78,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
   return (
     <>
       <button className="weekly-notch" onClick={() => setOpen(true)} title={t('weekly.widgetTitle')}>
+        <span className="weekly-notch-icon" aria-hidden="true">🏆</span>
         <span>{t('weekly.notchLabel')}</span>
       </button>
 

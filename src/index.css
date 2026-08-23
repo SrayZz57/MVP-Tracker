@@ -3266,14 +3266,18 @@ input[type='color'] {
 .weekly-notch {
   position: fixed;
   right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 32px;
-  height: 120px;
+  top: 104px;
+  width: 46px;
+  height: 160px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
   border: none;
-  border-radius: 10px 0 0 10px;
-  background: var(--accent);
-  box-shadow: 0 0 16px rgba(255, 70, 85, 0.7), 0 0 4px rgba(255, 70, 85, 0.9);
+  border-radius: 14px 0 0 14px;
+  background: linear-gradient(180deg, var(--accent-hover, var(--accent)), var(--accent) 60%, var(--accent-deep, var(--accent)));
+  box-shadow: var(--edge-light, none), 0 0 20px rgba(255, 70, 85, 0.75), 0 0 6px rgba(255, 70, 85, 0.9);
   cursor: pointer;
   z-index: 90;
   transition: width 0.2s ease, box-shadow 0.2s ease;
@@ -3281,24 +3285,28 @@ input[type='color'] {
 }
 
 .weekly-notch:hover {
-  width: 40px;
-  box-shadow: 0 0 24px rgba(255, 70, 85, 0.9), 0 0 8px rgba(255, 70, 85, 1);
+  width: 56px;
+  box-shadow: 0 0 30px rgba(255, 70, 85, 0.95), 0 0 10px rgba(255, 70, 85, 1);
 }
 
-.weekly-notch span {
+.weekly-notch-icon {
+  font-size: 1.3rem;
+  writing-mode: horizontal-tb;
+}
+
+.weekly-notch span:not(.weekly-notch-icon) {
   display: block;
   writing-mode: vertical-rl;
   transform: rotate(180deg);
   color: white;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.15em;
-  padding: 0.5rem 0;
 }
 
 @keyframes weekly-notch-pulse {
-  0%, 100% { box-shadow: 0 0 16px rgba(255, 70, 85, 0.7), 0 0 4px rgba(255, 70, 85, 0.9); }
-  50% { box-shadow: 0 0 26px rgba(255, 70, 85, 1), 0 0 10px rgba(255, 70, 85, 1); }
+  0%, 100% { box-shadow: 0 0 20px rgba(255, 70, 85, 0.75), 0 0 6px rgba(255, 70, 85, 0.9); }
+  50% { box-shadow: 0 0 32px rgba(255, 70, 85, 1), 0 0 12px rgba(255, 70, 85, 1); }
 }
 
 .weekly-drawer-backdrop {
