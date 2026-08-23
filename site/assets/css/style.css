@@ -218,10 +218,13 @@ img { max-width: 100%; display: block; }
   cursor: pointer;
 }
 
-@media (max-width: 860px) {
+/* Bascule en menu "hamburger" dès que les onglets (dont Discord) n'ont plus
+   la place de tenir sur une seule ligne à côté de la marque et du bouton —
+   avant ce cap, ils repassaient à la ligne au lieu de disparaître. */
+@media (max-width: 1120px) {
   .nav-links {
     position: absolute;
-    top: 70px; left: 0; right: 0;
+    top: 104px; left: 0; right: 0;
     flex-direction: column;
     align-items: stretch;
     gap: 0;
@@ -234,7 +237,9 @@ img { max-width: 100%; display: block; }
   .nav-links.open { display: flex; }
   .nav-links a { padding: 0.75rem 0.5rem; }
   .nav-toggle { display: block; }
+}
 
+@media (max-width: 860px) {
   /* Le padding-right généreux et le logo/texte en grand format sont pensés
      pour le desktop (espacer la nav, marque bien visible) — sur mobile, ça
      écrase la marque contre le bouton "Obtenir l'app" faute de place.
@@ -257,6 +262,9 @@ img { max-width: 100%; display: block; }
   }
   .nav-actions {
     gap: 0.5rem;
+  }
+  .nav-links {
+    top: 70px;
   }
 }
 
