@@ -8,7 +8,9 @@ async function henrikFetch(path, apiKey) {
 
   if (!response.ok) {
     const message = body?.errors?.[0]?.message || `Erreur API (${response.status})`;
-    throw new Error(message);
+    const error = new Error(message);
+    error.status = response.status;
+    throw error;
   }
 
   return body.data;

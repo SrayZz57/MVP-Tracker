@@ -256,9 +256,15 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
         const detail = await getMatchDetail(matchId, apiKey);
         saveMatches(account.puuid, [detail]);
       } catch (err) {
-        // Un match précis peut échouer (rate limit ponctuel, match retiré) sans
-        // faire échouer toute la synchronisation — il sera retenté à la
-        // prochaine sync puisqu'il n'aura pas été mis en cache.
+        if (err.status === 429) {
+          // Limite de requêtes atteinte : inutile d'insister, les prochains
+          // appels échoueraient pareil. On s'arrête là — les IDs restants ne
+          // sont pas en cache, donc ils seront retentés à la prochaine sync.
+          console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
+          break;
+        }
+        // Un match précis peut échouer pour une autre raison (match retiré,
+        // erreur ponctuelle) sans faire échouer toute la synchronisation.
         console.error(`[henrikdev] échec du détail du match ${matchId} :`, err.message);
       }
     }
