@@ -795,7 +795,8 @@
     "deathsInSpike": "deaths during a spike",
     "totalDeathsAnalyzed": "Total deaths analyzed",
     "duringPingSpike": "During a ping spike",
-    "correlationSummary": "That's {{percent}}% of your analyzed deaths that happened during a ping spike (ping 30% above the match average)."
+    "correlationSummary": "That's {{percent}}% of your analyzed deaths that happened during a ping spike (ping 30% above the match average).",
+    "accountTotal": "Across all your devices: {{nearSpike}} deaths during a ping spike out of {{analyzed}} analyzed."
   },
   "tilt": {
     "noMatchesYet": "No cached matches yet — click \"Refresh\".",

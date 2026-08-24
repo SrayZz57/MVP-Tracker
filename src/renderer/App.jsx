@@ -564,7 +564,7 @@ function App() {
       case 'forme':
         return <FormTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'reseau':
-        return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={data.pingSamples} />;
+        return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={data.pingSamples} myId={session.user.id} />;
       case 'tilt':
         return <TiltTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'crosshairs':

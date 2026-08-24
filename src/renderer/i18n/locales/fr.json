@@ -795,7 +795,8 @@
     "deathsInSpike": "morts en pic",
     "totalDeathsAnalyzed": "Morts analysées au total",
     "duringPingSpike": "Pendant un pic de ping",
-    "correlationSummary": "Soit {{percent}}% de tes morts analysées qui ont eu lieu pendant un pic de ping (ping 30% au-dessus de la moyenne de la partie)."
+    "correlationSummary": "Soit {{percent}}% de tes morts analysées qui ont eu lieu pendant un pic de ping (ping 30% au-dessus de la moyenne de la partie).",
+    "accountTotal": "Cumulé sur tous tes appareils : {{nearSpike}} morts pendant un pic de ping sur {{analyzed}} analysées."
   },
   "tilt": {
     "noMatchesYet": "Aucun match en cache pour l'instant — clique sur « Rafraîchir ».",

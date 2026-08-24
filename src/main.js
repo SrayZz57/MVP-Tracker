@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, Menu, Notification } from 'electron';
 import path from 'node:path';
+import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
@@ -175,6 +176,19 @@ ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
 
 ipcMain.handle('settings:set', (_event, settings) => {
   store.set('valorantSettings', settings);
+});
+
+// Identifiant stable de cette installation — sert uniquement à distinguer les
+// lignes de stats réseau de chaque appareil dans Supabase (un identifiant par
+// PC, pas par personne), pour additionner les totaux sans qu'un appareil
+// n'écrase les chiffres d'un autre.
+ipcMain.handle('network:get-device-id', () => {
+  let id = store.get('deviceId');
+  if (!id) {
+    id = crypto.randomUUID();
+    store.set('deviceId', id);
+  }
+  return id;
 });
 
 // Préférence de langue de l'interface — globale à l'app, indépendante du

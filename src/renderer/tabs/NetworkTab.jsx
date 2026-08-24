@@ -1,8 +1,9 @@
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NetworkMonitor from '../NetworkMonitor.jsx';
 import { pingCorrelation } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
+import { supabase } from '../supabaseClient.js';
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -80,7 +81,7 @@ function PingSparkline({ samples }) {
   );
 }
 
-function NetworkTab({ settings, matches, pingSamples }) {
+function NetworkTab({ settings, matches, pingSamples, myId }) {
   const { t } = useTranslation();
   const pingStats = useMemo(
     () => pingCorrelation(matches, pingSamples, settings.name, settings.tag),
@@ -88,6 +89,52 @@ function NetworkTab({ settings, matches, pingSamples }) {
   );
 
   const percent = pingStats.deathsAnalyzed > 0 ? (pingStats.deathsNearSpike / pingStats.deathsAnalyzed) * 100 : 0;
+
+  // Chaque appareil envoie son propre total (pas l'historique brut du ping,
+  // qui n'a de sens que sur ce réseau précis) vers le compte, sous sa propre
+  // ligne — pour additionner les totaux de tous les PCs sans qu'un appareil
+  // n'écrase les chiffres d'un autre.
+  const [accountTotals, setAccountTotals] = useState(null);
+
+  useEffect(() => {
+    if (!myId || pingStats.deathsAnalyzed === 0) return;
+    let cancelled = false;
+
+    window.electronAPI.getDeviceId().then(async (deviceId) => {
+      if (cancelled || !deviceId) return;
+      await supabase.from('network_ping_stats').upsert(
+        {
+          user_id: myId,
+          device_id: deviceId,
+          deaths_analyzed: pingStats.deathsAnalyzed,
+          deaths_near_spike: pingStats.deathsNearSpike,
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: 'user_id,device_id' },
+      );
+      const { data, error } = await supabase
+        .from('network_ping_stats')
+        .select('deaths_analyzed, deaths_near_spike')
+        .eq('user_id', myId);
+      if (cancelled) return;
+      if (error) {
+        console.error('[network_ping_stats] échec de la lecture :', error.message);
+        return;
+      }
+      const totals = (data ?? []).reduce(
+        (acc, row) => ({
+          deathsAnalyzed: acc.deathsAnalyzed + row.deaths_analyzed,
+          deathsNearSpike: acc.deathsNearSpike + row.deaths_near_spike,
+        }),
+        { deathsAnalyzed: 0, deathsNearSpike: 0 },
+      );
+      setAccountTotals(totals);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [myId, pingStats.deathsAnalyzed, pingStats.deathsNearSpike]);
 
   return (
     <div>
@@ -119,6 +166,14 @@ function NetworkTab({ settings, matches, pingSamples }) {
               <p className="label" style={{ marginTop: '0.75rem' }}>
                 {t('network.correlationSummary', { percent: percent.toFixed(0) })}
               </p>
+              {accountTotals && (
+                <p className="label" style={{ marginTop: '0.5rem' }}>
+                  {t('network.accountTotal', {
+                    analyzed: accountTotals.deathsAnalyzed,
+                    nearSpike: accountTotals.deathsNearSpike,
+                  })}
+                </p>
+              )}
             </div>
           </div>
         )}
