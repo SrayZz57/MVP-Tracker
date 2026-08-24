@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
-import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
+import { getAccount, getMatches, getMmr, getStoredMatchIds, getMatchDetail } from './services/henrikdev.js';
 import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
 import {
   saveMatches,
@@ -239,6 +239,32 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
 
   const freshMatches = await getMatches(account.region, name, tag, apiKey);
   saveMatches(account.puuid, freshMatches);
+
+  // La liste "derniers matchs" est plafonnée à 10 (limite de la clé Basic,
+  // confirmée en test réel — voir le commentaire dans henrikdev.js). On
+  // complète avec l'historique étendu (jusqu'à 50) : on repère les IDs de
+  // matchs pas encore en cache, et on va chercher leur détail complet un par
+  // un pour que Heatmap/Analyse tactique/corrélation ping fonctionnent aussi
+  // dessus. Une fois en cache, un match n'est plus jamais re-demandé — donc
+  // ce rattrapage ne coûte cher qu'une seule fois par nouvel appareil.
+  try {
+    const knownIds = new Set(getCachedMatches(account.puuid).map((m) => m.metadata?.matchid));
+    const storedIds = await getStoredMatchIds(account.region, name, tag, apiKey);
+    const missingIds = storedIds.filter((id) => !knownIds.has(id));
+    for (const matchId of missingIds) {
+      try {
+        const detail = await getMatchDetail(matchId, apiKey);
+        saveMatches(account.puuid, [detail]);
+      } catch (err) {
+        // Un match précis peut échouer (rate limit ponctuel, match retiré) sans
+        // faire échouer toute la synchronisation — il sera retenté à la
+        // prochaine sync puisqu'il n'aura pas été mis en cache.
+        console.error(`[henrikdev] échec du détail du match ${matchId} :`, err.message);
+      }
+    }
+  } catch (err) {
+    console.error("[henrikdev] échec du rattrapage de l'historique étendu :", err.message);
+  }
 
   try {
     const mmr = await getMmr(account.region, name, tag, apiKey);
