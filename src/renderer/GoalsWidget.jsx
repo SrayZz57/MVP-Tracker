@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { excludeDeathmatch, overallHsPercent, overallWinrate, formStats, groupStats } from './valorantStats.js';
+import { loadGoals, addGoal as addGoalCloud, toggleGoalDone as toggleGoalDoneCloud, deleteGoal as deleteGoalCloud } from './personalData.js';
 
 const MIN_GAMES_FOR_BREAKDOWN = 3;
 
@@ -102,7 +103,7 @@ function generateSuggestions(t, matches, settings, existingGoals) {
   return suggestions;
 }
 
-function GoalsWidget({ matches, settings }) {
+function GoalsWidget({ matches, settings, myId }) {
   const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [goals, setGoals] = useState([]);
@@ -110,8 +111,9 @@ function GoalsWidget({ matches, settings }) {
   const [customLabel, setCustomLabel] = useState('');
 
   useEffect(() => {
-    window.electronAPI.getGoals().then(setGoals);
-  }, []);
+    if (!myId) return;
+    loadGoals(myId).then(setGoals);
+  }, [myId]);
 
   const activeGoals = useMemo(() => goals.filter((g) => !g.done), [goals]);
   const doneGoals = useMemo(() => goals.filter((g) => g.done), [goals]);
@@ -124,19 +126,19 @@ function GoalsWidget({ matches, settings }) {
   }, [t, matches, settings, goals]);
 
   const handleAddSuggestion = (suggestion) => {
-    window.electronAPI.addGoal({ type: 'metric', ...suggestion }).then(setGoals);
+    addGoalCloud(myId, { type: 'metric', ...suggestion }).then(setGoals);
   };
 
   const handleAddCustom = (event) => {
     event.preventDefault();
     if (!customLabel.trim()) return;
-    window.electronAPI.addGoal({ type: 'custom', label: customLabel.trim() }).then(setGoals);
+    addGoalCloud(myId, { type: 'custom', label: customLabel.trim() }).then(setGoals);
     setCustomLabel('');
     setShowCustomForm(false);
   };
 
-  const handleToggleDone = (id) => window.electronAPI.toggleGoalDone(id).then(setGoals);
-  const handleDelete = (id) => window.electronAPI.deleteGoal(id).then(setGoals);
+  const handleToggleDone = (id) => toggleGoalDoneCloud(myId, id).then(setGoals);
+  const handleDelete = (id) => deleteGoalCloud(myId, id).then(setGoals);
 
   return (
     <>

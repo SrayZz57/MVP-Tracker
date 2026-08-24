@@ -4,11 +4,12 @@ import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
+import { loadCollection, loadWishlist, toggleWishlist, toggleCollection, setCollectionPrice } from './personalData.js';
 
 // Page dédiée à la collection personnelle — auparavant un petit onglet noyé
 // dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
 // donnée intrinsèquement personnelle (pas liée au joueur qu'on suit).
-function MySkinsCollection() {
+function MySkinsCollection({ myId }) {
   const { t } = useTranslation();
   const catalog = useSkinsCatalog();
   const [collection, setCollection] = useState([]);
@@ -16,9 +17,10 @@ function MySkinsCollection() {
   const [selectedSkin, setSelectedSkin] = useState(null);
 
   useEffect(() => {
-    window.electronAPI.getSkinsCollection().then(setCollection);
-    window.electronAPI.getSkinsWishlist().then(setWishlist);
-  }, []);
+    if (!myId) return;
+    loadCollection(myId).then(setCollection);
+    loadWishlist(myId).then(setWishlist);
+  }, [myId]);
 
   const collectionSkins = useMemo(() => {
     if (!catalog) return [];
@@ -36,15 +38,15 @@ function MySkinsCollection() {
   );
 
   const handleToggleWishlist = (uuid) => {
-    window.electronAPI.toggleSkinWishlist(uuid).then(setWishlist);
+    toggleWishlist(myId, uuid).then(setWishlist);
   };
 
   const handleToggleCollection = (skin) => {
-    window.electronAPI.toggleSkinCollection(skin.uuid, skin.estimatedPriceVp).then(setCollection);
+    toggleCollection(myId, skin.uuid, skin.estimatedPriceVp).then(setCollection);
   };
 
   const handleSetPrice = (uuid, priceVp) => {
-    window.electronAPI.setSkinCollectionPrice(uuid, priceVp).then(setCollection);
+    setCollectionPrice(myId, uuid, priceVp).then(setCollection);
   };
 
   if (!catalog) {

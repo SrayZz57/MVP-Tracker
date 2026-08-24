@@ -369,7 +369,7 @@ function App() {
     async function loadProfile(attempt = 0) {
       const { data, error } = await supabase
         .from('profiles')
-        .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at')
+        .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at, henrikdev_api_key')
         .eq('id', session.user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -401,6 +401,7 @@ function App() {
         riot_name: settings.name,
         riot_tag: settings.tag,
         riot_puuid: settings.puuid,
+        henrikdev_api_key: settings.apiKey,
       })
       .then(({ error }) => {
         if (error) {
@@ -416,6 +417,7 @@ function App() {
           riot_name: settings.name,
           riot_tag: settings.tag,
           riot_puuid: settings.puuid,
+          henrikdev_api_key: settings.apiKey,
           created_at: new Date().toISOString(),
         });
         setLinkingRiot(false);
@@ -432,6 +434,22 @@ function App() {
     }
     setProfile((prev) => ({ ...prev, ...patch }));
   };
+
+  // Sur une machine neuve (pas encore de réglages locaux), reconstruit
+  // automatiquement `settings` à partir du compte lié plutôt que de forcer
+  // un nouveau passage par l'écran de liaison — le Riot ID et la clé API
+  // HenrikDev sont déjà connus via Supabase, pas besoin de les redemander.
+  useEffect(() => {
+    if (settings !== null || !profile?.riot_puuid || !profile?.henrikdev_api_key) return;
+    const hydrated = {
+      name: profile.riot_name,
+      tag: profile.riot_tag,
+      puuid: profile.riot_puuid,
+      apiKey: profile.henrikdev_api_key,
+    };
+    window.electronAPI.saveSettings(hydrated);
+    setSettings(hydrated);
+  }, [settings, profile]);
 
   // Fait glisser un repère lumineux vers le lien actif au lieu de le faire
   // juste réapparaître à une nouvelle position — mesuré dynamiquement car les
@@ -554,7 +572,7 @@ function App() {
       case 'strategie':
         return <StrategyTab />;
       case 'skins':
-        return <SkinsTab />;
+        return <SkinsTab myId={session.user.id} />;
       case 'heatmap':
         return <HeatmapTab settings={settings} matches={data.matches} />;
       case 'analyse':
@@ -581,7 +599,7 @@ function App() {
           <TeammatesRivalsTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />
         );
       case 'my-skins-collection':
-        return <MySkinsCollectionTab />;
+        return <MySkinsCollectionTab myId={session.user.id} />;
       case 'buy-simulator':
         return <BuySimulatorTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'bets':
@@ -771,7 +789,7 @@ function App() {
         </main>
       </div>
 
-      <GoalsWidget matches={myMatches} settings={mySettings} />
+      <GoalsWidget matches={myMatches} settings={mySettings} myId={session.user.id} />
       <WeeklyRecapCard matches={myMatches} settings={mySettings} rank={myRank} />
       {isViewingSelf && <PostMortemModal matches={myMatches} settings={mySettings} />}
     </div>

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
+import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
 
 const PAGE_SIZE = 30;
 
@@ -42,7 +43,7 @@ function SkinCard({ skin, onClick, isWishlisted, isOwned, t }) {
   );
 }
 
-function SkinsCatalog() {
+function SkinsCatalog({ myId }) {
   const { t } = useTranslation();
   const catalog = useSkinsCatalog();
   const [view, setView] = useState('catalogue');
@@ -58,9 +59,10 @@ function SkinsCatalog() {
   const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
-    window.electronAPI.getSkinsWishlist().then(setWishlist);
-    window.electronAPI.getSkinsCollection().then(setCollection);
-  }, []);
+    if (!myId) return;
+    loadWishlist(myId).then(setWishlist);
+    loadCollection(myId).then(setCollection);
+  }, [myId]);
 
   const weaponNames = useMemo(
     () => (catalog ? [...new Set(catalog.map((s) => s.weaponName))].sort() : []),
@@ -93,11 +95,11 @@ function SkinsCatalog() {
   );
 
   const handleToggleWishlist = (uuid) => {
-    window.electronAPI.toggleSkinWishlist(uuid).then(setWishlist);
+    toggleWishlist(myId, uuid).then(setWishlist);
   };
 
   const handleToggleCollection = (skin) => {
-    window.electronAPI.toggleSkinCollection(skin.uuid, skin.estimatedPriceVp).then(setCollection);
+    toggleCollection(myId, skin.uuid, skin.estimatedPriceVp).then(setCollection);
   };
 
   if (!catalog) {
