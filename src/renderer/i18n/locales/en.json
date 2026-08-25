@@ -1269,7 +1269,12 @@
     "title": "Welcome back",
     "tagline": "Your account is linked to this Valorant profile:",
     "enter": "👉 View my account",
-    "searchOther": "🔍 Search another player"
+    "searchOther": "🔍 Search another player",
+    "trackerLabel": "Your tracker",
+    "aimLabel": "Warm-up",
+    "aimTitle": "Aim Trainer",
+    "aimText": "Warm up your aim before launching Valorant — calibrated to your real sensitivity, six modes, daily challenge and progress tracking.",
+    "aimCta": "🎯 Warm up now"
   },
   "linkRiot": {
     "title": "Link your Riot account",

@@ -537,6 +537,7 @@ function App() {
       <AccountGreeting
         settings={mySettings}
         rank={myRank}
+        myId={session.user.id}
         onEnter={() => {
           // Si les réglages locaux affichaient un autre profil (ex. après
           // avoir cherché quelqu'un d'autre), on repasse sur le compte lié

@@ -1269,7 +1269,12 @@
     "title": "Content de te revoir",
     "tagline": "Ton compte est lié à ce profil Valorant :",
     "enter": "👉 Voir mon compte",
-    "searchOther": "🔍 Chercher un autre joueur"
+    "searchOther": "🔍 Chercher un autre joueur",
+    "trackerLabel": "Ton tracker",
+    "aimLabel": "Échauffement",
+    "aimTitle": "Aim Trainer",
+    "aimText": "Chauffe ta visée avant de lancer Valorant — calibré sur ta vraie sensibilité, six modes, défi du jour et suivi de progression.",
+    "aimCta": "🎯 S'échauffer maintenant"
   },
   "linkRiot": {
     "title": "Lier ton compte Riot",
