@@ -7,7 +7,10 @@ import { supabase } from './supabaseClient.js';
 // écrire que les siennes (voir les règles RLS de la table).
 
 export async function saveScore(userId, { mode, score, accuracy, hits, misses, duration, avgReaction }) {
-  if (!userId || !mode) return;
+  if (!userId) {
+    console.error('[aim_trainer_scores] aucun utilisateur : score non enregistré');
+    return { ok: false, reason: 'no-user' };
+  }
   const { error } = await supabase.from('aim_trainer_scores').insert({
     user_id: userId,
     mode,
@@ -18,7 +21,11 @@ export async function saveScore(userId, { mode, score, accuracy, hits, misses, d
     duration,
     avg_reaction: avgReaction,
   });
-  if (error) console.error('[aim_trainer_scores] échec de l\'enregistrement :', error.message);
+  if (error) {
+    console.error("[aim_trainer_scores] échec de l'enregistrement :", error.message);
+    return { ok: false, reason: error.message };
+  }
+  return { ok: true };
 }
 
 // Meilleur score de l'utilisateur pour chaque mode, en une seule requête.

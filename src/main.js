@@ -204,8 +204,18 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
     });
   }
 
+  // Sans ça, les erreurs de la fenêtre de jeu (échec d'enregistrement d'un
+  // score, par exemple) sont invisibles : elles ne remontent pas dans la
+  // console du process principal comme celles de la fenêtre principale.
+  aimTrainerWindow.webContents.on('console-message', (_e, _level, message) => {
+    console.log('[aim-trainer]', message);
+  });
+
   aimTrainerWindow.on('closed', () => {
     aimTrainerWindow = null;
+    // La fenêtre principale recharge ses records : une session vient d'être
+    // jouée, l'onglet doit refléter le nouveau score sans redémarrage.
+    mainWindow?.webContents.send('aim-trainer:closed');
   });
 });
 

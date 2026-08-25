@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
 import { loadPersonalBests, loadGlobalBests } from './aimScores.js';
@@ -35,12 +35,18 @@ function AimTrainer({ myId }) {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
   }, [config]);
 
-  // Records rechargés à chaque retour sur l'onglet : une session jouée dans
-  // la fenêtre de jeu doit se voir ici sans avoir à redémarrer l'app.
-  useEffect(() => {
+  // Records rechargés à l'ouverture de l'onglet ET à la fermeture de la
+  // fenêtre de jeu : une session qui vient d'être jouée doit se voir ici
+  // immédiatement, sans redémarrer l'app ni changer d'onglet.
+  const refreshBests = useCallback(() => {
     loadGlobalBests().then(setGlobalBests);
     if (myId) loadPersonalBests(myId).then(setPersonalBests);
   }, [myId]);
+
+  useEffect(() => {
+    refreshBests();
+    return window.electronAPI.onAimTrainerClosed(refreshBests);
+  }, [refreshBests]);
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 

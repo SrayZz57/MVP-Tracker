@@ -25,6 +25,11 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getDeviceId: () => ipcRenderer.invoke('network:get-device-id'),
   openAimTrainer: (config) => ipcRenderer.invoke('aim-trainer:open', config),
   closeAimTrainer: () => ipcRenderer.invoke('aim-trainer:close'),
+  onAimTrainerClosed: (callback) => {
+    const handler = () => callback();
+    ipcRenderer.on('aim-trainer:closed', handler);
+    return () => ipcRenderer.removeListener('aim-trainer:closed', handler);
+  },
   listCrosshairs: () => ipcRenderer.invoke('crosshair:list'),
   saveCrosshair: (name, code, color, image) =>
     ipcRenderer.invoke('crosshair:save', { name, code, color, image }),

@@ -745,6 +745,7 @@ function AimTrainerGame({ config: rawConfig }) {
   }, []);
 
   const savedForSessionRef = useRef(false);
+  const [saveState, setSaveState] = useState(null); // null | saving | saved | error
 
   const startSession = () => {
     setStats({ hits: 0, misses: 0, times: [] });
@@ -789,10 +790,12 @@ function AimTrainerGame({ config: rawConfig }) {
   useEffect(() => {
     if (phase !== 'done') {
       savedForSessionRef.current = false;
+      setSaveState(null);
       return;
     }
-    if (savedForSessionRef.current || !config.userId || score === null) return;
+    if (savedForSessionRef.current || score === null) return;
     savedForSessionRef.current = true;
+    setSaveState('saving');
     saveScore(config.userId, {
       mode: config.mode,
       score,
@@ -801,7 +804,7 @@ function AimTrainerGame({ config: rawConfig }) {
       misses: stats.misses,
       duration: config.duration,
       avgReaction: avgReaction === null ? null : Math.round(avgReaction),
-    });
+    }).then((result) => setSaveState(result.ok ? 'saved' : 'error'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, score]);
 
@@ -908,6 +911,14 @@ function AimTrainerGame({ config: rawConfig }) {
                 <p className="aim-game-tip">
                   Sensibilité {config.sens} · {config.dpi} DPI · cibles {config.targetSize.toFixed(2)}
                 </p>
+
+                {saveState === 'saving' && <p className="aim-game-tip">💾 Enregistrement du score…</p>}
+                {saveState === 'saved' && <p className="aim-game-tip">✅ Score enregistré sur ton compte</p>}
+                {saveState === 'error' && (
+                  <p className="aim-game-tip aim-game-save-error">
+                    ⚠️ Score non enregistré — vérifie ta connexion, le détail est dans la console.
+                  </p>
+                )}
 
                 <button className="refresh aim-game-cta" onClick={startSession}>
                   🔄 Recommencer

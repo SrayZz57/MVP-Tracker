@@ -2332,6 +2332,10 @@ li {
   color: var(--text-faint, var(--text-dim));
 }
 
+.aim-game-save-error {
+  color: var(--accent);
+}
+
 .aim-game-score {
   display: flex;
   flex-direction: column;
