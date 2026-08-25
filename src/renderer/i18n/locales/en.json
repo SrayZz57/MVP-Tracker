@@ -1274,7 +1274,13 @@
     "aimLabel": "Warm-up",
     "aimTitle": "Aim Trainer",
     "aimText": "Warm up your aim before launching Valorant — calibrated to your real sensitivity, six modes, daily challenge and progress tracking.",
-    "aimCta": "🎯 Warm up now"
+    "aimCta": "🎯 Warm up now",
+    "statGames": "Matches",
+    "statWinrate": "Winrate",
+    "statKd": "K/D",
+    "statHs": "Headshot",
+    "recentLabel": "Last 5:",
+    "noMatches": "No cached matches yet."
   },
   "linkRiot": {
     "title": "Link your Riot account",

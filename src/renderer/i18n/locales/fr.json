@@ -1274,7 +1274,13 @@
     "aimLabel": "Échauffement",
     "aimTitle": "Aim Trainer",
     "aimText": "Chauffe ta visée avant de lancer Valorant — calibré sur ta vraie sensibilité, six modes, défi du jour et suivi de progression.",
-    "aimCta": "🎯 S'échauffer maintenant"
+    "aimCta": "🎯 S'échauffer maintenant",
+    "statGames": "Parties",
+    "statWinrate": "Winrate",
+    "statKd": "K/D",
+    "statHs": "Précision tête",
+    "recentLabel": "5 dernières :",
+    "noMatches": "Aucune partie en cache pour l'instant."
   },
   "linkRiot": {
     "title": "Lier ton compte Riot",

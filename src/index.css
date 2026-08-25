@@ -2002,6 +2002,75 @@ li {
   margin-top: auto;
 }
 
+.greeting-stats {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 0.6rem;
+  width: 100%;
+}
+
+.greeting-stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
+  padding: 0.75rem 0.4rem;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.greeting-stat-value {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 1.35rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.greeting-stat-label {
+  font-size: 0.62rem;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+  text-align: center;
+}
+
+.greeting-recent {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.greeting-dots {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.greeting-dot {
+  width: 13px;
+  height: 13px;
+  border-radius: 4px;
+}
+
+.greeting-dot.win {
+  background: #3ddc84;
+  box-shadow: 0 0 8px rgba(61, 220, 132, 0.5);
+}
+
+.greeting-dot.loss {
+  background: var(--accent);
+  box-shadow: 0 0 8px rgba(255, 70, 85, 0.5);
+}
+
+.greeting-dot.draw {
+  background: var(--text-dim);
+}
+
+.greeting-empty {
+  margin: auto 0;
+}
+
 .greeting-aim-label {
   color: #ffa066;
 }
@@ -2019,7 +2088,10 @@ li {
 }
 
 .greeting-aim-btn {
-  margin-top: auto;
+  /* `.refresh` porte un `margin-left: auto` pour son usage dans la topbar :
+     sans le neutraliser, le bouton se colle à droite du panneau au lieu
+     d'être centré. */
+  margin: auto auto 0;
   font-size: 0.95rem;
   padding: 0.75rem 1.6rem;
   background: linear-gradient(180deg, #ff8f4d, #ff5a3c 55%, #e0342f);
