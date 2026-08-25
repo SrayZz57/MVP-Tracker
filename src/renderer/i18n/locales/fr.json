@@ -280,6 +280,21 @@
   "aimTrainer": {
     "title": "🎯 Aim Trainer",
     "hint": "Un mode « flick » 3D calibré sur ta vraie sensibilité Valorant. Règle tout ici, puis lance la session dans une fenêtre de jeu plein écran.",
+    "modeSection": "Mode d'entraînement",
+    "modes": {
+      "flick": "🎯 Flick",
+      "flickDesc": "Une cible à la fois, à toucher le plus vite possible. La base.",
+      "gridshot": "🔢 Gridshot",
+      "gridshotDesc": "Plusieurs cibles en même temps : enchaîne sans temps mort.",
+      "tracking": "🌊 Tracking",
+      "trackingDesc": "La cible se déplace en continu — suis-la du viseur.",
+      "reflex": "⚡ Réflexe",
+      "reflexDesc": "Les cibles disparaissent vite : rate-la et c'est compté.",
+      "micro": "🔬 Micro-visée",
+      "microDesc": "Cibles minuscules et rapprochées, pour la précision fine.",
+      "orbit": "🪐 Orbite",
+      "orbitDesc": "Les cibles tournent en cercle : anticipation et suivi."
+    },
     "sensSection": "Sensibilité",
     "sessionSection": "Session",
     "targetsSection": "Cibles",

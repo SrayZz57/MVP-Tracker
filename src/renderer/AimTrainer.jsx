@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { DEFAULT_CONFIG } from './AimTrainerGame.jsx';
+import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 const BEST_STORAGE_KEY = 'mvptracker-aim-trainer-best';
@@ -34,6 +34,10 @@ function AimTrainer() {
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
+  // Choisir un mode applique ses valeurs recommandées (nombre/taille des
+  // cibles, dispersion) — elles restent modifiables ensuite à la main.
+  const selectMode = (id) => setConfig((prev) => ({ ...prev, mode: id, ...MODES[id].preset }));
+
   const distance = cm360(config.dpi, config.sens);
   const edpi = config.dpi * config.sens;
 
@@ -42,6 +46,20 @@ function AimTrainer() {
       <div className="card">
         <h3>{t('aimTrainer.title')}</h3>
         <p className="label">{t('aimTrainer.hint')}</p>
+
+        <h4 className="account-subsection-title">{t('aimTrainer.modeSection')}</h4>
+        <div className="aim-mode-grid">
+          {Object.entries(MODES).map(([id, mode]) => (
+            <button
+              key={id}
+              className={id === config.mode ? 'aim-mode-card active' : 'aim-mode-card'}
+              onClick={() => selectMode(id)}
+            >
+              <span className="aim-mode-name">{t(mode.labelKey)}</span>
+              <span className="aim-mode-desc">{t(mode.descKey)}</span>
+            </button>
+          ))}
+        </div>
 
         <div className="aim-config-grid">
           <div className="aim-config-block">

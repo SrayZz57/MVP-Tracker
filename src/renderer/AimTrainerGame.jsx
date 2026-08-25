@@ -2,6 +2,12 @@ import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import fpsRifleHandsUrl from '../assets/models/fps-rifle-hands.glb';
+import floorColorUrl from '../assets/textures/floor-color.jpg';
+import floorNormalUrl from '../assets/textures/floor-normal.jpg';
+import floorRoughnessUrl from '../assets/textures/floor-roughness.jpg';
+import wallColorUrl from '../assets/textures/wall-color.jpg';
+import wallNormalUrl from '../assets/textures/wall-normal.jpg';
+import wallRoughnessUrl from '../assets/textures/wall-roughness.jpg';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -9,14 +15,67 @@ import fpsRifleHandsUrl from '../assets/models/fps-rifle-hands.glb';
 const VALORANT_YAW = 0.07;
 const DEG_TO_RAD = Math.PI / 180;
 
-const SPAWN_DISTANCE = 9;
+const SPAWN_DISTANCE = 13;
 const TRACER_LIFETIME_MS = 80;
 const MUZZLE_FLASH_LIFETIME_MS = 50;
 const POP_DURATION_MS = 130; // apparition/disparition des cibles
-const FLOOR_Y = -1.7; // caméra à hauteur 0 => regard à ~1,70 m du sol
+// Caméra à hauteur 0 : le sol plus bas donne un point de vue plus haut et une
+// arène qui paraît à l'échelle, au lieu de la sensation "d'être tout petit".
+const FLOOR_Y = -2.6;
 const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 
+// Modes d'entraînement. Chacun n'est qu'un préréglage + un comportement de
+// cible : le moteur reste le même, ce qui évite de dupliquer la logique de
+// tir/score pour chaque mode.
+//   movement : 'none' (statique) | 'drift' (translation continue) | 'orbit'
+//   lifetime : durée de vie d'une cible en ms (null = illimitée)
+export const MODES = {
+  flick: {
+    labelKey: 'aimTrainer.modes.flick',
+    descKey: 'aimTrainer.modes.flickDesc',
+    movement: 'none',
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.45, spread: 28 },
+  },
+  gridshot: {
+    labelKey: 'aimTrainer.modes.gridshot',
+    descKey: 'aimTrainer.modes.gridshotDesc',
+    movement: 'none',
+    lifetime: null,
+    preset: { targetCount: 4, targetSize: 0.4, spread: 26 },
+  },
+  tracking: {
+    labelKey: 'aimTrainer.modes.tracking',
+    descKey: 'aimTrainer.modes.trackingDesc',
+    movement: 'drift',
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.5, spread: 30 },
+  },
+  reflex: {
+    labelKey: 'aimTrainer.modes.reflex',
+    descKey: 'aimTrainer.modes.reflexDesc',
+    movement: 'none',
+    lifetime: 1100,
+    preset: { targetCount: 1, targetSize: 0.5, spread: 34 },
+  },
+  micro: {
+    labelKey: 'aimTrainer.modes.micro',
+    descKey: 'aimTrainer.modes.microDesc',
+    movement: 'none',
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.2, spread: 12 },
+  },
+  orbit: {
+    labelKey: 'aimTrainer.modes.orbit',
+    descKey: 'aimTrainer.modes.orbitDesc',
+    movement: 'orbit',
+    lifetime: null,
+    preset: { targetCount: 2, targetSize: 0.42, spread: 30 },
+  },
+};
+
 export const DEFAULT_CONFIG = {
+  mode: 'flick',
   dpi: 800,
   sens: 0.35,
   duration: 30,
@@ -83,93 +142,28 @@ function valueNoise(width, height, cellSize, seed = 1) {
   };
 }
 
-// Sol : dalles de béton avec joints marqués et grain, plutôt qu'un aplat.
-function makeFloorTexture() {
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
+// Textures PBR photographiques (couleur + normales + rugosité), CC0 —
+// provenance dans src/assets/textures/CREDITS.md. Bien plus crédibles que
+// des motifs dessinés au canvas : le relief des normales réagit vraiment à
+// l'éclairage de la scène.
+const textureLoader = new THREE.TextureLoader();
 
-  ctx.fillStyle = '#3b4250';
-  ctx.fillRect(0, 0, size, size);
+function loadPbrMaterial({ color, normal, roughness }, repeat, extra = {}) {
+  const configure = (texture, isColor) => {
+    texture.wrapS = THREE.RepeatWrapping;
+    texture.wrapT = THREE.RepeatWrapping;
+    texture.repeat.set(repeat[0], repeat[1]);
+    texture.anisotropy = 8;
+    if (isColor) texture.colorSpace = THREE.SRGBColorSpace;
+    return texture;
+  };
 
-  const noise = valueNoise(size, size, 26, 7);
-  const image = ctx.getImageData(0, 0, size, size);
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const n = (noise(x, y) - 0.5) * 26;
-      const i = (y * size + x) * 4;
-      image.data[i] += n;
-      image.data[i + 1] += n;
-      image.data[i + 2] += n;
-    }
-  }
-  ctx.putImageData(image, 0, 0);
-
-  // Joints entre dalles : 4x4 par tuile de texture.
-  const tile = size / 4;
-  ctx.strokeStyle = 'rgba(18, 21, 28, 0.75)';
-  ctx.lineWidth = 3;
-  for (let i = 0; i <= 4; i += 1) {
-    ctx.beginPath();
-    ctx.moveTo(i * tile, 0);
-    ctx.lineTo(i * tile, size);
-    ctx.moveTo(0, i * tile);
-    ctx.lineTo(size, i * tile);
-    ctx.stroke();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(15, 15);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
-}
-
-// Murs : panneaux verticaux avec rainures et salissures douces.
-function makeWallTexture() {
-  const size = 512;
-  const canvas = document.createElement('canvas');
-  canvas.width = size;
-  canvas.height = size;
-  const ctx = canvas.getContext('2d');
-
-  const base = ctx.createLinearGradient(0, 0, 0, size);
-  base.addColorStop(0, '#5a6377');
-  base.addColorStop(1, '#3d4453');
-  ctx.fillStyle = base;
-  ctx.fillRect(0, 0, size, size);
-
-  const noise = valueNoise(size, size, 40, 21);
-  const image = ctx.getImageData(0, 0, size, size);
-  for (let y = 0; y < size; y += 1) {
-    for (let x = 0; x < size; x += 1) {
-      const n = (noise(x, y) - 0.5) * 20;
-      const i = (y * size + x) * 4;
-      image.data[i] += n;
-      image.data[i + 1] += n;
-      image.data[i + 2] += n;
-    }
-  }
-  ctx.putImageData(image, 0, 0);
-
-  ctx.strokeStyle = 'rgba(24, 28, 36, 0.55)';
-  ctx.lineWidth = 4;
-  for (let i = 1; i < 4; i += 1) {
-    ctx.beginPath();
-    ctx.moveTo((i * size) / 4, 0);
-    ctx.lineTo((i * size) / 4, size);
-    ctx.stroke();
-  }
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.wrapS = THREE.RepeatWrapping;
-  texture.wrapT = THREE.RepeatWrapping;
-  texture.repeat.set(6, 2);
-  texture.colorSpace = THREE.SRGBColorSpace;
-  return texture;
+  return new THREE.MeshStandardMaterial({
+    map: configure(textureLoader.load(color), true),
+    normalMap: configure(textureLoader.load(normal), false),
+    roughnessMap: configure(textureLoader.load(roughness), false),
+    ...extra,
+  });
 }
 
 // Ciel : dégradé du zénith à l'horizon + nuages issus de plusieurs octaves de
@@ -338,7 +332,11 @@ function AimTrainerGame({ config: rawConfig }) {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(70, 70),
-      new THREE.MeshStandardMaterial({ map: makeFloorTexture(), roughness: 0.85, metalness: 0.05 }),
+      loadPbrMaterial(
+        { color: floorColorUrl, normal: floorNormalUrl, roughness: floorRoughnessUrl },
+        [18, 18],
+        { metalness: 0.05 },
+      ),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = FLOOR_Y;
@@ -352,12 +350,11 @@ function AimTrainerGame({ config: rawConfig }) {
 
     // Murs bas et ouverts sur le ciel (pas de plafond), avec un liseré
     // lumineux en crête pour délimiter proprement l'aire de jeu.
-    const wallMat = new THREE.MeshStandardMaterial({
-      map: makeWallTexture(),
-      roughness: 0.9,
-      metalness: 0.05,
-      side: THREE.DoubleSide,
-    });
+    const wallMat = loadPbrMaterial(
+      { color: wallColorUrl, normal: wallNormalUrl, roughness: wallRoughnessUrl },
+      [8, 2],
+      { metalness: 0.45, side: THREE.DoubleSide },
+    );
     const WALL_HEIGHT = 7;
     const WALL_HALF = 24;
     const wallY = FLOOR_Y + WALL_HEIGHT / 2;
@@ -406,14 +403,32 @@ function AimTrainerGame({ config: rawConfig }) {
       metalness: 0.1,
     });
 
+    // Paramètres de mouvement propres à chaque cible (utilisés seulement par
+    // les modes mobiles) : direction de dérive, ou angle et rayon d'orbite.
+    const makeMotion = () => ({
+      drift: new THREE.Vector3(Math.random() * 2 - 1, (Math.random() * 2 - 1) * 0.5, 0)
+        .normalize()
+        .multiplyScalar(1.6 + Math.random() * 1.6),
+      orbitAngle: Math.random() * Math.PI * 2,
+      orbitRadius: 2.2 + Math.random() * 2,
+      orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
+    });
+
     const targets = [];
     for (let i = 0; i < config.targetCount; i += 1) {
       const mesh = new THREE.Mesh(targetGeo, targetMat);
       mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
       mesh.scale.setScalar(config.targetSize);
       scene.add(mesh);
-      targets.push({ mesh, spawnedAt: performance.now(), poppedAt: performance.now() });
+      targets.push({
+        mesh,
+        spawnedAt: performance.now(),
+        poppedAt: performance.now(),
+        anchor: mesh.position.clone(),
+        ...makeMotion(),
+      });
     }
+    stateRef.current.makeMotion = makeMotion;
 
     const flashTexture = makeGlowTexture('rgba(255, 210, 130, 0.95)');
     const impactTexture = makeGlowTexture('rgba(255, 245, 220, 0.95)');
@@ -511,12 +526,48 @@ function AimTrainerGame({ config: rawConfig }) {
       state.mixer?.update(dt / 1000);
       muzzleFlash.material.opacity = now < state.flashUntil ? 1 : 0;
 
-      // Petite pulsation des cibles à l'apparition — rend le spawn lisible.
+      const mode = MODES[configRef.current.mode] ?? MODES.flick;
+      const cfg = configRef.current;
+
       state.targets.forEach((entry) => {
+        // Pulsation à l'apparition — rend le spawn lisible.
         const age = now - entry.poppedAt;
-        const base = configRef.current.targetSize;
-        const scale = age < POP_DURATION_MS ? base * (0.4 + 0.6 * (age / POP_DURATION_MS)) : base;
+        const scale = age < POP_DURATION_MS ? cfg.targetSize * (0.4 + 0.6 * (age / POP_DURATION_MS)) : cfg.targetSize;
         entry.mesh.scale.setScalar(scale);
+
+        if (phaseRef.current !== 'running') return;
+
+        if (mode.movement === 'drift') {
+          // Translation continue, avec rebond dans les limites du cône de jeu.
+          const step = entry.drift.clone().multiplyScalar(dt / 1000);
+          entry.mesh.position.add(step);
+          const limitX = Math.sin(cfg.spread * DEG_TO_RAD) * SPAWN_DISTANCE;
+          const limitTop = Math.sin(cfg.spread * DEG_TO_RAD * 0.55) * SPAWN_DISTANCE;
+          const minY = FLOOR_Y + cfg.targetSize + TARGET_MIN_CLEARANCE;
+          if (entry.mesh.position.x < -limitX || entry.mesh.position.x > limitX) entry.drift.x *= -1;
+          if (entry.mesh.position.y > limitTop || entry.mesh.position.y < minY) entry.drift.y *= -1;
+          entry.mesh.position.x = THREE.MathUtils.clamp(entry.mesh.position.x, -limitX, limitX);
+          entry.mesh.position.y = THREE.MathUtils.clamp(entry.mesh.position.y, minY, limitTop);
+        } else if (mode.movement === 'orbit') {
+          // Rotation autour d'un point d'ancrage, dans le plan vertical.
+          entry.orbitAngle += entry.orbitSpeed * (dt / 1000);
+          const minY = FLOOR_Y + cfg.targetSize + TARGET_MIN_CLEARANCE;
+          entry.mesh.position.set(
+            entry.anchor.x + Math.cos(entry.orbitAngle) * entry.orbitRadius,
+            Math.max(entry.anchor.y + Math.sin(entry.orbitAngle) * entry.orbitRadius * 0.55, minY),
+            entry.anchor.z,
+          );
+        }
+
+        // Mode réflexe : une cible non touchée à temps disparaît et compte
+        // comme manquée, pour forcer la réactivité plutôt que la lenteur.
+        if (mode.lifetime && now - entry.spawnedAt > mode.lifetime) {
+          entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+          entry.anchor.copy(entry.mesh.position);
+          entry.spawnedAt = now;
+          entry.poppedAt = now;
+          setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
+        }
       });
 
       // Traînées de balle : durée de vie très courte, fondu puis suppression.
@@ -632,6 +683,8 @@ function AimTrainerGame({ config: rawConfig }) {
         const entry = targets.find((tgt) => tgt.mesh === hitMesh);
         const reactionMs = performance.now() - entry.spawnedAt;
         entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
+        entry.anchor.copy(entry.mesh.position);
+        Object.assign(entry, state.makeMotion());
         entry.spawnedAt = performance.now();
         entry.poppedAt = performance.now();
         setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
@@ -685,6 +738,8 @@ function AimTrainerGame({ config: rawConfig }) {
     const now = performance.now();
     stateRef.current.targets?.forEach((entry) => {
       entry.mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
+      entry.anchor.copy(entry.mesh.position);
+      Object.assign(entry, stateRef.current.makeMotion());
       entry.spawnedAt = now;
       entry.poppedAt = now;
     });

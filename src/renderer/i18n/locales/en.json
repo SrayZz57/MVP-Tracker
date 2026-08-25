@@ -280,6 +280,21 @@
   "aimTrainer": {
     "title": "🎯 Aim Trainer",
     "hint": "A 3D \"flick\" mode calibrated to your real Valorant sensitivity. Configure everything here, then launch the session in a fullscreen game window.",
+    "modeSection": "Training mode",
+    "modes": {
+      "flick": "🎯 Flick",
+      "flickDesc": "One target at a time, hit it as fast as you can. The basics.",
+      "gridshot": "🔢 Gridshot",
+      "gridshotDesc": "Several targets at once: chain them with no downtime.",
+      "tracking": "🌊 Tracking",
+      "trackingDesc": "The target moves continuously — keep your crosshair on it.",
+      "reflex": "⚡ Reflex",
+      "reflexDesc": "Targets vanish fast: miss one and it counts against you.",
+      "micro": "🔬 Micro-flick",
+      "microDesc": "Tiny, closely spaced targets for fine precision.",
+      "orbit": "🪐 Orbit",
+      "orbitDesc": "Targets circle around: anticipation and tracking."
+    },
     "sensSection": "Sensitivity",
     "sessionSection": "Session",
     "targetsSection": "Targets",
