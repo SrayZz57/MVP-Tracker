@@ -609,7 +609,7 @@ function App() {
       case 'session':
         return <SessionGuideTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'aim-trainer':
-        return <AimTrainerTab myId={session.user.id} />;
+        return <AimTrainerTab myId={session.user.id} matches={myMatches} settings={mySettings} />;
       case 'puzzle':
         return <DailyPuzzleTab settings={mySettings} matches={myMatches} />;
       case 'wiki':

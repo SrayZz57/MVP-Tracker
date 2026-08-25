@@ -1963,6 +1963,192 @@ li {
   flex-wrap: wrap;
 }
 
+/* --- Aim Trainer : défi du jour, série, impact, classements --------------- */
+.aim-top-row {
+  display: grid;
+  grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
+  gap: 1.25rem;
+}
+
+.aim-bottom-row {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  gap: 1.25rem;
+}
+
+@media (max-width: 900px) {
+  .aim-top-row {
+    grid-template-columns: 1fr;
+  }
+}
+
+.aim-challenge-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.aim-challenge-badge {
+  display: inline-block;
+  padding: 0.28rem 0.7rem;
+  border-radius: 999px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--gold, #ffc857);
+  background: rgba(255, 200, 87, 0.14);
+  border: 1px solid rgba(255, 200, 87, 0.35);
+  margin-bottom: 0.6rem;
+}
+
+.aim-challenge-btn {
+  margin-top: 0.75rem;
+}
+
+.aim-streak-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.2rem;
+}
+
+.aim-streak-flame {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+
+.aim-streak-value {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 3.2rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+  background: linear-gradient(180deg, #fff 25%, var(--accent));
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.aim-streak-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+.aim-streak-hint {
+  margin-top: 0.5rem;
+}
+
+.aim-board {
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+  margin-top: 0.5rem;
+}
+
+.aim-board-row {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.4rem 0.6rem;
+  border-radius: 9px;
+  font-size: 0.86rem;
+}
+
+.aim-board-row.me {
+  background: rgba(255, 70, 85, 0.12);
+  border: 1px solid rgba(255, 70, 85, 0.3);
+}
+
+.aim-board-rank {
+  width: 1.4rem;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-board-name {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aim-board-score {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.aim-impact-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0.8rem;
+  margin: 0.9rem 0 0.6rem;
+}
+
+.aim-impact-tile {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 0.9rem 1rem;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.aim-impact-delta {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 1.6rem;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-impact-delta.up {
+  color: #3ddc84;
+}
+
+.aim-impact-delta.down {
+  color: var(--accent);
+}
+
+.aim-impact-label {
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.09em;
+  color: var(--text-dim);
+  margin-top: 0.2rem;
+}
+
+.aim-impact-detail {
+  font-size: 0.74rem;
+  color: var(--text-faint, var(--text-dim));
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-impact-footnote {
+  font-size: 0.75rem;
+}
+
+.aim-progress-chart {
+  width: 100%;
+  height: 90px;
+  margin: 0.5rem 0 0.75rem;
+}
+
+.aim-game-step {
+  font-size: 1rem;
+  color: var(--text-dim);
+  font-weight: 500;
+}
+
 /* --- Aim Trainer : panneau de réglages (dans l'onglet) -------------------- */
 .aim-mode-grid {
   display: grid;

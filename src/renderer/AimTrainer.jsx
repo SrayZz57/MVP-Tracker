@@ -1,12 +1,26 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
-import { loadPersonalBests, loadGlobalBests } from './aimScores.js';
+import {
+  loadPersonalBests,
+  loadGlobalBests,
+  loadHistory,
+  loadDailyLeaderboard,
+  loadFriendsLeaderboard,
+  computeStreak,
+  todayKey,
+} from './aimScores.js';
+import { buildDailyChallenge } from './aimChallenge.js';
+import { computeTrainingImpact } from './aimCorrelation.js';
+import { FriendAvatar, friendLabel } from './friendsShared.jsx';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
-const BEST_STORAGE_KEY = 'mvptracker-aim-trainer-best';
 
 const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#ffffff'];
+
+// Routine d'échauffement : trois modes complémentaires enchaînés, à lancer
+// avant une session de jeu (visée sèche, suivi, puis précision fine).
+const WARMUP_ROUTINE = ['flick', 'tracking', 'micro'];
 
 function loadConfig() {
   try {
@@ -25,28 +39,41 @@ function cm360(dpi, sens) {
   return (2.54 * 360) / (dpi * sens * 0.07);
 }
 
-function AimTrainer({ myId }) {
+function AimTrainer({ myId, matches, settings }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState(loadConfig);
   const [personalBests, setPersonalBests] = useState({});
   const [globalBests, setGlobalBests] = useState({});
+  const [history, setHistory] = useState([]);
+  const [dailyBoard, setDailyBoard] = useState([]);
+  const [friendsBoard, setFriendsBoard] = useState([]);
+
+  const challenge = useMemo(() => buildDailyChallenge(todayKey()), []);
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
   }, [config]);
 
-  // Records rechargés à l'ouverture de l'onglet ET à la fermeture de la
+  // Données rechargées à l'ouverture de l'onglet ET à la fermeture de la
   // fenêtre de jeu : une session qui vient d'être jouée doit se voir ici
   // immédiatement, sans redémarrer l'app ni changer d'onglet.
-  const refreshBests = useCallback(() => {
+  const refresh = useCallback(() => {
     loadGlobalBests().then(setGlobalBests);
-    if (myId) loadPersonalBests(myId).then(setPersonalBests);
-  }, [myId]);
+    loadDailyLeaderboard(challenge.dateKey).then(setDailyBoard);
+    if (myId) {
+      loadPersonalBests(myId).then(setPersonalBests);
+      loadHistory(myId).then(setHistory);
+    }
+  }, [myId, challenge.dateKey]);
 
   useEffect(() => {
-    refreshBests();
-    return window.electronAPI.onAimTrainerClosed(refreshBests);
-  }, [refreshBests]);
+    refresh();
+    return window.electronAPI.onAimTrainerClosed(refresh);
+  }, [refresh]);
+
+  useEffect(() => {
+    if (myId) loadFriendsLeaderboard(myId, config.mode).then(setFriendsBoard);
+  }, [myId, config.mode, history]);
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
@@ -54,11 +81,138 @@ function AimTrainer({ myId }) {
   // cibles, dispersion) — elles restent modifiables ensuite à la main.
   const selectMode = (id) => setConfig((prev) => ({ ...prev, mode: id, ...MODES[id].preset }));
 
+  const launch = (extra = {}) => window.electronAPI.openAimTrainer({ ...config, ...extra, userId: myId });
+
   const distance = cm360(config.dpi, config.sens);
   const edpi = config.dpi * config.sens;
+  const streak = useMemo(() => computeStreak(history), [history]);
+  const challengeDone = dailyBoard.some((row) => row.user_id === myId);
+
+  const impact = useMemo(
+    () => (settings?.name ? computeTrainingImpact(history, matches, settings.name, settings.tag) : null),
+    [history, matches, settings?.name, settings?.tag],
+  );
+
+  // Courbe de progression : scores du mode sélectionné, du plus ancien au
+  // plus récent, plafonnée aux 20 dernières séances pour rester lisible.
+  const progression = useMemo(() => {
+    const rows = history.filter((row) => row.mode === config.mode).slice(0, 20).reverse();
+    return rows.map((row) => row.score);
+  }, [history, config.mode]);
 
   return (
     <div>
+      {/* --- Défi du jour + série ------------------------------------------ */}
+      <div className="aim-top-row">
+        <div className="card aim-challenge-card">
+          <span className="aim-challenge-badge">{t('aimTrainer.dailyChallenge')}</span>
+          <h3>
+            {MODES[challenge.mode].icon} {t(MODES[challenge.mode].labelKey)}
+          </h3>
+          <p className="label">
+            {t('aimTrainer.challengeSetup', {
+              seconds: challenge.duration,
+              size: challenge.targetSize.toFixed(2),
+              count: challenge.targetCount,
+            })}
+          </p>
+          <button
+            className="refresh aim-challenge-btn"
+            onClick={() =>
+              launch({
+                ...challenge,
+                challengeDate: challenge.dateKey,
+                // La sensibilité reste celle du joueur : le défi porte sur la
+                // difficulté des cibles, pas sur une config souris imposée.
+                dpi: config.dpi,
+                sens: config.sens,
+                fov: config.fov,
+              })
+            }
+          >
+            {challengeDone ? t('aimTrainer.retryChallenge') : t('aimTrainer.playChallenge')}
+          </button>
+
+          {dailyBoard.length > 0 && (
+            <div className="aim-board">
+              <h4 className="account-subsection-title">{t('aimTrainer.todayRanking')}</h4>
+              {dailyBoard.slice(0, 5).map((row, i) => (
+                <div key={row.user_id} className={row.user_id === myId ? 'aim-board-row me' : 'aim-board-row'}>
+                  <span className="aim-board-rank">{i + 1}</span>
+                  <FriendAvatar profile={row.profiles} size={26} />
+                  <span className="aim-board-name">{friendLabel(row.profiles)}</span>
+                  <span className="aim-board-score">{row.score}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        <div className="card aim-streak-card">
+          <span className="aim-streak-flame">{streak > 0 ? '🔥' : '💤'}</span>
+          <span className="aim-streak-value">{streak}</span>
+          <span className="aim-streak-label">{t('aimTrainer.streakLabel', { count: streak })}</span>
+          <p className="label aim-streak-hint">
+            {streak > 0 ? t('aimTrainer.streakKeep') : t('aimTrainer.streakStart')}
+          </p>
+          <button className="account-forgot-password" onClick={() => launch({ playlist: WARMUP_ROUTINE })}>
+            {t('aimTrainer.warmupRoutine')}
+          </button>
+        </div>
+      </div>
+
+      {/* --- Impact sur les vraies parties ---------------------------------- */}
+      {impact && (
+        <div className="card">
+          <h3>{t('aimTrainer.impactTitle')}</h3>
+          {!impact.ready ? (
+            <p className="label">
+              {t('aimTrainer.impactNotReady', {
+                trained: impact.trainedGames,
+                untrained: impact.untrainedGames,
+                needed: impact.needed,
+              })}
+            </p>
+          ) : (
+            <>
+              <p className="label">{t('aimTrainer.impactHint')}</p>
+              <div className="aim-impact-grid">
+                {[
+                  { key: 'hsPercent', label: t('aimTrainer.impactHs'), suffix: '%', decimals: 1 },
+                  { key: 'kd', label: t('aimTrainer.impactKd'), suffix: '', decimals: 2 },
+                  { key: 'winrate', label: t('aimTrainer.impactWinrate'), suffix: '%', decimals: 0 },
+                ].map(({ key, label, suffix, decimals }) => {
+                  const delta = impact.deltas[key];
+                  if (delta === null) return null;
+                  const positive = delta >= 0;
+                  return (
+                    <div key={key} className="aim-impact-tile">
+                      <span className={positive ? 'aim-impact-delta up' : 'aim-impact-delta down'}>
+                        {positive ? '+' : ''}
+                        {delta.toFixed(decimals)}
+                        {suffix}
+                      </span>
+                      <span className="aim-impact-label">{label}</span>
+                      <span className="aim-impact-detail">
+                        {impact.trained[key] === null ? '—' : impact.trained[key].toFixed(decimals)}
+                        {suffix} vs {impact.untrained[key] === null ? '—' : impact.untrained[key].toFixed(decimals)}
+                        {suffix}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="label aim-impact-footnote">
+                {t('aimTrainer.impactFootnote', {
+                  trained: impact.trained.games,
+                  untrained: impact.untrained.games,
+                })}
+              </p>
+            </>
+          )}
+        </div>
+      )}
+
       <div className="card">
         <h3>{t('aimTrainer.title')}</h3>
         <p className="label">{t('aimTrainer.hint')}</p>
@@ -217,10 +371,7 @@ function AimTrainer({ myId }) {
         </div>
 
         <div className="aim-launch-row">
-          <button
-            className="refresh aim-launch-btn"
-            onClick={() => window.electronAPI.openAimTrainer({ ...config, userId: myId })}
-          >
+          <button className="refresh aim-launch-btn" onClick={() => launch()}>
             {t('aimTrainer.launch')}
           </button>
           <p className="label">{t('aimTrainer.launchHint')}</p>
@@ -228,7 +379,74 @@ function AimTrainer({ myId }) {
 
         <p className="label" style={{ marginTop: '0.75rem' }}>{t('aimTrainer.accuracyNote')}</p>
       </div>
+
+      {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
+      <div className="aim-bottom-row">
+        <div className="card">
+          <h3>{t('aimTrainer.progressTitle', { mode: t(MODES[config.mode].labelKey) })}</h3>
+          {progression.length < 2 ? (
+            <p className="label">{t('aimTrainer.progressNotEnough')}</p>
+          ) : (
+            <>
+              <ProgressionChart scores={progression} accent={MODES[config.mode].accent} />
+              <p className="label">
+                {t('aimTrainer.progressMeta', {
+                  count: progression.length,
+                  best: Math.max(...progression),
+                  last: progression[progression.length - 1],
+                })}
+              </p>
+            </>
+          )}
+        </div>
+
+        <div className="card">
+          <h3>{t('aimTrainer.friendsTitle')}</h3>
+          {friendsBoard.length === 0 ? (
+            <p className="label">{t('aimTrainer.friendsEmpty')}</p>
+          ) : (
+            <div className="aim-board">
+              {friendsBoard.map((row, i) => (
+                <div key={row.user_id} className={row.user_id === myId ? 'aim-board-row me' : 'aim-board-row'}>
+                  <span className="aim-board-rank">{i + 1}</span>
+                  <FriendAvatar profile={row.profiles} size={26} />
+                  <span className="aim-board-name">{friendLabel(row.profiles)}</span>
+                  <span className="aim-board-score">{row.score}</span>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
     </div>
+  );
+}
+
+// Courbe de progression : SVG minimal, pas de librairie de graphiques pour si
+// peu (une polyligne et quelques points suffisent).
+function ProgressionChart({ scores, accent }) {
+  const width = 320;
+  const height = 90;
+  const max = Math.max(...scores);
+  const min = Math.min(...scores);
+  const range = Math.max(max - min, 1);
+
+  const points = scores.map((score, i) => {
+    const x = (i / (scores.length - 1)) * width;
+    const y = height - ((score - min) / range) * (height - 12) - 6;
+    return { x, y };
+  });
+  const line = points.map((p) => `${p.x},${p.y}`).join(' ');
+  const area = `0,${height} ${line} ${width},${height}`;
+
+  return (
+    <svg viewBox={`0 0 ${width} ${height}`} preserveAspectRatio="none" className="aim-progress-chart">
+      <polygon points={area} fill={accent} opacity="0.14" />
+      <polyline points={line} fill="none" stroke={accent} strokeWidth="2.5" strokeLinejoin="round" />
+      {points.map((p, i) => (
+        <circle key={i} cx={p.x} cy={p.y} r={i === points.length - 1 ? 4 : 2.5} fill={accent} />
+      ))}
+    </svg>
   );
 }
 

@@ -259,9 +259,22 @@ function makeGlowTexture(color) {
 }
 
 function AimTrainerGame({ config: rawConfig }) {
-  const config = { ...DEFAULT_CONFIG, ...rawConfig };
+  // Routine d'échauffement : une liste de modes enchaînés dans la même
+  // fenêtre. L'étape courante remplace le mode et ses réglages de cibles ;
+  // le nombre de cibles reste celui du départ (elles sont créées une seule
+  // fois au montage de la scène).
+  const playlist = rawConfig?.playlist ?? null;
+  const [step, setStep] = useState(0);
+  const activeMode = playlist ? playlist[Math.min(step, playlist.length - 1)] : rawConfig?.mode;
+  const config = {
+    ...DEFAULT_CONFIG,
+    ...rawConfig,
+    ...(playlist ? { mode: activeMode, targetSize: MODES[activeMode].preset.targetSize, spread: MODES[activeMode].preset.spread } : {}),
+  };
+  const isLastStep = !playlist || step >= playlist.length - 1;
+
   const mountRef = useRef(null);
-  const [phase, setPhase] = useState('ready'); // ready | running | done
+  const [phase, setPhase] = useState('ready'); // ready | running | paused | done
   const [timeLeft, setTimeLeft] = useState(config.duration);
   const [stats, setStats] = useState({ hits: 0, misses: 0, times: [] });
   const [locked, setLocked] = useState(false);
@@ -765,6 +778,26 @@ function AimTrainerGame({ config: rawConfig }) {
     setPhase('running');
   };
 
+  // Étape suivante de la routine : on change de mode puis on relance dans la
+  // foulée (le clic reste le même geste, donc le verrouillage souris passe).
+  const nextStep = () => {
+    setStep((s) => s + 1);
+    setStats({ hits: 0, misses: 0, times: [] });
+    const nextMode = playlist[step + 1];
+    setTimeLeft(config.duration);
+    stateRef.current.sessionEnded = false;
+    const now = performance.now();
+    stateRef.current.targets?.forEach((entry) => {
+      entry.mesh.position.copy(randomTargetPosition(MODES[nextMode].preset.spread, MODES[nextMode].preset.targetSize));
+      entry.anchor.copy(entry.mesh.position);
+      Object.assign(entry, stateRef.current.makeMotion());
+      entry.spawnedAt = now;
+      entry.poppedAt = now;
+    });
+    mountRef.current?.querySelector('canvas')?.requestPointerLock();
+    setPhase('running');
+  };
+
   const resumeSession = () => {
     mountRef.current?.querySelector('canvas')?.requestPointerLock();
     setPhase('running');
@@ -804,6 +837,7 @@ function AimTrainerGame({ config: rawConfig }) {
       misses: stats.misses,
       duration: config.duration,
       avgReaction: avgReaction === null ? null : Math.round(avgReaction),
+      challengeDate: config.challengeDate ?? null,
     }).then((result) => setSaveState(result.ok ? 'saved' : 'error'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, score]);
@@ -837,10 +871,19 @@ function AimTrainerGame({ config: rawConfig }) {
           <div className="aim-game-panel">
             {phase === 'ready' && (
               <>
-                <h1>Prêt ?</h1>
+                <h1>
+                  {MODES[config.mode]?.icon} Prêt ?
+                  {playlist && (
+                    <span className="aim-game-step">
+                      {' '}
+                      · Routine {step + 1}/{playlist.length}
+                    </span>
+                  )}
+                </h1>
                 <p>
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
+                {config.challengeDate && <p className="aim-game-tip">🏆 Défi du jour — score comptabilisé au classement</p>}
                 <button className="refresh aim-game-cta" onClick={startSession}>
                   ▶️ Démarrer
                 </button>
@@ -920,9 +963,17 @@ function AimTrainerGame({ config: rawConfig }) {
                   </p>
                 )}
 
-                <button className="refresh aim-game-cta" onClick={startSession}>
-                  🔄 Recommencer
-                </button>
+                {playlist && !isLastStep ? (
+                  <button className="refresh aim-game-cta" onClick={nextStep}>
+                    ▶️ Étape suivante — {MODES[playlist[step + 1]].icon}{' '}
+                    {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
+                    {playlist.length})
+                  </button>
+                ) : (
+                  <button className="refresh aim-game-cta" onClick={startSession}>
+                    🔄 Recommencer
+                  </button>
+                )}
               </>
             )}
 
