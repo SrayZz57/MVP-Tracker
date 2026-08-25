@@ -1963,55 +1963,138 @@ li {
   flex-wrap: wrap;
 }
 
+/* --- Aim Trainer : panneau de réglages (dans l'onglet) -------------------- */
+.aim-config-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 1.25rem;
+  margin-top: 1rem;
+}
+
+.aim-config-block {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 1rem;
+  border-radius: var(--r-md, 12px);
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+}
+
+.aim-config-block .account-subsection-title {
+  margin: 0;
+}
+
 .aim-trainer-setting {
   display: flex;
   flex-direction: column;
-  gap: 0.25rem;
+  gap: 0.3rem;
 }
 
 .aim-trainer-setting input {
-  width: 100px;
+  width: 100%;
 }
 
-.aim-trainer-stage-card {
+.aim-config-range {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.aim-config-range input[type='range'] {
+  width: 100%;
+  accent-color: var(--accent);
+}
+
+.aim-config-readout {
+  margin-top: auto;
+  font-variant-numeric: tabular-nums;
+}
+
+.aim-config-colors {
+  display: flex;
+  flex-direction: column;
+  gap: 0.45rem;
+}
+
+.aim-color-swatches {
+  display: flex;
+  gap: 0.45rem;
+  flex-wrap: wrap;
+}
+
+.aim-color-swatch {
+  width: 30px;
+  height: 30px;
   padding: 0;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  cursor: pointer;
+}
+
+.aim-color-swatch.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.aim-config-check {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.88rem;
+  cursor: pointer;
+}
+
+.aim-config-check input {
+  width: auto;
+  accent-color: var(--accent);
+}
+
+.aim-launch-row {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  flex-wrap: wrap;
+  margin-top: 1.25rem;
+}
+
+.aim-launch-btn {
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+
+/* --- Aim Trainer : fenêtre de jeu plein écran ----------------------------- */
+.aim-game {
+  position: fixed;
+  inset: 0;
   overflow: hidden;
+  background: #0a0c10;
 }
 
-.aim-trainer-canvas {
-  position: relative;
-  width: 100%;
-  height: 60vh;
-  min-height: 420px;
-  cursor: crosshair;
-}
-
-.aim-trainer-canvas canvas {
+.aim-game-canvas,
+.aim-game-canvas canvas {
+  width: 100vw;
+  height: 100vh;
   display: block;
-  width: 100%;
-  height: 100%;
-}
-
-.aim-trainer-canvas-active {
-  height: 90vh;
 }
 
 .aim-trainer-crosshair {
-  position: absolute;
+  position: fixed;
   top: 50%;
   left: 50%;
-  width: 14px;
-  height: 14px;
+  width: 16px;
+  height: 16px;
   transform: translate(-50%, -50%);
   pointer-events: none;
+  z-index: 10;
 }
 
 .aim-trainer-crosshair::before,
 .aim-trainer-crosshair::after {
   content: '';
   position: absolute;
-  background: var(--accent);
-  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+  background: #fff;
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.9);
 }
 
 .aim-trainer-crosshair::before {
@@ -2030,39 +2113,130 @@ li {
   transform: translateY(-50%);
 }
 
-.aim-trainer-hud {
-  position: absolute;
-  top: 1rem;
-  left: 1rem;
-  right: 1rem;
+.aim-game-hud {
+  position: fixed;
+  top: 1.75rem;
+  left: 50%;
+  transform: translateX(-50%);
   display: flex;
-  justify-content: space-between;
+  gap: 2.5rem;
+  padding: 0.85rem 1.75rem;
+  border-radius: 14px;
+  background: rgba(10, 12, 16, 0.55);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  pointer-events: none;
+  z-index: 10;
+}
+
+.aim-game-hud-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.1rem;
+}
+
+.aim-game-hud-value {
   font-family: 'Chakra Petch', sans-serif;
   font-weight: 700;
-  font-size: 1.05rem;
+  font-size: 1.6rem;
+  font-variant-numeric: tabular-nums;
   color: #fff;
-  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
-  pointer-events: none;
+  line-height: 1;
 }
 
-.aim-trainer-overlay {
-  position: absolute;
+.aim-game-hud-label {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  color: var(--text-dim);
+}
+
+.aim-game-overlay {
+  position: fixed;
   inset: 0;
   display: flex;
-  flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 1rem;
-  background: rgba(8, 10, 14, 0.7);
-  text-align: center;
-  padding: 1.5rem;
+  background: rgba(8, 10, 14, 0.82);
+  backdrop-filter: blur(6px);
+  z-index: 20;
 }
 
-.aim-trainer-results {
+.aim-game-panel {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 1rem;
+  gap: 1.25rem;
+  padding: 2.5rem 3rem;
+  border-radius: 20px;
+  background: linear-gradient(168deg, rgba(38, 43, 56, 0.72), var(--surface) 45%, #12151d);
+  border: 1px solid var(--border-bright, var(--border));
+  box-shadow: 0 40px 90px -30px rgba(0, 0, 0, 0.9);
+  text-align: center;
+  max-width: 620px;
+}
+
+.aim-game-panel h1 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 2rem;
+  margin: 0;
+}
+
+.aim-game-cta {
+  font-size: 1.05rem;
+  padding: 0.8rem 2rem;
+}
+
+.aim-game-tip {
+  font-size: 0.8rem;
+  color: var(--text-faint, var(--text-dim));
+}
+
+.aim-game-results {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(130px, 1fr));
+  gap: 0.85rem;
+  width: 100%;
+}
+
+.aim-game-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.2rem;
+  padding: 0.9rem;
+  border-radius: 12px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+}
+
+.aim-game-result-value {
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 1.7rem;
+  font-variant-numeric: tabular-nums;
+  color: var(--accent);
+}
+
+.aim-game-result-label {
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+}
+
+.aim-game-close {
+  background: none;
+  border: none;
+  color: var(--text-dim);
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: 0.85rem;
+  padding: 0;
+}
+
+.aim-game-close:hover {
+  color: var(--accent);
 }
 
 .crosshair-grid {

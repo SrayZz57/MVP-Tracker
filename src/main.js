@@ -172,11 +172,45 @@ const createWindow = () => {
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
 
-// Vrai plein écran de la fenêtre (pas l'API Fullscreen du navigateur, qui ne
-// redimensionne pas fiablement le canvas dans Electron) — utilisé par l'Aim
-// Trainer pour se comporter comme un vrai jeu au démarrage d'une session.
-ipcMain.handle('window:set-fullscreen', (_event, value) => {
-  mainWindow?.setFullScreen(!!value);
+// L'Aim Trainer tourne dans sa PROPRE fenêtre plein écran, pas dans un onglet
+// de la fenêtre principale : c'est la seule façon d'avoir un vrai comportement
+// de jeu (plein écran réel, souris capturée, aucune interface autour) sans que
+// le reste de l'app ne rétrécisse le canvas ou ne vole le focus.
+let aimTrainerWindow = null;
+
+ipcMain.handle('aim-trainer:open', (_event, config) => {
+  if (aimTrainerWindow && !aimTrainerWindow.isDestroyed()) {
+    aimTrainerWindow.focus();
+    return;
+  }
+
+  aimTrainerWindow = new BrowserWindow({
+    fullscreen: true,
+    autoHideMenuBar: true,
+    backgroundColor: '#0a0c10',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
+
+  // Les réglages passent par l'URL : la fenêtre de jeu est un rendu autonome
+  // du même bundle, elle ne partage aucun état React avec la fenêtre principale.
+  const query = `view=aim-trainer&config=${encodeURIComponent(JSON.stringify(config ?? {}))}`;
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    aimTrainerWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?${query}`);
+  } else {
+    aimTrainerWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`), {
+      search: query,
+    });
+  }
+
+  aimTrainerWindow.on('closed', () => {
+    aimTrainerWindow = null;
+  });
+});
+
+ipcMain.handle('aim-trainer:close', (event) => {
+  BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
 ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
