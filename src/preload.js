@@ -23,6 +23,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getNetworkStatus: () => ipcRenderer.invoke('network:get-status'),
   getPingSamples: () => ipcRenderer.invoke('network:get-ping-samples'),
   getDeviceId: () => ipcRenderer.invoke('network:get-device-id'),
+  setFullScreen: (value) => ipcRenderer.invoke('window:set-fullscreen', value),
   listCrosshairs: () => ipcRenderer.invoke('crosshair:list'),
   saveCrosshair: (name, code, color, image) =>
     ipcRenderer.invoke('crosshair:save', { name, code, color, image }),

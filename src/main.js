@@ -172,6 +172,13 @@ const createWindow = () => {
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
 
+// Vrai plein écran de la fenêtre (pas l'API Fullscreen du navigateur, qui ne
+// redimensionne pas fiablement le canvas dans Electron) — utilisé par l'Aim
+// Trainer pour se comporter comme un vrai jeu au démarrage d'une session.
+ipcMain.handle('window:set-fullscreen', (_event, value) => {
+  mainWindow?.setFullScreen(!!value);
+});
+
 ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
 
 ipcMain.handle('settings:set', (_event, settings) => {

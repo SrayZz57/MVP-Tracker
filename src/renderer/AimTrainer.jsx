@@ -56,37 +56,78 @@ function makeGlowTexture(color) {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Arme + main basiques (formes géométriques, pas de modèle externe) — vue à
-// la première personne, accrochées à la caméra pour suivre le visé.
+// Silhouette latérale d'un pistolet (crosse, pontet, glissière, canon),
+// extrudée pour donner du volume — beaucoup plus lisible comme "vraie arme"
+// qu'un empilement de boîtes. X = longueur (0 = arrière de la crosse, vers
+// l'avant = le canon), Y = hauteur.
+function buildPistolShape() {
+  const shape = new THREE.Shape();
+  shape.moveTo(0, -0.02);
+  shape.lineTo(0, -0.27); // arrière de la crosse
+  shape.lineTo(0.1, -0.27); // bas de la crosse
+  shape.lineTo(0.1, -0.11);
+  shape.lineTo(0.15, -0.11); // avant du pontet
+  shape.quadraticCurveTo(0.2, -0.16, 0.15, -0.19); // renflement du pontet (détente)
+  shape.lineTo(0.21, -0.19);
+  shape.lineTo(0.21, -0.07); // remonte vers le bas de la glissière
+  shape.lineTo(0.56, -0.045); // vers le bout du canon
+  shape.lineTo(0.56, 0.045); // bout du canon
+  shape.lineTo(0.21, 0.065); // dessous de la glissière vers l'arrière
+  shape.lineTo(0.21, 0.115); // haut de la glissière
+  shape.lineTo(0.09, 0.12);
+  shape.quadraticCurveTo(0.03, 0.11, 0.02, 0.08); // chute vers le chien
+  shape.lineTo(0, 0.015);
+  shape.closePath();
+  return shape;
+}
+
+// Arme + main — formes géométriques mais organiques (extrusion profilée pour
+// l'arme, capsules arrondies pour la main) plutôt que des boîtes brutes, vue
+// à la première personne, accrochées à la caméra pour suivre le visé.
 function buildWeaponRig() {
   const group = new THREE.Group();
 
-  const metal = new THREE.MeshStandardMaterial({ color: 0x1c1f26, metalness: 0.7, roughness: 0.35 });
-  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x0d0f13, metalness: 0.8, roughness: 0.3 });
-  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a066, roughness: 0.85 });
+  const gunMat = new THREE.MeshStandardMaterial({ color: 0x1a1d23, metalness: 0.75, roughness: 0.3, side: THREE.DoubleSide });
+  const skinMat = new THREE.MeshStandardMaterial({ color: 0xd9a066, roughness: 0.75 });
 
-  const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.55), metal);
-  group.add(body);
+  const pistolGeo = new THREE.ExtrudeGeometry(buildPistolShape(), {
+    depth: 0.1,
+    bevelEnabled: true,
+    bevelThickness: 0.008,
+    bevelSize: 0.008,
+    bevelSegments: 2,
+    curveSegments: 8,
+  });
+  pistolGeo.rotateY(Math.PI / 2); // longueur (shape X) -> -Z (vers l'avant), épaisseur (extrude Z) -> X
+  const pistol = new THREE.Mesh(pistolGeo, gunMat);
+  group.add(pistol);
 
-  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.32, 12), darkMetal);
-  barrel.rotation.x = Math.PI / 2;
-  barrel.position.set(0, 0.02, -0.45);
-  group.add(barrel);
+  // Main : paume arrondie + doigts qui enroulent la crosse, en capsules
+  // plutôt qu'en boîtes pour un rendu bien plus organique.
+  const palm = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.1, 4, 10), skinMat);
+  palm.position.set(0.03, -0.16, 0.18);
+  palm.rotation.set(1.3, 0.15, 0.25);
+  palm.scale.set(1, 1, 0.8);
+  group.add(palm);
 
-  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.1), darkMetal);
-  grip.position.set(0, -0.15, 0.16);
-  grip.rotation.x = 0.35;
-  group.add(grip);
+  const fingerPositions = [
+    { y: -0.06, z: 0.08, rot: -0.35 },
+    { y: -0.1, z: 0.09, rot: -0.3 },
+    { y: -0.14, z: 0.09, rot: -0.25 },
+    { y: -0.18, z: 0.08, rot: -0.2 },
+  ];
+  fingerPositions.forEach(({ y, z, rot }, i) => {
+    const finger = new THREE.Mesh(new THREE.CapsuleGeometry(0.017, 0.09, 4, 8), skinMat);
+    finger.position.set(0.11, y, z - i * 0.005);
+    finger.rotation.z = Math.PI / 2 + rot;
+    finger.rotation.x = 0.15;
+    group.add(finger);
+  });
 
-  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.16, 0.09), darkMetal);
-  mag.position.set(0, -0.16, -0.02);
-  mag.rotation.x = 0.15;
-  group.add(mag);
-
-  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 0.16), skin);
-  hand.position.set(0.02, -0.14, 0.1);
-  hand.rotation.x = 0.25;
-  group.add(hand);
+  const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.07, 4, 8), skinMat);
+  thumb.position.set(0.05, 0.02, 0.14);
+  thumb.rotation.set(0, 0.9, 1.3);
+  group.add(thumb);
 
   const muzzleTip = new THREE.Object3D();
   muzzleTip.position.set(0, 0.02, -0.62);
@@ -335,7 +376,7 @@ function AimTrainer() {
     if (timeLeft <= 0) {
       setPhase('done');
       document.exitPointerLock?.();
-      if (document.fullscreenElement) document.exitFullscreen?.();
+      window.electronAPI.setFullScreen(false);
       return undefined;
     }
     const id = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
@@ -350,7 +391,7 @@ function AimTrainer() {
         // Le joueur a quitté le verrouillage pointeur (Échap) — on met la
         // session en pause plutôt que de continuer à décompter dans le vide.
         setPhase('idle');
-        if (document.fullscreenElement) document.exitFullscreen?.();
+        window.electronAPI.setFullScreen(false);
       }
     };
     document.addEventListener('pointerlockchange', handleLockChange);
@@ -365,12 +406,9 @@ function AimTrainer() {
       stateRef.current.spawnedAt = performance.now();
     }
     const mount = mountRef.current;
-    try {
-      // Vrai plein écran (pas juste la zone de l'onglet) — comme un jeu.
-      if (mount && !document.fullscreenElement) await mount.requestFullscreen();
-    } catch {
-      // Refusé/non supporté : on continue quand même sans plein écran.
-    }
+    // Vrai plein écran de la fenêtre (pas l'API navigateur, qui ne redimensionne
+    // pas fiablement le canvas dans Electron) — comme un vrai jeu.
+    await window.electronAPI.setFullScreen(true);
     mount?.querySelector('canvas')?.requestPointerLock();
     setPhase('running');
   };
@@ -414,7 +452,10 @@ function AimTrainer() {
       </div>
 
       <div className="card aim-trainer-stage-card">
-        <div ref={mountRef} className="aim-trainer-canvas">
+        <div
+          ref={mountRef}
+          className={phase === 'running' ? 'aim-trainer-canvas aim-trainer-canvas-active' : 'aim-trainer-canvas'}
+        >
           {phase === 'running' && locked && <div className="aim-trainer-crosshair" />}
           {phase === 'running' && (
             <div className="aim-trainer-hud">
