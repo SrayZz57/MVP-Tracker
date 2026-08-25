@@ -13,6 +13,8 @@ const SPAWN_DISTANCE = 9;
 const TRACER_LIFETIME_MS = 80;
 const MUZZLE_FLASH_LIFETIME_MS = 50;
 const POP_DURATION_MS = 130; // apparition/disparition des cibles
+const FLOOR_Y = -1.7; // caméra à hauteur 0 => regard à ~1,70 m du sol
+const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 
 export const DEFAULT_CONFIG = {
   dpi: 800,
@@ -36,16 +38,201 @@ function horizontalToVerticalFov(hFovDeg, aspect) {
   return (2 * Math.atan(Math.tan(hFovRad / 2) / aspect)) / DEG_TO_RAD;
 }
 
-function randomTargetPosition(spreadDeg) {
+function randomTargetPosition(spreadDeg, targetSize = 0.45) {
   // Cible tirée dans un cône devant la caméra, pas juste sur un plan plat —
   // donne une vraie sensation "sphère de tir" plutôt qu'une grille figée.
   const yaw = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD;
   const pitch = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD * 0.55;
+  // Sans garde-fou, un pitch négatif marqué envoie la cible sous le sol
+  // (elle s'y enfonce et devient impossible à toucher proprement).
+  const minY = FLOOR_Y + targetSize + TARGET_MIN_CLEARANCE;
   return new THREE.Vector3(
     Math.sin(yaw) * Math.cos(pitch) * SPAWN_DISTANCE,
-    Math.sin(pitch) * SPAWN_DISTANCE,
+    Math.max(Math.sin(pitch) * SPAWN_DISTANCE, minY),
     -Math.cos(yaw) * Math.cos(pitch) * SPAWN_DISTANCE,
   );
+}
+
+// Bruit de valeur lissé, base de toutes les textures procédurales ci-dessous
+// (aucune image externe : l'app doit rester autonome et légère).
+function valueNoise(width, height, cellSize, seed = 1) {
+  const cols = Math.ceil(width / cellSize) + 1;
+  const rows = Math.ceil(height / cellSize) + 1;
+  const grid = [];
+  let state = seed;
+  const rand = () => {
+    state = (state * 1103515245 + 12345) & 0x7fffffff;
+    return state / 0x7fffffff;
+  };
+  for (let r = 0; r < rows; r += 1) {
+    grid.push(Array.from({ length: cols }, rand));
+  }
+  const smooth = (t) => t * t * (3 - 2 * t);
+  return (x, y) => {
+    const gx = x / cellSize;
+    const gy = y / cellSize;
+    const x0 = Math.floor(gx);
+    const y0 = Math.floor(gy);
+    const tx = smooth(gx - x0);
+    const ty = smooth(gy - y0);
+    const v00 = grid[y0 % rows][x0 % cols];
+    const v10 = grid[y0 % rows][(x0 + 1) % cols];
+    const v01 = grid[(y0 + 1) % rows][x0 % cols];
+    const v11 = grid[(y0 + 1) % rows][(x0 + 1) % cols];
+    return (v00 * (1 - tx) + v10 * tx) * (1 - ty) + (v01 * (1 - tx) + v11 * tx) * ty;
+  };
+}
+
+// Sol : dalles de béton avec joints marqués et grain, plutôt qu'un aplat.
+function makeFloorTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  ctx.fillStyle = '#3b4250';
+  ctx.fillRect(0, 0, size, size);
+
+  const noise = valueNoise(size, size, 26, 7);
+  const image = ctx.getImageData(0, 0, size, size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const n = (noise(x, y) - 0.5) * 26;
+      const i = (y * size + x) * 4;
+      image.data[i] += n;
+      image.data[i + 1] += n;
+      image.data[i + 2] += n;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+
+  // Joints entre dalles : 4x4 par tuile de texture.
+  const tile = size / 4;
+  ctx.strokeStyle = 'rgba(18, 21, 28, 0.75)';
+  ctx.lineWidth = 3;
+  for (let i = 0; i <= 4; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo(i * tile, 0);
+    ctx.lineTo(i * tile, size);
+    ctx.moveTo(0, i * tile);
+    ctx.lineTo(size, i * tile);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(15, 15);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// Murs : panneaux verticaux avec rainures et salissures douces.
+function makeWallTexture() {
+  const size = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+
+  const base = ctx.createLinearGradient(0, 0, 0, size);
+  base.addColorStop(0, '#5a6377');
+  base.addColorStop(1, '#3d4453');
+  ctx.fillStyle = base;
+  ctx.fillRect(0, 0, size, size);
+
+  const noise = valueNoise(size, size, 40, 21);
+  const image = ctx.getImageData(0, 0, size, size);
+  for (let y = 0; y < size; y += 1) {
+    for (let x = 0; x < size; x += 1) {
+      const n = (noise(x, y) - 0.5) * 20;
+      const i = (y * size + x) * 4;
+      image.data[i] += n;
+      image.data[i + 1] += n;
+      image.data[i + 2] += n;
+    }
+  }
+  ctx.putImageData(image, 0, 0);
+
+  ctx.strokeStyle = 'rgba(24, 28, 36, 0.55)';
+  ctx.lineWidth = 4;
+  for (let i = 1; i < 4; i += 1) {
+    ctx.beginPath();
+    ctx.moveTo((i * size) / 4, 0);
+    ctx.lineTo((i * size) / 4, size);
+    ctx.stroke();
+  }
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.wrapS = THREE.RepeatWrapping;
+  texture.wrapT = THREE.RepeatWrapping;
+  texture.repeat.set(6, 2);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
+}
+
+// Ciel : dégradé du zénith à l'horizon + nuages issus de plusieurs octaves de
+// bruit, appliqué à l'intérieur d'une grande sphère.
+function makeSkyTexture() {
+  const width = 1024;
+  const height = 512;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext('2d');
+
+  const sky = ctx.createLinearGradient(0, 0, 0, height);
+  sky.addColorStop(0, '#1f4a8c');
+  sky.addColorStop(0.45, '#5b9bd8');
+  sky.addColorStop(0.72, '#a8cbe8');
+  sky.addColorStop(1, '#e2d6c4');
+  ctx.fillStyle = sky;
+  ctx.fillRect(0, 0, width, height);
+
+  // Halo solaire, cohérent avec la direction de la lumière directionnelle.
+  const sunGlow = ctx.createRadialGradient(width * 0.72, height * 0.26, 0, width * 0.72, height * 0.26, height * 0.55);
+  sunGlow.addColorStop(0, 'rgba(255, 244, 214, 0.95)');
+  sunGlow.addColorStop(0.25, 'rgba(255, 232, 186, 0.35)');
+  sunGlow.addColorStop(1, 'rgba(255, 232, 186, 0)');
+  ctx.fillStyle = sunGlow;
+  ctx.fillRect(0, 0, width, height);
+
+  // Nuages : trois octaves de bruit, seuillées puis adoucies.
+  const octaves = [
+    { noise: valueNoise(width, height, 150, 3), weight: 0.55 },
+    { noise: valueNoise(width, height, 70, 11), weight: 0.3 },
+    { noise: valueNoise(width, height, 32, 29), weight: 0.15 },
+  ];
+  const clouds = ctx.createImageData(width, height);
+  for (let y = 0; y < height; y += 1) {
+    // Les nuages s'estompent vers le zénith et vers l'horizon.
+    const band = Math.sin((y / height) * Math.PI) ** 1.5;
+    for (let x = 0; x < width; x += 1) {
+      let n = 0;
+      octaves.forEach(({ noise, weight }) => {
+        n += noise(x, y) * weight;
+      });
+      const density = Math.max(0, n - 0.5) * 2.4 * band;
+      const alpha = Math.min(1, density) * 235;
+      const i = (y * width + x) * 4;
+      clouds.data[i] = 255;
+      clouds.data[i + 1] = 255;
+      clouds.data[i + 2] = 255;
+      clouds.data[i + 3] = alpha;
+    }
+  }
+  const cloudCanvas = document.createElement('canvas');
+  cloudCanvas.width = width;
+  cloudCanvas.height = height;
+  cloudCanvas.getContext('2d').putImageData(clouds, 0, 0);
+  ctx.filter = 'blur(3px)';
+  ctx.drawImage(cloudCanvas, 0, 0);
+  ctx.filter = 'none';
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
 // Texture radiale générée en canvas — sert pour le flash de tir et l'impact
@@ -85,8 +272,10 @@ function AimTrainerGame({ config: rawConfig }) {
     if (!mount) return undefined;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x2a3140);
-    scene.fog = new THREE.FogExp2(0x2a3140, 0.012);
+    scene.background = new THREE.Color(0x9dc2e0);
+    // Brouillard léger, teinté comme l'horizon du ciel : fond la limite de
+    // l'arène dans le décor au lieu d'une coupure nette.
+    scene.fog = new THREE.FogExp2(0xa8cbe8, 0.008);
 
     const initialAspect = window.innerWidth / window.innerHeight;
     const camera = new THREE.PerspectiveCamera(
@@ -134,46 +323,76 @@ function AimTrainerGame({ config: rawConfig }) {
     weaponLight.position.set(0.35, 0.1, 0.3);
     camera.add(weaponLight);
 
+    // --- Ciel ---------------------------------------------------------------
+    // Grande sphère texturée vue de l'intérieur : l'arène est à ciel ouvert,
+    // donc le ciel est visible au-dessus des murs.
+    const sky = new THREE.Mesh(
+      new THREE.SphereGeometry(120, 40, 24),
+      new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false, depthWrite: false }),
+    );
+    scene.add(sky);
+
     // --- Arène -------------------------------------------------------------
     const arena = new THREE.Group();
     scene.add(arena);
 
     const floor = new THREE.Mesh(
-      new THREE.PlaneGeometry(60, 60),
-      new THREE.MeshStandardMaterial({ color: 0x39404f, roughness: 0.7, metalness: 0.1 }),
+      new THREE.PlaneGeometry(70, 70),
+      new THREE.MeshStandardMaterial({ map: makeFloorTexture(), roughness: 0.85, metalness: 0.05 }),
     );
     floor.rotation.x = -Math.PI / 2;
-    // La caméra est à hauteur 0 : un sol à -1.7 place le regard à environ
-    // 1,70 m, l'échelle d'un vrai FPS (à -4, on avait l'impression de
-    // survoler l'arène, ce qui fausse la perception des distances).
-    floor.position.y = -1.7;
+    floor.position.y = FLOOR_Y;
     arena.add(floor);
 
-    const grid = new THREE.GridHelper(60, 60, 0xff6b78, 0x5c6478);
-    grid.position.y = -1.69;
-    grid.material.opacity = 0.5;
+    const grid = new THREE.GridHelper(70, 35, 0xff6b78, 0x7c869c);
+    grid.position.y = FLOOR_Y + 0.01;
+    grid.material.opacity = 0.25;
     grid.material.transparent = true;
     arena.add(grid);
 
-    const walls = new THREE.Mesh(
-      new THREE.BoxGeometry(44, 22, 44),
-      new THREE.MeshStandardMaterial({ color: 0x454d5e, roughness: 0.85, metalness: 0.05, side: THREE.BackSide }),
-    );
-    walls.position.y = 9.3; // repose sur le sol (sol à -1.7, hauteur 22)
-    arena.add(walls);
+    // Murs bas et ouverts sur le ciel (pas de plafond), avec un liseré
+    // lumineux en crête pour délimiter proprement l'aire de jeu.
+    const wallMat = new THREE.MeshStandardMaterial({
+      map: makeWallTexture(),
+      roughness: 0.9,
+      metalness: 0.05,
+      side: THREE.DoubleSide,
+    });
+    const WALL_HEIGHT = 7;
+    const WALL_HALF = 24;
+    const wallY = FLOOR_Y + WALL_HEIGHT / 2;
+    const wallPlacements = [
+      { pos: [0, wallY, -WALL_HALF], rot: 0 },
+      { pos: [0, wallY, WALL_HALF], rot: Math.PI },
+      { pos: [-WALL_HALF, wallY, 0], rot: Math.PI / 2 },
+      { pos: [WALL_HALF, wallY, 0], rot: -Math.PI / 2 },
+    ];
+    wallPlacements.forEach(({ pos, rot }) => {
+      const wall = new THREE.Mesh(new THREE.PlaneGeometry(WALL_HALF * 2, WALL_HEIGHT), wallMat);
+      wall.position.set(...pos);
+      wall.rotation.y = rot;
+      arena.add(wall);
 
-    // Bandeaux lumineux sur le mur du fond : donne de la profondeur et une
-    // vraie identité visuelle plutôt qu'un fond noir plat.
-    [-6.5, 0, 6.5].forEach((x, i) => {
+      const crest = new THREE.Mesh(
+        new THREE.PlaneGeometry(WALL_HALF * 2, 0.22),
+        new THREE.MeshBasicMaterial({ color: 0xff4655, transparent: true, opacity: 0.55, side: THREE.DoubleSide }),
+      );
+      crest.position.set(pos[0], FLOOR_Y + WALL_HEIGHT - 0.15, pos[2]);
+      crest.rotation.y = rot;
+      arena.add(crest);
+    });
+
+    // Bandeaux lumineux verticaux sur le mur du fond : repères de profondeur.
+    [-8, 0, 8].forEach((x, i) => {
       const strip = new THREE.Mesh(
-        new THREE.PlaneGeometry(0.35, 13),
+        new THREE.PlaneGeometry(0.3, WALL_HEIGHT * 0.8),
         new THREE.MeshBasicMaterial({
-          color: i === 1 ? 0xff4655 : 0x3a4358,
+          color: i === 1 ? 0xff4655 : 0x9fb4ff,
           transparent: true,
-          opacity: i === 1 ? 0.55 : 0.32,
+          opacity: i === 1 ? 0.6 : 0.35,
         }),
       );
-      strip.position.set(x, 2.5, -17.8);
+      strip.position.set(x, FLOOR_Y + WALL_HEIGHT * 0.45, -WALL_HALF + 0.05);
       arena.add(strip);
     });
 
@@ -190,7 +409,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const targets = [];
     for (let i = 0; i < config.targetCount; i += 1) {
       const mesh = new THREE.Mesh(targetGeo, targetMat);
-      mesh.position.copy(randomTargetPosition(config.spread));
+      mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
       mesh.scale.setScalar(config.targetSize);
       scene.add(mesh);
       targets.push({ mesh, spawnedAt: performance.now(), poppedAt: performance.now() });
@@ -412,7 +631,7 @@ function AimTrainerGame({ config: rawConfig }) {
       if (hitMesh) {
         const entry = targets.find((tgt) => tgt.mesh === hitMesh);
         const reactionMs = performance.now() - entry.spawnedAt;
-        entry.mesh.position.copy(randomTargetPosition(configRef.current.spread));
+        entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
         entry.spawnedAt = performance.now();
         entry.poppedAt = performance.now();
         setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
@@ -433,6 +652,10 @@ function AimTrainerGame({ config: rawConfig }) {
   useEffect(() => {
     if (phase !== 'running') return undefined;
     if (timeLeft <= 0) {
+      // Marqué AVANT de relâcher la souris : sinon l'événement
+      // `pointerlockchange` qui suit voit encore la phase "running" (React
+      // n'a pas re-rendu) et bascule à tort en pause, masquant le résumé.
+      stateRef.current.sessionEnded = true;
       setPhase('done');
       document.exitPointerLock?.();
       return undefined;
@@ -446,8 +669,10 @@ function AimTrainerGame({ config: rawConfig }) {
       const isLocked = !!document.pointerLockElement;
       setLocked(isLocked);
       // Sortie du verrouillage (Échap) pendant une session : on met en pause
-      // plutôt que de laisser le chrono tourner dans le vide.
-      if (!isLocked && phaseRef.current === 'running') setPhase('paused');
+      // plutôt que de laisser le chrono tourner dans le vide. En fin de
+      // session, c'est le code lui-même qui relâche la souris : on ne doit
+      // pas repasser en pause par-dessus le résumé.
+      if (!isLocked && phaseRef.current === 'running' && !stateRef.current.sessionEnded) setPhase('paused');
     };
     document.addEventListener('pointerlockchange', handleLockChange);
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
@@ -456,9 +681,10 @@ function AimTrainerGame({ config: rawConfig }) {
   const startSession = () => {
     setStats({ hits: 0, misses: 0, times: [] });
     setTimeLeft(config.duration);
+    stateRef.current.sessionEnded = false;
     const now = performance.now();
     stateRef.current.targets?.forEach((entry) => {
-      entry.mesh.position.copy(randomTargetPosition(config.spread));
+      entry.mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
       entry.spawnedAt = now;
       entry.poppedAt = now;
     });
