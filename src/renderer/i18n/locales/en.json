@@ -337,7 +337,23 @@
     "progressNotEnough": "Play at least two sessions on this mode to see your curve.",
     "progressMeta": "last {{count}} sessions · best {{best}} · latest {{last}}",
     "friendsTitle": "👥 Friends leaderboard",
-    "friendsEmpty": "No scores on this mode among your friends yet."
+    "friendsEmpty": "No scores on this mode among your friends yet.",
+    "topbarTitle": "Open the Aim Trainer",
+    "howtoTitle": "🎮 How it works",
+    "howtoIntro": "Real aim training, calibrated to your Valorant sensitivity. Nothing to install — it runs in a dedicated window.",
+    "howtoStep1Title": "Enter your sensitivity",
+    "howtoStep1Text": "Your DPI and in-game sensitivity, exactly as in Valorant — aiming will feel identical.",
+    "howtoStep2Title": "Pick a mode",
+    "howtoStep2Text": "Flick for snap aim, Tracking for follow, Micro for fine precision… six in total.",
+    "howtoStep3Title": "Start the session",
+    "howtoStep3Text": "A fullscreen window opens and captures your mouse: aim and click the targets.",
+    "howtoStep4Title": "Track your progress",
+    "howtoStep4Text": "Score, records, day streak and real impact on your ranked matches.",
+    "controlMouse": "Mouse",
+    "controlAim": "aim",
+    "controlClick": "Left click",
+    "controlShoot": "shoot",
+    "controlPause": "pause"
   },
   "puzzle": {
     "options": {

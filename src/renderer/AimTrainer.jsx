@@ -102,6 +102,43 @@ function AimTrainer({ myId, matches, settings }) {
 
   return (
     <div>
+      {/* --- Comment ça marche --------------------------------------------- */}
+      <div className="card aim-howto-card">
+        <div className="aim-howto-head">
+          <div>
+            <h3>{t('aimTrainer.howtoTitle')}</h3>
+            <p className="label">{t('aimTrainer.howtoIntro')}</p>
+          </div>
+          <button className="refresh aim-howto-cta" onClick={() => launch()}>
+            {t('aimTrainer.launch')}
+          </button>
+        </div>
+
+        <div className="aim-howto-steps">
+          {[1, 2, 3, 4].map((n) => (
+            <div key={n} className="aim-howto-step">
+              <span className="aim-howto-num">{n}</span>
+              <div>
+                <strong>{t(`aimTrainer.howtoStep${n}Title`)}</strong>
+                <span className="label">{t(`aimTrainer.howtoStep${n}Text`)}</span>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="aim-controls">
+          <span className="aim-control">
+            <kbd>{t('aimTrainer.controlMouse')}</kbd> {t('aimTrainer.controlAim')}
+          </span>
+          <span className="aim-control">
+            <kbd>{t('aimTrainer.controlClick')}</kbd> {t('aimTrainer.controlShoot')}
+          </span>
+          <span className="aim-control">
+            <kbd>Échap</kbd> {t('aimTrainer.controlPause')}
+          </span>
+        </div>
+      </div>
+
       {/* --- Défi du jour + série ------------------------------------------ */}
       <div className="aim-top-row">
         <div className="card aim-challenge-card">

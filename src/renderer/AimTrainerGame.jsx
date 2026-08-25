@@ -884,6 +884,18 @@ function AimTrainerGame({ config: rawConfig }) {
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
                 {config.challengeDate && <p className="aim-game-tip">🏆 Défi du jour — score comptabilisé au classement</p>}
+
+                <div className="aim-game-controls">
+                  <span>
+                    <kbd>Souris</kbd> viser
+                  </span>
+                  <span>
+                    <kbd>Clic gauche</kbd> tirer
+                  </span>
+                  <span>
+                    <kbd>Échap</kbd> pause
+                  </span>
+                </div>
                 <button className="refresh aim-game-cta" onClick={startSession}>
                   ▶️ Démarrer
                 </button>

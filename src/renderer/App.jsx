@@ -746,6 +746,17 @@ function App() {
             <h2>{currentTabMeta?.labelKey ? t(currentTabMeta.labelKey) : ''}</h2>
           </div>
           <SearchBar initialSettings={settings} onSearch={setSettings} />
+          {/* Raccourci toujours visible : l'Aim Trainer était perdu au fond du
+              menu de gauche alors que c'est une fonctionnalité à lancer
+              souvent, idéalement avant chaque session de jeu. */}
+          <button
+            className={activeTab === 'aim-trainer' ? 'aim-topbar-button active' : 'aim-topbar-button'}
+            title={t('aimTrainer.topbarTitle')}
+            onClick={() => setActiveTab('aim-trainer')}
+          >
+            <span className="aim-topbar-icon">🎯</span>
+            <span>{t('nav.tabs.aimTrainer')}</span>
+          </button>
           <button onClick={data.refresh} disabled={data.loading} className="refresh">
             {data.loading ? t('nav.loading') : t('nav.refresh')}
           </button>

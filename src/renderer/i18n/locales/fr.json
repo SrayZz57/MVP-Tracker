@@ -337,7 +337,23 @@
     "progressNotEnough": "Joue au moins deux séances sur ce mode pour voir ta courbe.",
     "progressMeta": "{{count}} dernières séances · record {{best}} · dernière {{last}}",
     "friendsTitle": "👥 Classement entre amis",
-    "friendsEmpty": "Aucun score sur ce mode parmi tes amis pour l'instant."
+    "friendsEmpty": "Aucun score sur ce mode parmi tes amis pour l'instant.",
+    "topbarTitle": "Ouvrir l'Aim Trainer",
+    "howtoTitle": "🎮 Comment ça marche",
+    "howtoIntro": "Un vrai entraînement de visée, calibré sur ta sensibilité Valorant. Aucune installation, ça se joue dans une fenêtre dédiée.",
+    "howtoStep1Title": "Renseigne ta sensibilité",
+    "howtoStep1Text": "Tes DPI et ta sensibilité in-game, exactement comme dans Valorant — la visée sera identique.",
+    "howtoStep2Title": "Choisis un mode",
+    "howtoStep2Text": "Flick pour la visée sèche, Tracking pour le suivi, Micro pour la précision… six au total.",
+    "howtoStep3Title": "Lance la session",
+    "howtoStep3Text": "Une fenêtre plein écran s'ouvre, ta souris est capturée : vise et clique les cibles.",
+    "howtoStep4Title": "Suis ta progression",
+    "howtoStep4Text": "Score, records, série de jours et impact réel sur tes parties classées.",
+    "controlMouse": "Souris",
+    "controlAim": "viser",
+    "controlClick": "Clic gauche",
+    "controlShoot": "tirer",
+    "controlPause": "mettre en pause"
   },
   "puzzle": {
     "options": {

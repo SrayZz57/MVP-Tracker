@@ -1963,6 +1963,136 @@ li {
   flex-wrap: wrap;
 }
 
+/* --- Aim Trainer : raccourci topbar + mode d'emploi ----------------------- */
+.aim-topbar-button {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  height: 42px;
+  padding: 0 0.9rem;
+  border-radius: 12px;
+  border: 1.5px solid var(--border);
+  background: var(--surface-alt);
+  font-weight: 600;
+  font-size: 0.86rem;
+  transition: border-color 0.2s var(--ease), box-shadow 0.2s var(--ease), background 0.2s var(--ease);
+}
+
+.aim-topbar-button:hover,
+.aim-topbar-button.active {
+  border-color: var(--accent);
+  background: rgba(255, 70, 85, 0.12);
+  box-shadow: 0 0 12px rgba(255, 70, 85, 0.28);
+}
+
+.aim-topbar-icon {
+  font-size: 1.05rem;
+}
+
+.aim-howto-card {
+  background: linear-gradient(150deg, rgba(255, 70, 85, 0.1), var(--surface) 45%, #12151d);
+  border-color: rgba(255, 70, 85, 0.28);
+}
+
+.aim-howto-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1.25rem;
+  flex-wrap: wrap;
+}
+
+.aim-howto-head h3 {
+  margin-bottom: 0.2rem;
+}
+
+.aim-howto-cta {
+  flex-shrink: 0;
+  font-size: 1rem;
+  padding: 0.75rem 1.5rem;
+}
+
+.aim-howto-steps {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 1rem;
+  margin: 1.25rem 0 1rem;
+}
+
+.aim-howto-step {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.7rem;
+}
+
+.aim-howto-step > div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.aim-howto-step strong {
+  font-size: 0.92rem;
+}
+
+.aim-howto-step .label {
+  line-height: 1.4;
+}
+
+.aim-howto-num {
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 0.82rem;
+  color: var(--accent);
+  background: rgba(255, 70, 85, 0.16);
+  border: 1px solid rgba(255, 70, 85, 0.35);
+}
+
+.aim-controls,
+.aim-game-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1.1rem;
+  padding-top: 0.9rem;
+  border-top: 1px solid var(--border);
+  font-size: 0.82rem;
+  color: var(--text-dim);
+}
+
+.aim-game-controls {
+  justify-content: center;
+  border-top: none;
+  padding-top: 0.2rem;
+}
+
+.aim-control,
+.aim-game-controls span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.aim-controls kbd,
+.aim-game-controls kbd {
+  padding: 0.2rem 0.5rem;
+  border-radius: 6px;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  font-family: inherit;
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text);
+}
+
 /* --- Aim Trainer : défi du jour, série, impact, classements --------------- */
 .aim-top-row {
   display: grid;
