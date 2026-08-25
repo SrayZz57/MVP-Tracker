@@ -1963,6 +1963,104 @@ li {
   flex-wrap: wrap;
 }
 
+.aim-trainer-setting {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.aim-trainer-setting input {
+  width: 100px;
+}
+
+.aim-trainer-stage-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.aim-trainer-canvas {
+  position: relative;
+  width: 100%;
+  height: 60vh;
+  min-height: 420px;
+  cursor: crosshair;
+}
+
+.aim-trainer-canvas canvas {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.aim-trainer-crosshair {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 14px;
+  height: 14px;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+}
+
+.aim-trainer-crosshair::before,
+.aim-trainer-crosshair::after {
+  content: '';
+  position: absolute;
+  background: var(--accent);
+  box-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+}
+
+.aim-trainer-crosshair::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.aim-trainer-crosshair::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
+.aim-trainer-hud {
+  position: absolute;
+  top: 1rem;
+  left: 1rem;
+  right: 1rem;
+  display: flex;
+  justify-content: space-between;
+  font-family: 'Chakra Petch', sans-serif;
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #fff;
+  text-shadow: 0 2px 6px rgba(0, 0, 0, 0.8);
+  pointer-events: none;
+}
+
+.aim-trainer-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  background: rgba(8, 10, 14, 0.7);
+  text-align: center;
+  padding: 1.5rem;
+}
+
+.aim-trainer-results {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
 .crosshair-grid {
   display: flex;
   flex-wrap: wrap;

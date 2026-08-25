@@ -20,6 +20,7 @@
       "myCollection": "My collection",
       "network": "Network",
       "session": "Guided session",
+      "aimTrainer": "Aim Trainer",
       "puzzle": "Daily puzzle",
       "bets": "Self bets",
       "crosshairs": "Crosshairs",
@@ -275,6 +276,24 @@
     "objectiveWithMap_other": "{{count}} matches on {{map}}, aim for {{hsTarget}}%+ headshot accuracy",
     "objectiveNoMap_one": "{{count}} match, aim for {{hsTarget}}%+ headshot accuracy",
     "objectiveNoMap_other": "{{count}} matches, aim for {{hsTarget}}%+ headshot accuracy"
+  },
+  "aimTrainer": {
+    "title": "🎯 Aim Trainer",
+    "hint": "A 3D \"flick\" mode calibrated to your real Valorant sensitivity — aim and click targets as fast as possible.",
+    "dpiLabel": "Mouse DPI",
+    "sensLabel": "In-game sensitivity",
+    "start": "▶️ Start (30s)",
+    "restart": "🔄 Restart",
+    "accuracyNote": "For an accurate feel, turn off \"Enhance pointer precision\" in your Windows mouse settings — same as for Valorant in-game.",
+    "readyHint": "Click \"Start\" to capture your mouse and begin the session.",
+    "clickToResume": "Pointer released (Esc) — session paused.",
+    "resume": "Resume",
+    "timeLeft": "⏱️ {{seconds}}s",
+    "hitsCount": "🎯 {{count}}",
+    "resultsTitle": "Results",
+    "hits": "Targets hit",
+    "accuracy": "Accuracy",
+    "avgReaction": "Average reaction"
   },
   "puzzle": {
     "options": {

@@ -18,6 +18,7 @@ import TeammatesRivalsTab from './tabs/TeammatesRivalsTab.jsx';
 import BuySimulatorTab from './tabs/BuySimulatorTab.jsx';
 import BetsTab from './tabs/BetsTab.jsx';
 import SessionGuideTab from './tabs/SessionGuideTab.jsx';
+import AimTrainerTab from './tabs/AimTrainerTab.jsx';
 import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
 import WikiTab from './tabs/WikiTab.jsx';
 import GoalsWidget from './GoalsWidget.jsx';
@@ -69,6 +70,7 @@ const NAV_SECTIONS = [
     sectionKey: 'nav.sections.training',
     tabs: [
       { id: 'session', labelKey: 'nav.tabs.session', icon: '🎬' },
+      { id: 'aim-trainer', labelKey: 'nav.tabs.aimTrainer', icon: '🎯' },
       { id: 'puzzle', labelKey: 'nav.tabs.puzzle', icon: '🎲' },
       { id: 'bets', labelKey: 'nav.tabs.bets', icon: '🎰' },
     ],
@@ -606,6 +608,8 @@ function App() {
         return <BetsTab settings={mySettings} matches={myMatches} />;
       case 'session':
         return <SessionGuideTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
+      case 'aim-trainer':
+        return <AimTrainerTab />;
       case 'puzzle':
         return <DailyPuzzleTab settings={mySettings} matches={myMatches} />;
       case 'wiki':
