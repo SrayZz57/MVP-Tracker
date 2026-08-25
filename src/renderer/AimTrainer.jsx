@@ -1,6 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import * as THREE from 'three';
+import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
+import fpsRifleHandsUrl from '../assets/models/fps-rifle-hands.glb';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -14,8 +16,6 @@ const SPAWN_DISTANCE = 8;
 const SPAWN_HALF_ANGLE_DEG = 28; // étendue où les cibles peuvent apparaître, autour du centre
 const TRACER_LIFETIME_MS = 90;
 const MUZZLE_FLASH_LIFETIME_MS = 55;
-const RECOIL_KICK = 1;
-const RECOIL_DECAY_PER_MS = 0.006; // vitesse à laquelle le recul retombe
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -56,89 +56,6 @@ function makeGlowTexture(color) {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Silhouette latérale d'un pistolet (crosse, pontet, glissière, canon),
-// extrudée pour donner du volume — beaucoup plus lisible comme "vraie arme"
-// qu'un empilement de boîtes. X = longueur (0 = arrière de la crosse, vers
-// l'avant = le canon), Y = hauteur.
-function buildPistolShape() {
-  const shape = new THREE.Shape();
-  shape.moveTo(0, -0.02);
-  shape.lineTo(0, -0.27); // arrière de la crosse
-  shape.lineTo(0.1, -0.27); // bas de la crosse
-  shape.lineTo(0.1, -0.11);
-  shape.lineTo(0.15, -0.11); // avant du pontet
-  shape.quadraticCurveTo(0.2, -0.16, 0.15, -0.19); // renflement du pontet (détente)
-  shape.lineTo(0.21, -0.19);
-  shape.lineTo(0.21, -0.07); // remonte vers le bas de la glissière
-  shape.lineTo(0.56, -0.045); // vers le bout du canon
-  shape.lineTo(0.56, 0.045); // bout du canon
-  shape.lineTo(0.21, 0.065); // dessous de la glissière vers l'arrière
-  shape.lineTo(0.21, 0.115); // haut de la glissière
-  shape.lineTo(0.09, 0.12);
-  shape.quadraticCurveTo(0.03, 0.11, 0.02, 0.08); // chute vers le chien
-  shape.lineTo(0, 0.015);
-  shape.closePath();
-  return shape;
-}
-
-// Arme + main — formes géométriques mais organiques (extrusion profilée pour
-// l'arme, capsules arrondies pour la main) plutôt que des boîtes brutes, vue
-// à la première personne, accrochées à la caméra pour suivre le visé.
-function buildWeaponRig() {
-  const group = new THREE.Group();
-
-  const gunMat = new THREE.MeshStandardMaterial({ color: 0x1a1d23, metalness: 0.75, roughness: 0.3, side: THREE.DoubleSide });
-  const skinMat = new THREE.MeshStandardMaterial({ color: 0xd9a066, roughness: 0.75 });
-
-  const pistolGeo = new THREE.ExtrudeGeometry(buildPistolShape(), {
-    depth: 0.1,
-    bevelEnabled: true,
-    bevelThickness: 0.008,
-    bevelSize: 0.008,
-    bevelSegments: 2,
-    curveSegments: 8,
-  });
-  pistolGeo.rotateY(Math.PI / 2); // longueur (shape X) -> -Z (vers l'avant), épaisseur (extrude Z) -> X
-  const pistol = new THREE.Mesh(pistolGeo, gunMat);
-  group.add(pistol);
-
-  // Main : paume arrondie + doigts qui enroulent la crosse, en capsules
-  // plutôt qu'en boîtes pour un rendu bien plus organique.
-  const palm = new THREE.Mesh(new THREE.CapsuleGeometry(0.075, 0.1, 4, 10), skinMat);
-  palm.position.set(0.03, -0.16, 0.18);
-  palm.rotation.set(1.3, 0.15, 0.25);
-  palm.scale.set(1, 1, 0.8);
-  group.add(palm);
-
-  const fingerPositions = [
-    { y: -0.06, z: 0.08, rot: -0.35 },
-    { y: -0.1, z: 0.09, rot: -0.3 },
-    { y: -0.14, z: 0.09, rot: -0.25 },
-    { y: -0.18, z: 0.08, rot: -0.2 },
-  ];
-  fingerPositions.forEach(({ y, z, rot }, i) => {
-    const finger = new THREE.Mesh(new THREE.CapsuleGeometry(0.017, 0.09, 4, 8), skinMat);
-    finger.position.set(0.11, y, z - i * 0.005);
-    finger.rotation.z = Math.PI / 2 + rot;
-    finger.rotation.x = 0.15;
-    group.add(finger);
-  });
-
-  const thumb = new THREE.Mesh(new THREE.CapsuleGeometry(0.02, 0.07, 4, 8), skinMat);
-  thumb.position.set(0.05, 0.02, 0.14);
-  thumb.rotation.set(0, 0.9, 1.3);
-  group.add(thumb);
-
-  const muzzleTip = new THREE.Object3D();
-  muzzleTip.position.set(0, 0.02, -0.62);
-  group.add(muzzleTip);
-
-  group.position.set(0.28, -0.28, -0.55);
-  group.rotation.y = -0.05;
-
-  return { group, muzzleTip };
-}
-
 function AimTrainer() {
   const { t } = useTranslation();
   const mountRef = useRef(null);
@@ -173,10 +90,13 @@ function AimTrainer() {
     renderer.setSize(mount.clientWidth, mount.clientHeight);
     mount.appendChild(renderer.domElement);
 
-    scene.add(new THREE.AmbientLight(0xffffff, 0.6));
-    const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+    scene.add(new THREE.AmbientLight(0xffffff, 0.7));
+    const dirLight = new THREE.DirectionalLight(0xffffff, 0.9);
     dirLight.position.set(3, 6, 4);
     scene.add(dirLight);
+    const fillLight = new THREE.DirectionalLight(0xffffff, 0.35);
+    fillLight.position.set(-2, 1, -2);
+    camera.add(fillLight); // éclaire l'arme quel que soit l'endroit visé
 
     // Petite salle simple : sol quadrillé + murs sombres, juste assez de 3D
     // pour donner un vrai repère de profondeur sans distraire des cibles.
@@ -193,13 +113,13 @@ function AimTrainer() {
     target.position.copy(randomTargetPosition());
     scene.add(target);
 
-    // Arme + main, accrochées à la caméra.
-    const { group: weapon, muzzleTip } = buildWeaponRig();
-    camera.add(weapon);
-    const weaponRestPosition = weapon.position.clone();
-    const weaponRestRotation = weapon.rotation.clone();
+    // Point d'origine du canon pour le flash/la traînée de balle — accroché
+    // directement à la caméra (pas au modèle chargé) pour rester fiable même
+    // si le modèle a une échelle/un pivot différent de ce qu'on attend.
+    const muzzleTip = new THREE.Object3D();
+    muzzleTip.position.set(0.18, -0.16, -0.35);
+    camera.add(muzzleTip);
 
-    // Flash de tir : un sprite lumineux au bout du canon, invisible par défaut.
     const flashTexture = makeGlowTexture('rgba(255, 200, 80, 0.95)');
     const flashMaterial = new THREE.SpriteMaterial({
       map: flashTexture,
@@ -226,17 +146,33 @@ function AimTrainer() {
       raycaster,
       center,
       spawnedAt: performance.now(),
-      weapon,
-      weaponRestPosition,
-      weaponRestRotation,
       muzzleTip,
       muzzleFlash,
       impactTexture,
-      recoil: 0,
+      mixer: null,
+      fireAction: null,
       lastFrameTime: performance.now(),
       tracers: [],
       flashUntil: 0,
     };
+
+    // Modèle réel (mains + arme + animation de tir), chargement asynchrone —
+    // CC0, voir src/assets/models/CREDITS.md pour la provenance.
+    new GLTFLoader().load(fpsRifleHandsUrl, (gltf) => {
+      const model = gltf.scene;
+      model.position.set(0.15, -0.35, -0.5);
+      camera.add(model);
+
+      if (gltf.animations?.length > 0) {
+        const mixer = new THREE.AnimationMixer(model);
+        const fireClip = THREE.AnimationClip.findByName(gltf.animations, 'fire') ?? gltf.animations[0];
+        const fireAction = mixer.clipAction(fireClip);
+        fireAction.setLoop(THREE.LoopOnce);
+        fireAction.clampWhenFinished = true;
+        stateRef.current.mixer = mixer;
+        stateRef.current.fireAction = fireAction;
+      }
+    });
 
     let frameId;
     const animate = () => {
@@ -245,18 +181,7 @@ function AimTrainer() {
       const dt = now - state.lastFrameTime;
       state.lastFrameTime = now;
 
-      // Retombée du recul : l'arme revient doucement à sa position de repos.
-      if (state.recoil > 0) {
-        state.recoil = Math.max(0, state.recoil - dt * RECOIL_DECAY_PER_MS);
-        const kick = state.recoil;
-        weapon.position.set(
-          weaponRestPosition.x,
-          weaponRestPosition.y + kick * 0.06,
-          weaponRestPosition.z + kick * 0.12,
-        );
-        weapon.rotation.set(weaponRestRotation.x - kick * 0.25, weaponRestRotation.y, weaponRestRotation.z);
-      }
-
+      state.mixer?.update(dt / 1000);
       muzzleFlash.material.opacity = now < state.flashUntil ? 1 : 0;
 
       // Traînées de balle : durée de vie très courte, fondu puis suppression.
@@ -332,9 +257,12 @@ function AimTrainer() {
       scene.add(tracerMesh);
       state.tracers.push({ mesh: tracerMesh, createdAt: performance.now() });
 
-      // Flash au canon + recul de l'arme.
+      // Flash au canon + vraie animation de tir du modèle (recul inclus).
       state.flashUntil = performance.now() + MUZZLE_FLASH_LIFETIME_MS;
-      state.recoil = RECOIL_KICK;
+      if (state.fireAction) {
+        state.fireAction.stop();
+        state.fireAction.play();
+      }
 
       if (hit) {
         // Petite étincelle d'impact sur la cible touchée.
@@ -398,18 +326,19 @@ function AimTrainer() {
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
   }, [phase]);
 
-  const handleStart = async () => {
+  const handleStart = () => {
     setStats({ hits: 0, misses: 0, times: [] });
     setTimeLeft(SESSION_SECONDS);
     if (stateRef.current.target) {
       stateRef.current.target.position.copy(randomTargetPosition());
       stateRef.current.spawnedAt = performance.now();
     }
-    const mount = mountRef.current;
-    // Vrai plein écran de la fenêtre (pas l'API navigateur, qui ne redimensionne
-    // pas fiablement le canvas dans Electron) — comme un vrai jeu.
-    await window.electronAPI.setFullScreen(true);
-    mount?.querySelector('canvas')?.requestPointerLock();
+    // Le verrouillage du pointeur doit être demandé de façon synchrone, dans
+    // la foulée immédiate du clic (exigence de sécurité de Chromium) — un
+    // `await` avant cet appel le fait échouer silencieusement. Le plein
+    // écran, lui, peut partir en tâche de fond sans bloquer.
+    window.electronAPI.setFullScreen(true);
+    mountRef.current?.querySelector('canvas')?.requestPointerLock();
     setPhase('running');
   };
 
