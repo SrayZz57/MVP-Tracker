@@ -26,6 +26,16 @@ export const DEFAULT_CONFIG = {
   showWeapon: true,
 };
 
+// Les FPS (Valorant inclus) expriment le champ de vision à l'HORIZONTALE,
+// alors que la caméra de Three.js attend une valeur VERTICALE. Passer 103
+// directement donnait un FOV horizontal d'environ 140° en 16:9 : image
+// déformée sur les bords et sensation de visée faussée. On convertit donc,
+// en tenant compte du ratio réel de la fenêtre.
+function horizontalToVerticalFov(hFovDeg, aspect) {
+  const hFovRad = hFovDeg * DEG_TO_RAD;
+  return (2 * Math.atan(Math.tan(hFovRad / 2) / aspect)) / DEG_TO_RAD;
+}
+
 function randomTargetPosition(spreadDeg) {
   // Cible tirée dans un cône devant la caméra, pas juste sur un plan plat —
   // donne une vraie sensation "sphère de tir" plutôt qu'une grille figée.
@@ -78,7 +88,13 @@ function AimTrainerGame({ config: rawConfig }) {
     scene.background = new THREE.Color(0x2a3140);
     scene.fog = new THREE.FogExp2(0x2a3140, 0.012);
 
-    const camera = new THREE.PerspectiveCamera(config.fov, mount.clientWidth / mount.clientHeight, 0.05, 200);
+    const initialAspect = window.innerWidth / window.innerHeight;
+    const camera = new THREE.PerspectiveCamera(
+      horizontalToVerticalFov(config.fov, initialAspect),
+      initialAspect,
+      0.05,
+      200,
+    );
     const euler = new THREE.Euler(0, 0, 0, 'YXZ');
     scene.add(camera); // nécessaire pour que les enfants de la caméra (l'arme) soient rendus
 
@@ -127,11 +143,14 @@ function AimTrainerGame({ config: rawConfig }) {
       new THREE.MeshStandardMaterial({ color: 0x39404f, roughness: 0.7, metalness: 0.1 }),
     );
     floor.rotation.x = -Math.PI / 2;
-    floor.position.y = -4;
+    // La caméra est à hauteur 0 : un sol à -1.7 place le regard à environ
+    // 1,70 m, l'échelle d'un vrai FPS (à -4, on avait l'impression de
+    // survoler l'arène, ce qui fausse la perception des distances).
+    floor.position.y = -1.7;
     arena.add(floor);
 
     const grid = new THREE.GridHelper(60, 60, 0xff6b78, 0x5c6478);
-    grid.position.y = -3.99;
+    grid.position.y = -1.69;
     grid.material.opacity = 0.5;
     grid.material.transparent = true;
     arena.add(grid);
@@ -140,7 +159,7 @@ function AimTrainerGame({ config: rawConfig }) {
       new THREE.BoxGeometry(44, 22, 44),
       new THREE.MeshStandardMaterial({ color: 0x454d5e, roughness: 0.85, metalness: 0.05, side: THREE.BackSide }),
     );
-    walls.position.y = 7;
+    walls.position.y = 9.3; // repose sur le sol (sol à -1.7, hauteur 22)
     arena.add(walls);
 
     // Bandeaux lumineux sur le mur du fond : donne de la profondeur et une
@@ -312,7 +331,11 @@ function AimTrainerGame({ config: rawConfig }) {
     animate();
 
     const handleResize = () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
+      const aspect = window.innerWidth / window.innerHeight;
+      camera.aspect = aspect;
+      // Le FOV vertical dépend du ratio : il doit être recalculé à chaque
+      // redimensionnement pour que le FOV horizontal reste celui demandé.
+      camera.fov = horizontalToVerticalFov(configRef.current.fov, aspect);
       camera.updateProjectionMatrix();
       renderer.setSize(window.innerWidth, window.innerHeight);
     };
@@ -453,7 +476,16 @@ function AimTrainerGame({ config: rawConfig }) {
   const total = stats.hits + stats.misses;
   const accuracy = total > 0 ? (stats.hits / total) * 100 : null;
   const avgReaction = stats.times.length > 0 ? stats.times.reduce((a, b) => a + b, 0) / stats.times.length : null;
+  const bestReaction = stats.times.length > 0 ? Math.min(...stats.times) : null;
   const hitsPerSecond = config.duration > 0 ? stats.hits / config.duration : 0;
+
+  // Note globale simple et lisible : la précision compte le plus, la vitesse
+  // de réaction module le reste. Sert de repère de progression d'une session
+  // à l'autre, pas de classement absolu.
+  const score =
+    accuracy === null || avgReaction === null
+      ? null
+      : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3);
 
   return (
     <div className="aim-game">
@@ -508,26 +540,57 @@ function AimTrainerGame({ config: rawConfig }) {
             {phase === 'done' && (
               <>
                 <h1>Session terminée</h1>
+
+                {score !== null && (
+                  <div className="aim-game-score">
+                    <span className="aim-game-score-value">{score}</span>
+                    <span className="aim-game-score-label">Score global</span>
+                  </div>
+                )}
+
                 <div className="aim-game-results">
                   <div className="aim-game-result">
-                    <span className="aim-game-result-value">{stats.hits}</span>
-                    <span className="aim-game-result-label">Cibles touchées</span>
-                  </div>
-                  <div className="aim-game-result">
-                    <span className="aim-game-result-value">{accuracy === null ? '—' : `${accuracy.toFixed(0)}%`}</span>
+                    <span className="aim-game-result-value">{accuracy === null ? '—' : `${accuracy.toFixed(1)}%`}</span>
                     <span className="aim-game-result-label">Précision</span>
                   </div>
                   <div className="aim-game-result">
-                    <span className="aim-game-result-value">
-                      {avgReaction === null ? '—' : `${avgReaction.toFixed(0)}`}
-                    </span>
-                    <span className="aim-game-result-label">Réaction moy. (ms)</span>
+                    <span className="aim-game-result-value aim-game-result-hit">{stats.hits}</span>
+                    <span className="aim-game-result-label">Touchées</span>
                   </div>
                   <div className="aim-game-result">
-                    <span className="aim-game-result-value">{hitsPerSecond.toFixed(1)}</span>
+                    <span className="aim-game-result-value aim-game-result-miss">{stats.misses}</span>
+                    <span className="aim-game-result-label">Ratées</span>
+                  </div>
+                  <div className="aim-game-result">
+                    <span className="aim-game-result-value">{total}</span>
+                    <span className="aim-game-result-label">Tirs au total</span>
+                  </div>
+                  <div className="aim-game-result">
+                    <span className="aim-game-result-value">
+                      {avgReaction === null ? '—' : `${avgReaction.toFixed(0)} ms`}
+                    </span>
+                    <span className="aim-game-result-label">Réaction moyenne</span>
+                  </div>
+                  <div className="aim-game-result">
+                    <span className="aim-game-result-value">
+                      {bestReaction === null ? '—' : `${bestReaction.toFixed(0)} ms`}
+                    </span>
+                    <span className="aim-game-result-label">Meilleure réaction</span>
+                  </div>
+                  <div className="aim-game-result">
+                    <span className="aim-game-result-value">{hitsPerSecond.toFixed(2)}</span>
                     <span className="aim-game-result-label">Cibles / seconde</span>
                   </div>
+                  <div className="aim-game-result">
+                    <span className="aim-game-result-value">{config.duration}s</span>
+                    <span className="aim-game-result-label">Durée</span>
+                  </div>
                 </div>
+
+                <p className="aim-game-tip">
+                  Sensibilité {config.sens} · {config.dpi} DPI · cibles {config.targetSize.toFixed(2)}
+                </p>
+
                 <button className="refresh aim-game-cta" onClick={startSession}>
                   🔄 Recommencer
                 </button>
