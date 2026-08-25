@@ -75,8 +75,8 @@ function AimTrainerGame({ config: rawConfig }) {
     if (!mount) return undefined;
 
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x0b0d12);
-    scene.fog = new THREE.FogExp2(0x0b0d12, 0.022);
+    scene.background = new THREE.Color(0x2a3140);
+    scene.fog = new THREE.FogExp2(0x2a3140, 0.012);
 
     const camera = new THREE.PerspectiveCamera(config.fov, mount.clientWidth / mount.clientHeight, 0.05, 200);
     const euler = new THREE.Euler(0, 0, 0, 'YXZ');
@@ -90,24 +90,32 @@ function AimTrainerGame({ config: rawConfig }) {
     renderer.toneMappingExposure = 1.15;
     mount.appendChild(renderer.domElement);
 
-    // --- Éclairage : ambiance froide + accents rouges façon Valorant --------
-    scene.add(new THREE.HemisphereLight(0x9fb4ff, 0x14161c, 0.55));
+    // --- Éclairage ----------------------------------------------------------
+    // Ciel/sol : donne une base lumineuse partout, sans zone totalement noire.
+    scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x3a4152, 1.5));
+    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
 
-    const keyLight = new THREE.DirectionalLight(0xffffff, 1.1);
-    keyLight.position.set(4, 9, 3);
-    scene.add(keyLight);
+    // "Soleil" principal, chaud et franc, avec sa lumière de contre-jour.
+    const sun = new THREE.DirectionalLight(0xfff2dc, 2.6);
+    sun.position.set(8, 16, 6);
+    scene.add(sun);
 
-    const accentLeft = new THREE.PointLight(0xff4655, 2.2, 34, 2);
-    accentLeft.position.set(-9, 2.5, -4);
+    const backLight = new THREE.DirectionalLight(0xa8c4ff, 0.9);
+    backLight.position.set(-6, 8, -10);
+    scene.add(backLight);
+
+    const accentLeft = new THREE.PointLight(0xff4655, 3.5, 40, 2);
+    accentLeft.position.set(-9, 3, -4);
     scene.add(accentLeft);
 
-    const accentRight = new THREE.PointLight(0x4ec9f5, 1.6, 34, 2);
-    accentRight.position.set(9, 2.5, -6);
+    const accentRight = new THREE.PointLight(0x4ec9f5, 2.6, 40, 2);
+    accentRight.position.set(9, 3, -6);
     scene.add(accentRight);
 
-    // Lumière attachée à la caméra : garde l'arme lisible où qu'on vise.
-    const weaponLight = new THREE.PointLight(0xffffff, 1.4, 4, 2);
-    weaponLight.position.set(0.3, -0.1, 0.2);
+    // Lumière attachée à la caméra : garde l'arme et les mains lisibles où
+    // qu'on vise, sans dépendre de l'orientation du soleil.
+    const weaponLight = new THREE.PointLight(0xffffff, 3, 5, 2);
+    weaponLight.position.set(0.35, 0.1, 0.3);
     camera.add(weaponLight);
 
     // --- Arène -------------------------------------------------------------
@@ -116,21 +124,21 @@ function AimTrainerGame({ config: rawConfig }) {
 
     const floor = new THREE.Mesh(
       new THREE.PlaneGeometry(60, 60),
-      new THREE.MeshStandardMaterial({ color: 0x161922, roughness: 0.75, metalness: 0.15 }),
+      new THREE.MeshStandardMaterial({ color: 0x39404f, roughness: 0.7, metalness: 0.1 }),
     );
     floor.rotation.x = -Math.PI / 2;
     floor.position.y = -4;
     arena.add(floor);
 
-    const grid = new THREE.GridHelper(60, 60, 0xff4655, 0x2a3040);
+    const grid = new THREE.GridHelper(60, 60, 0xff6b78, 0x5c6478);
     grid.position.y = -3.99;
-    grid.material.opacity = 0.32;
+    grid.material.opacity = 0.5;
     grid.material.transparent = true;
     arena.add(grid);
 
     const walls = new THREE.Mesh(
       new THREE.BoxGeometry(44, 22, 44),
-      new THREE.MeshStandardMaterial({ color: 0x1b1f29, roughness: 0.9, metalness: 0.05, side: THREE.BackSide }),
+      new THREE.MeshStandardMaterial({ color: 0x454d5e, roughness: 0.85, metalness: 0.05, side: THREE.BackSide }),
     );
     walls.position.y = 7;
     arena.add(walls);
@@ -225,7 +233,7 @@ function AimTrainerGame({ config: rawConfig }) {
         const size = new THREE.Vector3();
         box.getSize(size);
         const longestSide = Math.max(size.x, size.y, size.z) || 1;
-        model.scale.setScalar(0.55 / longestSide);
+        model.scale.setScalar(0.75 / longestSide);
 
         // Recentre le modèle sur son propre pivot avant de le placer, sinon
         // l'offset interne du fichier décale tout.
@@ -233,10 +241,14 @@ function AimTrainerGame({ config: rawConfig }) {
         new THREE.Box3().setFromObject(model).getCenter(center3);
         model.position.sub(center3);
 
+        // Le modèle est déjà orienté canon vers -Z (sa dimension dominante va
+        // de Z=-6.5 à Z=+2.7), c'est-à-dire dans la direction où regarde la
+        // caméra en Three.js — aucune rotation de retournement à appliquer.
+        // Un léger lacet/tangage suffit pour l'angle "viewmodel" classique.
         const holder = new THREE.Group();
         holder.add(model);
-        holder.position.set(0.26, -0.24, -0.6);
-        holder.rotation.set(0, Math.PI, 0); // face à la caméra, canon vers l'avant
+        holder.position.set(0.22, -0.2, -0.45);
+        holder.rotation.set(0.03, -0.06, 0);
         camera.add(holder);
 
         if (gltf.animations?.length > 0) {
