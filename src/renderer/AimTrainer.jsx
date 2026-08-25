@@ -12,6 +12,10 @@ const SESSION_SECONDS = 30;
 const TARGET_RADIUS = 0.45;
 const SPAWN_DISTANCE = 8;
 const SPAWN_HALF_ANGLE_DEG = 28; // étendue où les cibles peuvent apparaître, autour du centre
+const TRACER_LIFETIME_MS = 90;
+const MUZZLE_FLASH_LIFETIME_MS = 55;
+const RECOIL_KICK = 1;
+const RECOIL_DECAY_PER_MS = 0.006; // vitesse à laquelle le recul retombe
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -34,6 +38,64 @@ function randomTargetPosition() {
   const y = Math.sin(pitch) * SPAWN_DISTANCE;
   const z = -Math.cos(yaw) * Math.cos(pitch) * SPAWN_DISTANCE;
   return new THREE.Vector3(x, y, z);
+}
+
+// Texture radiale générée en canvas — sert pour le flash de tir et l'impact
+// de balle, sans dépendre d'une image externe.
+function makeGlowTexture(color) {
+  const size = 64;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  const gradient = ctx.createRadialGradient(size / 2, size / 2, 0, size / 2, size / 2, size / 2);
+  gradient.addColorStop(0, color);
+  gradient.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = gradient;
+  ctx.fillRect(0, 0, size, size);
+  return new THREE.CanvasTexture(canvas);
+}
+
+// Arme + main basiques (formes géométriques, pas de modèle externe) — vue à
+// la première personne, accrochées à la caméra pour suivre le visé.
+function buildWeaponRig() {
+  const group = new THREE.Group();
+
+  const metal = new THREE.MeshStandardMaterial({ color: 0x1c1f26, metalness: 0.7, roughness: 0.35 });
+  const darkMetal = new THREE.MeshStandardMaterial({ color: 0x0d0f13, metalness: 0.8, roughness: 0.3 });
+  const skin = new THREE.MeshStandardMaterial({ color: 0xd9a066, roughness: 0.85 });
+
+  const body = new THREE.Mesh(new THREE.BoxGeometry(0.12, 0.14, 0.55), metal);
+  group.add(body);
+
+  const barrel = new THREE.Mesh(new THREE.CylinderGeometry(0.022, 0.022, 0.32, 12), darkMetal);
+  barrel.rotation.x = Math.PI / 2;
+  barrel.position.set(0, 0.02, -0.45);
+  group.add(barrel);
+
+  const grip = new THREE.Mesh(new THREE.BoxGeometry(0.09, 0.22, 0.1), darkMetal);
+  grip.position.set(0, -0.15, 0.16);
+  grip.rotation.x = 0.35;
+  group.add(grip);
+
+  const mag = new THREE.Mesh(new THREE.BoxGeometry(0.07, 0.16, 0.09), darkMetal);
+  mag.position.set(0, -0.16, -0.02);
+  mag.rotation.x = 0.15;
+  group.add(mag);
+
+  const hand = new THREE.Mesh(new THREE.BoxGeometry(0.1, 0.18, 0.16), skin);
+  hand.position.set(0.02, -0.14, 0.1);
+  hand.rotation.x = 0.25;
+  group.add(hand);
+
+  const muzzleTip = new THREE.Object3D();
+  muzzleTip.position.set(0, 0.02, -0.62);
+  group.add(muzzleTip);
+
+  group.position.set(0.28, -0.28, -0.55);
+  group.rotation.y = -0.05;
+
+  return { group, muzzleTip };
 }
 
 function AimTrainer() {
@@ -63,6 +125,7 @@ function AimTrainer() {
 
     const camera = new THREE.PerspectiveCamera(103, mount.clientWidth / mount.clientHeight, 0.1, 100);
     const euler = new THREE.Euler(0, 0, 0, 'YXZ');
+    scene.add(camera); // nécessaire pour que les enfants de la caméra (l'arme) soient rendus
 
     const renderer = new THREE.WebGLRenderer({ antialias: true });
     renderer.setPixelRatio(window.devicePixelRatio);
@@ -89,13 +152,85 @@ function AimTrainer() {
     target.position.copy(randomTargetPosition());
     scene.add(target);
 
+    // Arme + main, accrochées à la caméra.
+    const { group: weapon, muzzleTip } = buildWeaponRig();
+    camera.add(weapon);
+    const weaponRestPosition = weapon.position.clone();
+    const weaponRestRotation = weapon.rotation.clone();
+
+    // Flash de tir : un sprite lumineux au bout du canon, invisible par défaut.
+    const flashTexture = makeGlowTexture('rgba(255, 200, 80, 0.95)');
+    const flashMaterial = new THREE.SpriteMaterial({
+      map: flashTexture,
+      transparent: true,
+      opacity: 0,
+      depthTest: false,
+      blending: THREE.AdditiveBlending,
+    });
+    const muzzleFlash = new THREE.Sprite(flashMaterial);
+    muzzleFlash.scale.set(0.35, 0.35, 1);
+    muzzleTip.add(muzzleFlash);
+
+    const impactTexture = makeGlowTexture('rgba(255, 90, 90, 0.9)');
+
     const raycaster = new THREE.Raycaster();
     const center = new THREE.Vector2(0, 0);
 
-    stateRef.current = { scene, camera, renderer, euler, target, raycaster, center, spawnedAt: performance.now() };
+    stateRef.current = {
+      scene,
+      camera,
+      renderer,
+      euler,
+      target,
+      raycaster,
+      center,
+      spawnedAt: performance.now(),
+      weapon,
+      weaponRestPosition,
+      weaponRestRotation,
+      muzzleTip,
+      muzzleFlash,
+      impactTexture,
+      recoil: 0,
+      lastFrameTime: performance.now(),
+      tracers: [],
+      flashUntil: 0,
+    };
 
     let frameId;
     const animate = () => {
+      const state = stateRef.current;
+      const now = performance.now();
+      const dt = now - state.lastFrameTime;
+      state.lastFrameTime = now;
+
+      // Retombée du recul : l'arme revient doucement à sa position de repos.
+      if (state.recoil > 0) {
+        state.recoil = Math.max(0, state.recoil - dt * RECOIL_DECAY_PER_MS);
+        const kick = state.recoil;
+        weapon.position.set(
+          weaponRestPosition.x,
+          weaponRestPosition.y + kick * 0.06,
+          weaponRestPosition.z + kick * 0.12,
+        );
+        weapon.rotation.set(weaponRestRotation.x - kick * 0.25, weaponRestRotation.y, weaponRestRotation.z);
+      }
+
+      muzzleFlash.material.opacity = now < state.flashUntil ? 1 : 0;
+
+      // Traînées de balle : durée de vie très courte, fondu puis suppression.
+      state.tracers = state.tracers.filter((tracer) => {
+        const age = now - tracer.createdAt;
+        if (age > TRACER_LIFETIME_MS) {
+          scene.remove(tracer.mesh);
+          tracer.mesh.geometry.dispose();
+          tracer.mesh.material.dispose();
+          return false;
+        }
+        tracer.mesh.material.opacity = 1 - age / TRACER_LIFETIME_MS;
+        return true;
+      });
+
       renderer.render(scene, camera);
       frameId = requestAnimationFrame(animate);
     };
@@ -135,14 +270,51 @@ function AimTrainer() {
     };
 
     const handleClick = () => {
-      const { camera, target, raycaster, center, spawnedAt } = stateRef.current;
+      const state = stateRef.current;
+      const { camera, target, raycaster, center, spawnedAt, muzzleTip, scene, impactTexture } = state;
       if (!camera || !target) return;
+
       raycaster.setFromCamera(center, camera);
-      const hit = raycaster.intersectObject(target).length > 0;
+      const intersections = raycaster.intersectObject(target);
+      const hit = intersections.length > 0;
+
+      const muzzleWorldPos = new THREE.Vector3();
+      muzzleTip.getWorldPosition(muzzleWorldPos);
+      const endPoint = hit
+        ? intersections[0].point
+        : camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(20).add(camera.position);
+
+      // Traînée de balle : un fin trait lumineux du canon jusqu'à l'impact.
+      const tracerGeo = new THREE.BufferGeometry().setFromPoints([muzzleWorldPos, endPoint]);
+      const tracerMat = new THREE.LineBasicMaterial({ color: 0xffe08a, transparent: true, opacity: 1 });
+      const tracerMesh = new THREE.Line(tracerGeo, tracerMat);
+      scene.add(tracerMesh);
+      state.tracers.push({ mesh: tracerMesh, createdAt: performance.now() });
+
+      // Flash au canon + recul de l'arme.
+      state.flashUntil = performance.now() + MUZZLE_FLASH_LIFETIME_MS;
+      state.recoil = RECOIL_KICK;
+
       if (hit) {
+        // Petite étincelle d'impact sur la cible touchée.
+        const sparkMat = new THREE.SpriteMaterial({
+          map: impactTexture,
+          transparent: true,
+          depthTest: false,
+          blending: THREE.AdditiveBlending,
+        });
+        const spark = new THREE.Sprite(sparkMat);
+        spark.position.copy(endPoint);
+        spark.scale.set(0.5, 0.5, 1);
+        scene.add(spark);
+        setTimeout(() => {
+          scene.remove(spark);
+          sparkMat.dispose();
+        }, 120);
+
         const reactionMs = performance.now() - spawnedAt;
         target.position.copy(randomTargetPosition());
-        stateRef.current.spawnedAt = performance.now();
+        state.spawnedAt = performance.now();
         setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
       } else {
         setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
@@ -163,6 +335,7 @@ function AimTrainer() {
     if (timeLeft <= 0) {
       setPhase('done');
       document.exitPointerLock?.();
+      if (document.fullscreenElement) document.exitFullscreen?.();
       return undefined;
     }
     const id = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
@@ -177,21 +350,28 @@ function AimTrainer() {
         // Le joueur a quitté le verrouillage pointeur (Échap) — on met la
         // session en pause plutôt que de continuer à décompter dans le vide.
         setPhase('idle');
+        if (document.fullscreenElement) document.exitFullscreen?.();
       }
     };
     document.addEventListener('pointerlockchange', handleLockChange);
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
   }, [phase]);
 
-  const handleStart = () => {
+  const handleStart = async () => {
     setStats({ hits: 0, misses: 0, times: [] });
     setTimeLeft(SESSION_SECONDS);
     if (stateRef.current.target) {
       stateRef.current.target.position.copy(randomTargetPosition());
       stateRef.current.spawnedAt = performance.now();
     }
-    const canvas = mountRef.current?.querySelector('canvas');
-    canvas?.requestPointerLock();
+    const mount = mountRef.current;
+    try {
+      // Vrai plein écran (pas juste la zone de l'onglet) — comme un jeu.
+      if (mount && !document.fullscreenElement) await mount.requestFullscreen();
+    } catch {
+      // Refusé/non supporté : on continue quand même sans plein écran.
+    }
+    mount?.querySelector('canvas')?.requestPointerLock();
     setPhase('running');
   };
 
@@ -245,10 +425,7 @@ function AimTrainer() {
           {phase === 'running' && !locked && (
             <div className="aim-trainer-overlay">
               <p>{t('aimTrainer.clickToResume')}</p>
-              <button
-                className="refresh"
-                onClick={() => mountRef.current?.querySelector('canvas')?.requestPointerLock()}
-              >
+              <button className="refresh" onClick={handleStart}>
                 {t('aimTrainer.resume')}
               </button>
             </div>

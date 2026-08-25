@@ -1992,6 +1992,12 @@ li {
   height: 100%;
 }
 
+.aim-trainer-canvas:fullscreen {
+  width: 100vw;
+  height: 100vh;
+  border-radius: 0;
+}
+
 .aim-trainer-crosshair {
   position: absolute;
   top: 50%;
