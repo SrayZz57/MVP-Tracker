@@ -312,7 +312,10 @@
     "resetDefaults": "Réinitialiser les réglages",
     "launch": "🎮 Lancer l'entraînement",
     "launchHint": "S'ouvre dans une fenêtre séparée, en plein écran.",
-    "accuracyNote": "Pour un rendu fidèle, désactive « Améliorer la précision du pointeur » dans les paramètres souris Windows — comme pour Valorant en jeu."
+    "accuracyNote": "Pour un rendu fidèle, désactive « Améliorer la précision du pointeur » dans les paramètres souris Windows — comme pour Valorant en jeu.",
+    "yourBest": "Ton record",
+    "globalBest": "Record général",
+    "holdsRecord": "Tu détiens le record général sur ce mode"
   },
   "puzzle": {
     "options": {
@@ -568,171 +571,396 @@
       "multiKills": {
         "label": "Multi-kills",
         "items": {
-          "triple": { "title": "Triple kill", "description": "3 kills en un seul round" },
-          "quadra": { "title": "Quadra kill", "description": "4 kills en un seul round" },
-          "ace": { "title": "Ace", "description": "5 kills en un seul round" }
+          "triple": {
+            "title": "Triple kill",
+            "description": "3 kills en un seul round"
+          },
+          "quadra": {
+            "title": "Quadra kill",
+            "description": "4 kills en un seul round"
+          },
+          "ace": {
+            "title": "Ace",
+            "description": "5 kills en un seul round"
+          }
         }
       },
       "winStreaks": {
         "label": "Séries de victoires",
         "items": {
-          "streak3": { "title": "Série de 3", "description": "3 victoires d'affilée" },
-          "streak5": { "title": "Série de 5", "description": "5 victoires d'affilée" },
-          "streak8": { "title": "Série de 8", "description": "8 victoires d'affilée" }
+          "streak3": {
+            "title": "Série de 3",
+            "description": "3 victoires d'affilée"
+          },
+          "streak5": {
+            "title": "Série de 5",
+            "description": "5 victoires d'affilée"
+          },
+          "streak8": {
+            "title": "Série de 8",
+            "description": "8 victoires d'affilée"
+          }
         }
       },
       "clutches": {
         "label": "Clutchs",
         "items": {
-          "clutch1": { "title": "Clutch 1v1", "description": "Gagner un round en infériorité 1v1" },
-          "clutch2": { "title": "Clutch 1v2", "description": "Gagner un round en infériorité 1v2" },
-          "clutch3": { "title": "Clutch 1v3", "description": "Gagner un round en infériorité 1v3" },
-          "clutch4": { "title": "Clutch légendaire", "description": "Gagner un round en infériorité 1v4 ou plus" }
+          "clutch1": {
+            "title": "Clutch 1v1",
+            "description": "Gagner un round en infériorité 1v1"
+          },
+          "clutch2": {
+            "title": "Clutch 1v2",
+            "description": "Gagner un round en infériorité 1v2"
+          },
+          "clutch3": {
+            "title": "Clutch 1v3",
+            "description": "Gagner un round en infériorité 1v3"
+          },
+          "clutch4": {
+            "title": "Clutch légendaire",
+            "description": "Gagner un round en infériorité 1v4 ou plus"
+          }
         }
       },
       "kdaMatch": {
         "label": "KDA sur un match",
         "items": {
-          "kda2": { "title": "KDA 2.0+", "description": "(kills + assists) / morts ≥ 2 sur un match" },
-          "kda3": { "title": "KDA 3.0+", "description": "(kills + assists) / morts ≥ 3 sur un match" },
-          "kda4": { "title": "KDA 4.0+", "description": "(kills + assists) / morts ≥ 4 sur un match" },
-          "kda5": { "title": "KDA 5.0+", "description": "(kills + assists) / morts ≥ 5 sur un match" }
+          "kda2": {
+            "title": "KDA 2.0+",
+            "description": "(kills + assists) / morts ≥ 2 sur un match"
+          },
+          "kda3": {
+            "title": "KDA 3.0+",
+            "description": "(kills + assists) / morts ≥ 3 sur un match"
+          },
+          "kda4": {
+            "title": "KDA 4.0+",
+            "description": "(kills + assists) / morts ≥ 4 sur un match"
+          },
+          "kda5": {
+            "title": "KDA 5.0+",
+            "description": "(kills + assists) / morts ≥ 5 sur un match"
+          }
         }
       },
       "accuracy": {
         "label": "Précision",
         "items": {
-          "hs30": { "title": "30% précision tête", "description": "30%+ de headshots sur un match" },
-          "longrangeduel": { "title": "Sniper occasionnel", "description": "Winrate ≥ 50% dans tes duels longue portée (20-35m), sur au moins 5 duels" },
-          "verylongrangeduel": { "title": "Sniper d'élite", "description": "Winrate ≥ 60% dans tes duels très longue portée (35m+), sur au moins 5 duels" },
-          "careerHs20": { "title": "20% précision tête (carrière)", "description": "Moyenne de précision tête ≥ 20% sur tout ton historique" },
-          "careerHs28": { "title": "28% précision tête (carrière)", "description": "Moyenne de précision tête ≥ 28% sur tout ton historique" }
+          "hs30": {
+            "title": "30% précision tête",
+            "description": "30%+ de headshots sur un match"
+          },
+          "longrangeduel": {
+            "title": "Sniper occasionnel",
+            "description": "Winrate ≥ 50% dans tes duels longue portée (20-35m), sur au moins 5 duels"
+          },
+          "verylongrangeduel": {
+            "title": "Sniper d'élite",
+            "description": "Winrate ≥ 60% dans tes duels très longue portée (35m+), sur au moins 5 duels"
+          },
+          "careerHs20": {
+            "title": "20% précision tête (carrière)",
+            "description": "Moyenne de précision tête ≥ 20% sur tout ton historique"
+          },
+          "careerHs28": {
+            "title": "28% précision tête (carrière)",
+            "description": "Moyenne de précision tête ≥ 28% sur tout ton historique"
+          }
         }
       },
       "killsPerMatch": {
         "label": "Kills sur un match",
         "items": {
-          "kills20": { "title": "20+ kills", "description": "20 kills ou plus sur un seul match" },
-          "kills25": { "title": "25+ kills", "description": "25 kills ou plus sur un seul match" },
-          "kills30": { "title": "30+ kills", "description": "30 kills ou plus sur un seul match" }
+          "kills20": {
+            "title": "20+ kills",
+            "description": "20 kills ou plus sur un seul match"
+          },
+          "kills25": {
+            "title": "25+ kills",
+            "description": "25 kills ou plus sur un seul match"
+          },
+          "kills30": {
+            "title": "30+ kills",
+            "description": "30 kills ou plus sur un seul match"
+          }
         }
       },
       "distance": {
         "label": "Distance",
         "items": {
-          "dist30": { "title": "Kill à 30m+", "description": "Un kill à 30 mètres ou plus" },
-          "dist45": { "title": "Kill à 45m+", "description": "Un kill à 45 mètres ou plus" },
-          "dist60": { "title": "Kill à 60m+", "description": "Un kill à 60 mètres ou plus — quasi la traversée d'une map" }
+          "dist30": {
+            "title": "Kill à 30m+",
+            "description": "Un kill à 30 mètres ou plus"
+          },
+          "dist45": {
+            "title": "Kill à 45m+",
+            "description": "Un kill à 45 mètres ou plus"
+          },
+          "dist60": {
+            "title": "Kill à 60m+",
+            "description": "Un kill à 60 mètres ou plus — quasi la traversée d'une map"
+          }
         }
       },
       "versatility": {
         "label": "Polyvalence",
         "items": {
-          "agents5": { "title": "5 agents joués", "description": "5 agents différents dans ton historique" },
-          "agents10": { "title": "10 agents joués", "description": "10 agents différents dans ton historique" },
-          "agents15": { "title": "15 agents joués", "description": "15 agents différents dans ton historique" },
-          "maps5": { "title": "5 maps différentes", "description": "5 maps différentes dans ton historique" },
-          "maps8": { "title": "8 maps différentes", "description": "8 maps différentes dans ton historique" },
-          "modes3": { "title": "3 modes de jeu", "description": "3 modes de jeu différents essayés" },
-          "modes5": { "title": "5 modes de jeu", "description": "5 modes de jeu différents essayés" }
+          "agents5": {
+            "title": "5 agents joués",
+            "description": "5 agents différents dans ton historique"
+          },
+          "agents10": {
+            "title": "10 agents joués",
+            "description": "10 agents différents dans ton historique"
+          },
+          "agents15": {
+            "title": "15 agents joués",
+            "description": "15 agents différents dans ton historique"
+          },
+          "maps5": {
+            "title": "5 maps différentes",
+            "description": "5 maps différentes dans ton historique"
+          },
+          "maps8": {
+            "title": "8 maps différentes",
+            "description": "8 maps différentes dans ton historique"
+          },
+          "modes3": {
+            "title": "3 modes de jeu",
+            "description": "3 modes de jeu différents essayés"
+          },
+          "modes5": {
+            "title": "5 modes de jeu",
+            "description": "5 modes de jeu différents essayés"
+          }
         }
       },
       "perfection": {
         "label": "Perfection",
         "items": {
-          "perfect": { "title": "Match parfait", "description": "Gagner un match sans mourir une seule fois" }
+          "perfect": {
+            "title": "Match parfait",
+            "description": "Gagner un match sans mourir une seule fois"
+          }
         }
       },
       "matchVolume": {
         "label": "Volume de matchs",
         "items": {
-          "matches10": { "title": "10 matchs joués", "description": "10 matchs dans ton historique" },
-          "matches50": { "title": "50 matchs joués", "description": "50 matchs dans ton historique" },
-          "matches100": { "title": "100 matchs joués", "description": "100 matchs dans ton historique" },
-          "matches250": { "title": "250 matchs joués", "description": "250 matchs dans ton historique" },
-          "matches500": { "title": "500 matchs joués", "description": "500 matchs dans ton historique" }
+          "matches10": {
+            "title": "10 matchs joués",
+            "description": "10 matchs dans ton historique"
+          },
+          "matches50": {
+            "title": "50 matchs joués",
+            "description": "50 matchs dans ton historique"
+          },
+          "matches100": {
+            "title": "100 matchs joués",
+            "description": "100 matchs dans ton historique"
+          },
+          "matches250": {
+            "title": "250 matchs joués",
+            "description": "250 matchs dans ton historique"
+          },
+          "matches500": {
+            "title": "500 matchs joués",
+            "description": "500 matchs dans ton historique"
+          }
         }
       },
       "totalWins": {
         "label": "Victoires cumulées",
         "items": {
-          "wins10": { "title": "10 victoires", "description": "10 matchs gagnés au total" },
-          "wins50": { "title": "50 victoires", "description": "50 matchs gagnés au total" },
-          "wins100": { "title": "100 victoires", "description": "100 matchs gagnés au total" },
-          "wins250": { "title": "250 victoires", "description": "250 matchs gagnés au total" }
+          "wins10": {
+            "title": "10 victoires",
+            "description": "10 matchs gagnés au total"
+          },
+          "wins50": {
+            "title": "50 victoires",
+            "description": "50 matchs gagnés au total"
+          },
+          "wins100": {
+            "title": "100 victoires",
+            "description": "100 matchs gagnés au total"
+          },
+          "wins250": {
+            "title": "250 victoires",
+            "description": "250 matchs gagnés au total"
+          }
         }
       },
       "totalKills": {
         "label": "Kills cumulés",
         "items": {
-          "totalkills100": { "title": "100 kills", "description": "100 kills au total sur tout ton historique" },
-          "totalkills500": { "title": "500 kills", "description": "500 kills au total sur tout ton historique" },
-          "totalkills1000": { "title": "1000 kills", "description": "1000 kills au total sur tout ton historique" },
-          "totalkills2500": { "title": "2500 kills", "description": "2500 kills au total sur tout ton historique" },
-          "totalkills5000": { "title": "5000 kills", "description": "5000 kills au total sur tout ton historique" }
+          "totalkills100": {
+            "title": "100 kills",
+            "description": "100 kills au total sur tout ton historique"
+          },
+          "totalkills500": {
+            "title": "500 kills",
+            "description": "500 kills au total sur tout ton historique"
+          },
+          "totalkills1000": {
+            "title": "1000 kills",
+            "description": "1000 kills au total sur tout ton historique"
+          },
+          "totalkills2500": {
+            "title": "2500 kills",
+            "description": "2500 kills au total sur tout ton historique"
+          },
+          "totalkills5000": {
+            "title": "5000 kills",
+            "description": "5000 kills au total sur tout ton historique"
+          }
         }
       },
       "playtime": {
         "label": "Temps de jeu",
         "items": {
-          "hours10": { "title": "10 heures de jeu", "description": "10 heures cumulées dans ton historique" },
-          "hours50": { "title": "50 heures de jeu", "description": "50 heures cumulées dans ton historique" },
-          "hours100": { "title": "100 heures de jeu", "description": "100 heures cumulées dans ton historique" },
-          "hours250": { "title": "250 heures de jeu", "description": "250 heures cumulées dans ton historique" }
+          "hours10": {
+            "title": "10 heures de jeu",
+            "description": "10 heures cumulées dans ton historique"
+          },
+          "hours50": {
+            "title": "50 heures de jeu",
+            "description": "50 heures cumulées dans ton historique"
+          },
+          "hours100": {
+            "title": "100 heures de jeu",
+            "description": "100 heures cumulées dans ton historique"
+          },
+          "hours250": {
+            "title": "250 heures de jeu",
+            "description": "250 heures cumulées dans ton historique"
+          }
         }
       },
       "agentMastery": {
         "label": "Maîtrise d'agent",
         "items": {
-          "agentkills100": { "title": "100 kills avec un agent", "description": "100 kills cumulés avec ton agent le plus joué" },
-          "agentkills500": { "title": "500 kills avec un agent", "description": "500 kills cumulés avec ton agent le plus joué" },
-          "agentkills1000": { "title": "1000 kills avec un agent", "description": "1000 kills cumulés avec ton agent le plus joué" },
-          "agentgames10": { "title": "Agent de cœur", "description": "10 parties avec le même agent" },
-          "agentgames50": { "title": "Agent principal", "description": "50 parties avec le même agent" },
-          "agentgames100": { "title": "Agent signature", "description": "100 parties avec le même agent" }
+          "agentkills100": {
+            "title": "100 kills avec un agent",
+            "description": "100 kills cumulés avec ton agent le plus joué"
+          },
+          "agentkills500": {
+            "title": "500 kills avec un agent",
+            "description": "500 kills cumulés avec ton agent le plus joué"
+          },
+          "agentkills1000": {
+            "title": "1000 kills avec un agent",
+            "description": "1000 kills cumulés avec ton agent le plus joué"
+          },
+          "agentgames10": {
+            "title": "Agent de cœur",
+            "description": "10 parties avec le même agent"
+          },
+          "agentgames50": {
+            "title": "Agent principal",
+            "description": "50 parties avec le même agent"
+          },
+          "agentgames100": {
+            "title": "Agent signature",
+            "description": "100 parties avec le même agent"
+          }
         }
       },
       "weaponMastery": {
         "label": "Maîtrise d'arme",
         "items": {
-          "weaponkills50": { "title": "50 kills avec une arme", "description": "50 kills cumulés avec ton arme la plus utilisée" },
-          "weaponkills150": { "title": "150 kills avec une arme", "description": "150 kills cumulés avec ton arme la plus utilisée" },
-          "weaponkills300": { "title": "300 kills avec une arme", "description": "300 kills cumulés avec ton arme la plus utilisée" }
+          "weaponkills50": {
+            "title": "50 kills avec une arme",
+            "description": "50 kills cumulés avec ton arme la plus utilisée"
+          },
+          "weaponkills150": {
+            "title": "150 kills avec une arme",
+            "description": "150 kills cumulés avec ton arme la plus utilisée"
+          },
+          "weaponkills300": {
+            "title": "300 kills avec une arme",
+            "description": "300 kills cumulés avec ton arme la plus utilisée"
+          }
         }
       },
       "composure": {
         "label": "Sang-froid",
         "items": {
-          "clutches1": { "title": "Premier clutch", "description": "Gagner ton premier round en clutch" },
-          "clutches5": { "title": "5 clutchs gagnés", "description": "5 rounds gagnés en clutch au total" },
-          "clutches15": { "title": "15 clutchs gagnés", "description": "15 rounds gagnés en clutch au total" },
-          "clutches30": { "title": "30 clutchs gagnés", "description": "30 rounds gagnés en clutch au total" }
+          "clutches1": {
+            "title": "Premier clutch",
+            "description": "Gagner ton premier round en clutch"
+          },
+          "clutches5": {
+            "title": "5 clutchs gagnés",
+            "description": "5 rounds gagnés en clutch au total"
+          },
+          "clutches15": {
+            "title": "15 clutchs gagnés",
+            "description": "15 rounds gagnés en clutch au total"
+          },
+          "clutches30": {
+            "title": "30 clutchs gagnés",
+            "description": "30 rounds gagnés en clutch au total"
+          }
         }
       },
       "firstBlood": {
         "label": "Premier sang",
         "items": {
-          "firstblood10": { "title": "10 premiers sangs", "description": "Premier kill du round, 10 fois au total" },
-          "firstblood50": { "title": "50 premiers sangs", "description": "Premier kill du round, 50 fois au total" },
-          "firstblood150": { "title": "150 premiers sangs", "description": "Premier kill du round, 150 fois au total" }
+          "firstblood10": {
+            "title": "10 premiers sangs",
+            "description": "Premier kill du round, 10 fois au total"
+          },
+          "firstblood50": {
+            "title": "50 premiers sangs",
+            "description": "Premier kill du round, 50 fois au total"
+          },
+          "firstblood150": {
+            "title": "150 premiers sangs",
+            "description": "Premier kill du round, 150 fois au total"
+          }
         }
       },
       "spike": {
         "label": "Spike",
         "items": {
-          "plants10": { "title": "10 spikes posés", "description": "Poser la spike, 10 fois au total" },
-          "plants50": { "title": "50 spikes posés", "description": "Poser la spike, 50 fois au total" },
-          "plants150": { "title": "150 spikes posés", "description": "Poser la spike, 150 fois au total" },
-          "defuses5": { "title": "5 spikes désamorcés", "description": "Désamorcer la spike, 5 fois au total" },
-          "defuses25": { "title": "25 spikes désamorcés", "description": "Désamorcer la spike, 25 fois au total" },
-          "defuses75": { "title": "75 spikes désamorcés", "description": "Désamorcer la spike, 75 fois au total" }
+          "plants10": {
+            "title": "10 spikes posés",
+            "description": "Poser la spike, 10 fois au total"
+          },
+          "plants50": {
+            "title": "50 spikes posés",
+            "description": "Poser la spike, 50 fois au total"
+          },
+          "plants150": {
+            "title": "150 spikes posés",
+            "description": "Poser la spike, 150 fois au total"
+          },
+          "defuses5": {
+            "title": "5 spikes désamorcés",
+            "description": "Désamorcer la spike, 5 fois au total"
+          },
+          "defuses25": {
+            "title": "25 spikes désamorcés",
+            "description": "Désamorcer la spike, 25 fois au total"
+          },
+          "defuses75": {
+            "title": "75 spikes désamorcés",
+            "description": "Désamorcer la spike, 75 fois au total"
+          }
         }
       },
       "endurance": {
         "label": "Endurance",
         "items": {
-          "overtime": { "title": "Prolongation", "description": "Jouer un match qui va en prolongation (16 rounds ou plus)" },
-          "doubleovertime": { "title": "Double prolongation", "description": "Jouer un match de 24 rounds ou plus" }
+          "overtime": {
+            "title": "Prolongation",
+            "description": "Jouer un match qui va en prolongation (16 rounds ou plus)"
+          },
+          "doubleovertime": {
+            "title": "Double prolongation",
+            "description": "Jouer un match de 24 rounds ou plus"
+          }
         }
       }
     }

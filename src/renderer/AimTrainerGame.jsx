@@ -8,6 +8,7 @@ import floorRoughnessUrl from '../assets/textures/floor-roughness.jpg';
 import wallColorUrl from '../assets/textures/wall-color.jpg';
 import wallNormalUrl from '../assets/textures/wall-normal.jpg';
 import wallRoughnessUrl from '../assets/textures/wall-roughness.jpg';
+import { saveScore } from './aimScores.js';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -31,6 +32,8 @@ const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 //   lifetime : durée de vie d'une cible en ms (null = illimitée)
 export const MODES = {
   flick: {
+    icon: '🎯',
+    accent: '#ff4655',
     labelKey: 'aimTrainer.modes.flick',
     descKey: 'aimTrainer.modes.flickDesc',
     movement: 'none',
@@ -38,6 +41,8 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.45, spread: 28 },
   },
   gridshot: {
+    icon: '🔢',
+    accent: '#ffc857',
     labelKey: 'aimTrainer.modes.gridshot',
     descKey: 'aimTrainer.modes.gridshotDesc',
     movement: 'none',
@@ -45,6 +50,8 @@ export const MODES = {
     preset: { targetCount: 4, targetSize: 0.4, spread: 26 },
   },
   tracking: {
+    icon: '🌊',
+    accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.tracking',
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
@@ -52,6 +59,8 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.5, spread: 30 },
   },
   reflex: {
+    icon: '⚡',
+    accent: '#9b7bff',
     labelKey: 'aimTrainer.modes.reflex',
     descKey: 'aimTrainer.modes.reflexDesc',
     movement: 'none',
@@ -59,6 +68,8 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.5, spread: 34 },
   },
   micro: {
+    icon: '🔬',
+    accent: '#3ddc84',
     labelKey: 'aimTrainer.modes.micro',
     descKey: 'aimTrainer.modes.microDesc',
     movement: 'none',
@@ -66,6 +77,8 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.2, spread: 12 },
   },
   orbit: {
+    icon: '🪐',
+    accent: '#ff8fab',
     labelKey: 'aimTrainer.modes.orbit',
     descKey: 'aimTrainer.modes.orbitDesc',
     movement: 'orbit',
@@ -428,7 +441,6 @@ function AimTrainerGame({ config: rawConfig }) {
         ...makeMotion(),
       });
     }
-    stateRef.current.makeMotion = makeMotion;
 
     const flashTexture = makeGlowTexture('rgba(255, 210, 130, 0.95)');
     const impactTexture = makeGlowTexture('rgba(255, 245, 220, 0.95)');
@@ -460,6 +472,7 @@ function AimTrainerGame({ config: rawConfig }) {
       renderer,
       euler,
       targets,
+      makeMotion,
       raycaster,
       center,
       muzzleTip,
@@ -731,6 +744,8 @@ function AimTrainerGame({ config: rawConfig }) {
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
   }, []);
 
+  const savedForSessionRef = useRef(false);
+
   const startSession = () => {
     setStats({ hits: 0, misses: 0, times: [] });
     setTimeLeft(config.duration);
@@ -767,6 +782,28 @@ function AimTrainerGame({ config: rawConfig }) {
     accuracy === null || avgReaction === null
       ? null
       : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3);
+
+  // Enregistre le score une fois la session terminée. Placé après le calcul
+  // du score, et protégé par un drapeau pour ne partir qu'une seule fois par
+  // session (pas à chaque re-render de l'écran de résultats).
+  useEffect(() => {
+    if (phase !== 'done') {
+      savedForSessionRef.current = false;
+      return;
+    }
+    if (savedForSessionRef.current || !config.userId || score === null) return;
+    savedForSessionRef.current = true;
+    saveScore(config.userId, {
+      mode: config.mode,
+      score,
+      accuracy,
+      hits: stats.hits,
+      misses: stats.misses,
+      duration: config.duration,
+      avgReaction: avgReaction === null ? null : Math.round(avgReaction),
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [phase, score]);
 
   return (
     <div className="aim-game">

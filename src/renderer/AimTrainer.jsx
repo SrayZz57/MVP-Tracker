@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
+import { loadPersonalBests, loadGlobalBests } from './aimScores.js';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 const BEST_STORAGE_KEY = 'mvptracker-aim-trainer-best';
@@ -24,13 +25,22 @@ function cm360(dpi, sens) {
   return (2.54 * 360) / (dpi * sens * 0.07);
 }
 
-function AimTrainer() {
+function AimTrainer({ myId }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState(loadConfig);
+  const [personalBests, setPersonalBests] = useState({});
+  const [globalBests, setGlobalBests] = useState({});
 
   useEffect(() => {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
   }, [config]);
+
+  // Records rechargés à chaque retour sur l'onglet : une session jouée dans
+  // la fenêtre de jeu doit se voir ici sans avoir à redémarrer l'app.
+  useEffect(() => {
+    loadGlobalBests().then(setGlobalBests);
+    if (myId) loadPersonalBests(myId).then(setPersonalBests);
+  }, [myId]);
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
@@ -49,16 +59,37 @@ function AimTrainer() {
 
         <h4 className="account-subsection-title">{t('aimTrainer.modeSection')}</h4>
         <div className="aim-mode-grid">
-          {Object.entries(MODES).map(([id, mode]) => (
-            <button
-              key={id}
-              className={id === config.mode ? 'aim-mode-card active' : 'aim-mode-card'}
-              onClick={() => selectMode(id)}
-            >
-              <span className="aim-mode-name">{t(mode.labelKey)}</span>
-              <span className="aim-mode-desc">{t(mode.descKey)}</span>
-            </button>
-          ))}
+          {Object.entries(MODES).map(([id, mode]) => {
+            const personal = personalBests[id];
+            const global = globalBests[id];
+            const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
+            return (
+              <button
+                key={id}
+                className={id === config.mode ? 'aim-mode-card active' : 'aim-mode-card'}
+                style={{ '--mode-accent': mode.accent }}
+                onClick={() => selectMode(id)}
+              >
+                <span className="aim-mode-glow" aria-hidden="true" />
+                <span className="aim-mode-head">
+                  <span className="aim-mode-icon">{mode.icon}</span>
+                  {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}>👑</span>}
+                </span>
+                <span className="aim-mode-name">{t(mode.labelKey)}</span>
+                <span className="aim-mode-desc">{t(mode.descKey)}</span>
+                <span className="aim-mode-records">
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value">{personal ?? '—'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.yourBest')}</span>
+                  </span>
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value aim-mode-record-global">{global ?? '—'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
+                  </span>
+                </span>
+              </button>
+            );
+          })}
         </div>
 
         <div className="aim-config-grid">
@@ -180,7 +211,10 @@ function AimTrainer() {
         </div>
 
         <div className="aim-launch-row">
-          <button className="refresh aim-launch-btn" onClick={() => window.electronAPI.openAimTrainer(config)}>
+          <button
+            className="refresh aim-launch-btn"
+            onClick={() => window.electronAPI.openAimTrainer({ ...config, userId: myId })}
+          >
             {t('aimTrainer.launch')}
           </button>
           <p className="label">{t('aimTrainer.launchHint')}</p>
