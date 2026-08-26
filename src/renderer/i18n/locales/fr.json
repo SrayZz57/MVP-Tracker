@@ -353,7 +353,19 @@
     "controlAim": "viser",
     "controlClick": "Clic gauche",
     "controlShoot": "tirer",
-    "controlPause": "mettre en pause"
+    "controlPause": "mettre en pause",
+    "customTitle": "Personnalisé",
+    "customDesc": "Choisis tes propres réglages — aucun record ne compare ce mode entre joueurs.",
+    "customIntro": "Les 6 modes standards sont figés pour que les records restent comparables entre tout le monde. Ici, choisis un mode de départ puis règle librement chaque paramètre.",
+    "customBase": "Partir des réglages de :",
+    "customBasePlaceholder": "— choisir un mode —",
+    "customEdit": "⚙️ Modifier les réglages",
+    "customCancel": "Annuler",
+    "customSave": "Enregistrer",
+    "summaryDuration": "⏱️ {{seconds}}s",
+    "summaryCount": "🎯 {{count}} cible(s)",
+    "summarySize": "📏 taille {{size}}",
+    "summarySpread": "📐 zone {{deg}}°"
   },
   "puzzle": {
     "options": {

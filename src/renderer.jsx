@@ -11,18 +11,19 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App.jsx';
 import AimTrainerGame from './renderer/AimTrainerGame.jsx';
+import CustomModeConfig from './renderer/CustomModeConfig.jsx';
 
 window.addEventListener('error', (e) => console.error('window error', e.message, e.filename));
 window.addEventListener('unhandledrejection', (e) => console.error('unhandled rejection', e.reason));
 
-// La fenêtre de jeu de l'Aim Trainer charge le même bundle, mais avec
-// `?view=aim-trainer` : elle rend uniquement le jeu, sans le reste de l'app
-// (pas de sidebar, pas de compte, pas de requête réseau inutile).
+// Certaines fenêtres chargent le même bundle que la fenêtre principale, mais
+// avec un `?view=...` : elles rendent uniquement leur contenu propre, sans le
+// reste de l'app (pas de sidebar, pas de compte, pas de requête inutile).
 const params = new URLSearchParams(window.location.search);
-const isAimTrainerWindow = params.get('view') === 'aim-trainer';
+const view = params.get('view');
 
 let gameConfig = {};
-if (isAimTrainerWindow) {
+if (view === 'aim-trainer') {
   try {
     gameConfig = JSON.parse(params.get('config') ?? '{}');
   } catch {
@@ -30,6 +31,14 @@ if (isAimTrainerWindow) {
   }
 }
 
+function Root() {
+  if (view === 'aim-trainer') return <AimTrainerGame config={gameConfig} />;
+  if (view === 'custom-config') return <CustomModeConfig />;
+  return <App />;
+}
+
 createRoot(document.getElementById('root')).render(
-  <StrictMode>{isAimTrainerWindow ? <AimTrainerGame config={gameConfig} /> : <App />}</StrictMode>,
+  <StrictMode>
+    <Root />
+  </StrictMode>,
 );

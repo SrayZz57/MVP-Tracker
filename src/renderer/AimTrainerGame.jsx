@@ -38,7 +38,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.flickDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.45, spread: 28 },
+    preset: { targetCount: 1, targetSize: 0.45, spread: 28, duration: 30 },
   },
   gridshot: {
     icon: '🔢',
@@ -47,7 +47,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.gridshotDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 4, targetSize: 0.4, spread: 26 },
+    preset: { targetCount: 4, targetSize: 0.4, spread: 26, duration: 30 },
   },
   tracking: {
     icon: '🌊',
@@ -56,7 +56,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.5, spread: 30 },
+    preset: { targetCount: 1, targetSize: 0.5, spread: 30, duration: 30 },
   },
   reflex: {
     icon: '⚡',
@@ -65,7 +65,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.reflexDesc',
     movement: 'none',
     lifetime: 1100,
-    preset: { targetCount: 1, targetSize: 0.5, spread: 34 },
+    preset: { targetCount: 1, targetSize: 0.5, spread: 34, duration: 30 },
   },
   micro: {
     icon: '🔬',
@@ -74,7 +74,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.microDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.2, spread: 12 },
+    preset: { targetCount: 1, targetSize: 0.2, spread: 12, duration: 30 },
   },
   orbit: {
     icon: '🪐',
@@ -83,7 +83,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.orbitDesc',
     movement: 'orbit',
     lifetime: null,
-    preset: { targetCount: 2, targetSize: 0.42, spread: 30 },
+    preset: { targetCount: 2, targetSize: 0.42, spread: 30, duration: 30 },
   },
 };
 

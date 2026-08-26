@@ -71,6 +71,12 @@ function AimTrainer({ myId, matches, settings }) {
     return window.electronAPI.onAimTrainerClosed(refresh);
   }, [refresh]);
 
+  // La fenêtre de configuration du mode Personnalisé écrit directement dans
+  // le même localStorage (partagé entre fenêtres de la même origine) — à sa
+  // fermeture, on relit pour refléter les réglages sauvegardés (ou non, si
+  // fermée sans sauvegarder).
+  useEffect(() => window.electronAPI.onCustomConfigClosed(() => setConfig(loadConfig())), []);
+
   useEffect(() => {
     if (myId) loadFriendsLeaderboard(myId, config.mode).then(setFriendsBoard);
   }, [myId, config.mode, history]);
@@ -109,9 +115,6 @@ function AimTrainer({ myId, matches, settings }) {
             <h3>{t('aimTrainer.howtoTitle')}</h3>
             <p className="label">{t('aimTrainer.howtoIntro')}</p>
           </div>
-          <button className="refresh aim-howto-cta" onClick={() => launch()}>
-            {t('aimTrainer.launch')}
-          </button>
         </div>
 
         <div className="aim-howto-steps">
@@ -287,6 +290,37 @@ function AimTrainer({ myId, matches, settings }) {
               </button>
             );
           })}
+
+          {/* Seul mode aux réglages libres — volontairement à part des 6
+              autres : ceux-là doivent rester identiques pour tout le monde,
+              sinon comparer les records n'a aucun sens. */}
+          <button
+            className={config.mode === 'custom' ? 'aim-mode-card active' : 'aim-mode-card'}
+            style={{ '--mode-accent': '#8a8f9c' }}
+            onClick={() => window.electronAPI.openCustomConfig()}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon">🛠️</span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.customTitle')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>
+          </button>
+        </div>
+
+        {/* Résumé en lecture seule : les 6 modes standards sont figés (mêmes
+            réglages pour tout le monde), et même le mode Personnalisé ne se
+            règle que dans sa fenêtre dédiée, pas ici. */}
+        <div className="aim-mode-summary">
+          <span className="aim-mode-summary-item">{t('aimTrainer.summaryDuration', { seconds: config.duration })}</span>
+          <span className="aim-mode-summary-item">{t('aimTrainer.summaryCount', { count: config.targetCount })}</span>
+          <span className="aim-mode-summary-item">{t('aimTrainer.summarySize', { size: config.targetSize.toFixed(2) })}</span>
+          <span className="aim-mode-summary-item">{t('aimTrainer.summarySpread', { deg: config.spread })}</span>
+          {config.mode === 'custom' && (
+            <button className="account-forgot-password" onClick={() => window.electronAPI.openCustomConfig()}>
+              {t('aimTrainer.customEdit')}
+            </button>
+          )}
         </div>
 
         <div className="aim-config-grid">
@@ -318,53 +352,7 @@ function AimTrainer({ myId, matches, settings }) {
           </div>
 
           <div className="aim-config-block">
-            <h4 className="account-subsection-title">{t('aimTrainer.sessionSection')}</h4>
-            <label className="aim-config-range">
-              <span className="label">{t('aimTrainer.durationLabel', { seconds: config.duration })}</span>
-              <input
-                type="range"
-                min="15"
-                max="120"
-                step="5"
-                value={config.duration}
-                onChange={(e) => set({ duration: Number(e.target.value) })}
-              />
-            </label>
-            <label className="aim-config-range">
-              <span className="label">{t('aimTrainer.targetCountLabel', { count: config.targetCount })}</span>
-              <input
-                type="range"
-                min="1"
-                max="5"
-                value={config.targetCount}
-                onChange={(e) => set({ targetCount: Number(e.target.value) })}
-              />
-            </label>
-            <label className="aim-config-range">
-              <span className="label">{t('aimTrainer.spreadLabel', { deg: config.spread })}</span>
-              <input
-                type="range"
-                min="10"
-                max="50"
-                value={config.spread}
-                onChange={(e) => set({ spread: Number(e.target.value) })}
-              />
-            </label>
-          </div>
-
-          <div className="aim-config-block">
             <h4 className="account-subsection-title">{t('aimTrainer.targetsSection')}</h4>
-            <label className="aim-config-range">
-              <span className="label">{t('aimTrainer.targetSizeLabel', { size: config.targetSize.toFixed(2) })}</span>
-              <input
-                type="range"
-                min="0.2"
-                max="1"
-                step="0.05"
-                value={config.targetSize}
-                onChange={(e) => set({ targetSize: Number(e.target.value) })}
-              />
-            </label>
             <div className="aim-config-colors">
               <span className="label">{t('aimTrainer.targetColorLabel')}</span>
               <div className="aim-color-swatches">
