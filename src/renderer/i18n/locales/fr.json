@@ -353,7 +353,12 @@
     "controlAim": "viser",
     "controlClick": "Clic gauche",
     "controlShoot": "tirer",
-    "controlPause": "mettre en pause"
+    "controlPause": "mettre en pause",
+    "weapons": {
+      "rifle": "Fusil",
+      "pistol9mm": "Pistolet 9mm",
+      "pistolGeneric": "Pistolet"
+    }
   },
   "puzzle": {
     "options": {

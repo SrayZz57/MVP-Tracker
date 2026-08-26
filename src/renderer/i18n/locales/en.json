@@ -353,7 +353,12 @@
     "controlAim": "aim",
     "controlClick": "Left click",
     "controlShoot": "shoot",
-    "controlPause": "pause"
+    "controlPause": "pause",
+    "weapons": {
+      "rifle": "Rifle",
+      "pistol9mm": "9mm Pistol",
+      "pistolGeneric": "Pistol"
+    }
   },
   "puzzle": {
     "options": {

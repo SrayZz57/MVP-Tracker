@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
+import { WEAPONS } from './weapons.js';
 import {
   loadPersonalBests,
   loadGlobalBests,
@@ -401,6 +402,23 @@ function AimTrainer({ myId, matches, settings }) {
               />
               <span>{t('aimTrainer.showWeaponLabel')}</span>
             </label>
+
+            {config.showWeapon && (
+              <div className="aim-weapon-picker">
+                {Object.entries(WEAPONS).map(([id, weapon]) => (
+                  <button
+                    key={id}
+                    type="button"
+                    className={id === config.weapon ? 'aim-weapon-chip active' : 'aim-weapon-chip'}
+                    onClick={() => set({ weapon: id })}
+                  >
+                    <span className="aim-weapon-chip-icon">{weapon.icon}</span>
+                    {t(weapon.labelKey)}
+                  </button>
+                ))}
+              </div>
+            )}
+
             <button className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
               {t('aimTrainer.resetDefaults')}
             </button>
