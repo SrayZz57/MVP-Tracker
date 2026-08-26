@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { buildMapGroup } from './mapGeometryBuilder.js';
-import { HAVEN_SITE_C } from './mapLayouts/havenSiteC.js';
+import { ABYSS_SITE_A } from './mapLayouts/abyssSiteA.js';
 
 const DEG_TO_RAD = Math.PI / 180;
 const MOVE_SPEED = 5.5; // m/s
@@ -12,7 +12,7 @@ const MOUSE_SENS = 0.0022; // radians par pixel de mouvement souris
 // futur mode d'entraînement 3D et un futur outil de placement tactique.
 // Volontairement minimal : pas de collisions, pas de gameplay, seulement de
 // quoi juger les proportions en s'y déplaçant.
-function MapGeometry3D({ layout = HAVEN_SITE_C }) {
+function MapGeometry3D({ layout = ABYSS_SITE_A }) {
   const mountRef = useRef(null);
   const [locked, setLocked] = useState(false);
   const stateRef = useRef({ keys: {} });
