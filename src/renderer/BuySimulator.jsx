@@ -5,6 +5,8 @@ import { agentAbilityBudget, AGENT_ABILITY_COSTS, ABILITY_COSTS_SOURCE_DATE } fr
 import { useShopWeapons, useShopArmors, useWeaponIcons } from './weaponIcons.js';
 import { useAgentIcons, useAgentRoles, useAgentAbilities } from './agentIcons.js';
 import LoadingState from './LoadingState.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 function BuyAnalysisSection({ settings, matches }) {
   const { t, i18n } = useTranslation();
@@ -169,6 +171,8 @@ function BuyCalculatorSection() {
 
 function BuySimulator({ settings, matches, loading }) {
   const { t } = useTranslation();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
+
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
     return <p>{t('buySim.noMatchesYet')}</p>;
@@ -176,10 +180,12 @@ function BuySimulator({ settings, matches, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('buySim.roundAnalysisTitle')}</h3>
         <p className="label">{t('buySim.roundAnalysisHint')}</p>
-        <BuyAnalysisSection settings={settings} matches={matches} />
+        <BuyAnalysisSection settings={settings} matches={filteredMatches} />
       </div>
 
       <div className="card">

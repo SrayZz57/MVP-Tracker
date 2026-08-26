@@ -3,35 +3,39 @@ import { useTranslation } from 'react-i18next';
 import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
 import LoadingState from '../LoadingState.jsx';
+import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
+import usePlatformFilter from '../usePlatformFilter.js';
 
 const STREAK_DOTS_COUNT = 10;
 
 function TiltTab({ settings, matches, loading }) {
   const { t } = useTranslation();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
+
   const form = useMemo(
-    () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => formStats(excludeDeathmatch(filteredMatches), settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const tilt = useMemo(
-    () => tiltStatus(excludeDeathmatch(matches), settings.name, settings.tag, form),
-    [matches, settings.name, settings.tag, form],
+    () => tiltStatus(excludeDeathmatch(filteredMatches), settings.name, settings.tag, form),
+    [filteredMatches, settings.name, settings.tag, form],
   );
 
   const recentResults = useMemo(
     () =>
-      matches.slice(0, STREAK_DOTS_COUNT).map((match) => {
+      filteredMatches.slice(0, STREAK_DOTS_COUNT).map((match) => {
         const me = findMe(match, settings.name, settings.tag);
         return { id: match.metadata?.matchid, label: resultLabel(match, me), map: match.metadata?.map };
       }),
-    [matches, settings.name, settings.tag],
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const last3KdRatio = form.overallKd && tilt.last3Kd !== null ? tilt.last3Kd / form.overallKd : null;
 
   const frequency = useMemo(
-    () => tiltFrequency(matches, settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => tiltFrequency(filteredMatches, settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
 
   if (matches.length === 0) {
@@ -41,6 +45,8 @@ function TiltTab({ settings, matches, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className={`card tilt-card ${tilt.isTilted ? '' : 'calm'}`}>
         <div className="tilt-card-header">
           <span className="tilt-card-badge">{tilt.isTilted ? '⚠️' : '✅'}</span>

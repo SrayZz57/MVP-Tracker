@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { computeTeammateSynergy, computeNemesis } from './socialStats.js';
 import { useAgentIcons } from './agentIcons.js';
 import LoadingState from './LoadingState.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 const GRAPH_SIZE = 480;
 const CENTER = GRAPH_SIZE / 2;
@@ -115,13 +117,14 @@ function initials(name) {
 function TeammatesRivals({ settings, matches, loading, myPuuid }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
   const teammates = useMemo(
-    () => computeTeammateSynergy(matches, settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => computeTeammateSynergy(filteredMatches, settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
   const nemesis = useMemo(
-    () => computeNemesis(matches, settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => computeNemesis(filteredMatches, settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
   // Le centre du graphe représente le tracker actuellement consulté — "Toi"
   // seulement quand c'est vraiment le cas, sinon le pseudo de l'autre joueur.
@@ -134,6 +137,8 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('social.synergyTitle')}</h3>
         <p className="label">{t('social.synergyHint')}</p>

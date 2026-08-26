@@ -9,11 +9,14 @@ import HeatmapGrid from './charts/HeatmapGrid.jsx';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import LineChart from './charts/LineChart.jsx';
 import LoadingState from './LoadingState.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 function PerformanceCharts({ settings, matches, loading }) {
   const { t } = useTranslation();
   const agentRoles = useAgentRoles();
-  const ranked = useMemo(() => excludeDeathmatch(matches), [matches]);
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
+  const ranked = useMemo(() => excludeDeathmatch(filteredMatches), [filteredMatches]);
 
   const kpis = useMemo(() => {
     const form = formStats(ranked, settings.name, settings.tag);
@@ -26,23 +29,23 @@ function PerformanceCharts({ settings, matches, loading }) {
   }, [ranked, settings.name, settings.tag]);
 
   const mapWinrates = useMemo(
-    () => computeMapWinrates(matches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: t('charts.gamesCount', { count: r.games }) })),
-    [matches, settings.name, settings.tag, t],
+    () => computeMapWinrates(filteredMatches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: t('charts.gamesCount', { count: r.games }) })),
+    [filteredMatches, settings.name, settings.tag, t],
   );
 
   const dayPeriodGrid = useMemo(
-    () => computeDayPeriodGrid(matches, settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => computeDayPeriodGrid(filteredMatches, settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const roleDistribution = useMemo(
-    () => computeRoleDistribution(matches, settings.name, settings.tag, agentRoles),
-    [matches, settings.name, settings.tag, agentRoles],
+    () => computeRoleDistribution(filteredMatches, settings.name, settings.tag, agentRoles),
+    [filteredMatches, settings.name, settings.tag, agentRoles],
   );
 
   const trend = useMemo(
-    () => computeTrend(t, matches, settings.name, settings.tag, 20),
-    [t, matches, settings.name, settings.tag],
+    () => computeTrend(t, filteredMatches, settings.name, settings.tag, 20),
+    [t, filteredMatches, settings.name, settings.tag],
   );
 
   if (matches.length === 0) {
@@ -52,6 +55,8 @@ function PerformanceCharts({ settings, matches, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('charts.title')}</h3>
         <p className="label">{t('charts.description')}</p>

@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { buildSessionPlan } from './sessionPlan.js';
 import LoadingState from './LoadingState.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 function buildChecklist(t, plan, latestStrategy) {
   const items = [
@@ -65,6 +67,7 @@ function buildChecklist(t, plan, latestStrategy) {
 
 function SessionGuide({ settings, matches, loading: matchesLoading }) {
   const { t } = useTranslation();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
   const [plan, setPlan] = useState(null);
   const [latestStrategy, setLatestStrategy] = useState(null);
   const [checked, setChecked] = useState({});
@@ -74,7 +77,7 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
 
   async function handleLaunch() {
     setLoading(true);
-    const newPlan = buildSessionPlan(t, matches, settings.name, settings.tag);
+    const newPlan = buildSessionPlan(t, filteredMatches, settings.name, settings.tag);
     setPlan(newPlan);
     setChecked({});
     if (newPlan.targetMap) {
@@ -97,6 +100,8 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('session.title')}</h3>
         <p className="label">{t('session.description')}</p>

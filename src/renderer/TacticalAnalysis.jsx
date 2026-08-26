@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { deathTimingStats, clutchStats, economyImpactStats, duelDistanceStats } from './valorantStats.js';
 import PostMortemHistory from './PostMortemHistory.jsx';
 import LoadingState from './LoadingState.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 const TIMING_ICONS = { early: '🏃', mid: '⚔️', late: '⏳' };
 const ECONOMY_ICONS = { eco: '🥖', semi: '💵', full: '💰' };
@@ -17,10 +19,11 @@ function clutchColor(winrate) {
 
 function TacticalAnalysis({ settings, matches, loading }) {
   const { t } = useTranslation();
-  const timing = useMemo(() => deathTimingStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
-  const clutch = useMemo(() => clutchStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
-  const economy = useMemo(() => economyImpactStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
-  const distance = useMemo(() => duelDistanceStats(matches, settings.name, settings.tag), [matches, settings.name, settings.tag]);
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
+  const timing = useMemo(() => deathTimingStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
+  const clutch = useMemo(() => clutchStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
+  const economy = useMemo(() => economyImpactStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
+  const distance = useMemo(() => duelDistanceStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
@@ -29,6 +32,8 @@ function TacticalAnalysis({ settings, matches, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('analyse.timingTitle', { count: timing.total })}</h3>
         {timing.total === 0 ? (

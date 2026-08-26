@@ -12,6 +12,8 @@ import {
 } from './aimScores.js';
 import { buildDailyChallenge } from './aimChallenge.js';
 import { computeTrainingImpact } from './aimCorrelation.js';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 import { FriendAvatar, friendLabel } from './friendsShared.jsx';
 import CustomModeConfig from './CustomModeConfig.jsx';
 
@@ -91,9 +93,13 @@ function AimTrainer({ myId, matches, settings }) {
   const streak = useMemo(() => computeStreak(history), [history]);
   const challengeDone = dailyBoard.some((row) => row.user_id === myId);
 
+  // L'Aim Trainer ne se joue que sur PC (mini-jeu 3D dans l'app) — corréler
+  // ses sessions à des matchs Valorant joués sur console n'aurait aucun sens.
+  // Filtre par défaut sur "pc" quand les deux plateformes sont détectées.
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches, 'pc');
   const impact = useMemo(
-    () => (settings?.name ? computeTrainingImpact(history, matches, settings.name, settings.tag) : null),
-    [history, matches, settings?.name, settings?.tag],
+    () => (settings?.name ? computeTrainingImpact(history, filteredMatches, settings.name, settings.tag) : null),
+    [history, filteredMatches, settings?.name, settings?.tag],
   );
 
   // Courbe de progression : scores du mode sélectionné, du plus ancien au
@@ -208,6 +214,7 @@ function AimTrainer({ myId, matches, settings }) {
       {impact && (
         <div className="card">
           <h3>{t('aimTrainer.impactTitle')}</h3>
+          <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
           {!impact.ready ? (
             <p className="label">
               {t('aimTrainer.impactNotReady', {

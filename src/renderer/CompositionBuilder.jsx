@@ -6,6 +6,8 @@ import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
 import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
 import CountUp from './CountUp.jsx';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
@@ -24,6 +26,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
   const agentRoles = useAgentRoles();
   const [selectedMap, setSelectedMap] = useState('');
   const [slots, setSlots] = useState(Array(SLOT_COUNT).fill(''));
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
 
   const mapNames = useMemo(() => [...minimaps.keys()].sort(), [minimaps]);
   const agentNames = useMemo(() => [...agentIcons.keys()].sort(), [agentIcons]);
@@ -34,7 +37,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
     [slots, selectedMap, agentRoles],
   );
 
-  const rankedMatches = useMemo(() => excludeDeathmatch(matches), [matches]);
+  const rankedMatches = useMemo(() => excludeDeathmatch(filteredMatches), [filteredMatches]);
 
   const personalStats = useMemo(() => {
     if (!selectedMap) return [];
@@ -71,6 +74,8 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('composition.title')}</h3>
         <p className="label">{t('composition.description')}</p>

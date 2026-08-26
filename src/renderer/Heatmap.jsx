@@ -2,6 +2,8 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMapMinimaps, useMapCoordinates } from './mapImages.js';
 import { deathLocationsOnMap } from './valorantStats.js';
+import PlatformFilterToggle from './PlatformFilterToggle.jsx';
+import usePlatformFilter from './usePlatformFilter.js';
 
 const CANVAS_SIZE = 640;
 const POINT_RADIUS = 26;
@@ -19,6 +21,7 @@ const SIDES = [
 
 function Heatmap({ settings, matches }) {
   const { t } = useTranslation();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
   const minimaps = useMapMinimaps();
   const mapCoordinates = useMapCoordinates();
   const [selectedMap, setSelectedMap] = useState('');
@@ -40,8 +43,8 @@ function Heatmap({ settings, matches }) {
   }, [selectedMap, mode, side]);
 
   const allPoints = useMemo(
-    () => (selectedMap ? deathLocationsOnMap(matches, settings.name, settings.tag, selectedMap, mode) : []),
-    [matches, settings.name, settings.tag, selectedMap, mode],
+    () => (selectedMap ? deathLocationsOnMap(filteredMatches, settings.name, settings.tag, selectedMap, mode) : []),
+    [filteredMatches, settings.name, settings.tag, selectedMap, mode],
   );
 
   const sideFilteredPoints = useMemo(
@@ -102,6 +105,8 @@ function Heatmap({ settings, matches }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('heatmap.title')}</h3>
         <p className="label">{t('heatmap.description')}</p>

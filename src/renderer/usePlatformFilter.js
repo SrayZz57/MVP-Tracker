@@ -5,8 +5,8 @@ import { useMemo, useState } from 'react';
 // main.js) et expose un filtre local à l'onglet qui l'utilise. Si une seule
 // plateforme est présente, `platforms` reste vide : pas la peine de proposer
 // un filtre à un joueur qui ne joue que sur une seule plateforme.
-function usePlatformFilter(matches) {
-  const [platform, setPlatform] = useState('all');
+function usePlatformFilter(matches, defaultPlatform = 'all') {
+  const [platform, setPlatform] = useState(defaultPlatform);
 
   const platforms = useMemo(() => {
     const set = new Set();

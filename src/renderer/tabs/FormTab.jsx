@@ -12,6 +12,8 @@ import {
   formStats,
 } from '../valorantStats.js';
 import LoadingState from '../LoadingState.jsx';
+import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
+import usePlatformFilter from '../usePlatformFilter.js';
 
 const WEEKDAY_ICONS = {
   Lundi: '📅', Mardi: '📅', Mercredi: '📅', Jeudi: '📅', Vendredi: '📅', Samedi: '🎉', Dimanche: '🎉',
@@ -64,25 +66,27 @@ function bestEntry(rows) {
 
 function FormTab({ settings, matches, loading }) {
   const { t } = useTranslation();
+  const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
+
   const form = useMemo(
-    () => formStats(excludeDeathmatch(matches), settings.name, settings.tag),
-    [matches, settings.name, settings.tag],
+    () => formStats(excludeDeathmatch(filteredMatches), settings.name, settings.tag),
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const timeSlotStats = useMemo(
     () =>
-      groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => timeSlot(match)).sort(
+      groupStats(excludeDeathmatch(filteredMatches), settings.name, settings.tag, (match) => timeSlot(match)).sort(
         (a, b) => TIME_SLOT_ORDER.indexOf(a.key) - TIME_SLOT_ORDER.indexOf(b.key),
       ),
-    [matches, settings.name, settings.tag],
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const dayOfWeekStats = useMemo(
     () =>
-      groupStats(excludeDeathmatch(matches), settings.name, settings.tag, (match) => dayOfWeek(match)).sort(
+      groupStats(excludeDeathmatch(filteredMatches), settings.name, settings.tag, (match) => dayOfWeek(match)).sort(
         (a, b) => WEEK_ORDER.indexOf(a.key) - WEEK_ORDER.indexOf(b.key),
       ),
-    [matches, settings.name, settings.tag],
+    [filteredMatches, settings.name, settings.tag],
   );
 
   const bestTimeSlot = useMemo(() => bestEntry(timeSlotStats), [timeSlotStats]);
@@ -98,6 +102,8 @@ function FormTab({ settings, matches, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card">
         <h3>{t('form.recentForm')}</h3>
         <div className="stat-tiles">
