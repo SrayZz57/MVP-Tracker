@@ -54,15 +54,50 @@ const store = new Store();
 // à chaque recherche d'un autre joueur — utiliser ce champ ici recréait
 // exactement le bug qu'on scope pour éviter). Le renderer tient cette valeur
 // à jour via account:set-linked-puuid dès qu'il connaît le profil Supabase.
-// L'API distingue "pc" et "console" pour la MMR (v3/mmr) — un compte console
-// interrogé avec "pc" ne renvoie aucun rang. `account.platforms` (v2/account)
-// liste les plateformes réellement utilisées par le compte ; on privilégie
-// "console" dès qu'il y figure, plutôt que de supposer "pc" pour tout le
-// monde comme c'était fait avant (silencieux : la MMR échouait juste sans
-// rang affiché pour les joueurs console, sans erreur visible).
-function accountPlatform(account) {
+// L'API distingue "pc" et "console" pour la MMR (v3/mmr) et les matchs
+// (v4/matches) — interroger la mauvaise plateforme renvoie soit 0 résultat,
+// soit une erreur 500. `account.platforms` (v2/account) liste les
+// plateformes déjà VUES sur le compte, mais un compte crossplay peut lister
+// les deux ("PC" et "CONSOLE") même si l'essentiel de l'historique récent
+// n'est que sur l'une des deux (constaté en conditions réelles : un compte
+// avec platforms: ["PC", "CONSOLE"] renvoyait ses matchs sur "pc" et une
+// erreur 500 sur "console"). Un choix figé se trompait donc à coup sûr pour
+// ces comptes-là. platformCandidates() renvoie un ordre d'essai plutôt qu'un
+// choix unique ; les appelants essaient chaque candidat jusqu'à un succès.
+function platformCandidates(account) {
   const platforms = (account?.platforms ?? []).map((p) => String(p).toLowerCase());
-  return platforms.includes('console') ? 'console' : 'pc';
+  const hasPc = platforms.includes('pc');
+  const hasConsole = platforms.includes('console');
+  if (hasPc && hasConsole) return ['pc', 'console'];
+  if (hasConsole) return ['console'];
+  return ['pc'];
+}
+
+// Essaie chaque plateforme candidate dans l'ordre jusqu'à un succès ; relance
+// la dernière erreur si aucune ne fonctionne (ex. compte réellement non classé).
+async function getMmrWithFallback(account, name, tag, apiKey) {
+  let lastErr;
+  for (const platform of platformCandidates(account)) {
+    try {
+      return await getMmr(account.region, platform, name, tag, apiKey);
+    } catch (err) {
+      lastErr = err;
+    }
+  }
+  throw lastErr;
+}
+
+async function getMatchesWithFallback(account, name, tag, apiKey, options) {
+  let lastErr;
+  for (const platform of platformCandidates(account)) {
+    try {
+      return await getMatches(account.region, platform, name, tag, apiKey, options);
+    } catch (err) {
+      lastErr = err;
+      if (err.status === 429) break; // même quota épuisé, inutile d'essayer l'autre plateforme
+    }
+  }
+  throw lastErr;
 }
 
 function currentPuuid() {
@@ -280,7 +315,7 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
   const account = await getAccount(name, tag, apiKey);
   let rank = null;
   try {
-    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
+    const mmr = await getMmrWithFallback(account, name, tag, apiKey);
     rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
   } catch {
     // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
@@ -307,7 +342,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   // sans quota restant, faisant échouer silencieusement rien que lui. Là, il
   // profite du quota complet dès le début du rafraîchissement.
   try {
-    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
+    const mmr = await getMmrWithFallback(account, name, tag, apiKey);
     const rankInfo = {
       accountLevel: account.account_level,
       cardUuid: account.card,
@@ -326,8 +361,6 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     // global qui pouvait laisser transparaître le rang d'un autre joueur).
   }
 
-  const platform = accountPlatform(account);
-
   // v4/matches renvoie déjà le détail complet de chaque match (round par
   // round, kills avec position) — plus besoin d'un aller-retour "liste
   // d'IDs" puis "détail par ID" comme avant. Le nombre de résultats par
@@ -338,7 +371,33 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   // (marge de quota, comme avant) ou jusqu'à une limite de requêtes atteinte.
   const HISTORY_CAP = 40;
   const PAGE_SIZE = 10;
-  for (let start = 0; start < HISTORY_CAP; start += PAGE_SIZE) {
+
+  // La première page sert aussi à déterminer la bonne plateforme : un compte
+  // crossplay peut lister ["PC", "CONSOLE"] dans account.platforms alors que
+  // son historique récent n'existe que sur l'une des deux (constaté : "pc"
+  // renvoie les matchs, "console" renvoie une erreur 500). On essaie chaque
+  // candidat jusqu'à un succès, puis on reste sur cette plateforme pour le
+  // reste de la pagination.
+  let platform = null;
+  let start = 0;
+  for (const candidate of platformCandidates(account)) {
+    try {
+      const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start: 0 });
+      saveMatches(account.puuid, page);
+      platform = candidate;
+      start = page.length < PAGE_SIZE ? HISTORY_CAP : PAGE_SIZE;
+      break;
+    } catch (err) {
+      if (err.status === 429) {
+        console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
+        start = HISTORY_CAP; // pas la peine d'essayer l'autre plateforme, ça consommerait le même quota épuisé
+        break;
+      }
+      console.error(`[henrikdev] échec de la page de matchs (plateforme=${candidate}) :`, err.message);
+    }
+  }
+
+  for (; platform && start < HISTORY_CAP; start += PAGE_SIZE) {
     try {
       const page = await getMatches(account.region, platform, name, tag, apiKey, { size: PAGE_SIZE, start });
       saveMatches(account.puuid, page);
@@ -424,13 +483,7 @@ async function checkTiltAndNotify() {
   if (!settings?.name || !settings?.tag || !settings?.apiKey) return;
   try {
     const account = await getAccount(settings.name, settings.tag, settings.apiKey);
-    const freshMatches = await getMatches(
-      account.region,
-      accountPlatform(account),
-      settings.name,
-      settings.tag,
-      settings.apiKey,
-    );
+    const freshMatches = await getMatchesWithFallback(account, settings.name, settings.tag, settings.apiKey);
     saveMatches(account.puuid, freshMatches);
 
     const latestId = freshMatches[0]?.metadata?.matchid ?? null;
