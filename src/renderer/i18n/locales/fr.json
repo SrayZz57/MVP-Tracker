@@ -39,6 +39,7 @@
     "loading": "Chargement...",
     "refresh": "Rafraîchir",
     "error": "Erreur : {{message}}",
+    "rateLimited": "Trop de requêtes ont été effectuées à l'API cette minute. Réessaie dans moins d'une minute.",
     "linkingInProgress": "Liaison de ton compte en cours...",
     "unreadMessages": "Messages",
     "friendsTitle": "Amis",

@@ -802,7 +802,12 @@ function App() {
           />
         </header>
 
-        {data.error && <p className="warning">{t('nav.error', { message: data.error })}</p>}
+        {data.error &&
+          (/rate limit/i.test(data.error) ? (
+            <p className="error-banner">{t('nav.rateLimited')}</p>
+          ) : (
+            <p className="warning">{t('nav.error', { message: data.error })}</p>
+          ))}
 
         <main className="content" key={activeTab}>
           {renderValorantTab()}

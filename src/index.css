@@ -1955,6 +1955,20 @@ li {
   color: var(--warning);
 }
 
+.error-banner {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 0 1rem;
+  padding: 0.7rem 1rem;
+  border-radius: 10px;
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.22), rgba(255, 70, 85, 0.06) 80%);
+  border: 1px solid rgba(255, 70, 85, 0.4);
+  color: #ffdde0;
+  font-weight: 600;
+  box-shadow: 0 4px 16px rgba(255, 70, 85, 0.14);
+}
+
 .filter-bar {
   display: flex;
   gap: 1rem;

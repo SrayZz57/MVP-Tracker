@@ -39,6 +39,7 @@
     "loading": "Loading...",
     "refresh": "Refresh",
     "error": "Error: {{message}}",
+    "rateLimited": "Too many requests were sent to the API this minute. Try again in less than a minute.",
     "linkingInProgress": "Linking your account...",
     "unreadMessages": "Messages",
     "friendsTitle": "Friends",
