@@ -353,7 +353,11 @@
     "controlAim": "aim",
     "controlClick": "Left click",
     "controlShoot": "shoot",
-    "controlPause": "pause"
+    "controlPause": "pause",
+    "devPreviewBadge": "🧪 In development",
+    "devPreviewTitle": "3D geometry base (technical preview)",
+    "devPreviewText": "First block-out of a generic map layout — the base for a future training mode on a real layout, and a future tactical setup tool. Plain shapes only, no game textures.",
+    "devPreviewCta": "🧱 Explore the block-out"
   },
   "puzzle": {
     "options": {

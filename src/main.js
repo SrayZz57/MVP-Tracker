@@ -223,6 +223,48 @@ ipcMain.handle('aim-trainer:close', (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
+// Prévisualisation de géométrie 3D générique (block-out de map, base commune
+// pour un futur mode d'entraînement 3D et un futur outil de setup tactique).
+// Même fenêtre dédiée que l'Aim Trainer, pour les mêmes raisons.
+let mapPreviewWindow = null;
+
+ipcMain.handle('map-preview:open', () => {
+  if (mapPreviewWindow && !mapPreviewWindow.isDestroyed()) {
+    mapPreviewWindow.focus();
+    return;
+  }
+
+  mapPreviewWindow = new BrowserWindow({
+    fullscreen: true,
+    autoHideMenuBar: true,
+    backgroundColor: '#0a0c10',
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
+
+  const query = 'view=map-preview';
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    mapPreviewWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?${query}`);
+  } else {
+    mapPreviewWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`), {
+      search: query,
+    });
+  }
+
+  mapPreviewWindow.webContents.on('console-message', (_e, _level, message) => {
+    console.log('[map-preview]', message);
+  });
+
+  mapPreviewWindow.on('closed', () => {
+    mapPreviewWindow = null;
+  });
+});
+
+ipcMain.handle('map-preview:close', (event) => {
+  BrowserWindow.fromWebContents(event.sender)?.close();
+});
+
 ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
 
 ipcMain.handle('settings:set', (_event, settings) => {

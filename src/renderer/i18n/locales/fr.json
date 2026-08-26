@@ -353,7 +353,11 @@
     "controlAim": "viser",
     "controlClick": "Clic gauche",
     "controlShoot": "tirer",
-    "controlPause": "mettre en pause"
+    "controlPause": "mettre en pause",
+    "devPreviewBadge": "🧪 En développement",
+    "devPreviewTitle": "Base géométrique 3D (aperçu technique)",
+    "devPreviewText": "Premier bloc d'une disposition de map générique — sert de base à un futur mode d'entraînement sur une vraie disposition, et à un futur outil de setup tactique. Formes simples uniquement, aucune texture du jeu.",
+    "devPreviewCta": "🧱 Explorer le block-out"
   },
   "puzzle": {
     "options": {

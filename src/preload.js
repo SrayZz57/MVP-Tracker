@@ -30,6 +30,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('aim-trainer:closed', handler);
     return () => ipcRenderer.removeListener('aim-trainer:closed', handler);
   },
+  openMapPreview: () => ipcRenderer.invoke('map-preview:open'),
+  closeMapPreview: () => ipcRenderer.invoke('map-preview:close'),
   listCrosshairs: () => ipcRenderer.invoke('crosshair:list'),
   saveCrosshair: (name, code, color, image) =>
     ipcRenderer.invoke('crosshair:save', { name, code, color, image }),

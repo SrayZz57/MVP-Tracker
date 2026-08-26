@@ -2195,6 +2195,76 @@ li {
   color: #fff;
 }
 
+/* --- Aim Trainer : aperçu technique (block-out de map) -------------------- */
+.aim-devpreview-card {
+  border-style: dashed;
+  border-color: var(--border);
+  background: repeating-linear-gradient(
+    135deg,
+    var(--surface) 0px,
+    var(--surface) 14px,
+    var(--surface-alt) 14px,
+    var(--surface-alt) 28px
+  );
+}
+
+.aim-devpreview-badge {
+  display: inline-block;
+  padding: 0.24rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: #9fb4ff;
+  background: rgba(159, 180, 255, 0.14);
+  border: 1px solid rgba(159, 180, 255, 0.35);
+  margin-bottom: 0.6rem;
+}
+
+/* --- Fenêtre de prévisualisation de la géométrie 3D ------------------------ */
+.map-preview {
+  position: fixed;
+  inset: 0;
+  background: #0a0c10;
+}
+
+.map-preview canvas {
+  display: block;
+}
+
+.map-preview-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(10, 12, 16, 0.55);
+  cursor: pointer;
+}
+
+.map-preview-panel {
+  max-width: 460px;
+  padding: 2rem 2.25rem;
+  border-radius: var(--r-lg, 18px);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  text-align: center;
+  box-shadow: var(--elev-2, 0 20px 50px -20px rgba(0, 0, 0, 0.7));
+}
+
+.map-preview-panel h1 {
+  font-family: 'Chakra Petch', sans-serif;
+  font-size: 1.3rem;
+  margin-bottom: 0.5rem;
+}
+
+.map-preview-hint {
+  margin-top: 1rem;
+  font-size: 0.8rem;
+  color: var(--text-dim);
+}
+
 /* --- Aim Trainer : raccourci topbar + mode d'emploi ----------------------- */
 /* Bouton d'appel principal : dégradé chaud, liseré clair sur l'arête haute et
    reflet qui balaie — il doit se distinguer nettement des boutons neutres
