@@ -429,12 +429,23 @@ function AimTrainerGame({ config: rawConfig }) {
       metalness: 0.1,
     });
 
+    // Nouvelle direction de dérive aléatoire (utilisée à la création d'une
+    // cible ET à chaque changement de cap en cours de vol) — un tirage
+    // indépendant du précédent, pas juste une inversion, pour une trajectoire
+    // qui ne se contente pas de rebondir sur les bords comme une balle de
+    // billard.
+    const randomDrift = () =>
+      new THREE.Vector3(Math.random() * 2 - 1, (Math.random() * 2 - 1) * 0.5, 0)
+        .normalize()
+        .multiplyScalar(2 + Math.random() * 2);
+
     // Paramètres de mouvement propres à chaque cible (utilisés seulement par
     // les modes mobiles) : direction de dérive, ou angle et rayon d'orbite.
     const makeMotion = () => ({
-      drift: new THREE.Vector3(Math.random() * 2 - 1, (Math.random() * 2 - 1) * 0.5, 0)
-        .normalize()
-        .multiplyScalar(1.6 + Math.random() * 1.6),
+      drift: randomDrift(),
+      // Prochain changement de cap en vol, indépendant des rebonds sur les
+      // bords — c'est ce qui rend la trajectoire imprévisible en Tracking.
+      driftChangeAt: performance.now() + 350 + Math.random() * 500,
       orbitAngle: Math.random() * Math.PI * 2,
       orbitRadius: 2.2 + Math.random() * 2,
       orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
@@ -570,6 +581,14 @@ function AimTrainerGame({ config: rawConfig }) {
         if (phaseRef.current !== 'running') return;
 
         if (mode.movement === 'drift') {
+          // Changement de cap aléatoire en cours de vol, indépendant des
+          // rebonds sur les bords — sans ça la cible ne fait que suivre une
+          // ligne droite qui ricoche, prévisible dès le deuxième aller-retour.
+          if (now >= entry.driftChangeAt) {
+            entry.drift = randomDrift();
+            entry.driftChangeAt = now + 350 + Math.random() * 500;
+          }
+
           // Translation continue, avec rebond dans les limites du cône de jeu.
           const step = entry.drift.clone().multiplyScalar(dt / 1000);
           entry.mesh.position.add(step);
