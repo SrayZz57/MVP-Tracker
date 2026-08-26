@@ -1,4 +1,9 @@
 {
+  "platformFilter": {
+    "all": "All",
+    "pc": "PC",
+    "console": "Console"
+  },
   "nav": {
     "sections": {
       "performance": "Performance",

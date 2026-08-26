@@ -17,6 +17,8 @@ import { useMapImages } from '../mapImages.js';
 import { useWeaponIcons } from '../weaponIcons.js';
 import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
 import PlayerProfileCard from '../PlayerProfileCard.jsx';
+import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
+import usePlatformFilter from '../usePlatformFilter.js';
 import RankMomentumCard from '../RankMomentumCard.jsx';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
@@ -187,12 +189,16 @@ function StatsTab({ settings, matches, rank, loading }) {
   const [scope, setScope] = useState('');
   const [actFilter, setActFilter] = useState('');
 
+  // Filtre PC/Console local à cet onglet — n'affiche un choix que si le
+  // compte a réellement de l'historique sur les deux (voir usePlatformFilter.js).
+  const { platforms, platform, setPlatform, filteredMatches: platformMatches } = usePlatformFilter(matches);
+
   // Actes réellement présents dans l'historique en cache, du plus récent au
   // plus ancien (basé sur la dernière game jouée dans chacun) — jamais une
   // liste figée qui proposerait un acte jamais joué.
   const availableActs = useMemo(() => {
     const latestByAct = new Map(); // season_id -> game_start le plus récent
-    matches.forEach((match) => {
+    platformMatches.forEach((match) => {
       const seasonId = match.metadata?.season_id;
       const gameStart = match.metadata?.game_start ?? 0;
       if (!seasonId) return;
@@ -203,18 +209,18 @@ function StatsTab({ settings, matches, rank, loading }) {
     return [...latestByAct.entries()]
       .sort((a, b) => b[1] - a[1])
       .map(([seasonId]) => ({ id: seasonId, label: seasonNames.get(seasonId) ?? seasonId }));
-  }, [matches, seasonNames]);
+  }, [platformMatches, seasonNames]);
 
   // Filtre global de la page : "Tout" (comme avant), "Classé" (competitive
   // uniquement) ou "Non classé" (unrated uniquement), croisé avec un acte
   // précis si choisi — s'applique à toutes les stats de l'onglet, pas juste
   // à la liste de matchs en bas.
   const scopedMatches = useMemo(() => {
-    let result = matches;
+    let result = platformMatches;
     if (scope) result = result.filter((match) => match.metadata?.mode_id === scope);
     if (actFilter) result = result.filter((match) => match.metadata?.season_id === actFilter);
     return result;
-  }, [matches, scope, actFilter]);
+  }, [platformMatches, scope, actFilter]);
 
   const globalStats = useMemo(() => {
     let totalHeadshots = 0;
@@ -344,6 +350,8 @@ function StatsTab({ settings, matches, rank, loading }) {
 
   return (
     <div>
+      <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+
       <div className="card stats-scope-card">
         <span className="stats-scope-label">{t('stats.scopeLabel')}</span>
         <div className="strategy-tool-group">
@@ -441,8 +449,8 @@ function StatsTab({ settings, matches, rank, loading }) {
         </div>
       </div>
 
-      <PlayerProfileCard settings={settings} matches={matches} />
-      <RankMomentumCard settings={settings} matches={matches} />
+      <PlayerProfileCard settings={settings} matches={scopedMatches} />
+      <RankMomentumCard settings={settings} matches={scopedMatches} />
 
       <div className="card">
         <h3>{t('stats.kdProgressionTitle', { count: kdProgression.length })}</h3>
@@ -544,7 +552,7 @@ function StatsTab({ settings, matches, rank, loading }) {
         rows={agentStats}
         portraits={agentPortraits}
         icons={agentIcons}
-        matches={matches}
+        matches={scopedMatches}
         settings={settings}
         onRowClick={(name) => setSelectedAgent(name)}
       />
@@ -619,7 +627,7 @@ function StatsTab({ settings, matches, rank, loading }) {
       {selectedMap && (
         <MapDetailModal
           mapName={selectedMap}
-          matches={matches}
+          matches={scopedMatches}
           settings={settings}
           agentIcons={agentIcons}
           onClose={() => setSelectedMap(null)}
@@ -629,7 +637,7 @@ function StatsTab({ settings, matches, rank, loading }) {
       {selectedAgent && (
         <AgentDetailModal
           character={selectedAgent}
-          matches={matches}
+          matches={scopedMatches}
           settings={settings}
           onClose={() => setSelectedAgent(null)}
         />
@@ -639,7 +647,7 @@ function StatsTab({ settings, matches, rank, loading }) {
         <WeaponDetailModal
           weapon={selectedWeapon}
           weaponIcon={weaponIcons.get(selectedWeapon)}
-          matches={matches}
+          matches={scopedMatches}
           settings={settings}
           onClose={() => setSelectedWeapon(null)}
         />

@@ -372,46 +372,40 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   const HISTORY_CAP = 40;
   const PAGE_SIZE = 10;
 
-  // La première page sert aussi à déterminer la bonne plateforme : un compte
-  // crossplay peut lister ["PC", "CONSOLE"] dans account.platforms alors que
-  // son historique récent n'existe que sur l'une des deux (constaté : "pc"
-  // renvoie les matchs, "console" renvoie une erreur 500). On essaie chaque
-  // candidat jusqu'à un succès, puis on reste sur cette plateforme pour le
-  // reste de la pagination.
-  let platform = null;
-  let start = 0;
+  // Un compte crossplay (account.platforms liste "PC" ET "CONSOLE") peut
+  // avoir de vrais matchs sur LES DEUX — pas juste une seule "bonne"
+  // plateforme à deviner. On récupère donc l'historique de chaque
+  // plateforme listée plutôt que de s'arrêter à la première qui répond, et
+  // chaque match garde sa plateforme d'origine (metadata.platform, déjà
+  // conservée par le normaliseur) — ça permet à l'interface de proposer un
+  // filtre PC/Console dans chaque onglet, uniquement quand les deux sont
+  // réellement présentes en cache pour ce joueur (voir usePlatformFilter.js
+  // côté renderer). Si une plateforme listée n'a en réalité aucun historique
+  // exploitable (ex. erreur 500 constatée sur "console" pour un compte qui
+  // ne joue que sur PC malgré le crossplay activé), elle est simplement
+  // ignorée sans bloquer l'autre.
+  let rateLimited = false;
   for (const candidate of platformCandidates(account)) {
-    try {
-      const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start: 0 });
-      saveMatches(account.puuid, page);
-      platform = candidate;
-      start = page.length < PAGE_SIZE ? HISTORY_CAP : PAGE_SIZE;
-      break;
-    } catch (err) {
-      if (err.status === 429) {
-        console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
-        start = HISTORY_CAP; // pas la peine d'essayer l'autre plateforme, ça consommerait le même quota épuisé
+    if (rateLimited) break;
+    for (let start = 0; start < HISTORY_CAP; start += PAGE_SIZE) {
+      try {
+        const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start });
+        if (page.length > 0) saveMatches(account.puuid, page);
+        if (page.length < PAGE_SIZE) break; // plus d'historique derrière sur cette plateforme
+      } catch (err) {
+        if (err.status === 429) {
+          // Limite de requêtes atteinte : inutile d'insister, y compris sur
+          // l'autre plateforme (même quota) — reprise à la prochaine
+          // synchronisation (chaque match déjà en cache n'est jamais redemandé).
+          console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
+          rateLimited = true;
+        } else if (start === 0) {
+          console.error(`[henrikdev] pas d'historique exploitable sur la plateforme ${candidate} :`, err.message);
+        } else {
+          console.error(`[henrikdev] échec de la page de matchs (plateforme=${candidate}, start=${start}) :`, err.message);
+        }
         break;
       }
-      console.error(`[henrikdev] échec de la page de matchs (plateforme=${candidate}) :`, err.message);
-    }
-  }
-
-  for (; platform && start < HISTORY_CAP; start += PAGE_SIZE) {
-    try {
-      const page = await getMatches(account.region, platform, name, tag, apiKey, { size: PAGE_SIZE, start });
-      saveMatches(account.puuid, page);
-      if (page.length < PAGE_SIZE) break; // plus d'historique derrière
-    } catch (err) {
-      if (err.status === 429) {
-        // Limite de requêtes atteinte : inutile d'insister, les prochaines
-        // pages échoueraient pareil — elles seront reprises à la prochaine
-        // synchronisation (chaque match déjà en cache n'est jamais redemandé).
-        console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
-      } else {
-        console.error(`[henrikdev] échec de la page de matchs (start=${start}) :`, err.message);
-      }
-      break;
     }
   }
 
