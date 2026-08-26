@@ -2570,36 +2570,6 @@ li {
   font-weight: 500;
 }
 
-/* --- Aim Trainer : sélecteur d'arme --------------------------------------- */
-.aim-weapon-picker {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.5rem;
-  margin: 0.6rem 0 0.9rem;
-}
-
-.aim-weapon-chip {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  padding: 0.45rem 0.85rem;
-  border-radius: 999px;
-  border: 1.5px solid var(--border);
-  background: var(--surface-alt);
-  font-size: 0.82rem;
-  font-weight: 600;
-}
-
-.aim-weapon-chip.active {
-  border-color: var(--accent);
-  background: rgba(255, 70, 85, 0.12);
-  color: var(--accent);
-}
-
-.aim-weapon-chip-icon {
-  font-size: 0.95rem;
-}
-
 /* --- Aim Trainer : panneau de réglages (dans l'onglet) -------------------- */
 .aim-mode-grid {
   display: grid;

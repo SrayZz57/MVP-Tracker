@@ -1,8 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
-import { WEAPONS, DEFAULT_WEAPON } from './weapons.js';
-import { getWeaponModelUrl } from './weaponModels.js';
+import fpsRifleHandsUrl from '../assets/models/fps-rifle-hands.glb';
 import floorColorUrl from '../assets/textures/floor-color.jpg';
 import floorNormalUrl from '../assets/textures/floor-normal.jpg';
 import floorRoughnessUrl from '../assets/textures/floor-roughness.jpg';
@@ -99,7 +98,6 @@ export const DEFAULT_CONFIG = {
   spread: 28,
   fov: 103,
   showWeapon: true,
-  weapon: DEFAULT_WEAPON,
 };
 
 // Les FPS (Valorant inclus) expriment le champ de vision à l'HORIZONTALE,
@@ -495,65 +493,53 @@ function AimTrainerGame({ config: rawConfig }) {
       impactTexture,
       mixer: null,
       fireAction: null,
-      weaponHolder: null,
-      recoilKick: null,
       lastFrameTime: performance.now(),
       tracers: [],
       sparks: [],
       flashUntil: 0,
     };
 
-    // --- Modèle d'arme (mains incluses ou non selon l'arme, voir
-    // src/renderer/weapons.js + src/assets/models/CREDITS.md pour la
-    // provenance et l'attribution de chaque modèle) -------------------------
+    // --- Modèle mains + arme (CC0, voir src/assets/models/CREDITS.md) -------
     if (config.showWeapon) {
-      const weaponId = config.weapon in WEAPONS ? config.weapon : DEFAULT_WEAPON;
-      const weaponDef = WEAPONS[weaponId];
-      const modelUrl = getWeaponModelUrl(weaponId);
+      new GLTFLoader().load(fpsRifleHandsUrl, (gltf) => {
+        const model = gltf.scene;
 
-      if (!modelUrl) {
-        console.warn(`[aim-trainer] modèle introuvable pour l'arme "${weaponId}" — vérifie src/assets/models/`);
-      } else {
-        new GLTFLoader().load(modelUrl, (gltf) => {
-          const model = gltf.scene;
+        // Le modèle vient d'une source externe : sa taille d'origine est
+        // inconnue (ici ~10 unités de long, d'où le rendu "à l'intérieur de
+        // l'arme"). On le normalise à une taille de viewmodel réaliste au
+        // lieu de deviner une échelle en dur.
+        const box = new THREE.Box3().setFromObject(model);
+        const size = new THREE.Vector3();
+        box.getSize(size);
+        const longestSide = Math.max(size.x, size.y, size.z) || 1;
+        model.scale.setScalar(0.75 / longestSide);
 
-          // Le modèle vient d'une source externe : sa taille d'origine est
-          // inconnue, donc normalisée à une taille de viewmodel réaliste
-          // plutôt que de deviner une échelle en dur par arme.
-          const box = new THREE.Box3().setFromObject(model);
-          const size = new THREE.Vector3();
-          box.getSize(size);
-          const longestSide = Math.max(size.x, size.y, size.z) || 1;
-          model.scale.setScalar((weaponDef.viewSize ?? 0.75) / longestSide);
+        // Recentre le modèle sur son propre pivot avant de le placer, sinon
+        // l'offset interne du fichier décale tout.
+        const center3 = new THREE.Vector3();
+        new THREE.Box3().setFromObject(model).getCenter(center3);
+        model.position.sub(center3);
 
-          // Recentre le modèle sur son propre pivot avant de le placer, sinon
-          // l'offset interne du fichier décale tout.
-          const center3 = new THREE.Vector3();
-          new THREE.Box3().setFromObject(model).getCenter(center3);
-          model.position.sub(center3);
+        // Le modèle est déjà orienté canon vers -Z (sa dimension dominante va
+        // de Z=-6.5 à Z=+2.7), c'est-à-dire dans la direction où regarde la
+        // caméra en Three.js — aucune rotation de retournement à appliquer.
+        // Un léger lacet/tangage suffit pour l'angle "viewmodel" classique.
+        const holder = new THREE.Group();
+        holder.add(model);
+        holder.position.set(0.22, -0.2, -0.45);
+        holder.rotation.set(0.03, -0.06, 0);
+        camera.add(holder);
 
-          if (weaponDef.yawFix) model.rotation.y += weaponDef.yawFix;
-
-          const holder = new THREE.Group();
-          holder.add(model);
-          holder.position.set(weaponDef.holderOffset.x, weaponDef.holderOffset.y, weaponDef.holderOffset.z);
-          holder.rotation.set(weaponDef.holderRotation.x, weaponDef.holderRotation.y, weaponDef.holderRotation.z);
-          camera.add(holder);
-          stateRef.current.weaponHolder = holder;
-          stateRef.current.weaponRestPos = holder.position.clone();
-          stateRef.current.weaponRestRot = holder.rotation.clone();
-
-          if (weaponDef.animationClip && gltf.animations?.length > 0) {
-            const mixer = new THREE.AnimationMixer(model);
-            const clip = THREE.AnimationClip.findByName(gltf.animations, weaponDef.animationClip) ?? gltf.animations[0];
-            const action = mixer.clipAction(clip);
-            action.setLoop(THREE.LoopOnce);
-            action.clampWhenFinished = true;
-            stateRef.current.mixer = mixer;
-            stateRef.current.fireAction = action;
-          }
-        });
-      }
+        if (gltf.animations?.length > 0) {
+          const mixer = new THREE.AnimationMixer(model);
+          const clip = THREE.AnimationClip.findByName(gltf.animations, 'fire') ?? gltf.animations[0];
+          const action = mixer.clipAction(clip);
+          action.setLoop(THREE.LoopOnce);
+          action.clampWhenFinished = true;
+          stateRef.current.mixer = mixer;
+          stateRef.current.fireAction = action;
+        }
+      });
     }
 
     let frameId;
@@ -564,34 +550,6 @@ function AimTrainerGame({ config: rawConfig }) {
       state.lastFrameTime = now;
 
       state.mixer?.update(dt / 1000);
-
-      // Recul procédural (armes sans clip "fire" propre) : une courbe qui
-      // monte vite puis redescend, indépendante du framerate.
-      if (state.weaponHolder && state.recoilKick) {
-        const RECOIL_DURATION_MS = 140;
-        const elapsed = now - state.recoilKick;
-        if (elapsed >= RECOIL_DURATION_MS) {
-          state.weaponHolder.position.copy(state.weaponRestPos);
-          state.weaponHolder.rotation.copy(state.weaponRestRot);
-          state.recoilKick = null;
-        } else {
-          const t = elapsed / RECOIL_DURATION_MS;
-          // Monte en un tiers du temps, redescend sur le reste — un aller
-          // court et un retour un peu plus lent, plus lisible qu'un aller-
-          // retour symétrique.
-          const kick = t < 0.33 ? t / 0.33 : 1 - (t - 0.33) / 0.67;
-          state.weaponHolder.position.set(
-            state.weaponRestPos.x,
-            state.weaponRestPos.y + kick * 0.035,
-            state.weaponRestPos.z + kick * 0.08,
-          );
-          state.weaponHolder.rotation.set(
-            state.weaponRestRot.x - kick * 0.09,
-            state.weaponRestRot.y,
-            state.weaponRestRot.z,
-          );
-        }
-      }
       muzzleFlash.material.opacity = now < state.flashUntil ? 1 : 0;
 
       const mode = MODES[configRef.current.mode] ?? MODES.flick;
@@ -732,12 +690,6 @@ function AimTrainerGame({ config: rawConfig }) {
       if (state.fireAction) {
         state.fireAction.stop();
         state.fireAction.play();
-      } else if (state.weaponHolder) {
-        // Armes sans clip d'animation dédié (tous les modèles sauf le
-        // fusil) : recul procédural — une simple impulsion vers l'arrière
-        // et vers le haut, ramenée à sa position de repos par l'update
-        // ci-dessous, plutôt qu'un modèle figé qui ne bouge jamais au tir.
-        state.recoilKick = performance.now();
       }
 
       const spark = new THREE.Sprite(
