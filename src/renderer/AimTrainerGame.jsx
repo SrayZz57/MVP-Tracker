@@ -530,7 +530,7 @@ function AimTrainerGame({ config: rawConfig }) {
           new THREE.Box3().setFromObject(model).getCenter(center3);
           model.position.sub(center3);
 
-          if (weaponDef.flip180) model.rotation.y += Math.PI;
+          if (weaponDef.yawFix) model.rotation.y += weaponDef.yawFix;
 
           const holder = new THREE.Group();
           holder.add(model);

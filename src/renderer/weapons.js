@@ -27,11 +27,9 @@ export const WEAPONS = {
     animationClip: null,
     holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
-    // Orientation d'origine inconnue (modèle externe) : à vérifier une fois
-    // le fichier posé — mettre à `true` si le canon pointe vers l'arrière
-    // une fois chargé (voir la méthode de vérification dans le commit du
-    // fusil : inspection directe des accessors min/max du .glb).
-    flip180: false,
+    // Confirmé par capture d'écran : ce modèle est déjà orienté canon vers
+    // -Z (comme le fusil), aucune correction nécessaire.
+    yawFix: 0,
   },
   pistolGeneric: {
     labelKey: 'aimTrainer.weapons.pistolGeneric',
@@ -40,7 +38,7 @@ export const WEAPONS = {
     animationClip: null,
     holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
-    flip180: false,
+    yawFix: 0,
   },
   lawgiver: {
     labelKey: 'aimTrainer.weapons.lawgiver',
@@ -49,7 +47,12 @@ export const WEAPONS = {
     animationClip: null,
     holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
-    flip180: false,
+    // Confirmé par capture d'écran : le canon pointait sur le côté, hors
+    // cadre. Vérifié dans les données du modèle (accessors POSITION) : son
+    // axe le plus long est X (span ~5.3), pas Z comme les autres armes —
+    // il a donc été modélisé canon vers +X plutôt que -Z. Une rotation de
+    // 90° autour de Y ramène cet axe vers l'avant caméra (-Z).
+    yawFix: Math.PI / 2,
   },
 };
 
