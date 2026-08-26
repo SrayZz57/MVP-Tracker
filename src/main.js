@@ -3,7 +3,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
-import { getAccount, getMatches, getMmr, getStoredMatchIds, getMatchDetail } from './services/henrikdev.js';
+import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
 import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
 import {
   saveMatches,
@@ -326,43 +326,34 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     // global qui pouvait laisser transparaître le rang d'un autre joueur).
   }
 
-  const freshMatches = await getMatches(account.region, name, tag, apiKey);
-  saveMatches(account.puuid, freshMatches);
+  const platform = accountPlatform(account);
 
-  // La liste "derniers matchs" est plafonnée à 10 (limite de la clé Basic,
-  // confirmée en test réel — voir le commentaire dans henrikdev.js). On
-  // complète avec l'historique étendu (jusqu'à 50) : on repère les IDs de
-  // matchs pas encore en cache, et on va chercher leur détail complet un par
-  // un pour que Heatmap/Analyse tactique/corrélation ping fonctionnent aussi
-  // dessus. Une fois en cache, un match n'est plus jamais re-demandé — donc
-  // ce rattrapage ne coûte cher qu'une seule fois par nouvel appareil.
-  try {
-    const knownIds = new Set(getCachedMatches(account.puuid).map((m) => m.metadata?.matchid));
-    const storedIds = await getStoredMatchIds(account.region, name, tag, apiKey);
-    // Plafonné à 40 par sync (pas les 50 potentiellement découverts) : garde
-    // de la marge sur le quota de 30 req/min après le rang et les deux
-    // requêtes de liste déjà faites plus haut. Les IDs restants, s'il y en a,
-    // seront rattrapés à la prochaine synchronisation.
-    const missingIds = storedIds.filter((id) => !knownIds.has(id)).slice(0, 40);
-    for (const matchId of missingIds) {
-      try {
-        const detail = await getMatchDetail(matchId, apiKey);
-        saveMatches(account.puuid, [detail]);
-      } catch (err) {
-        if (err.status === 429) {
-          // Limite de requêtes atteinte : inutile d'insister, les prochains
-          // appels échoueraient pareil. On s'arrête là — les IDs restants ne
-          // sont pas en cache, donc ils seront retentés à la prochaine sync.
-          console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
-          break;
-        }
-        // Un match précis peut échouer pour une autre raison (match retiré,
-        // erreur ponctuelle) sans faire échouer toute la synchronisation.
-        console.error(`[henrikdev] échec du détail du match ${matchId} :`, err.message);
+  // v4/matches renvoie déjà le détail complet de chaque match (round par
+  // round, kills avec position) — plus besoin d'un aller-retour "liste
+  // d'IDs" puis "détail par ID" comme avant. Le nombre de résultats par
+  // requête reste plafonné à 10 quel que soit `size` (même limite silencieuse
+  // que l'ancien point d'accès, confirmée en test réel), mais `start` permet
+  // de paginer au-delà — vérifié aussi. On tourne tant qu'une page est
+  // pleine (encore de l'historique derrière), jusqu'à 40 matchs par sync
+  // (marge de quota, comme avant) ou jusqu'à une limite de requêtes atteinte.
+  const HISTORY_CAP = 40;
+  const PAGE_SIZE = 10;
+  for (let start = 0; start < HISTORY_CAP; start += PAGE_SIZE) {
+    try {
+      const page = await getMatches(account.region, platform, name, tag, apiKey, { size: PAGE_SIZE, start });
+      saveMatches(account.puuid, page);
+      if (page.length < PAGE_SIZE) break; // plus d'historique derrière
+    } catch (err) {
+      if (err.status === 429) {
+        // Limite de requêtes atteinte : inutile d'insister, les prochaines
+        // pages échoueraient pareil — elles seront reprises à la prochaine
+        // synchronisation (chaque match déjà en cache n'est jamais redemandé).
+        console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
+      } else {
+        console.error(`[henrikdev] échec de la page de matchs (start=${start}) :`, err.message);
       }
+      break;
     }
-  } catch (err) {
-    console.error("[henrikdev] échec du rattrapage de l'historique étendu :", err.message);
   }
 
   return {
@@ -433,7 +424,13 @@ async function checkTiltAndNotify() {
   if (!settings?.name || !settings?.tag || !settings?.apiKey) return;
   try {
     const account = await getAccount(settings.name, settings.tag, settings.apiKey);
-    const freshMatches = await getMatches(account.region, settings.name, settings.tag, settings.apiKey);
+    const freshMatches = await getMatches(
+      account.region,
+      accountPlatform(account),
+      settings.name,
+      settings.tag,
+      settings.apiKey,
+    );
     saveMatches(account.puuid, freshMatches);
 
     const latestId = freshMatches[0]?.metadata?.matchid ?? null;

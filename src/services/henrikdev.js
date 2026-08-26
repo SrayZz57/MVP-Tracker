@@ -1,3 +1,5 @@
+import { normalizeV4Match } from './matchNormalizer.js';
+
 const BASE_URL = 'https://api.henrikdev.xyz';
 
 async function henrikFetch(path, apiKey) {
@@ -20,39 +22,25 @@ export async function getAccount(name, tag, apiKey) {
   return henrikFetch(`/valorant/v2/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`, apiKey);
 }
 
-// size=50 demandé, mais confirmé en test réel : la liste "derniers matchs"
-// est plafonnée à 10 résultats sur une clé Basic, quel que soit `size`. Sert
-// surtout à garantir la fraîcheur des tout derniers matchs — le reste de la
-// profondeur d'historique vient de getStoredMatchIds + getMatchDetail.
-export async function getMatches(region, name, tag, apiKey) {
-  return henrikFetch(
-    `/valorant/v3/matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=50`,
-    apiKey,
-  );
-}
-
-// Liste étendue (jusqu'à 50, pas plafonnée à 10) des matchs déjà connus de
-// HenrikDev pour ce joueur — mais seulement un résumé par match (pas de
-// round par round, pas de position des kills). Sert uniquement à découvrir
-// des IDs de matchs à récupérer en détail via getMatchDetail.
-export async function getStoredMatchIds(region, name, tag, apiKey) {
+// `platform` : "pc" ou "console" — l'ancien point d'accès v3/matches (sans
+// notion de plateforme) renvoie silencieusement 0 résultat pour un compte
+// console, vérifié en conditions réelles (voir accountPlatform() dans
+// main.js pour la détection automatique). v4/matches renvoie déjà le détail
+// complet de chaque match (round par round, kills avec position) — plus
+// besoin d'un aller-retour "liste d'IDs" puis "détail par ID" comme avant.
+//
+// `size` plafonné à 10 par requête quel que soit ce qu'on demande, confirmé
+// en test réel (même limite silencieuse que l'ancien v3/matches) — mais
+// `start` permet de paginer au-delà, également vérifié en conditions
+// réelles (deux pages consécutives renvoient bien des matchs différents).
+export async function getMatches(region, platform, name, tag, apiKey, { size = 10, start = 0 } = {}) {
   const data = await henrikFetch(
-    `/valorant/v1/stored-matches/${region}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=50`,
+    `/valorant/v4/matches/${region}/${platform}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}?size=${size}&start=${start}`,
     apiKey,
   );
-  return (data || []).map((m) => m.meta?.id).filter(Boolean);
+  return (data || []).map(normalizeV4Match);
 }
 
-// Détail complet d'un seul match (round par round, kills avec position et
-// timing, économie) — même richesse que getMatches, mais match par match,
-// sans la limite de 10 puisqu'il n'y a pas de notion de "liste" ici.
-export async function getMatchDetail(matchId, apiKey) {
-  return henrikFetch(`/valorant/v2/match/${matchId}`, apiKey);
-}
-
-// `platform` : "pc" ou "console" — l'API distingue les deux, un compte
-// console interrogé en "pc" ne renvoie rien (voir accountPlatform() dans
-// main.js pour la détection automatique à partir des données du compte).
 export async function getMmr(region, platform, name, tag, apiKey) {
   return henrikFetch(
     `/valorant/v3/mmr/${region}/${platform}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
