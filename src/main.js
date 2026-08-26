@@ -54,6 +54,17 @@ const store = new Store();
 // à chaque recherche d'un autre joueur — utiliser ce champ ici recréait
 // exactement le bug qu'on scope pour éviter). Le renderer tient cette valeur
 // à jour via account:set-linked-puuid dès qu'il connaît le profil Supabase.
+// L'API distingue "pc" et "console" pour la MMR (v3/mmr) — un compte console
+// interrogé avec "pc" ne renvoie aucun rang. `account.platforms` (v2/account)
+// liste les plateformes réellement utilisées par le compte ; on privilégie
+// "console" dès qu'il y figure, plutôt que de supposer "pc" pour tout le
+// monde comme c'était fait avant (silencieux : la MMR échouait juste sans
+// rang affiché pour les joueurs console, sans erreur visible).
+function accountPlatform(account) {
+  const platforms = (account?.platforms ?? []).map((p) => String(p).toLowerCase());
+  return platforms.includes('console') ? 'console' : 'pc';
+}
+
 function currentPuuid() {
   return store.get('linkedAccountPuuid') ?? null;
 }
@@ -269,7 +280,7 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
   const account = await getAccount(name, tag, apiKey);
   let rank = null;
   try {
-    const mmr = await getMmr(account.region, name, tag, apiKey);
+    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
     rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
   } catch {
     // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
@@ -325,7 +336,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   }
 
   try {
-    const mmr = await getMmr(account.region, name, tag, apiKey);
+    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
     const rankInfo = {
       accountLevel: account.account_level,
       cardUuid: account.card,

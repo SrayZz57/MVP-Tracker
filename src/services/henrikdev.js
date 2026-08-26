@@ -50,9 +50,12 @@ export async function getMatchDetail(matchId, apiKey) {
   return henrikFetch(`/valorant/v2/match/${matchId}`, apiKey);
 }
 
-export async function getMmr(region, name, tag, apiKey) {
+// `platform` : "pc" ou "console" — l'API distingue les deux, un compte
+// console interrogé en "pc" ne renvoie rien (voir accountPlatform() dans
+// main.js pour la détection automatique à partir des données du compte).
+export async function getMmr(region, platform, name, tag, apiKey) {
   return henrikFetch(
-    `/valorant/v3/mmr/${region}/pc/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
+    `/valorant/v3/mmr/${region}/${platform}/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`,
     apiKey,
   );
 }
