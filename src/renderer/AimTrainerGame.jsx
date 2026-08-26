@@ -25,6 +25,25 @@ const POP_DURATION_MS = 130; // apparition/disparition des cibles
 const FLOOR_Y = -2.6;
 const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 
+// --- Mode Peek -------------------------------------------------------------
+// Vitesse de course avec une arme principale sortie dans Valorant : 6.75 m/s
+// (sprint) — le déplacement le plus proche d'un vrai peek en duel, plutôt
+// qu'une valeur choisie au hasard. Source : documentation communautaire du
+// modèle de mouvement de Valorant (accuracy vs vitesse de déplacement).
+// L'arène utilise déjà 1 unité Three.js = 1 mètre (SPAWN_DISTANCE = 13
+// représente une portée d'engagement réaliste), donc cette valeur s'applique
+// telle quelle en unités/seconde.
+const PEEK_STRAFE_SPEED = 6.75;
+const PEEK_COVER_DISTANCE = 9;
+const PEEK_OFFSET = 1.35; // distance latérale parcourue pour sortir de la box
+const PEEK_HOLD_MS = 450; // temps passé pleinement exposé avant de se replier
+const PEEK_HIDDEN_MIN_MS = 500;
+const PEEK_HIDDEN_MAX_MS = 1200; // délai aléatoire caché derrière la box, pour rester imprévisible
+const PEEK_BOX_WIDTH = 1.8;
+const PEEK_BOX_HEIGHT = 1.7;
+const PEEK_BOX_DEPTH = 1;
+const PEEK_BODY_HEIGHT = 1.3;
+
 // Modes d'entraînement. Chacun n'est qu'un préréglage + un comportement de
 // cible : le moteur reste le même, ce qui évite de dupliquer la logique de
 // tir/score pour chaque mode.
@@ -85,6 +104,15 @@ export const MODES = {
     lifetime: null,
     preset: { targetCount: 2, targetSize: 0.26, spread: 30, duration: 60 },
   },
+  peek: {
+    icon: '📦',
+    accent: '#4ec9f5',
+    labelKey: 'aimTrainer.modes.peek',
+    descKey: 'aimTrainer.modes.peekDesc',
+    movement: 'peek',
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.16, spread: 20, duration: 60 },
+  },
 };
 
 export const DEFAULT_CONFIG = {
@@ -123,6 +151,44 @@ function randomTargetPosition(spreadDeg, targetSize = 0.45) {
     Math.max(Math.sin(pitch) * SPAWN_DISTANCE, minY),
     -Math.cos(yaw) * Math.cos(pitch) * SPAWN_DISTANCE,
   );
+}
+
+// Position d'une box de couverture (mode Peek) : ancrée au sol, dans le même
+// cône horizontal que les autres modes (via `spreadDeg`) mais sans variation
+// de hauteur — une box ne flotte pas.
+function randomCoverPosition(spreadDeg) {
+  const yaw = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD;
+  return new THREE.Vector3(
+    Math.sin(yaw) * PEEK_COVER_DISTANCE,
+    FLOOR_Y + PEEK_BOX_HEIGHT / 2,
+    -Math.cos(yaw) * PEEK_COVER_DISTANCE,
+  );
+}
+
+// Repositionne une cible pour un mode donné — logique commune au départ
+// d'une session et au passage à l'étape suivante d'une routine enchaînée.
+// Centralisée ici pour que le mode Peek (box + corps visibles, tête en
+// cycle caché/exposé) et tous les autres modes (simple sphère repositionnée
+// au hasard) restent cohérents partout où une cible est réinitialisée, sans
+// dupliquer cette branche à chaque appelant.
+function resetTargetForMode(entry, mode, cfg, now, state) {
+  if (mode.movement === 'peek') {
+    entry.box.position.copy(randomCoverPosition(cfg.spread));
+    entry.box.visible = true;
+    entry.mesh.visible = false;
+    entry.body.visible = false;
+    entry.peek = state.initPeekState(entry, now);
+  } else {
+    entry.box.visible = false;
+    entry.body.visible = false;
+    entry.mesh.visible = true;
+    entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+    entry.anchor.copy(entry.mesh.position);
+    Object.assign(entry, state.makeMotion());
+    entry.peek = null;
+  }
+  entry.spawnedAt = now;
+  entry.poppedAt = now;
 }
 
 // Bruit de valeur lissé, base de toutes les textures procédurales ci-dessous
@@ -429,6 +495,30 @@ function AimTrainerGame({ config: rawConfig }) {
       metalness: 0.1,
     });
 
+    // Mode Peek : chaque cible a en plus une box de couverture (fixe) et un
+    // "corps" (visuel seulement, jamais dans la liste des meshes testés au
+    // tir — voir handleClick) qui accompagne la tête (= `mesh`, la seule
+    // partie qui compte comme touche) quand elle sort de la box. Ces deux
+    // meshes existent pour TOUTES les cibles, pas seulement en mode Peek,
+    // pour que les mêmes objets 3D persistants puissent être réutilisés d'un
+    // mode à l'autre dans une routine enchaînée (voir nextStep) sans jamais
+    // reconstruire la scène — ils restent juste invisibles hors de ce mode.
+    const peekBoxGeo = new THREE.BoxGeometry(PEEK_BOX_WIDTH, PEEK_BOX_HEIGHT, PEEK_BOX_DEPTH);
+    // Même texture que les murs, mais avec sa propre répétition (une instance
+    // dédiée plutôt que `wallMat` directement — celui-ci est calé pour de
+    // grands pans de mur ; réutilisé tel quel sur une petite box, le motif
+    // se répéterait beaucoup trop de fois).
+    const peekBoxMat = loadPbrMaterial(
+      { color: wallColorUrl, normal: wallNormalUrl, roughness: wallRoughnessUrl },
+      [1.4, 1.2],
+      { metalness: 0.45 },
+    );
+    const peekBodyGeo = new THREE.CylinderGeometry(0.28, 0.34, PEEK_BODY_HEIGHT, 14);
+    // Corps volontairement neutre/sombre : contraste avec la tête (couleur
+    // vive de la cible) pour que l'œil aille droit vers la seule zone qui
+    // compte, au lieu de disputer l'attention avec elle.
+    const peekBodyMat = new THREE.MeshStandardMaterial({ color: 0x2b3040, roughness: 0.7, metalness: 0.1 });
+
     // Nouvelle direction de dérive aléatoire (utilisée à la création d'une
     // cible ET à chaque changement de cap en cours de vol) — un tirage
     // indépendant du précédent, pas juste une inversion, pour une trajectoire
@@ -451,19 +541,47 @@ function AimTrainerGame({ config: rawConfig }) {
       orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
     });
 
+    // (Ré)initialise le cycle caché → expose → replié d'une cible en mode
+    // Peek — utilisé à la création, à chaque nouvelle session/étape, et
+    // après une touche réussie (la cible se replie aussitôt plutôt que
+    // d'attendre la fin naturelle du délai d'exposition).
+    const initPeekState = (entry, now) => ({
+      phase: 'hidden',
+      phaseAt: now,
+      hiddenUntil: now + PEEK_HIDDEN_MIN_MS + Math.random() * (PEEK_HIDDEN_MAX_MS - PEEK_HIDDEN_MIN_MS),
+      side: Math.random() < 0.5 ? -1 : 1,
+      offset: 0,
+      hitThisExposure: false,
+      boxCenter: entry.box.position.clone(),
+    });
+
     const targets = [];
     for (let i = 0; i < config.targetCount; i += 1) {
       const mesh = new THREE.Mesh(targetGeo, targetMat);
       mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
       mesh.scale.setScalar(config.targetSize);
       scene.add(mesh);
-      targets.push({
+
+      const box = new THREE.Mesh(peekBoxGeo, peekBoxMat);
+      box.position.copy(randomCoverPosition(config.spread));
+      box.visible = false;
+      scene.add(box);
+
+      const body = new THREE.Mesh(peekBodyGeo, peekBodyMat);
+      body.visible = false;
+      scene.add(body);
+
+      const entry = {
         mesh,
+        box,
+        body,
         spawnedAt: performance.now(),
         poppedAt: performance.now(),
         anchor: mesh.position.clone(),
         ...makeMotion(),
-      });
+      };
+      entry.peek = initPeekState(entry, performance.now());
+      targets.push(entry);
     }
 
     const flashTexture = makeGlowTexture('rgba(255, 210, 130, 0.95)');
@@ -497,6 +615,7 @@ function AimTrainerGame({ config: rawConfig }) {
       euler,
       targets,
       makeMotion,
+      initPeekState,
       raycaster,
       center,
       muzzleTip,
@@ -608,6 +727,52 @@ function AimTrainerGame({ config: rawConfig }) {
             Math.max(entry.anchor.y + Math.sin(entry.orbitAngle) * entry.orbitRadius * 0.55, minY),
             entry.anchor.z,
           );
+        } else if (mode.movement === 'peek') {
+          // Cycle caché → sort latéralement de la box → tenu bref → rentre —
+          // la tête (`entry.mesh`) n'est visible (et donc tirable, voir
+          // handleClick) que pendant les phases 'exposing'/'held'. Vitesse de
+          // déplacement latéral calée sur la vraie vitesse de course de
+          // Valorant (voir PEEK_STRAFE_SPEED).
+          const p = entry.peek;
+          const stepDist = PEEK_STRAFE_SPEED * (dt / 1000);
+
+          if (p.phase === 'hidden') {
+            if (now >= p.hiddenUntil) {
+              p.phase = 'exposing';
+              p.phaseAt = now;
+              p.exposedAt = now;
+              p.hitThisExposure = false;
+            }
+          } else if (p.phase === 'exposing') {
+            p.offset = Math.min(PEEK_OFFSET, p.offset + stepDist);
+            if (p.offset >= PEEK_OFFSET) {
+              p.phase = 'held';
+              p.phaseAt = now;
+            }
+          } else if (p.phase === 'held') {
+            if (now - p.phaseAt >= PEEK_HOLD_MS) {
+              p.phase = 'retreating';
+              // Exposition entière ratée (aucune touche) : comptée comme un
+              // raté, même logique que le timeout du mode Réflexe.
+              if (!p.hitThisExposure) {
+                setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
+              }
+            }
+          } else if (p.phase === 'retreating') {
+            p.offset = Math.max(0, p.offset - stepDist);
+            if (p.offset <= 0) {
+              p.phase = 'hidden';
+              p.phaseAt = now;
+              p.hiddenUntil = now + PEEK_HIDDEN_MIN_MS + Math.random() * (PEEK_HIDDEN_MAX_MS - PEEK_HIDDEN_MIN_MS);
+              p.side = Math.random() < 0.5 ? -1 : 1;
+            }
+          }
+
+          entry.mesh.visible = p.offset > 0;
+          entry.body.visible = p.offset > 0;
+          const x = p.boxCenter.x + p.side * p.offset;
+          entry.body.position.set(x, FLOOR_Y + PEEK_BODY_HEIGHT / 2, p.boxCenter.z);
+          entry.mesh.position.set(x, FLOOR_Y + PEEK_BODY_HEIGHT + cfg.targetSize, p.boxCenter.z);
         }
 
         // Mode réflexe : une cible non touchée à temps disparaît et compte
@@ -750,7 +915,10 @@ function AimTrainerGame({ config: rawConfig }) {
 
       const { targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
       raycaster.setFromCamera(center, camera);
-      const meshes = targets.map((entry) => entry.mesh);
+      // Mode Peek : la tête n'est testable que quand elle est visible (sortie
+      // de la box) — sinon un clic pendant qu'elle est cachée toucherait une
+      // cible qu'on ne voit pas à l'écran.
+      const meshes = targets.filter((entry) => entry.mesh.visible).map((entry) => entry.mesh);
       const intersections = raycaster.intersectObjects(meshes);
       const hitMesh = intersections[0]?.object ?? null;
 
@@ -788,13 +956,30 @@ function AimTrainerGame({ config: rawConfig }) {
 
       if (hitMesh) {
         const entry = targets.find((tgt) => tgt.mesh === hitMesh);
-        const reactionMs = performance.now() - entry.spawnedAt;
-        entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
-        entry.anchor.copy(entry.mesh.position);
-        Object.assign(entry, state.makeMotion());
-        entry.spawnedAt = performance.now();
-        entry.poppedAt = performance.now();
-        setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+        const mode = MODES[configRef.current.mode] ?? MODES.flick;
+        if (mode.movement === 'peek') {
+          // Temps de réaction mesuré depuis le début de CETTE exposition (pas
+          // depuis le début de la session) — c'est la vraie donnée d'un peek.
+          const reactionMs = performance.now() - (entry.peek.exposedAt ?? entry.spawnedAt);
+          entry.peek.hitThisExposure = true;
+          // Repli immédiat plutôt que d'attendre la fin naturelle du délai
+          // d'exposition — même logique que les autres modes qui font
+          // réapparaître la cible aussitôt touchée.
+          entry.peek = state.initPeekState(entry, performance.now());
+          entry.mesh.visible = false;
+          entry.body.visible = false;
+          entry.spawnedAt = performance.now();
+          entry.poppedAt = performance.now();
+          setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+        } else {
+          const reactionMs = performance.now() - entry.spawnedAt;
+          entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
+          entry.anchor.copy(entry.mesh.position);
+          Object.assign(entry, state.makeMotion());
+          entry.spawnedAt = performance.now();
+          entry.poppedAt = performance.now();
+          setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+        }
       } else {
         setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
       }
@@ -896,12 +1081,9 @@ function AimTrainerGame({ config: rawConfig }) {
     stateRef.current.sessionEnded = false;
     clearTrackingHold();
     const now = performance.now();
+    const mode = MODES[config.mode] ?? MODES.flick;
     stateRef.current.targets?.forEach((entry) => {
-      entry.mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
-      entry.anchor.copy(entry.mesh.position);
-      Object.assign(entry, stateRef.current.makeMotion());
-      entry.spawnedAt = now;
-      entry.poppedAt = now;
+      resetTargetForMode(entry, mode, config, now, stateRef.current);
     });
     // Le verrouillage du pointeur doit être demandé de façon synchrone dans la
     // foulée du clic (exigence de sécurité de Chromium) — pas d'await avant.
@@ -919,12 +1101,9 @@ function AimTrainerGame({ config: rawConfig }) {
     stateRef.current.sessionEnded = false;
     clearTrackingHold();
     const now = performance.now();
+    const mode = MODES[nextMode] ?? MODES.flick;
     stateRef.current.targets?.forEach((entry) => {
-      entry.mesh.position.copy(randomTargetPosition(MODES[nextMode].preset.spread, MODES[nextMode].preset.targetSize));
-      entry.anchor.copy(entry.mesh.position);
-      Object.assign(entry, stateRef.current.makeMotion());
-      entry.spawnedAt = now;
-      entry.poppedAt = now;
+      resetTargetForMode(entry, mode, mode.preset, now, stateRef.current);
     });
     lockPointer();
     setPhase('running');

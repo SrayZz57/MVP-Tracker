@@ -299,7 +299,9 @@
       "micro": "🔬 Micro-visée",
       "microDesc": "Cibles minuscules et rapprochées, pour la précision fine.",
       "orbit": "🪐 Orbite",
-      "orbitDesc": "Les cibles tournent en cercle : anticipation et suivi."
+      "orbitDesc": "Les cibles tournent en cercle : anticipation et suivi.",
+      "peek": "📦 Peek",
+      "peekDesc": "Une cible sort de derrière une box, à droite ou à gauche, à la vitesse de strafe de Valorant. Seule la tête compte."
     },
     "sensSection": "Sensibilité",
     "sessionSection": "Session",

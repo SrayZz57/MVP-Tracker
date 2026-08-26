@@ -299,7 +299,9 @@
       "micro": "🔬 Micro-flick",
       "microDesc": "Tiny, closely spaced targets for fine precision.",
       "orbit": "🪐 Orbit",
-      "orbitDesc": "Targets circle around: anticipation and tracking."
+      "orbitDesc": "Targets circle around: anticipation and tracking.",
+      "peek": "📦 Peek",
+      "peekDesc": "A target peeks out from behind cover, left or right, at Valorant's real strafe speed. Only the head counts."
     },
     "sensSection": "Sensitivity",
     "sessionSection": "Session",
