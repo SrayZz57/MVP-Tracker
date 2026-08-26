@@ -18,6 +18,10 @@ function createMaterials() {
     pillar: new THREE.MeshStandardMaterial({ color: 0x5c5f68, roughness: 0.9, metalness: 0.04 }),
     platform: new THREE.MeshStandardMaterial({ color: 0x7d818a, roughness: 0.88, metalness: 0.03 }),
     ramp: new THREE.MeshStandardMaterial({ color: 0x7d818a, roughness: 0.88, metalness: 0.03 }),
+    // Le Generator est un objet rond et distinct sur le vrai site — un cube
+    // le rendrait méconnaissable dans le block-out, alors qu'un cylindre
+    // reste une forme générique (pas un asset du jeu).
+    generator: new THREE.MeshStandardMaterial({ color: 0x4b4e56, roughness: 0.7, metalness: 0.25 }),
   };
 }
 
@@ -41,7 +45,11 @@ export function buildMapGroup(layout) {
 
   layout.blocks.forEach((block) => {
     const material = materials[block.type] ?? materials.wall;
-    const mesh = new THREE.Mesh(new THREE.BoxGeometry(block.size.w, block.size.h, block.size.d), material);
+    const geometry =
+      block.type === 'generator'
+        ? new THREE.CylinderGeometry(block.size.w / 2, block.size.w / 2, block.size.h, 20)
+        : new THREE.BoxGeometry(block.size.w, block.size.h, block.size.d);
+    const mesh = new THREE.Mesh(geometry, material);
     mesh.position.set(block.position.x, block.position.y, block.position.z);
     if (block.rotationY) mesh.rotation.y = block.rotationY;
     if (block.rotationX) mesh.rotation.x = block.rotationX;

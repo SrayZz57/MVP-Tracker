@@ -135,7 +135,14 @@ function MapGeometry3D({ layout = ASCENT_SITE_A }) {
   return (
     <div className="map-preview" ref={mountRef}>
       {!locked && (
-        <div className="map-preview-overlay">
+        // Le panneau d'accueil est rendu par React AU-DESSUS du canvas Three.js :
+        // un clic dessus n'atteint jamais le canvas, donc la demande de
+        // verrouillage souris doit partir d'ici, pas d'un listener posé sur
+        // le canvas lui-même (sinon le panneau ne se ferme jamais).
+        <div
+          className="map-preview-overlay"
+          onClick={() => mountRef.current?.querySelector('canvas')?.requestPointerLock()}
+        >
           <div className="map-preview-panel">
             <h1>🧱 {layout.label}</h1>
             <p>Block-out géométrique — proportions générales seulement, aucune texture du jeu.</p>
