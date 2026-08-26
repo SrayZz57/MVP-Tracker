@@ -839,6 +839,23 @@ function AimTrainerGame({ config: rawConfig }) {
     return () => clearTimeout(id);
   }, [phase, timeLeft]);
 
+  // Sans `unadjustedMovement`, Chromium applique la courbe d'accélération de
+  // pointeur de Windows aux mouvements de la souris avant qu'ils n'arrivent
+  // au jeu — exactement ce que Valorant évite en lisant l'entrée souris
+  // brute. Résultat : à sensibilité identique affichée, le ressenti diffère
+  // (un utilisateur l'a signalé sur Discord — plus lent que sur Valorant).
+  // L'appel doit rester synchrone dans le geste utilisateur ; seul le
+  // traitement du résultat est asynchrone, ce qui ne casse pas cette règle.
+  const lockPointer = () => {
+    const canvas = mountRef.current?.querySelector('canvas');
+    if (!canvas) return;
+    const result = canvas.requestPointerLock({ unadjustedMovement: true });
+    // Sur une plateforme qui ne supporte pas l'option (rare — surtout hors
+    // Windows/Chromium), la promesse rejette : on retente sans l'option
+    // plutôt que de laisser le verrouillage échouer complètement.
+    result?.catch?.(() => canvas.requestPointerLock());
+  };
+
   // Coupe le suivi en maintien (mode Tracking) proprement : en pause, en fin
   // de session ou avant un nouveau départ, sinon le faisceau resterait
   // affiché ou l'échantillonnage continuerait dans le vide.
@@ -888,7 +905,7 @@ function AimTrainerGame({ config: rawConfig }) {
     });
     // Le verrouillage du pointeur doit être demandé de façon synchrone dans la
     // foulée du clic (exigence de sécurité de Chromium) — pas d'await avant.
-    mountRef.current?.querySelector('canvas')?.requestPointerLock();
+    lockPointer();
     setPhase('running');
   };
 
@@ -909,12 +926,12 @@ function AimTrainerGame({ config: rawConfig }) {
       entry.spawnedAt = now;
       entry.poppedAt = now;
     });
-    mountRef.current?.querySelector('canvas')?.requestPointerLock();
+    lockPointer();
     setPhase('running');
   };
 
   const resumeSession = () => {
-    mountRef.current?.querySelector('canvas')?.requestPointerLock();
+    lockPointer();
     setPhase('running');
   };
 
