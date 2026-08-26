@@ -35,14 +35,36 @@ const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 // telle quelle en unités/seconde.
 const PEEK_STRAFE_SPEED = 6.75;
 const PEEK_COVER_DISTANCE = 9;
-const PEEK_OFFSET = 1.35; // distance latérale parcourue pour sortir de la box
 const PEEK_HOLD_MS = 450; // temps passé pleinement exposé avant de se replier
 const PEEK_HIDDEN_MIN_MS = 500;
 const PEEK_HIDDEN_MAX_MS = 1200; // délai aléatoire caché derrière la box, pour rester imprévisible
-const PEEK_BOX_WIDTH = 1.8;
-const PEEK_BOX_HEIGHT = 1.7;
-const PEEK_BOX_DEPTH = 1;
-const PEEK_BODY_HEIGHT = 1.3;
+
+// Tous les agents Valorant partagent la même taille de hitbox en jeu, 1,96 m
+// — volontairement standardisé par Riot pour que le placement de viseur soit
+// identique quel que soit l'agent en face. On s'en sert comme la vraie
+// échelle de la cible, plutôt qu'un corps choisi au hasard.
+const PEEK_CHARACTER_HEIGHT = 1.96;
+// La caméra (Y=0) représente les yeux DU JOUEUR — pour que la cible soit
+// "à la même hauteur", sa tête doit être au même niveau, pas plus bas.
+const PEEK_HEAD_Y = 0;
+const PEEK_BOX_WIDTH = 2.4;
+const PEEK_BOX_HEIGHT = 1.9; // couvre presque toute la hauteur d'un agent debout juste derrière
+const PEEK_BOX_DEPTH = 1.2;
+const PEEK_OFFSET = PEEK_BOX_WIDTH / 2 + 0.7; // de quoi dégager franchement le bord de la box
+
+// Aligne verticalement box/corps/tête d'une cible Peek sur PEEK_HEAD_Y (les
+// yeux du joueur) et sur la vraie taille de hitbox Valorant, plutôt que sur
+// le sol stylisé du reste de l'arène (FLOOR_Y — jamais pensé pour représenter
+// une échelle humaine réelle, les autres modes n'étant que des sphères
+// flottantes). `targetSize` vient du réglage de taille de cible existant :
+// une tête plus grosse laisse mécaniquement moins de hauteur au corps.
+function computePeekLayout(targetSize) {
+  const bodyHeight = Math.max(0.4, PEEK_CHARACTER_HEIGHT - targetSize * 2);
+  const bodyTopY = PEEK_HEAD_Y - targetSize;
+  const bodyY = bodyTopY - bodyHeight / 2;
+  const boxBottomY = bodyTopY - bodyHeight;
+  return { headY: PEEK_HEAD_Y, bodyY, bodyHeight, boxY: boxBottomY + PEEK_BOX_HEIGHT / 2 };
+}
 
 // Modes d'entraînement. Chacun n'est qu'un préréglage + un comportement de
 // cible : le moteur reste le même, ce qui évite de dupliquer la logique de
@@ -153,18 +175,6 @@ function randomTargetPosition(spreadDeg, targetSize = 0.45) {
   );
 }
 
-// Position d'une box de couverture (mode Peek) : ancrée au sol, dans le même
-// cône horizontal que les autres modes (via `spreadDeg`) mais sans variation
-// de hauteur — une box ne flotte pas.
-function randomCoverPosition(spreadDeg) {
-  const yaw = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD;
-  return new THREE.Vector3(
-    Math.sin(yaw) * PEEK_COVER_DISTANCE,
-    FLOOR_Y + PEEK_BOX_HEIGHT / 2,
-    -Math.cos(yaw) * PEEK_COVER_DISTANCE,
-  );
-}
-
 // Repositionne une cible pour un mode donné — logique commune au départ
 // d'une session et au passage à l'étape suivante d'une routine enchaînée.
 // Centralisée ici pour que le mode Peek (box + corps visibles, tête en
@@ -173,10 +183,16 @@ function randomCoverPosition(spreadDeg) {
 // dupliquer cette branche à chaque appelant.
 function resetTargetForMode(entry, mode, cfg, now, state) {
   if (mode.movement === 'peek') {
-    entry.box.position.copy(randomCoverPosition(cfg.spread));
+    // Toujours centrée pile devant le joueur (pas de position aléatoire
+    // comme les autres modes) : la variation du mode Peek, c'est le
+    // côté gauche/droite de l'exposition, pas l'emplacement de la box.
+    const layout = computePeekLayout(cfg.targetSize);
+    entry.box.position.set(0, layout.boxY, -PEEK_COVER_DISTANCE);
     entry.box.visible = true;
+    entry.body.scale.set(1, layout.bodyHeight, 1);
     entry.mesh.visible = false;
     entry.body.visible = false;
+    entry.peekLayout = layout;
     entry.peek = state.initPeekState(entry, now);
   } else {
     entry.box.visible = false;
@@ -513,7 +529,11 @@ function AimTrainerGame({ config: rawConfig }) {
       [1.4, 1.2],
       { metalness: 0.45 },
     );
-    const peekBodyGeo = new THREE.CylinderGeometry(0.28, 0.34, PEEK_BODY_HEIGHT, 14);
+    // Hauteur unitaire (1), mise à l'échelle par cible via `body.scale.y` —
+    // la hauteur réelle dépend de `targetSize` (voir computePeekLayout), qui
+    // peut différer d'un préréglage à l'autre ou d'une étape de routine à
+    // l'autre, exactement comme `mesh.scale` pour la tête.
+    const peekBodyGeo = new THREE.CylinderGeometry(0.28, 0.34, 1, 14);
     // Corps volontairement neutre/sombre : contraste avec la tête (couleur
     // vive de la cible) pour que l'œil aille droit vers la seule zone qui
     // compte, au lieu de disputer l'attention avec elle.
@@ -562,12 +582,15 @@ function AimTrainerGame({ config: rawConfig }) {
       mesh.scale.setScalar(config.targetSize);
       scene.add(mesh);
 
+      const peekLayout = computePeekLayout(config.targetSize);
+
       const box = new THREE.Mesh(peekBoxGeo, peekBoxMat);
-      box.position.copy(randomCoverPosition(config.spread));
+      box.position.set(0, peekLayout.boxY, -PEEK_COVER_DISTANCE);
       box.visible = false;
       scene.add(box);
 
       const body = new THREE.Mesh(peekBodyGeo, peekBodyMat);
+      body.scale.set(1, peekLayout.bodyHeight, 1);
       body.visible = false;
       scene.add(body);
 
@@ -575,6 +598,7 @@ function AimTrainerGame({ config: rawConfig }) {
         mesh,
         box,
         body,
+        peekLayout,
         spawnedAt: performance.now(),
         poppedAt: performance.now(),
         anchor: mesh.position.clone(),
@@ -770,9 +794,12 @@ function AimTrainerGame({ config: rawConfig }) {
 
           entry.mesh.visible = p.offset > 0;
           entry.body.visible = p.offset > 0;
+          // Le déplacement est purement latéral (X) : hauteur et profondeur
+          // restent celles calculées une fois pour toutes dans peekLayout.
           const x = p.boxCenter.x + p.side * p.offset;
-          entry.body.position.set(x, FLOOR_Y + PEEK_BODY_HEIGHT / 2, p.boxCenter.z);
-          entry.mesh.position.set(x, FLOOR_Y + PEEK_BODY_HEIGHT + cfg.targetSize, p.boxCenter.z);
+          const layout = entry.peekLayout;
+          entry.body.position.set(x, layout.bodyY, p.boxCenter.z);
+          entry.mesh.position.set(x, layout.headY, p.boxCenter.z);
         }
 
         // Mode réflexe : une cible non touchée à temps disparaît et compte
