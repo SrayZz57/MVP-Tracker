@@ -42,6 +42,15 @@ export const WEAPONS = {
     holderRotation: { x: 0, y: -0.1, z: 0 },
     flip180: false,
   },
+  lawgiver: {
+    labelKey: 'aimTrainer.weapons.lawgiver',
+    icon: '🔫',
+    hasHands: false,
+    animationClip: null,
+    holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
+    holderRotation: { x: 0, y: -0.1, z: 0 },
+    flip180: false,
+  },
 };
 
 export const DEFAULT_WEAPON = 'rifle';

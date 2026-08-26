@@ -23,5 +23,6 @@ export function getWeaponModelUrl(weaponId) {
   if (weaponId === 'rifle') return fpsRifleHandsUrl;
   if (weaponId === 'pistol9mm') return findPistol('pistol-9mm.glb');
   if (weaponId === 'pistolGeneric') return findPistol('pistol-generic.glb');
+  if (weaponId === 'lawgiver') return findPistol('pistol-lawgiver.glb');
   return null;
 }

@@ -357,7 +357,8 @@
     "weapons": {
       "rifle": "Rifle",
       "pistol9mm": "9mm Pistol",
-      "pistolGeneric": "Pistol"
+      "pistolGeneric": "Pistol",
+      "lawgiver": "Lawgiver"
     }
   },
   "puzzle": {
