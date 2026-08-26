@@ -811,6 +811,20 @@ section { position: relative; padding: 7rem 0; }
 
 .showcase-tab .ico { font-size: 1.15rem; }
 
+.showcase-tab-new {
+  margin-left: auto;
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: rgba(61, 220, 132, 0.14);
+  color: var(--green);
+  border: 1px solid rgba(61, 220, 132, 0.3);
+  white-space: nowrap;
+}
+
 .showcase-stage {
   position: relative;
   border-radius: var(--radius-lg);
