@@ -495,6 +495,8 @@ function AimTrainerGame({ config: rawConfig }) {
       impactTexture,
       mixer: null,
       fireAction: null,
+      weaponHolder: null,
+      recoilKick: null,
       lastFrameTime: performance.now(),
       tracers: [],
       sparks: [],
@@ -537,6 +539,9 @@ function AimTrainerGame({ config: rawConfig }) {
           holder.position.set(weaponDef.holderOffset.x, weaponDef.holderOffset.y, weaponDef.holderOffset.z);
           holder.rotation.set(weaponDef.holderRotation.x, weaponDef.holderRotation.y, weaponDef.holderRotation.z);
           camera.add(holder);
+          stateRef.current.weaponHolder = holder;
+          stateRef.current.weaponRestPos = holder.position.clone();
+          stateRef.current.weaponRestRot = holder.rotation.clone();
 
           if (weaponDef.animationClip && gltf.animations?.length > 0) {
             const mixer = new THREE.AnimationMixer(model);
@@ -559,6 +564,34 @@ function AimTrainerGame({ config: rawConfig }) {
       state.lastFrameTime = now;
 
       state.mixer?.update(dt / 1000);
+
+      // Recul procédural (armes sans clip "fire" propre) : une courbe qui
+      // monte vite puis redescend, indépendante du framerate.
+      if (state.weaponHolder && state.recoilKick) {
+        const RECOIL_DURATION_MS = 140;
+        const elapsed = now - state.recoilKick;
+        if (elapsed >= RECOIL_DURATION_MS) {
+          state.weaponHolder.position.copy(state.weaponRestPos);
+          state.weaponHolder.rotation.copy(state.weaponRestRot);
+          state.recoilKick = null;
+        } else {
+          const t = elapsed / RECOIL_DURATION_MS;
+          // Monte en un tiers du temps, redescend sur le reste — un aller
+          // court et un retour un peu plus lent, plus lisible qu'un aller-
+          // retour symétrique.
+          const kick = t < 0.33 ? t / 0.33 : 1 - (t - 0.33) / 0.67;
+          state.weaponHolder.position.set(
+            state.weaponRestPos.x,
+            state.weaponRestPos.y + kick * 0.035,
+            state.weaponRestPos.z + kick * 0.08,
+          );
+          state.weaponHolder.rotation.set(
+            state.weaponRestRot.x - kick * 0.09,
+            state.weaponRestRot.y,
+            state.weaponRestRot.z,
+          );
+        }
+      }
       muzzleFlash.material.opacity = now < state.flashUntil ? 1 : 0;
 
       const mode = MODES[configRef.current.mode] ?? MODES.flick;
@@ -699,6 +732,12 @@ function AimTrainerGame({ config: rawConfig }) {
       if (state.fireAction) {
         state.fireAction.stop();
         state.fireAction.play();
+      } else if (state.weaponHolder) {
+        // Armes sans clip d'animation dédié (tous les modèles sauf le
+        // fusil) : recul procédural — une simple impulsion vers l'arrière
+        // et vers le haut, ramenée à sa position de repos par l'update
+        // ci-dessous, plutôt qu'un modèle figé qui ne bouge jamais au tir.
+        state.recoilKick = performance.now();
       }
 
       const spark = new THREE.Sprite(
