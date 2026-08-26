@@ -524,7 +524,7 @@ function AimTrainerGame({ config: rawConfig }) {
           const size = new THREE.Vector3();
           box.getSize(size);
           const longestSide = Math.max(size.x, size.y, size.z) || 1;
-          model.scale.setScalar(0.75 / longestSide);
+          model.scale.setScalar((weaponDef.viewSize ?? 0.75) / longestSide);
 
           // Recentre le modèle sur son propre pivot avant de le placer, sinon
           // l'offset interne du fichier décale tout.

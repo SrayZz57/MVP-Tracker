@@ -17,6 +17,12 @@ export const WEAPONS = {
     holderOffset: { x: 0.22, y: -0.2, z: -0.45 },
     holderRotation: { x: 0.03, y: -0.06, z: 0 },
   },
+  // Les trois armes ci-dessous partageaient un même réglage jamais vérifié
+  // visuellement (juste une estimation de départ) : trop grosses et trop
+  // proches du bord droit, elles débordaient du cadre. Reculées (z plus
+  // négatif) et recentrées (x réduit) ; `viewSize` (la taille normalisée du
+  // viewmodel, voir AimTrainerGame.jsx) est aussi plus petit que celui du
+  // fusil (0.75) pour éviter qu'elles remplissent tout l'écran.
   pistol9mm: {
     labelKey: 'aimTrainer.weapons.pistol9mm',
     icon: '🔫',
@@ -25,7 +31,8 @@ export const WEAPONS = {
     // à améliorer si un modèle avec mains équivalent est trouvé plus tard.
     hasHands: false,
     animationClip: null,
-    holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
+    viewSize: 0.55,
+    holderOffset: { x: 0.16, y: -0.2, z: -0.6 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
     // Confirmé par capture d'écran : ce modèle est déjà orienté canon vers
     // -Z (comme le fusil), aucune correction nécessaire.
@@ -36,7 +43,8 @@ export const WEAPONS = {
     icon: '🔫',
     hasHands: false,
     animationClip: null,
-    holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
+    viewSize: 0.55,
+    holderOffset: { x: 0.16, y: -0.2, z: -0.6 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
     yawFix: 0,
   },
@@ -45,13 +53,16 @@ export const WEAPONS = {
     icon: '🔫',
     hasHands: false,
     animationClip: null,
-    holderOffset: { x: 0.24, y: -0.22, z: -0.4 },
+    viewSize: 0.55,
+    holderOffset: { x: 0.16, y: -0.2, z: -0.6 },
     holderRotation: { x: 0, y: -0.1, z: 0 },
     // Confirmé par capture d'écran : le canon pointait sur le côté, hors
-    // cadre. Vérifié dans les données du modèle (accessors POSITION) : son
-    // axe le plus long est X (span ~5.3), pas Z comme les autres armes —
-    // il a donc été modélisé canon vers +X plutôt que -Z. Une rotation de
-    // 90° autour de Y ramène cet axe vers l'avant caméra (-Z).
+    // cadre. Vérifié dans les données du modèle (accessors POSITION, en
+    // recomposant toute la hiérarchie de nœuds du .glb — plusieurs matrices
+    // de conversion FBX→glTF imbriquées) : son axe le plus long est X
+    // (canon), pas Z comme les autres armes. Une rotation de 90° autour de
+    // Y ramène cet axe vers l'avant caméra (-Z) — vérifié par le calcul
+    // matriciel exact, pas juste déduit à l'œil.
     yawFix: Math.PI / 2,
   },
 };
