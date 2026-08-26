@@ -103,6 +103,12 @@ function AimTrainer({ myId, matches, settings }) {
     return rows.map((row) => row.score);
   }, [history, config.mode]);
 
+  // Le mode Personnalisé n'existe pas dans MODES (volontairement — jamais
+  // proposé en défi du jour ni comparé dans les records), donc pas d'icône
+  // ni de nom à y récupérer.
+  const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
+  const activeModeAccent = MODES[config.mode]?.accent ?? '#8a8f9c';
+
   return (
     <div>
       {/* --- Comment ça marche --------------------------------------------- */}
@@ -405,12 +411,12 @@ function AimTrainer({ myId, matches, settings }) {
       {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
       <div className="aim-bottom-row">
         <div className="card">
-          <h3>{t('aimTrainer.progressTitle', { mode: t(MODES[config.mode].labelKey) })}</h3>
+          <h3>{t('aimTrainer.progressTitle', { mode: activeModeLabel })}</h3>
           {progression.length < 2 ? (
             <p className="label">{t('aimTrainer.progressNotEnough')}</p>
           ) : (
             <>
-              <ProgressionChart scores={progression} accent={MODES[config.mode].accent} />
+              <ProgressionChart scores={progression} accent={activeModeAccent} />
               <p className="label">
                 {t('aimTrainer.progressMeta', {
                   count: progression.length,
