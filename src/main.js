@@ -300,6 +300,32 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   const account = await getAccount(name, tag, apiKey);
   store.set('valorantSettings', { name, tag, apiKey, puuid: account.puuid });
 
+  // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
+  // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup
+  // (jusqu'à 50, un par match manquant) sur la même minute — sur la clé
+  // Basic (30 req/min), le rang passait après coup et pouvait se retrouver
+  // sans quota restant, faisant échouer silencieusement rien que lui. Là, il
+  // profite du quota complet dès le début du rafraîchissement.
+  try {
+    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
+    const rankInfo = {
+      accountLevel: account.account_level,
+      cardUuid: account.card,
+      tierId: mmr.current.tier.id,
+      tierName: mmr.current.tier.name,
+      rr: mmr.current.rr,
+      peakTierId: mmr.peak.tier.id,
+      peakTierName: mmr.peak.tier.name,
+      peakSeasonUuid: mmr.peak.season.id,
+    };
+    store.set(`valorantRank:${account.puuid}`, rankInfo);
+  } catch {
+    // Rang indisponible pour CE compte (non classé, erreur API, rate limit) —
+    // on ne touche pas au cache d'un autre compte (voir le retour ci-dessous,
+    // toujours scopé au puuid réellement recherché, jamais un "dernier connu"
+    // global qui pouvait laisser transparaître le rang d'un autre joueur).
+  }
+
   const freshMatches = await getMatches(account.region, name, tag, apiKey);
   saveMatches(account.puuid, freshMatches);
 
@@ -313,7 +339,11 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   try {
     const knownIds = new Set(getCachedMatches(account.puuid).map((m) => m.metadata?.matchid));
     const storedIds = await getStoredMatchIds(account.region, name, tag, apiKey);
-    const missingIds = storedIds.filter((id) => !knownIds.has(id));
+    // Plafonné à 40 par sync (pas les 50 potentiellement découverts) : garde
+    // de la marge sur le quota de 30 req/min après le rang et les deux
+    // requêtes de liste déjà faites plus haut. Les IDs restants, s'il y en a,
+    // seront rattrapés à la prochaine synchronisation.
+    const missingIds = storedIds.filter((id) => !knownIds.has(id)).slice(0, 40);
     for (const matchId of missingIds) {
       try {
         const detail = await getMatchDetail(matchId, apiKey);
@@ -333,26 +363,6 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     }
   } catch (err) {
     console.error("[henrikdev] échec du rattrapage de l'historique étendu :", err.message);
-  }
-
-  try {
-    const mmr = await getMmr(account.region, accountPlatform(account), name, tag, apiKey);
-    const rankInfo = {
-      accountLevel: account.account_level,
-      cardUuid: account.card,
-      tierId: mmr.current.tier.id,
-      tierName: mmr.current.tier.name,
-      rr: mmr.current.rr,
-      peakTierId: mmr.peak.tier.id,
-      peakTierName: mmr.peak.tier.name,
-      peakSeasonUuid: mmr.peak.season.id,
-    };
-    store.set(`valorantRank:${account.puuid}`, rankInfo);
-  } catch {
-    // Rang indisponible pour CE compte (non classé, erreur API, rate limit) —
-    // on ne touche pas au cache d'un autre compte (voir le retour ci-dessous,
-    // toujours scopé au puuid réellement recherché, jamais un "dernier connu"
-    // global qui pouvait laisser transparaître le rang d'un autre joueur).
   }
 
   return {
