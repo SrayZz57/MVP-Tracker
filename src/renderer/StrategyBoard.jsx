@@ -103,20 +103,6 @@ function clamp(value, min, max) {
   return Math.min(Math.max(value, min), max);
 }
 
-// Les icônes (position/capacité/spike) gardent une taille fixe à l'écran quel
-// que soit le zoom : on recalcule leur scale par rapport au zoom courant à
-// partir de leur "baseScale" (la scale voulue quand le zoom vaut 1).
-function applyIconScale(obj, canvas) {
-  if (obj.baseScale === undefined) return;
-  const s = obj.baseScale / canvas.getZoom();
-  obj.set({ scaleX: s, scaleY: s });
-}
-
-function rescaleIcons(canvas) {
-  canvas.getObjects().forEach((obj) => applyIconScale(obj, canvas));
-  canvas.requestRenderAll();
-}
-
 function StrategyBoard() {
   const { t } = useTranslation();
   const minimaps = useMapMinimaps();
@@ -333,7 +319,6 @@ function StrategyBoard() {
       zoom *= 0.999 ** delta;
       zoom = clamp(zoom, fit * MIN_ZOOM_FACTOR, fit * MAX_ZOOM_FACTOR);
       canvas.zoomToPoint(new Point(opt.e.offsetX, opt.e.offsetY), zoom);
-      rescaleIcons(canvas);
       opt.e.preventDefault();
       opt.e.stopPropagation();
     });
@@ -342,16 +327,6 @@ function StrategyBoard() {
       if (!opt.target.layerType) {
         tagLayer(opt.target, 'icons');
       }
-    });
-
-    // Un redimensionnement manuel (poignées de coin) ne touche que
-    // scaleX/scaleY — sans ça, le prochain zoom réappliquait l'ancien
-    // baseScale figé à la pose et effaçait le redimensionnement. La
-    // nouvelle taille devient la référence "taille fixe à l'écran".
-    canvas.on('object:modified', (opt) => {
-      const obj = opt.target;
-      if (obj?.baseScale === undefined) return;
-      obj.baseScale = obj.scaleX * canvas.getZoom();
     });
 
     // Une ligne de vue attachée à une position joueur suit son marqueur.
@@ -478,23 +453,23 @@ function StrategyBoard() {
     const fit = fitZoomRef.current;
     const zoom = clamp(canvas.getZoom() * factor, fit * MIN_ZOOM_FACTOR, fit * MAX_ZOOM_FACTOR);
     canvas.zoomToPoint(canvas.getVpCenter(), zoom);
-    rescaleIcons(canvas);
   }
 
   function resetView() {
     const canvas = fabricCanvasRef.current;
     if (!canvas || !initialViewportRef.current) return;
     canvas.setViewportTransform([...initialViewportRef.current]);
-    rescaleIcons(canvas);
   }
 
-  function placeStamp(objectFactory, layerType, baseScale, origin = { originX: 'center', originY: 'center' }) {
+  // Taille fixée une fois, à la pose, en unités de la carte — pas à l'écran :
+  // l'icône doit rester à la même taille RELATIVEMENT à la carte, donc suivre
+  // le zoom exactement comme la carte elle-même, sans compensation.
+  function placeStamp(objectFactory, layerType, scale, origin = { originX: 'center', originY: 'center' }) {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
     const center = canvas.getVpCenter();
     const obj = objectFactory();
-    obj.set({ left: center.x, top: center.y, ...origin, baseScale });
-    applyIconScale(obj, canvas);
+    obj.set({ left: center.x, top: center.y, ...origin, scaleX: scale, scaleY: scale });
     tagLayer(obj, layerType);
     canvas.add(obj);
     canvas.setActiveObject(obj);
@@ -595,7 +570,6 @@ function StrategyBoard() {
     const json = JSON.stringify(
       canvas.toObject([
         'layerType',
-        'baseScale',
         'isSightline',
         'centeredRotation',
         'isPositionMarker',
@@ -619,7 +593,7 @@ function StrategyBoard() {
       canvas.getObjects().forEach((obj) => {
         if (obj.isSightline) attachSightlineControls(obj);
       });
-      rescaleIcons(canvas);
+      canvas.requestRenderAll();
     });
   }
 
