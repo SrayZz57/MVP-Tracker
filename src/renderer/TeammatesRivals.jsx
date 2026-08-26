@@ -19,7 +19,7 @@ function displayName(t, entry, myPuuid) {
   return entry.puuid === myPuuid ? t('social.you') : entry.name;
 }
 
-function SynergyGraph({ teammates, myPuuid, t }) {
+function SynergyGraph({ teammates, myPuuid, centerLabel, t }) {
   const shown = teammates.slice(0, MAX_NODES);
 
   if (shown.length === 0) {
@@ -70,7 +70,7 @@ function SynergyGraph({ teammates, myPuuid, t }) {
         🫵
       </text>
       <text x={CENTER} y={CENTER + 48} textAnchor="middle" className="synergy-label synergy-label-you">
-        {t('social.you')}
+        {centerLabel}
       </text>
 
       {shown.map((tm, i) => {
@@ -123,6 +123,9 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
     () => computeNemesis(matches, settings.name, settings.tag),
     [matches, settings.name, settings.tag],
   );
+  // Le centre du graphe représente le tracker actuellement consulté — "Toi"
+  // seulement quand c'est vraiment le cas, sinon le pseudo de l'autre joueur.
+  const centerLabel = settings.puuid === myPuuid ? t('social.you') : settings.name;
 
   if (matches.length === 0) {
     if (loading) return <LoadingState />;
@@ -135,7 +138,7 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
         <h3>{t('social.synergyTitle')}</h3>
         <p className="label">{t('social.synergyHint')}</p>
         <div className="synergy-graph-wrap">
-          <SynergyGraph teammates={teammates} myPuuid={myPuuid} t={t} />
+          <SynergyGraph teammates={teammates} myPuuid={myPuuid} centerLabel={centerLabel} t={t} />
         </div>
       </div>
 

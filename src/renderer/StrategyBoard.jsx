@@ -344,6 +344,16 @@ function StrategyBoard() {
       }
     });
 
+    // Un redimensionnement manuel (poignées de coin) ne touche que
+    // scaleX/scaleY — sans ça, le prochain zoom réappliquait l'ancien
+    // baseScale figé à la pose et effaçait le redimensionnement. La
+    // nouvelle taille devient la référence "taille fixe à l'écran".
+    canvas.on('object:modified', (opt) => {
+      const obj = opt.target;
+      if (obj?.baseScale === undefined) return;
+      obj.baseScale = obj.scaleX * canvas.getZoom();
+    });
+
     // Une ligne de vue attachée à une position joueur suit son marqueur.
     canvas.on('object:moving', (opt) => {
       const moved = opt.target;
