@@ -38,7 +38,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.flickDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.28, spread: 28, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.28, spread: 28, duration: 60 },
   },
   gridshot: {
     icon: '🔢',
@@ -47,7 +47,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.gridshotDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 30 },
+    preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 60 },
   },
   tracking: {
     icon: '🌊',
@@ -56,7 +56,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 60 },
   },
   reflex: {
     icon: '⚡',
@@ -65,7 +65,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.reflexDesc',
     movement: 'none',
     lifetime: 1100,
-    preset: { targetCount: 1, targetSize: 0.3, spread: 34, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.3, spread: 34, duration: 60 },
   },
   micro: {
     icon: '🔬',
@@ -74,7 +74,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.microDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.12, spread: 12, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.12, spread: 12, duration: 60 },
   },
   orbit: {
     icon: '🪐',
@@ -83,7 +83,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.orbitDesc',
     movement: 'orbit',
     lifetime: null,
-    preset: { targetCount: 2, targetSize: 0.26, spread: 30, duration: 30 },
+    preset: { targetCount: 2, targetSize: 0.26, spread: 30, duration: 60 },
   },
 };
 
@@ -91,7 +91,7 @@ export const DEFAULT_CONFIG = {
   mode: 'flick',
   dpi: 800,
   sens: 0.35,
-  duration: 30,
+  duration: 60,
   targetSize: 0.28,
   targetColor: '#ff4655',
   targetCount: 1,
