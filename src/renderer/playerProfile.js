@@ -22,11 +22,28 @@ function describeProfile({ aggression, stability, versatility, clutch }) {
 
   if (a === 'high' && s === 'low') return 'duelistImpulsive';
   if (a === 'high' && c === 'high') return 'clutchFragger';
+  if (a === 'high' && v === 'high') return 'aggressivePolyvalent';
   if (a === 'high') return 'entryFragger';
+
+  // "v=high && s=high" à lui seul regroupait une trop grande part des joueurs
+  // (beaucoup de comptes actifs cumulent naturellement pas mal d'agents
+  // différents et peu de séries de défaites) — sous-découpé via clutch et
+  // agressivité pour répartir ce cluster sur plusieurs profils au lieu d'un.
+  if (v === 'high' && s === 'high' && c === 'high') return 'clutchAllrounder';
+  if (v === 'high' && s === 'high' && a === 'low') return 'quietFlexible';
   if (v === 'high' && s === 'high') return 'versatileTactician';
+
+  if (s === 'low' && c === 'high') return 'unstableCloser';
   if (s === 'low') return 'inconsistentPlayer';
+
+  if (c === 'high' && v === 'low') return 'clutchSpecialist';
   if (c === 'high') return 'closer';
+
+  if (v === 'low' && a === 'low') return 'quietSpecialist';
   if (v === 'low') return 'specialist';
+
+  if (a === 'low' && s === 'high') return 'steadyPillar';
+
   return 'balancedPlayer';
 }
 

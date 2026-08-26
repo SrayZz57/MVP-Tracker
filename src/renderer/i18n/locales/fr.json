@@ -1164,21 +1164,49 @@
         "title": "Entry fragger",
         "text": "Tu es souvent le premier au contact, que ce soit pour ouvrir l'espace de ton équipe ou tomber en premier. Un rôle exigeant qui pèse beaucoup sur le début de round."
       },
+      "aggressivePolyvalent": {
+        "title": "Fragger polyvalent",
+        "text": "Tu joues agressif ET tu tournes sur beaucoup d'agents différents — rare combinaison d'un joueur qui prend l'initiative sans jamais se reposer sur un seul kit."
+      },
+      "clutchAllrounder": {
+        "title": "Polyvalent complet",
+        "text": "Beaucoup d'agents, peu de séries de défaites, et un bon niveau en clutch : le profil le plus complet parmi ceux suivis ici, sans faiblesse marquée."
+      },
+      "quietFlexible": {
+        "title": "Flexible discret",
+        "text": "Tu changes d'agent facilement et tu encaisses les mauvaises séries sans t'effondrer, mais sans chercher le contact en premier. Un profil qui s'adapte à l'équipe plutôt qu'à l'ego."
+      },
       "versatileTactician": {
         "title": "Tacticien polyvalent",
         "text": "Tu passes d'un agent à l'autre sans perdre en régularité, et tu encaisses les mauvaises séries sans t'effondrer. Le profil flexible d'un joueur qui s'adapte à l'équipe."
+      },
+      "unstableCloser": {
+        "title": "Instable mais clutch",
+        "text": "Tes séries de défaites s'enchaînent facilement, mais quand ça compte vraiment (1 contre plusieurs), tu réponds présent plus souvent que la moyenne. Un contraste intéressant à surveiller avec le module Tilt."
       },
       "inconsistentPlayer": {
         "title": "Joueur en dents de scie",
         "text": "Tes séries de défaites ont tendance à s'enchaîner et à peser sur ta perf. Le module Tilt peut t'aider à repérer le bon moment pour souffler."
       },
+      "clutchSpecialist": {
+        "title": "Spécialiste clutch",
+        "text": "Tu restes fidèle à un petit noyau d'agents, mais tu es redoutable en situation de clutch. Une expertise ciblée qui paye pile au moment où ça compte."
+      },
       "closer": {
         "title": "Closeur",
         "text": "Tu ne domines peut-être pas le début de round, mais tu es clutch : tu convertis un nombre de situations à 1 contre plusieurs au-dessus de la moyenne."
       },
+      "quietSpecialist": {
+        "title": "Spécialiste discret",
+        "text": "Peu d'agents joués, peu d'initiative prise en premier — un profil posé qui préfère jouer sa carte plutôt que de forcer les situations."
+      },
       "specialist": {
         "title": "Spécialiste",
         "text": "Tu restes fidèle à un petit noyau d'agents plutôt que de tourner. Une expertise ciblée, au prix d'un peu de flexibilité en cas de besoin de switch."
+      },
+      "steadyPillar": {
+        "title": "Pilier stable",
+        "text": "Tu ne cherches pas le contact en premier, mais tu encaisses très bien les mauvaises séries. Le genre de coéquipier sur qui l'équipe peut compter sans y penser."
       },
       "balancedPlayer": {
         "title": "Joueur équilibré",
