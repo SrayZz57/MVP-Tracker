@@ -38,7 +38,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.flickDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.45, spread: 28, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.28, spread: 28, duration: 30 },
   },
   gridshot: {
     icon: '🔢',
@@ -47,7 +47,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.gridshotDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 4, targetSize: 0.4, spread: 26, duration: 30 },
+    preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 30 },
   },
   tracking: {
     icon: '🌊',
@@ -56,7 +56,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.5, spread: 30, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 30 },
   },
   reflex: {
     icon: '⚡',
@@ -65,7 +65,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.reflexDesc',
     movement: 'none',
     lifetime: 1100,
-    preset: { targetCount: 1, targetSize: 0.5, spread: 34, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.3, spread: 34, duration: 30 },
   },
   micro: {
     icon: '🔬',
@@ -74,7 +74,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.microDesc',
     movement: 'none',
     lifetime: null,
-    preset: { targetCount: 1, targetSize: 0.2, spread: 12, duration: 30 },
+    preset: { targetCount: 1, targetSize: 0.12, spread: 12, duration: 30 },
   },
   orbit: {
     icon: '🪐',
@@ -83,7 +83,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.orbitDesc',
     movement: 'orbit',
     lifetime: null,
-    preset: { targetCount: 2, targetSize: 0.42, spread: 30, duration: 30 },
+    preset: { targetCount: 2, targetSize: 0.26, spread: 30, duration: 30 },
   },
 };
 
@@ -92,7 +92,7 @@ export const DEFAULT_CONFIG = {
   dpi: 800,
   sens: 0.35,
   duration: 30,
-  targetSize: 0.45,
+  targetSize: 0.28,
   targetColor: '#ff4655',
   targetCount: 1,
   spread: 28,
@@ -497,6 +497,12 @@ function AimTrainerGame({ config: rawConfig }) {
       tracers: [],
       sparks: [],
       flashUntil: 0,
+      // Mode Tracking : suivi en maintien appuyé, pas en tirs discrets — voir
+      // handleClick/handleRelease et l'échantillonnage dans la boucle
+      // d'animation plus bas.
+      isTrackingHeld: false,
+      lastTrackSample: 0,
+      trackBeam: null,
     };
 
     // --- Modèle mains + arme (CC0, voir src/assets/models/CREDITS.md) -------
@@ -596,6 +602,52 @@ function AimTrainerGame({ config: rawConfig }) {
         }
       });
 
+      // Mode Tracking : le viseur reste maintenu, pas cliqué à chaque tir —
+      // échantillonné à intervalle régulier (pas à chaque frame, sinon le
+      // nombre de "tirs" gonflerait artificiellement avec le framerate), et
+      // un faisceau continu remplace les traînées ponctuelles des autres
+      // modes, coloré selon que le viseur est actuellement sur la cible.
+      if (cfg.mode === 'tracking' && state.isTrackingHeld && phaseRef.current === 'running') {
+        const TRACK_SAMPLE_INTERVAL_MS = 100;
+        state.raycaster.setFromCamera(state.center, camera);
+        const meshes = state.targets.map((entry) => entry.mesh);
+        const intersections = state.raycaster.intersectObjects(meshes);
+        const onTarget = intersections.length > 0;
+        const endPoint = onTarget
+          ? intersections[0].point
+          : camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(30).add(camera.position);
+
+        if (now - state.lastTrackSample >= TRACK_SAMPLE_INTERVAL_MS) {
+          state.lastTrackSample = now;
+          setStats((prev) =>
+            onTarget ? { ...prev, hits: prev.hits + 1 } : { ...prev, misses: prev.misses + 1 },
+          );
+        }
+
+        const muzzleWorldPos = new THREE.Vector3();
+        state.muzzleTip.getWorldPosition(muzzleWorldPos);
+        if (!state.trackBeam) {
+          const beamGeometry = new THREE.BufferGeometry().setFromPoints([muzzleWorldPos, endPoint]);
+          const beamMaterial = new THREE.LineBasicMaterial({
+            color: onTarget ? 0x3ddc84 : 0xffe9a8,
+            transparent: true,
+            opacity: 0.85,
+          });
+          state.trackBeam = new THREE.Line(beamGeometry, beamMaterial);
+          scene.add(state.trackBeam);
+        } else {
+          state.trackBeam.geometry.setFromPoints([muzzleWorldPos, endPoint]);
+          state.trackBeam.material.color.setHex(onTarget ? 0x3ddc84 : 0xffe9a8);
+        }
+      } else if (state.trackBeam) {
+        // Sécurité : le clic a pu être relâché hors du listener normal (perte
+        // de focus de la fenêtre, par exemple).
+        scene.remove(state.trackBeam);
+        state.trackBeam.geometry.dispose();
+        state.trackBeam.material.dispose();
+        state.trackBeam = null;
+      }
+
       // Traînées de balle : durée de vie très courte, fondu puis suppression.
       state.tracers = state.tracers.filter((tracer) => {
         const age = now - tracer.createdAt;
@@ -665,9 +717,19 @@ function AimTrainerGame({ config: rawConfig }) {
     const handleClick = () => {
       if (phaseRef.current !== 'running') return;
       const state = stateRef.current;
-      const { camera, targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
+      const { camera } = state;
       if (!camera) return;
 
+      // Tracking : pas de tir discret, il faut rester appuyé sur la cible en
+      // mouvement — le pourcentage se calcule en continu dans la boucle
+      // d'animation (voir plus bas), pas ici.
+      if (configRef.current.mode === 'tracking') {
+        state.isTrackingHeld = true;
+        state.lastTrackSample = 0;
+        return;
+      }
+
+      const { targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
       raycaster.setFromCamera(center, camera);
       const meshes = targets.map((entry) => entry.mesh);
       const intersections = raycaster.intersectObjects(meshes);
@@ -719,11 +781,25 @@ function AimTrainerGame({ config: rawConfig }) {
       }
     };
 
+    const handleRelease = () => {
+      const state = stateRef.current;
+      if (!state.isTrackingHeld) return;
+      state.isTrackingHeld = false;
+      if (state.trackBeam) {
+        state.scene.remove(state.trackBeam);
+        state.trackBeam.geometry.dispose();
+        state.trackBeam.material.dispose();
+        state.trackBeam = null;
+      }
+    };
+
     document.addEventListener('mousemove', handleMouseMove);
     document.addEventListener('mousedown', handleClick);
+    document.addEventListener('mouseup', handleRelease);
     return () => {
       document.removeEventListener('mousemove', handleMouseMove);
       document.removeEventListener('mousedown', handleClick);
+      document.removeEventListener('mouseup', handleRelease);
     };
   }, []);
 
@@ -735,6 +811,7 @@ function AimTrainerGame({ config: rawConfig }) {
       // `pointerlockchange` qui suit voit encore la phase "running" (React
       // n'a pas re-rendu) et bascule à tort en pause, masquant le résumé.
       stateRef.current.sessionEnded = true;
+      clearTrackingHold();
       setPhase('done');
       document.exitPointerLock?.();
       return undefined;
@@ -742,6 +819,20 @@ function AimTrainerGame({ config: rawConfig }) {
     const id = setTimeout(() => setTimeLeft((s) => s - 1), 1000);
     return () => clearTimeout(id);
   }, [phase, timeLeft]);
+
+  // Coupe le suivi en maintien (mode Tracking) proprement : en pause, en fin
+  // de session ou avant un nouveau départ, sinon le faisceau resterait
+  // affiché ou l'échantillonnage continuerait dans le vide.
+  const clearTrackingHold = () => {
+    const state = stateRef.current;
+    state.isTrackingHeld = false;
+    if (state.trackBeam) {
+      state.scene.remove(state.trackBeam);
+      state.trackBeam.geometry.dispose();
+      state.trackBeam.material.dispose();
+      state.trackBeam = null;
+    }
+  };
 
   useEffect(() => {
     const handleLockChange = () => {
@@ -751,7 +842,10 @@ function AimTrainerGame({ config: rawConfig }) {
       // plutôt que de laisser le chrono tourner dans le vide. En fin de
       // session, c'est le code lui-même qui relâche la souris : on ne doit
       // pas repasser en pause par-dessus le résumé.
-      if (!isLocked && phaseRef.current === 'running' && !stateRef.current.sessionEnded) setPhase('paused');
+      if (!isLocked && phaseRef.current === 'running' && !stateRef.current.sessionEnded) {
+        clearTrackingHold();
+        setPhase('paused');
+      }
     };
     document.addEventListener('pointerlockchange', handleLockChange);
     return () => document.removeEventListener('pointerlockchange', handleLockChange);
@@ -764,6 +858,7 @@ function AimTrainerGame({ config: rawConfig }) {
     setStats({ hits: 0, misses: 0, times: [] });
     setTimeLeft(config.duration);
     stateRef.current.sessionEnded = false;
+    clearTrackingHold();
     const now = performance.now();
     stateRef.current.targets?.forEach((entry) => {
       entry.mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
@@ -786,6 +881,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const nextMode = playlist[step + 1];
     setTimeLeft(config.duration);
     stateRef.current.sessionEnded = false;
+    clearTrackingHold();
     const now = performance.now();
     stateRef.current.targets?.forEach((entry) => {
       entry.mesh.position.copy(randomTargetPosition(MODES[nextMode].preset.spread, MODES[nextMode].preset.targetSize));
@@ -812,10 +908,11 @@ function AimTrainerGame({ config: rawConfig }) {
   // Note globale simple et lisible : la précision compte le plus, la vitesse
   // de réaction module le reste. Sert de repère de progression d'une session
   // à l'autre, pas de classement absolu.
+  // Le mode Tracking n'a pas de "temps de réaction" (le viseur reste
+  // maintenu sur une cible en mouvement, il n'y a pas de tir discret) — son
+  // score se réduit donc au seul pourcentage de temps passé sur cible.
   const score =
-    accuracy === null || avgReaction === null
-      ? null
-      : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3);
+    accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3);
 
   // Enregistre le score une fois la session terminée. Placé après le calcul
   // du score, et protégé par un drapeau pour ne partir qu'une seule fois par
@@ -884,13 +981,17 @@ function AimTrainerGame({ config: rawConfig }) {
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
                 {config.challengeDate && <p className="aim-game-tip">🏆 Défi du jour — score comptabilisé au classement</p>}
+                {config.mode === 'tracking' && (
+                  <p className="aim-game-tip">🌊 Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
+                )}
 
                 <div className="aim-game-controls">
                   <span>
                     <kbd>Souris</kbd> viser
                   </span>
                   <span>
-                    <kbd>Clic gauche</kbd> tirer
+                    <kbd>{config.mode === 'tracking' ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
+                    {config.mode === 'tracking' ? 'suivre' : 'tirer'}
                   </span>
                   <span>
                     <kbd>Échap</kbd> pause

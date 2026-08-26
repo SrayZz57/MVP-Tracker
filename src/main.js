@@ -223,49 +223,6 @@ ipcMain.handle('aim-trainer:close', (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
-// Fenêtre de réglages du mode Personnalisé — volontairement séparée de
-// l'onglet principal (pas plein écran, pas de config à transmettre : elle
-// lit/écrit directement dans le localStorage partagé par toutes les
-// fenêtres de la même origine, donc pas besoin d'aller-retour par IPC pour
-// les données elles-mêmes).
-let customConfigWindow = null;
-
-ipcMain.handle('custom-config:open', () => {
-  if (customConfigWindow && !customConfigWindow.isDestroyed()) {
-    customConfigWindow.focus();
-    return;
-  }
-
-  customConfigWindow = new BrowserWindow({
-    width: 480,
-    height: 720,
-    autoHideMenuBar: true,
-    backgroundColor: '#0a0c10',
-    webPreferences: {
-      preload: path.join(__dirname, 'preload.js'),
-    },
-  });
-
-  const query = 'view=custom-config';
-  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
-    customConfigWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?${query}`);
-  } else {
-    customConfigWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`), {
-      search: query,
-    });
-  }
-
-  customConfigWindow.on('closed', () => {
-    customConfigWindow = null;
-    // La fenêtre principale relit le localStorage : les réglages ont pu
-    // changer (sauvegarde, ou fermeture sans sauvegarder).
-    mainWindow?.webContents.send('custom-config:closed');
-  });
-});
-
-ipcMain.handle('custom-config:close', (event) => {
-  BrowserWindow.fromWebContents(event.sender)?.close();
-});
 
 ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
 

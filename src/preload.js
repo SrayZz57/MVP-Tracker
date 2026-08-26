@@ -30,13 +30,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.on('aim-trainer:closed', handler);
     return () => ipcRenderer.removeListener('aim-trainer:closed', handler);
   },
-  openCustomConfig: () => ipcRenderer.invoke('custom-config:open'),
-  closeCustomConfig: () => ipcRenderer.invoke('custom-config:close'),
-  onCustomConfigClosed: (callback) => {
-    const handler = () => callback();
-    ipcRenderer.on('custom-config:closed', handler);
-    return () => ipcRenderer.removeListener('custom-config:closed', handler);
-  },
   listCrosshairs: () => ipcRenderer.invoke('crosshair:list'),
   saveCrosshair: (name, code, color, image) =>
     ipcRenderer.invoke('crosshair:save', { name, code, color, image }),

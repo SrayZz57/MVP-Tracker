@@ -13,6 +13,7 @@ import {
 import { buildDailyChallenge } from './aimChallenge.js';
 import { computeTrainingImpact } from './aimCorrelation.js';
 import { FriendAvatar, friendLabel } from './friendsShared.jsx';
+import CustomModeConfig from './CustomModeConfig.jsx';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -47,6 +48,7 @@ function AimTrainer({ myId, matches, settings }) {
   const [history, setHistory] = useState([]);
   const [dailyBoard, setDailyBoard] = useState([]);
   const [friendsBoard, setFriendsBoard] = useState([]);
+  const [showCustomConfig, setShowCustomConfig] = useState(false);
 
   const challenge = useMemo(() => buildDailyChallenge(todayKey()), []);
 
@@ -71,11 +73,6 @@ function AimTrainer({ myId, matches, settings }) {
     return window.electronAPI.onAimTrainerClosed(refresh);
   }, [refresh]);
 
-  // La fenêtre de configuration du mode Personnalisé écrit directement dans
-  // le même localStorage (partagé entre fenêtres de la même origine) — à sa
-  // fermeture, on relit pour refléter les réglages sauvegardés (ou non, si
-  // fermée sans sauvegarder).
-  useEffect(() => window.electronAPI.onCustomConfigClosed(() => setConfig(loadConfig())), []);
 
   useEffect(() => {
     if (myId) loadFriendsLeaderboard(myId, config.mode).then(setFriendsBoard);
@@ -297,7 +294,7 @@ function AimTrainer({ myId, matches, settings }) {
           <button
             className={config.mode === 'custom' ? 'aim-mode-card active' : 'aim-mode-card'}
             style={{ '--mode-accent': '#8a8f9c' }}
-            onClick={() => window.electronAPI.openCustomConfig()}
+            onClick={() => setShowCustomConfig(true)}
           >
             <span className="aim-mode-glow" aria-hidden="true" />
             <span className="aim-mode-head">
@@ -317,7 +314,7 @@ function AimTrainer({ myId, matches, settings }) {
           <span className="aim-mode-summary-item">{t('aimTrainer.summarySize', { size: config.targetSize.toFixed(2) })}</span>
           <span className="aim-mode-summary-item">{t('aimTrainer.summarySpread', { deg: config.spread })}</span>
           {config.mode === 'custom' && (
-            <button className="account-forgot-password" onClick={() => window.electronAPI.openCustomConfig()}>
+            <button className="account-forgot-password" onClick={() => setShowCustomConfig(true)}>
               {t('aimTrainer.customEdit')}
             </button>
           )}
@@ -443,6 +440,16 @@ function AimTrainer({ myId, matches, settings }) {
           )}
         </div>
       </div>
+
+      {showCustomConfig && (
+        <CustomModeConfig
+          onClose={() => setShowCustomConfig(false)}
+          onSaved={() => {
+            setShowCustomConfig(false);
+            setConfig(loadConfig());
+          }}
+        />
+      )}
     </div>
   );
 }

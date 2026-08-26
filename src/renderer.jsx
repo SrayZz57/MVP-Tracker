@@ -11,7 +11,6 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App.jsx';
 import AimTrainerGame from './renderer/AimTrainerGame.jsx';
-import CustomModeConfig from './renderer/CustomModeConfig.jsx';
 
 window.addEventListener('error', (e) => console.error('window error', e.message, e.filename));
 window.addEventListener('unhandledrejection', (e) => console.error('unhandled rejection', e.reason));
@@ -33,7 +32,6 @@ if (view === 'aim-trainer') {
 
 function Root() {
   if (view === 'aim-trainer') return <AimTrainerGame config={gameConfig} />;
-  if (view === 'custom-config') return <CustomModeConfig />;
   return <App />;
 }
 
