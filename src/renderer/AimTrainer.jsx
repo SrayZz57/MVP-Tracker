@@ -417,19 +417,6 @@ function AimTrainer({ myId, matches, settings }) {
         <p className="label" style={{ marginTop: '0.75rem' }}>{t('aimTrainer.accuracyNote')}</p>
       </div>
 
-      {/* Aperçu technique : base géométrique commune pour un futur mode
-          d'entraînement 3D sur une vraie disposition de map et un futur
-          outil de setup tactique. Pas encore un mode jouable — volontairement
-          discret et étiqueté comme tel. */}
-      <div className="card aim-devpreview-card">
-        <span className="aim-devpreview-badge">{t('aimTrainer.devPreviewBadge')}</span>
-        <h4 className="account-subsection-title">{t('aimTrainer.devPreviewTitle')}</h4>
-        <p className="label">{t('aimTrainer.devPreviewText')}</p>
-        <button className="account-forgot-password" onClick={() => window.electronAPI.openMapPreview()}>
-          {t('aimTrainer.devPreviewCta')}
-        </button>
-      </div>
-
       {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
       <div className="aim-bottom-row">
         <div className="card">
