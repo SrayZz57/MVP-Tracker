@@ -28,6 +28,7 @@ function Heatmap({ settings, matches }) {
   const [mode, setMode] = useState('deaths');
   const [side, setSide] = useState('all');
   const [weapon, setWeapon] = useState('');
+  const [rotation, setRotation] = useState(0); // 0 | 90 | 180 | 270
   const canvasRef = useRef(null);
 
   const mapNames = useMemo(() => [...minimaps.keys()].sort(), [minimaps]);
@@ -77,6 +78,15 @@ function Heatmap({ settings, matches }) {
       canvas.width = CANVAS_SIZE;
       canvas.height = CANVAS_SIZE;
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
+
+      // Rotation appliquée au repère du canvas AVANT de dessiner quoi que ce
+      // soit : la carte et les points suivent alors la même rotation sans
+      // avoir à recalculer les coordonnées des points séparément.
+      ctx.save();
+      ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
+      ctx.rotate((rotation * Math.PI) / 180);
+      ctx.translate(-CANVAS_SIZE / 2, -CANVAS_SIZE / 2);
+
       ctx.drawImage(img, 0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
       const color = mode === 'kills' ? '61, 220, 132' : '255, 70, 85';
@@ -95,13 +105,14 @@ function Heatmap({ settings, matches }) {
         ctx.fill();
       });
       ctx.globalCompositeOperation = 'source-over';
+      ctx.restore();
     };
     img.src = imageUrl;
 
     return () => {
       cancelled = true;
     };
-  }, [selectedMap, minimaps, mapCoordinates, points, mode]);
+  }, [selectedMap, minimaps, mapCoordinates, points, mode, rotation]);
 
   return (
     <div>
@@ -145,6 +156,13 @@ function Heatmap({ settings, matches }) {
             ))}
           </select>
           <span className="heatmap-point-count">{t('heatmap.pointsAnalyzed', { count: points.length })}</span>
+          <button
+            className="strategy-tool"
+            onClick={() => setRotation((r) => (r + 90) % 360)}
+            title={t('heatmap.rotate')}
+          >
+            ↻ {t('heatmap.rotate')}
+          </button>
           <div className="heatmap-legend">
             <span>{t('heatmap.legendLow')}</span>
             <span className={`heatmap-legend-bar ${mode}`} />

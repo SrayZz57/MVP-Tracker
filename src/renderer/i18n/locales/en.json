@@ -1431,6 +1431,7 @@
       "defense": "🛡️ Defense"
     },
     "allWeapons": "All weapons",
+    "rotate": "Rotate 90°",
     "pointsAnalyzed_one": "📍 {{count}} point analyzed",
     "pointsAnalyzed_other": "📍 {{count}} points analyzed",
     "legendLow": "low",
