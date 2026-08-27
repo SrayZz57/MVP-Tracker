@@ -21,7 +21,7 @@ const CARD_MARGIN = 10;
 function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend, highlight }) {
   const { t } = useTranslation();
   const rankTiers = useRankTiers();
-  const rowRef = useRef(null);
+  const nameRef = useRef(null);
   const [cardPos, setCardPos] = useState(null); // null = pas survolé
   const [preview, setPreview] = useState(undefined); // undefined = pas encore chargé, null = échec
   const [recentStats, setRecentStats] = useState(undefined);
@@ -29,16 +29,18 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
   const isSelf = row.user_id === myId;
 
   const handleEnter = () => {
-    const rect = rowRef.current?.getBoundingClientRect();
+    // Ancrée sur le pseudo lui-même (pas sur toute la largeur de la ligne,
+    // qui s'étend jusqu'au score tout à droite) — juste à côté du nom, à
+    // droite par défaut, bascule à gauche si ça déborderait de la fenêtre.
+    // Hauteur clampée pour ne jamais sortir en bas de l'écran.
+    const rect = nameRef.current?.getBoundingClientRect();
     if (rect) {
-      // À droite de la ligne par défaut ; à gauche si ça déborderait de la
-      // fenêtre. Hauteur clampée pour ne jamais sortir en bas de l'écran.
       const spaceRight = window.innerWidth - rect.right;
       const left =
         spaceRight >= CARD_WIDTH + CARD_MARGIN
           ? rect.right + CARD_MARGIN
           : Math.max(CARD_MARGIN, rect.left - CARD_WIDTH - CARD_MARGIN);
-      const top = Math.min(rect.top, window.innerHeight - 260);
+      const top = Math.min(rect.top - 8, window.innerHeight - 260);
       setCardPos({ top, left });
     }
     if (isSelf || !apiKey || !row.profiles) return;
@@ -61,14 +63,15 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
 
   return (
     <div
-      ref={rowRef}
       className={highlight ? 'aim-board-row me' : 'aim-board-row'}
       onMouseEnter={handleEnter}
       onMouseLeave={() => setCardPos(null)}
     >
       <span className="aim-board-rank">{rank}</span>
       <FriendAvatar profile={row.profiles} size={26} />
-      <span className="aim-board-name">{friendLabel(row.profiles)}</span>
+      <span className="aim-board-name">
+        <span ref={nameRef}>{friendLabel(row.profiles)}</span>
+      </span>
       <span className="aim-board-score">{row.score}</span>
 
       {cardPos &&

@@ -43,7 +43,7 @@ function cm360(dpi, sens) {
   return (2.54 * 360) / (dpi * sens * 0.07);
 }
 
-function AimTrainer({ myId, matches, settings }) {
+function AimTrainer({ myId, matches, settings, apiKey }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState(loadConfig);
   const [personalBests, setPersonalBests] = useState({});
@@ -231,7 +231,7 @@ function AimTrainer({ myId, matches, settings }) {
                   row={row}
                   rank={i + 1}
                   myId={myId}
-                  apiKey={settings?.apiKey}
+                  apiKey={apiKey}
                   friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
                   onAddFriend={addFriendFromLeaderboard}
                   highlight={row.user_id === myId}
@@ -491,7 +491,7 @@ function AimTrainer({ myId, matches, settings }) {
                   row={row}
                   rank={i + 1}
                   myId={myId}
-                  apiKey={settings?.apiKey}
+                  apiKey={apiKey}
                   friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
                   onAddFriend={addFriendFromLeaderboard}
                   highlight={row.user_id === myId}
