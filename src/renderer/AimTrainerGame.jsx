@@ -90,6 +90,35 @@ export const MODES = {
     lifetime: null,
     preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 60 },
   },
+  // Trois paliers de difficulté demandés par les testeurs plutôt qu'un seul
+  // Tracking figé : vitesse de dérive et fréquence de changement de cap sont
+  // les deux leviers qui rendent une cible en mouvement plus ou moins dure à
+  // suivre (voir `driftSpeed`/`driftChangeInterval`, lus par randomDrift()
+  // et le rebranchement de cap dans la boucle d'animation). "tracking" reste
+  // la clé historique (déjà utilisée par des scores enregistrés) — c'est
+  // volontairement le palier "Pro", inchangé.
+  trackingBeginner: {
+    icon: '🌊',
+    accent: '#4ec9f5',
+    labelKey: 'aimTrainer.modes.trackingBeginner',
+    descKey: 'aimTrainer.modes.trackingBeginnerDesc',
+    movement: 'drift',
+    lifetime: null,
+    driftSpeed: [1, 1.8],
+    driftChangeInterval: [700, 1400],
+    preset: { targetCount: 1, targetSize: 0.42, spread: 26, duration: 60 },
+  },
+  trackingIntermediate: {
+    icon: '🌊',
+    accent: '#4ec9f5',
+    labelKey: 'aimTrainer.modes.trackingIntermediate',
+    descKey: 'aimTrainer.modes.trackingIntermediateDesc',
+    movement: 'drift',
+    lifetime: null,
+    driftSpeed: [1.6, 2.8],
+    driftChangeInterval: [500, 1000],
+    preset: { targetCount: 1, targetSize: 0.36, spread: 28, duration: 60 },
+  },
   tracking: {
     icon: '🌊',
     accent: '#4ec9f5',
@@ -97,6 +126,8 @@ export const MODES = {
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
     lifetime: null,
+    driftSpeed: [2, 4],
+    driftChangeInterval: [350, 850],
     preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 60 },
   },
   reflex: {
@@ -200,7 +231,7 @@ function resetTargetForMode(entry, mode, cfg, now, state) {
     entry.mesh.visible = true;
     entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
     entry.anchor.copy(entry.mesh.position);
-    Object.assign(entry, state.makeMotion());
+    Object.assign(entry, state.makeMotion(mode));
     entry.peek = null;
   }
   entry.spawnedAt = now;
@@ -543,23 +574,33 @@ function AimTrainerGame({ config: rawConfig }) {
     // cible ET à chaque changement de cap en cours de vol) — un tirage
     // indépendant du précédent, pas juste une inversion, pour une trajectoire
     // qui ne se contente pas de rebondir sur les bords comme une balle de
-    // billard.
-    const randomDrift = () =>
+    // billard. `speedRange` vient du mode actif (voir trackingBeginner /
+    // trackingIntermediate / tracking) — c'est le principal levier de
+    // difficulté du Tracking, une cible plus lente est mécaniquement plus
+    // facile à suivre.
+    const DEFAULT_DRIFT_SPEED = [2, 4];
+    const randomDrift = (speedRange = DEFAULT_DRIFT_SPEED) =>
       new THREE.Vector3(Math.random() * 2 - 1, (Math.random() * 2 - 1) * 0.5, 0)
         .normalize()
-        .multiplyScalar(2 + Math.random() * 2);
+        .multiplyScalar(speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]));
 
     // Paramètres de mouvement propres à chaque cible (utilisés seulement par
     // les modes mobiles) : direction de dérive, ou angle et rayon d'orbite.
-    const makeMotion = () => ({
-      drift: randomDrift(),
-      // Prochain changement de cap en vol, indépendant des rebonds sur les
-      // bords — c'est ce qui rend la trajectoire imprévisible en Tracking.
-      driftChangeAt: performance.now() + 350 + Math.random() * 500,
-      orbitAngle: Math.random() * Math.PI * 2,
-      orbitRadius: 2.2 + Math.random() * 2,
-      orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
-    });
+    const DEFAULT_DRIFT_CHANGE_INTERVAL = [350, 850];
+    const makeMotion = (mode) => {
+      const [changeMin, changeMax] = mode?.driftChangeInterval ?? DEFAULT_DRIFT_CHANGE_INTERVAL;
+      return {
+        drift: randomDrift(mode?.driftSpeed),
+        // Prochain changement de cap en vol, indépendant des rebonds sur les
+        // bords — c'est ce qui rend la trajectoire imprévisible en Tracking.
+        // Un intervalle plus long (paliers faciles) laisse plus de temps
+        // pour rattraper la cible avant qu'elle ne reparte ailleurs.
+        driftChangeAt: performance.now() + changeMin + Math.random() * (changeMax - changeMin),
+        orbitAngle: Math.random() * Math.PI * 2,
+        orbitRadius: 2.2 + Math.random() * 2,
+        orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
+      };
+    };
 
     // (Ré)initialise le cycle caché → expose → replié d'une cible en mode
     // Peek — utilisé à la création, à chaque nouvelle session/étape, et
@@ -602,7 +643,7 @@ function AimTrainerGame({ config: rawConfig }) {
         spawnedAt: performance.now(),
         poppedAt: performance.now(),
         anchor: mesh.position.clone(),
-        ...makeMotion(),
+        ...makeMotion(MODES[config.mode]),
       };
       entry.peek = initPeekState(entry, performance.now());
       targets.push(entry);
@@ -728,8 +769,9 @@ function AimTrainerGame({ config: rawConfig }) {
           // rebonds sur les bords — sans ça la cible ne fait que suivre une
           // ligne droite qui ricoche, prévisible dès le deuxième aller-retour.
           if (now >= entry.driftChangeAt) {
-            entry.drift = randomDrift();
-            entry.driftChangeAt = now + 350 + Math.random() * 500;
+            const [changeMin, changeMax] = mode.driftChangeInterval ?? [350, 850];
+            entry.drift = randomDrift(mode.driftSpeed);
+            entry.driftChangeAt = now + changeMin + Math.random() * (changeMax - changeMin);
           }
 
           // Translation continue, avec rebond dans les limites du cône de jeu.
@@ -1002,7 +1044,7 @@ function AimTrainerGame({ config: rawConfig }) {
           const reactionMs = performance.now() - entry.spawnedAt;
           entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
           entry.anchor.copy(entry.mesh.position);
-          Object.assign(entry, state.makeMotion());
+          Object.assign(entry, state.makeMotion(mode));
           entry.spawnedAt = performance.now();
           entry.poppedAt = performance.now();
           setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
@@ -1318,13 +1360,16 @@ function AimTrainerGame({ config: rawConfig }) {
                   </p>
                 )}
 
-                {playlist && !isLastStep ? (
+                {playlist && !isLastStep && (
                   <button className="refresh aim-game-cta" onClick={nextStep}>
                     ▶️ Étape suivante — {MODES[playlist[step + 1]].icon}{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
                   </button>
-                ) : (
+                )}
+                {/* Défi du jour : un seul essai compte au classement — pas de
+                    bouton pour relancer et retenter sa chance. */}
+                {!config.challengeDate && (
                   <button className="refresh aim-game-cta" onClick={startSession}>
                     🔄 Recommencer
                   </button>
