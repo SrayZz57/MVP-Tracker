@@ -371,6 +371,63 @@ function makeGlowTexture(color) {
   return new THREE.CanvasTexture(canvas);
 }
 
+// --- Audio -------------------------------------------------------------
+// Synthétisés via Web Audio plutôt que des fichiers audio — même logique
+// que les textures générées en canvas plus haut : rien à charger ni à
+// créditer pour un simple bruit de tir/impact.
+function createNoiseBuffer(ctx, seconds) {
+  const buffer = ctx.createBuffer(1, Math.ceil(ctx.sampleRate * seconds), ctx.sampleRate);
+  const data = buffer.getChannelData(0);
+  for (let i = 0; i < data.length; i += 1) data[i] = Math.random() * 2 - 1;
+  return buffer;
+}
+
+// Tir : rafale de bruit blanc filtrée (le "crack") + un souffle grave court
+// en dessous (le "thump") pour la sensation de percussion.
+function playGunshot(ctx) {
+  const now = ctx.currentTime;
+
+  const noise = ctx.createBufferSource();
+  noise.buffer = createNoiseBuffer(ctx, 0.12);
+  const noiseFilter = ctx.createBiquadFilter();
+  noiseFilter.type = 'bandpass';
+  noiseFilter.frequency.value = 1400;
+  noiseFilter.Q.value = 0.7;
+  const noiseGain = ctx.createGain();
+  noiseGain.gain.setValueAtTime(0.5, now);
+  noiseGain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  noise.connect(noiseFilter).connect(noiseGain).connect(ctx.destination);
+  noise.start(now);
+  noise.stop(now + 0.12);
+
+  const thump = ctx.createOscillator();
+  thump.type = 'sine';
+  thump.frequency.setValueAtTime(110, now);
+  thump.frequency.exponentialRampToValueAtTime(45, now + 0.08);
+  const thumpGain = ctx.createGain();
+  thumpGain.gain.setValueAtTime(0.35, now);
+  thumpGain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+  thump.connect(thumpGain).connect(ctx.destination);
+  thump.start(now);
+  thump.stop(now + 0.09);
+}
+
+// Cible touchée : petit "pop" mélodique et bref, distinct du tir — confirme
+// à l'oreille qu'une cible vient de tomber, pas juste qu'un coup est parti.
+function playTargetPop(ctx) {
+  const now = ctx.currentTime;
+  const osc = ctx.createOscillator();
+  osc.type = 'triangle';
+  osc.frequency.setValueAtTime(1100, now);
+  osc.frequency.exponentialRampToValueAtTime(420, now + 0.09);
+  const gain = ctx.createGain();
+  gain.gain.setValueAtTime(0.4, now);
+  gain.gain.exponentialRampToValueAtTime(0.001, now + 0.1);
+  osc.connect(gain).connect(ctx.destination);
+  osc.start(now);
+  osc.stop(now + 0.1);
+}
+
 function AimTrainerGame({ config: rawConfig }) {
   // Routine d'échauffement : une liste de modes enchaînés dans la même
   // fenêtre. L'étape courante remplace le mode et ses réglages de cibles ;
@@ -686,6 +743,11 @@ function AimTrainerGame({ config: rawConfig }) {
       muzzleTip,
       muzzleFlash,
       impactTexture,
+      // Créé ici (pas dans handleClick) pour n'exister qu'une fois par
+      // session de jeu ; `resume()` est appelé à chaque tir plutôt qu'ici,
+      // pour rester dans le geste utilisateur si le navigateur avait
+      // suspendu le contexte (politique d'autoplay).
+      audioCtx: new (window.AudioContext || window.webkitAudioContext)(),
       mixer: null,
       fireAction: null,
       lastFrameTime: performance.now(),
@@ -948,6 +1010,7 @@ function AimTrainerGame({ config: rawConfig }) {
       window.removeEventListener('resize', handleResize);
       renderer.dispose();
       mount.removeChild(renderer.domElement);
+      stateRef.current.audioCtx?.close();
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -1009,6 +1072,8 @@ function AimTrainerGame({ config: rawConfig }) {
         state.fireAction.stop();
         state.fireAction.play();
       }
+      state.audioCtx.resume();
+      playGunshot(state.audioCtx);
 
       const spark = new THREE.Sprite(
         new THREE.SpriteMaterial({
@@ -1024,6 +1089,7 @@ function AimTrainerGame({ config: rawConfig }) {
       state.sparks.push({ mesh: spark, createdAt: performance.now() });
 
       if (hitMesh) {
+        playTargetPop(state.audioCtx);
         const entry = targets.find((tgt) => tgt.mesh === hitMesh);
         const mode = MODES[configRef.current.mode] ?? MODES.flick;
         if (mode.movement === 'peek') {
