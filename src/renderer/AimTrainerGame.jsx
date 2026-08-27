@@ -1219,6 +1219,8 @@ function AimTrainerGame({ config: rawConfig }) {
       duration: config.duration,
       avgReaction: avgReaction === null ? null : Math.round(avgReaction),
       challengeDate: config.challengeDate ?? null,
+      dpi: config.dpi,
+      sens: config.sens,
     }).then((result) => setSaveState(result.ok ? 'saved' : 'error'));
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, score]);

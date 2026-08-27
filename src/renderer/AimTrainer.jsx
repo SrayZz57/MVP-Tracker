@@ -14,8 +14,9 @@ import { buildDailyChallenge } from './aimChallenge.js';
 import { computeTrainingImpact } from './aimCorrelation.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
-import { FriendAvatar, friendLabel } from './friendsShared.jsx';
 import CustomModeConfig from './CustomModeConfig.jsx';
+import AimLeaderboardRow from './AimLeaderboardRow.jsx';
+import { supabase } from './supabaseClient.js';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -51,6 +52,10 @@ function AimTrainer({ myId, matches, settings }) {
   const [dailyBoard, setDailyBoard] = useState([]);
   const [friendsBoard, setFriendsBoard] = useState([]);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
+  // Statut d'amitié envers chaque joueur croisé dans les classements —
+  // chargé une fois (pas par ligne survolée) pour savoir quel bouton
+  // proposer dans la carte au survol (voir AimLeaderboardRow.jsx).
+  const [friendStatusByUser, setFriendStatusByUser] = useState({});
 
   const challenge = useMemo(() => buildDailyChallenge(todayKey()), []);
 
@@ -79,6 +84,41 @@ function AimTrainer({ myId, matches, settings }) {
   useEffect(() => {
     if (myId) loadFriendsLeaderboard(myId, config.mode).then(setFriendsBoard);
   }, [myId, config.mode, history]);
+
+  const loadFriendStatuses = useCallback(async () => {
+    if (!myId) return;
+    const { data, error } = await supabase
+      .from('friendships')
+      .select('status, requester_id, addressee_id')
+      .or(`requester_id.eq.${myId},addressee_id.eq.${myId}`);
+    if (error) {
+      console.error('[friendships] échec du chargement des statuts :', error.message);
+      return;
+    }
+    const map = {};
+    (data ?? []).forEach((f) => {
+      const otherId = f.requester_id === myId ? f.addressee_id : f.requester_id;
+      if (f.status === 'accepted') map[otherId] = 'accepted';
+      else if (f.status === 'pending') map[otherId] = f.requester_id === myId ? 'pending-out' : 'pending-in';
+    });
+    setFriendStatusByUser(map);
+  }, [myId]);
+
+  useEffect(() => {
+    loadFriendStatuses();
+  }, [loadFriendStatuses]);
+
+  const addFriendFromLeaderboard = async (targetUserId) => {
+    if (!myId) return;
+    setFriendStatusByUser((prev) => ({ ...prev, [targetUserId]: 'pending-out' }));
+    const { error } = await supabase
+      .from('friendships')
+      .insert({ requester_id: myId, addressee_id: targetUserId, status: 'pending' });
+    if (error) {
+      console.error("[friendships] échec de l'ajout depuis le classement :", error.message);
+      loadFriendStatuses(); // remet le vrai statut si l'insertion a échoué
+    }
+  };
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
@@ -186,12 +226,16 @@ function AimTrainer({ myId, matches, settings }) {
             <div className="aim-board">
               <h4 className="account-subsection-title">{t('aimTrainer.todayRanking')}</h4>
               {dailyBoard.slice(0, 5).map((row, i) => (
-                <div key={row.user_id} className={row.user_id === myId ? 'aim-board-row me' : 'aim-board-row'}>
-                  <span className="aim-board-rank">{i + 1}</span>
-                  <FriendAvatar profile={row.profiles} size={26} />
-                  <span className="aim-board-name">{friendLabel(row.profiles)}</span>
-                  <span className="aim-board-score">{row.score}</span>
-                </div>
+                <AimLeaderboardRow
+                  key={row.user_id}
+                  row={row}
+                  rank={i + 1}
+                  myId={myId}
+                  apiKey={settings?.apiKey}
+                  friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
+                  onAddFriend={addFriendFromLeaderboard}
+                  highlight={row.user_id === myId}
+                />
               ))}
             </div>
           )}
@@ -442,12 +486,16 @@ function AimTrainer({ myId, matches, settings }) {
           ) : (
             <div className="aim-board">
               {friendsBoard.map((row, i) => (
-                <div key={row.user_id} className={row.user_id === myId ? 'aim-board-row me' : 'aim-board-row'}>
-                  <span className="aim-board-rank">{i + 1}</span>
-                  <FriendAvatar profile={row.profiles} size={26} />
-                  <span className="aim-board-name">{friendLabel(row.profiles)}</span>
-                  <span className="aim-board-score">{row.score}</span>
-                </div>
+                <AimLeaderboardRow
+                  key={row.user_id}
+                  row={row}
+                  rank={i + 1}
+                  myId={myId}
+                  apiKey={settings?.apiKey}
+                  friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
+                  onAddFriend={addFriendFromLeaderboard}
+                  highlight={row.user_id === myId}
+                />
               ))}
             </div>
           )}

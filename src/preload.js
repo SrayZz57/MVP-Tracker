@@ -17,6 +17,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   setLinkedPuuid: (puuid) => ipcRenderer.invoke('account:set-linked-puuid', puuid),
   getMatches: (settings) => ipcRenderer.invoke('valorant:get-matches', settings),
   previewRiotAccount: (payload) => ipcRenderer.invoke('valorant:preview-account', payload),
+  previewRecentStats: (payload) => ipcRenderer.invoke('valorant:preview-recent-stats', payload),
   getCachedMatches: () => ipcRenderer.invoke('valorant:get-cached-matches'),
   getCachedMatchesFor: (puuid) => ipcRenderer.invoke('valorant:get-cached-matches-for', puuid),
   getRankFor: (puuid) => ipcRenderer.invoke('valorant:get-rank-for', puuid),

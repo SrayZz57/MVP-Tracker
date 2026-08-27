@@ -16,7 +16,7 @@ export function todayKey() {
 
 export async function saveScore(
   userId,
-  { mode, score, accuracy, hits, misses, duration, avgReaction, challengeDate = null },
+  { mode, score, accuracy, hits, misses, duration, avgReaction, challengeDate = null, dpi = null, sens = null },
 ) {
   if (!userId) {
     console.error('[aim_trainer_scores] aucun utilisateur : score non enregistré');
@@ -32,6 +32,8 @@ export async function saveScore(
     duration,
     avg_reaction: avgReaction,
     challenge_date: challengeDate,
+    dpi,
+    sens,
   });
   if (error) {
     console.error("[aim_trainer_scores] échec de l'enregistrement :", error.message);
@@ -119,7 +121,7 @@ export function computeStreak(history) {
 export async function loadDailyLeaderboard(date, limit = 20) {
   const { data, error } = await supabase
     .from('aim_trainer_scores')
-    .select(`user_id, score, accuracy, profiles!inner(${PROFILE_FIELDS})`)
+    .select(`user_id, score, accuracy, dpi, sens, profiles!inner(${PROFILE_FIELDS})`)
     .eq('challenge_date', date)
     .order('score', { ascending: false })
     .limit(200);
@@ -156,7 +158,7 @@ export async function loadFriendsLeaderboard(userId, mode) {
 
   const { data, error } = await supabase
     .from('aim_trainer_scores')
-    .select(`user_id, score, accuracy, profiles!inner(${PROFILE_FIELDS})`)
+    .select(`user_id, score, accuracy, dpi, sens, profiles!inner(${PROFILE_FIELDS})`)
     .eq('mode', mode)
     .in('user_id', [...ids])
     .order('score', { ascending: false })

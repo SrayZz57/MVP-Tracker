@@ -2485,12 +2485,67 @@ li {
 }
 
 .aim-board-row {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 0.6rem;
   padding: 0.4rem 0.6rem;
   border-radius: 9px;
   font-size: 0.86rem;
+}
+
+.aim-board-hover-card {
+  position: absolute;
+  z-index: 20;
+  top: calc(100% + 0.4rem);
+  left: 1.6rem;
+  width: 220px;
+  padding: 0.85rem;
+  border-radius: 12px;
+  background: linear-gradient(172deg, #1c212b 0%, #12151d 60%, #0d1015 100%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.aim-board-hover-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.aim-board-hover-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.aim-board-hover-stats {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  font-size: 0.82rem;
+}
+
+.aim-board-hover-stat {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.aim-board-hover-stat img {
+  width: 18px;
+  height: 18px;
+}
+
+.aim-board-hover-add {
+  width: 100%;
+  justify-content: center;
 }
 
 .aim-board-row.me {
