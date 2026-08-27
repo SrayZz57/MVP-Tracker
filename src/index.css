@@ -2495,10 +2495,8 @@ li {
 }
 
 .aim-board-hover-card {
-  position: absolute;
-  z-index: 20;
-  top: calc(100% + 0.4rem);
-  left: 1.6rem;
+  position: fixed;
+  z-index: 200;
   width: 220px;
   padding: 0.85rem;
   border-radius: 12px;
