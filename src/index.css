@@ -3859,8 +3859,7 @@ li {
   flex-direction: column;
   gap: 0.9rem;
   flex: 1;
-  min-width: 340px;
-  max-width: 480px;
+  min-width: 400px;
 }
 
 .strategy-toolbar-section {
