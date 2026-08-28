@@ -110,7 +110,7 @@ export function E2EEProvider({ children }) {
   );
 
   return (
-    <E2EEContext.Provider value={{ ready: !!keyPair, unlockForUser, lock, encryptFor, decryptFrom }}>
+    <E2EEContext.Provider value={{ ready: !!keyPair, unlockForUser, tryAutoUnlock, lock, encryptFor, decryptFrom }}>
       {children}
     </E2EEContext.Provider>
   );
