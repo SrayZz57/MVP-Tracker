@@ -1858,6 +1858,10 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
   align-items: start;
+  /* Les cartes à l'intérieur ont leur margin-bottom mis à zéro (juste en
+     dessous) pour ne pas créer un vide vertical entre les deux colonnes —
+     mais ça ne doit pas coller ce bloc à ce qui vient juste après lui. */
+  margin-bottom: 1.25rem;
 }
 
 .tilt-columns .card {
