@@ -3862,7 +3862,6 @@ li {
   min-width: 320px;
   max-width: 620px;
   box-sizing: border-box;
-  overflow: hidden;
 }
 
 .strategy-toolbar-section {
@@ -3902,6 +3901,7 @@ li {
 
 .strategy-tool-group {
   display: flex;
+  flex-wrap: wrap;
   gap: 0.3rem;
   padding: 0.25rem;
   background: rgba(0, 0, 0, 0.18);
