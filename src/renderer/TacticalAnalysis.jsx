@@ -5,6 +5,7 @@ import PostMortemHistory from './PostMortemHistory.jsx';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const TIMING_ICONS = { early: '🏃', mid: '⚔️', late: '⏳' };
 const ECONOMY_ICONS = { eco: '🥖', semi: '💵', full: '💰' };
@@ -34,8 +35,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('analyse.timingTitle', { count: timing.total })}</h3>
+      <CollapsibleCard id="analyse.timing" title={t('analyse.timingTitle', { count: timing.total })}>
         {timing.total === 0 ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (
@@ -51,10 +51,9 @@ function TacticalAnalysis({ settings, matches, loading }) {
           ))
         )}
         <p className="label" style={{ marginTop: '0.5rem' }}>{t('analyse.timingHint')}</p>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('analyse.distanceTitle')}</h3>
+      <CollapsibleCard id="analyse.distance" title={t('analyse.distanceTitle')}>
         {distance.rows.every((r) => r.total === 0) ? (
           <p>{t('analyse.notEnoughData')}</p>
         ) : (
@@ -97,10 +96,9 @@ function TacticalAnalysis({ settings, matches, loading }) {
             <p className="label" style={{ marginTop: '0.75rem' }}>{t('analyse.distanceHint')}</p>
           </>
         )}
-      </div>
+      </CollapsibleCard>
 
-      <div className="card comp-score-card">
-        <h3>{t('analyse.clutchTitle')}</h3>
+      <CollapsibleCard id="analyse.clutch" title={t('analyse.clutchTitle')} className="comp-score-card">
         {clutch.attempts === 0 ? (
           <p>{t('analyse.noClutch')}</p>
         ) : (
@@ -125,10 +123,9 @@ function TacticalAnalysis({ settings, matches, loading }) {
           </>
         )}
         <p className="label" style={{ marginTop: '0.5rem' }}>{t('analyse.clutchHint')}</p>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('analyse.economyTitle')}</h3>
+      <CollapsibleCard id="analyse.economy" title={t('analyse.economyTitle')}>
         {economy.every((t2) => t2.rounds === 0) ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (
@@ -146,7 +143,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
             </div>
           ))
         )}
-      </div>
+      </CollapsibleCard>
 
       <PostMortemHistory />
     </div>

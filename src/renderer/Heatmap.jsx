@@ -4,6 +4,7 @@ import { useMapMinimaps, useMapCoordinates } from './mapImages.js';
 import { deathLocationsOnMap } from './valorantStats.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const CANVAS_SIZE = 640;
 const POINT_RADIUS = 26;
@@ -118,8 +119,7 @@ function Heatmap({ settings, matches }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('heatmap.title')}</h3>
+      <CollapsibleCard id="heatmap" title={t('heatmap.title')}>
         <p className="label">{t('heatmap.description')}</p>
 
         <div className="filter-bar">
@@ -173,7 +173,7 @@ function Heatmap({ settings, matches }) {
         <div className="heatmap-canvas-wrap">
           <canvas ref={canvasRef} />
         </div>
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

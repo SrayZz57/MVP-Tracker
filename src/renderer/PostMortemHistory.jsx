@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function PostMortemHistory() {
   const { t } = useTranslation();
@@ -11,10 +12,9 @@ function PostMortemHistory() {
 
   if (history.length === 0) {
     return (
-      <div className="card">
-        <h3>{t('postmortemHistory.title')}</h3>
+      <CollapsibleCard id="postmortemHistory" title={t('postmortemHistory.title')}>
         <p>{t('postmortemHistory.noneYet')}</p>
-      </div>
+      </CollapsibleCard>
     );
   }
 
@@ -30,8 +30,7 @@ function PostMortemHistory() {
     recentResults.length > 0 ? (recentResults.filter((r) => r.correct).length / recentResults.length) * 100 : null;
 
   return (
-    <div className="card">
-      <h3>{t('postmortemHistory.title')}</h3>
+    <CollapsibleCard id="postmortemHistory" title={t('postmortemHistory.title')}>
       <p className="label">{t('postmortemHistory.hint')}</p>
       <div className="stat-tiles">
         <div className="stat-tile">
@@ -59,7 +58,7 @@ function PostMortemHistory() {
           );
         })}
       </div>
-    </div>
+    </CollapsibleCard>
   );
 }
 
