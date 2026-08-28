@@ -6,7 +6,9 @@ import Skeleton from './Skeleton.jsx';
 import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 
-const PAGE_SIZE = 30;
+// 36 = multiple de plusieurs largeurs de grille (6/9/12 colonnes) — réduit les
+// lignes à moitié vides, même logique que pour la bibliothèque de crosshairs.
+const PAGE_SIZE = 36;
 
 // Recherche insensible aux accents ("celeste" doit trouver "céleste").
 function normalizeText(text) {
@@ -80,14 +82,16 @@ function SkinsCatalog({ myId }) {
     const term = normalizeText(search.trim());
     const min = priceMin === '' ? -Infinity : Number(priceMin);
     const max = priceMax === '' ? Infinity : Number(priceMax);
-    return catalog.filter(
-      (s) =>
-        (term === '' || normalizeText(s.name).includes(term)) &&
-        (weaponFilter === '' || s.weaponName === weaponFilter) &&
-        (tierFilter === '' || s.tierName === tierFilter) &&
-        s.estimatedPriceVp >= min &&
-        s.estimatedPriceVp <= max,
-    );
+    return catalog
+      .filter(
+        (s) =>
+          (term === '' || normalizeText(s.name).includes(term)) &&
+          (weaponFilter === '' || s.weaponName === weaponFilter) &&
+          (tierFilter === '' || s.tierName === tierFilter) &&
+          s.estimatedPriceVp >= min &&
+          s.estimatedPriceVp <= max,
+      )
+      .sort((a, b) => b.tierRank - a.tierRank || b.estimatedPriceVp - a.estimatedPriceVp);
   }, [catalog, search, weaponFilter, tierFilter, priceMin, priceMax]);
 
   const wishlistSkins = useMemo(
