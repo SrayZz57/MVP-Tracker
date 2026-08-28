@@ -18,8 +18,24 @@ async function henrikFetch(path, apiKey) {
   return body.data;
 }
 
+// HenrikDev met en cache le résultat de v2/account (niveau de compte, carte)
+// dérivé du dernier match du joueur. Si ce tout premier calcul échoue (hoquet
+// temporaire de leur côté), c'est CETTE erreur qui reste en cache et qui est
+// renvoyée à chaque appel suivant, même si le compte est parfaitement valide
+// — confirmé sur un cas réel où le compte apparaissait normalement sur un
+// autre tracker. `force=true` contourne ce cache et force un nouveau calcul.
+const STALE_MATCH_CACHE_ERROR = 'Error while fetching needed match data';
+
 export async function getAccount(name, tag, apiKey) {
-  return henrikFetch(`/valorant/v2/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`, apiKey);
+  const path = `/valorant/v2/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
+  try {
+    return await henrikFetch(path, apiKey);
+  } catch (error) {
+    if (error.message?.includes(STALE_MATCH_CACHE_ERROR)) {
+      return henrikFetch(`${path}?force=true`, apiKey);
+    }
+    throw error;
+  }
 }
 
 // `platform` : "pc" ou "console" — l'ancien point d'accès v3/matches (sans
