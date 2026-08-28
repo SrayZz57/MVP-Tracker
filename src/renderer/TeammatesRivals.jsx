@@ -5,6 +5,7 @@ import { useAgentIcons } from './agentIcons.js';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const GRAPH_SIZE = 480;
 const CENTER = GRAPH_SIZE / 2;
@@ -139,17 +140,15 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('social.synergyTitle')}</h3>
+      <CollapsibleCard id="social.synergy" title={t('social.synergyTitle')}>
         <p className="label">{t('social.synergyHint')}</p>
         <div className="synergy-graph-wrap">
           <SynergyGraph teammates={teammates} myPuuid={myPuuid} centerLabel={centerLabel} t={t} />
         </div>
-      </div>
+      </CollapsibleCard>
 
       <div className="nemesis-columns">
-        <div className="card">
-          <h3>{t('social.agentNemesisTitle')}</h3>
+        <CollapsibleCard id="social.agentNemesis" title={t('social.agentNemesisTitle')}>
           <p className="label">{t('social.agentNemesisHint')}</p>
           {nemesis.agents.length === 0 ? (
             <p>{t('social.notEnoughAgentDuels')}</p>
@@ -172,10 +171,9 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
               </div>
             ))
           )}
-        </div>
+        </CollapsibleCard>
 
-        <div className="card">
-          <h3>{t('social.playerNemesisTitle')}</h3>
+        <CollapsibleCard id="social.playerNemesis" title={t('social.playerNemesisTitle')}>
           <p className="label">{t('social.playerNemesisHint')}</p>
           {nemesis.players.length === 0 ? (
             <p>{t('social.notEnoughRepeatOpponents')}</p>
@@ -196,7 +194,7 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
               </div>
             ))
           )}
-        </div>
+        </CollapsibleCard>
       </div>
     </div>
   );

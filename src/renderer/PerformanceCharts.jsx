@@ -11,6 +11,7 @@ import LineChart from './charts/LineChart.jsx';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function PerformanceCharts({ settings, matches, loading }) {
   const { t } = useTranslation();
@@ -57,8 +58,7 @@ function PerformanceCharts({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('charts.title')}</h3>
+      <CollapsibleCard id="charts.kpis" title={t('charts.title')}>
         <p className="label">{t('charts.description')}</p>
         <div className="kpi-row">
           <KpiTile icon="🎮" label={t('charts.rankedMatches')} value={kpis.games} />
@@ -66,34 +66,29 @@ function PerformanceCharts({ settings, matches, loading }) {
           <KpiTile icon="⚔️" label={t('charts.avgKd')} value={kpis.kd} decimals={2} />
           <KpiTile icon="🎯" label={t('charts.hsAccuracy')} value={kpis.hsPercent} suffix="%" />
         </div>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('charts.dayPeriodTitle')}</h3>
+      <CollapsibleCard id="charts.dayPeriod" title={t('charts.dayPeriodTitle')}>
         <p className="label">{t('charts.dayPeriodHint')}</p>
         <HeatmapGrid grid={dayPeriodGrid} />
-      </div>
+      </CollapsibleCard>
 
       <div className="chart-grid-2">
-        <div className="card">
-          <h3>{t('charts.kdTrendTitle')}</h3>
+        <CollapsibleCard id="charts.kdTrend" title={t('charts.kdTrendTitle')}>
           <LineChart data={trend.kd} color="#ff4655" />
-        </div>
-        <div className="card">
-          <h3>{t('charts.winrateTrendTitle')}</h3>
+        </CollapsibleCard>
+        <CollapsibleCard id="charts.winrateTrend" title={t('charts.winrateTrendTitle')}>
           <LineChart data={trend.winrateRolling} color="#3987e5" unit="%" />
-        </div>
+        </CollapsibleCard>
       </div>
 
-      <div className="card">
-        <h3>{t('charts.mapWinrateTitle')}</h3>
+      <CollapsibleCard id="charts.mapWinrate" title={t('charts.mapWinrateTitle')}>
         <AnimatedBarList rows={mapWinrates} />
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('charts.roleDistributionTitle')}</h3>
+      <CollapsibleCard id="charts.roleDistribution" title={t('charts.roleDistributionTitle')}>
         <RoleStackedBar rows={roleDistribution} />
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

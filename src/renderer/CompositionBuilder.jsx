@@ -8,6 +8,7 @@ import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
 import CountUp from './CountUp.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
@@ -76,8 +77,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('composition.title')}</h3>
+      <CollapsibleCard id="composition.builder" title={t('composition.title')}>
         <p className="label">{t('composition.description')}</p>
 
         <div className="filter-bar">
@@ -136,7 +136,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
             </div>
           </div>
         )}
-      </div>
+      </CollapsibleCard>
 
       {score && (
         <div className="card comp-score-card">
@@ -170,8 +170,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
         </div>
       )}
 
-      <div className="card">
-        <h3>{t('composition.compoBalanceTitle')}</h3>
+      <CollapsibleCard id="composition.balance" title={t('composition.compoBalanceTitle')}>
         <div className="stat-tiles">
           {Object.entries(analysis.counts).map(([role, count]) => (
             <div key={role} className="stat-tile">
@@ -194,11 +193,10 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
             ))}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
 
       {selectedMap && personalStats.length > 0 && (
-        <div className="card">
-          <h3>{t('composition.yourExperienceOn', { map: selectedMap })}</h3>
+        <CollapsibleCard id="composition.experience" title={t('composition.yourExperienceOn', { map: selectedMap })}>
           {personalStats.map(({ agent, stats }) => (
             <div key={agent} className="stat-bar-row">
               <span className="stat-bar-label">
@@ -230,7 +228,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
               )}
             </div>
           ))}
-        </div>
+        </CollapsibleCard>
       )}
     </div>
   );
