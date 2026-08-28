@@ -110,42 +110,39 @@ function TiltTab({ settings, matches, loading }) {
         )}
       </CollapsibleCard>
 
-      <div className="tilt-columns">
-        <CollapsibleCard id="tilt.whatIsWatched" title={t('tilt.whatIsWatched')}>
-          <div className="stat-tiles">
-            <div className="stat-tile">
-              <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
-                {form.streakType === 'Défaite' ? form.streakCount : 0}
-              </div>
-              <div className="label">{t('tilt.lossStreakLabel')}</div>
+      <CollapsibleCard id="tilt.whatIsWatched" title={t('tilt.whatIsWatched')}>
+        <div className="stat-tiles">
+          <div className="stat-tile">
+            <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
+              {form.streakType === 'Défaite' ? form.streakCount : 0}
             </div>
-            <div className="stat-tile">
-              <div className="value" style={{ color: tilt.perfDegradation ? 'var(--accent)' : undefined }}>
-                {tilt.last3Kd === null ? '?' : tilt.last3Kd.toFixed(2)}
-              </div>
-              <div className="label">{t('tilt.last3Kd')}</div>
-            </div>
-            <div className="stat-tile">
-              <div className="value">{last3KdRatio === null ? '?' : `${(last3KdRatio * 100).toFixed(0)}%`}</div>
-              <div className="label">{t('tilt.ofOverallAverage')}</div>
-            </div>
+            <div className="label">{t('tilt.lossStreakLabel')}</div>
           </div>
-        </CollapsibleCard>
+          <div className="stat-tile">
+            <div className="value" style={{ color: tilt.perfDegradation ? 'var(--accent)' : undefined }}>
+              {tilt.last3Kd === null ? '?' : tilt.last3Kd.toFixed(2)}
+            </div>
+            <div className="label">{t('tilt.last3Kd')}</div>
+          </div>
+          <div className="stat-tile">
+            <div className="value">{last3KdRatio === null ? '?' : `${(last3KdRatio * 100).toFixed(0)}%`}</div>
+            <div className="label">{t('tilt.ofOverallAverage')}</div>
+          </div>
+        </div>
 
-        <CollapsibleCard id="tilt.howItWorks" title={t('tilt.howItWorks')}>
-          <p className="label">{t('tilt.howItWorksIntro')}</p>
-          <div className="tilt-rule-list">
-            <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
-              <span className="tilt-rule-icon">{tilt.lossStreakTilt ? '🔴' : '⚪'}</span>
-              {t('tilt.rule1')}
-            </div>
-            <div className={`tilt-rule ${tilt.perfDegradation ? 'active' : ''}`}>
-              <span className="tilt-rule-icon">{tilt.perfDegradation ? '🔴' : '⚪'}</span>
-              {t('tilt.rule2')}
-            </div>
+        <h4 className="account-subsection-title" style={{ marginTop: '1rem' }}>{t('tilt.howItWorks')}</h4>
+        <p className="label">{t('tilt.howItWorksIntro')}</p>
+        <div className="tilt-rule-list">
+          <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
+            <span className="tilt-rule-icon">{tilt.lossStreakTilt ? '🔴' : '⚪'}</span>
+            {t('tilt.rule1')}
           </div>
-        </CollapsibleCard>
-      </div>
+          <div className={`tilt-rule ${tilt.perfDegradation ? 'active' : ''}`}>
+            <span className="tilt-rule-icon">{tilt.perfDegradation ? '🔴' : '⚪'}</span>
+            {t('tilt.rule2')}
+          </div>
+        </div>
+      </CollapsibleCard>
     </div>
   );
 }
