@@ -1438,6 +1438,12 @@
       "attack": "⚔️ Attaque",
       "defense": "🛡️ Défense"
     },
+    "roundTypes": {
+      "all": "Tous les rounds",
+      "gun": "🔫 Pistol round",
+      "full": "💰 Full buy",
+      "eco": "🥖 Éco"
+    },
     "allWeapons": "Toutes les armes",
     "rotate": "Tourner 90°",
     "pointsAnalyzed_one": "📍 {{count}} point analysé",

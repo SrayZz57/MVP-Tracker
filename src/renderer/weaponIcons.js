@@ -53,6 +53,38 @@ export function useShopWeapons() {
   return weapons;
 }
 
+let weaponCostsPromise = null;
+
+// Prix par UUID d'arme, pas par nom : `economy.weapon.name` (HenrikDev) n'est
+// pas forcément dans la même langue que `displayName` (valorant-api.com) —
+// matcher par nom serait fragile. L'UUID, lui, est le même des deux côtés
+// (vérifié : `economy.weapon.id` correspond exactement à l'`uuid` de
+// valorant-api.com pour une même arme).
+function loadWeaponCosts() {
+  if (!weaponCostsPromise) {
+    weaponCostsPromise = fetch('https://valorant-api.com/v1/weapons')
+      .then((response) => response.json())
+      .then((json) => {
+        const map = new Map();
+        json.data.forEach((w) => {
+          if (w.shopData) map.set(w.uuid, w.shopData.cost);
+        });
+        return map;
+      });
+  }
+  return weaponCostsPromise;
+}
+
+export function useWeaponCosts() {
+  const [costs, setCosts] = useState(new Map());
+
+  useEffect(() => {
+    loadWeaponCosts().then(setCosts);
+  }, []);
+
+  return costs;
+}
+
 let shopArmorsPromise = null;
 
 function loadShopArmors() {

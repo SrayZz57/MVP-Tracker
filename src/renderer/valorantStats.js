@@ -15,8 +15,12 @@ export function findMe(match, name, tag) {
 // Positions de mort (mode: 'deaths') ou de kill (mode: 'kills') du joueur suivi
 // sur une map donnée, tirées de round.player_stats[].kill_events[] — coordonnées
 // monde brutes, à convertir en pixels minimap via les facteurs de useMapCoordinates().
-// Chaque point est tagué avec le côté (attaque/défense, via attackerTeamByRound)
-// et l'arme utilisée, pour permettre de filtrer la heatmap.
+// Chaque point est tagué avec le côté (attaque/défense, via attackerTeamByRound),
+// l'arme utilisée pour CE kill, le numéro de round (filtre pistol round) et
+// MON économie à moi ce round-là (filtre full buy/éco) — cette dernière est
+// toujours la mienne, jamais celle du tueur : les kill_events sont rattachés
+// au round.player_stats du TUEUR (voir matchNormalizer), donc en mode
+// 'deaths' il faut chercher séparément mon propre player_stats de ce round.
 export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths') {
   const fullName = `${name}#${tag}`.toLowerCase();
   const points = [];
@@ -31,6 +35,8 @@ export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths'
       (match.rounds || []).forEach((round, roundIndex) => {
         const attackerTeam = attackerByRound[roundIndex];
         const side = attackerTeam === null ? null : attackerTeam === me.team ? 'attack' : 'defense';
+        const myRoundStats = (round.player_stats || []).find((p) => p.player_puuid === me.puuid);
+        const myWeaponId = myRoundStats?.economy?.weapon?.id ?? null;
 
         (round.player_stats || []).forEach((ps) => {
           (ps.kill_events || []).forEach((k) => {
@@ -39,7 +45,13 @@ export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths'
                 ? k.killer_display_name?.toLowerCase() === fullName
                 : k.victim_display_name?.toLowerCase() === fullName;
             if (relevant && k.victim_death_location) {
-              points.push({ ...k.victim_death_location, side, weapon: k.damage_weapon_name ?? null });
+              points.push({
+                ...k.victim_death_location,
+                side,
+                weapon: k.damage_weapon_name ?? null,
+                roundIndex,
+                myWeaponId,
+              });
             }
           });
         });

@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useMapMinimaps, useMapCoordinates } from './mapImages.js';
 import { deathLocationsOnMap } from './valorantStats.js';
+import { useWeaponCosts } from './weaponIcons.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -20,14 +21,41 @@ const SIDES = [
   { id: 'defense', labelKey: 'heatmap.sides.defense' },
 ];
 
+// Pistol rounds : 1er, 2e, 13e et 14e round d'une partie (indices 0/1/12/13,
+// avant/après le changement de camp au round 13 dans le format 24 rounds).
+const GUN_ROUND_INDICES = new Set([0, 1, 12, 13]);
+const FULL_BUY_THRESHOLD = 2500;
+
+const ROUND_TYPES = [
+  { id: 'all', labelKey: 'heatmap.roundTypes.all' },
+  { id: 'gun', labelKey: 'heatmap.roundTypes.gun' },
+  { id: 'full', labelKey: 'heatmap.roundTypes.full' },
+  { id: 'eco', labelKey: 'heatmap.roundTypes.eco' },
+];
+
+// Un pistol round reste un pistol round peu importe le prix de l'arme —
+// vérifié avant l'économie. Sinon classé par le coût de MON arme ce
+// round-là (voir myWeaponId dans deathLocationsOnMap) ; `null` si l'arme
+// n'est pas reconnue dans le référentiel valorant-api.com (couteau/arme
+// retirée), pour ne compter ce point dans aucun des deux camps plutôt que
+// de deviner.
+function classifyRound(point, weaponCosts) {
+  if (GUN_ROUND_INDICES.has(point.roundIndex)) return 'gun';
+  const cost = point.myWeaponId ? weaponCosts.get(point.myWeaponId) : undefined;
+  if (cost === undefined) return null;
+  return cost > FULL_BUY_THRESHOLD ? 'full' : 'eco';
+}
+
 function Heatmap({ settings, matches }) {
   const { t } = useTranslation();
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
   const minimaps = useMapMinimaps();
   const mapCoordinates = useMapCoordinates();
+  const weaponCosts = useWeaponCosts();
   const [selectedMap, setSelectedMap] = useState('');
   const [mode, setMode] = useState('deaths');
   const [side, setSide] = useState('all');
+  const [roundType, setRoundType] = useState('all');
   const [weapon, setWeapon] = useState('');
   const [rotation, setRotation] = useState(0); // 0 | 90 | 180 | 270
   const canvasRef = useRef(null);
@@ -42,7 +70,7 @@ function Heatmap({ settings, matches }) {
 
   useEffect(() => {
     setWeapon('');
-  }, [selectedMap, mode, side]);
+  }, [selectedMap, mode, side, roundType]);
 
   const allPoints = useMemo(
     () => (selectedMap ? deathLocationsOnMap(filteredMatches, settings.name, settings.tag, selectedMap, mode) : []),
@@ -54,14 +82,22 @@ function Heatmap({ settings, matches }) {
     [allPoints, side],
   );
 
+  const roundTypeFilteredPoints = useMemo(
+    () =>
+      roundType === 'all'
+        ? sideFilteredPoints
+        : sideFilteredPoints.filter((p) => classifyRound(p, weaponCosts) === roundType),
+    [sideFilteredPoints, roundType, weaponCosts],
+  );
+
   const weaponNames = useMemo(
-    () => [...new Set(sideFilteredPoints.map((p) => p.weapon).filter(Boolean))].sort(),
-    [sideFilteredPoints],
+    () => [...new Set(roundTypeFilteredPoints.map((p) => p.weapon).filter(Boolean))].sort(),
+    [roundTypeFilteredPoints],
   );
 
   const points = useMemo(
-    () => (weapon === '' ? sideFilteredPoints : sideFilteredPoints.filter((p) => p.weapon === weapon)),
-    [sideFilteredPoints, weapon],
+    () => (weapon === '' ? roundTypeFilteredPoints : roundTypeFilteredPoints.filter((p) => p.weapon === weapon)),
+    [roundTypeFilteredPoints, weapon],
   );
 
   useEffect(() => {
@@ -147,6 +183,15 @@ function Heatmap({ settings, matches }) {
               onClick={() => setSide(s.id)}
             >
               {t(s.labelKey)}
+            </button>
+          ))}
+          {ROUND_TYPES.map((rt) => (
+            <button
+              key={rt.id}
+              className={rt.id === roundType ? 'strategy-tool active' : 'strategy-tool'}
+              onClick={() => setRoundType(rt.id)}
+            >
+              {t(rt.labelKey)}
             </button>
           ))}
           <select value={weapon} onChange={(e) => setWeapon(e.target.value)}>
