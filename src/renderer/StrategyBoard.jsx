@@ -397,8 +397,8 @@ function StrategyBoard() {
     const observer = new ResizeObserver((entries) => {
       const canvas = fabricCanvasRef.current;
       if (!canvas) return;
-      const { width, height } = entries[0].contentRect;
-      const size = Math.max(200, Math.floor(Math.min(width, height || width)));
+      const { width } = entries[0].contentRect;
+      const size = Math.max(200, Math.floor(width));
       canvas.setDimensions({ width: size, height: size }, { cssOnly: true });
     });
     observer.observe(wrap);
