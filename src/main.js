@@ -64,6 +64,31 @@ const store = new Store();
 // erreur 500 sur "console"). Un choix figé se trompait donc à coup sûr pour
 // ces comptes-là. platformCandidates() renvoie un ordre d'essai plutôt qu'un
 // choix unique ; les appelants essaient chaque candidat jusqu'à un succès.
+// Cache partagé et persistant (survit aux redémarrages) pour les "aperçus"
+// d'AUTRES joueurs (rang, K/D récent) — classement Aim Trainer, amis, écran
+// de liaison. Sans lui, chaque survol/ouverture repayait une requête même
+// pour un joueur déjà consulté il y a 30 secondes. 5 minutes de fraîcheur :
+// assez pour ne pas répéter les mêmes requêtes en rafale, assez court pour
+// qu'un rang qui vient de changer se voie sans attendre une éternité.
+const PREVIEW_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function previewCacheKey(kind, name, tag) {
+  return `${kind}:${name}#${tag}`.toLowerCase();
+}
+
+function getPreviewCache(kind, name, tag) {
+  const cache = store.get('apiPreviewCache') || {};
+  const entry = cache[previewCacheKey(kind, name, tag)];
+  if (!entry || Date.now() - entry.ts > PREVIEW_CACHE_TTL_MS) return undefined;
+  return entry.data;
+}
+
+function setPreviewCache(kind, name, tag, data) {
+  const cache = store.get('apiPreviewCache') || {};
+  cache[previewCacheKey(kind, name, tag)] = { data, ts: Date.now() };
+  store.set('apiPreviewCache', cache);
+}
+
 function platformCandidates(account) {
   const platforms = (account?.platforms ?? []).map((p) => String(p).toLowerCase());
   const hasPc = platforms.includes('pc');
@@ -320,6 +345,9 @@ ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
 // (bannière/rang/pseudo) avant que l'utilisateur confirme que c'est bien le
 // sien, sur l'écran de liaison de compte.
 ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey }) => {
+  const cached = getPreviewCache('account', name, tag);
+  if (cached) return cached;
+
   const account = await getAccount(name, tag, apiKey);
   let rank = null;
   try {
@@ -328,7 +356,7 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
   } catch {
     // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
   }
-  return {
+  const result = {
     name,
     tag,
     puuid: account.puuid,
@@ -338,6 +366,8 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
     cardUuid: account.card,
     rank,
   };
+  setPreviewCache('account', name, tag, result);
+  return result;
 });
 
 // Aperçu léger d'un AUTRE joueur (survol d'une ligne de classement Aim
@@ -354,11 +384,16 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
 // seul survol (repéré via les logs de requêtes : deux v2/account identiques
 // consécutifs à chaque survol avant ce correctif).
 ipcMain.handle('valorant:preview-recent-stats', async (_event, { name, tag, apiKey, region, platforms }) => {
+  const cached = getPreviewCache('recent', name, tag);
+  if (cached) return cached;
+
   try {
     const matches = await getMatchesWithFallback({ region, platforms }, name, tag, apiKey, { size: 10, start: 0 });
     const ranked = excludeDeathmatch(matches);
     const form = formStats(ranked, name, tag);
-    return { kd: form.overallKd, matchesAnalyzed: ranked.length };
+    const result = { kd: form.overallKd, matchesAnalyzed: ranked.length };
+    setPreviewCache('recent', name, tag, result);
+    return result;
   } catch {
     return null;
   }
