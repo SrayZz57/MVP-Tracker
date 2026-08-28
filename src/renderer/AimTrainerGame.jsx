@@ -48,7 +48,13 @@ const PEEK_CHARACTER_HEIGHT = 1.96;
 // "à la même hauteur", sa tête doit être au même niveau, pas plus bas.
 const PEEK_HEAD_Y = 0;
 const PEEK_BOX_WIDTH = 2.4;
-const PEEK_BOX_HEIGHT = 1.9; // couvre presque toute la hauteur d'un agent debout juste derrière
+// Doit dépasser PEEK_CHARACTER_HEIGHT (1,96) : la tête (sphère de rayon
+// targetSize centrée sur PEEK_HEAD_Y) dépasse du sommet de la box dès que
+// PEEK_BOX_HEIGHT < 1,96, QUELLE QUE SOIT la taille de cible — donnait un
+// repère vertical (bout de tête visible) avant même que la cible sorte
+// latéralement, trahissant le côté du peek à l'avance. 2.15 laisse une vraie
+// marge de sécurité.
+const PEEK_BOX_HEIGHT = 2.15;
 const PEEK_BOX_DEPTH = 1.2;
 const PEEK_OFFSET = PEEK_BOX_WIDTH / 2 + 0.7; // de quoi dégager franchement le bord de la box
 
@@ -922,37 +928,56 @@ function AimTrainerGame({ config: rawConfig }) {
       // nombre de "tirs" gonflerait artificiellement avec le framerate), et
       // un faisceau continu remplace les traînées ponctuelles des autres
       // modes, coloré selon que le viseur est actuellement sur la cible.
-      if (cfg.mode === 'tracking' && state.isTrackingHeld && phaseRef.current === 'running') {
+      //
+      // L'échantillonnage tourne pendant TOUTE la manche, pas seulement
+      // pendant que le bouton est maintenu : sinon, cliquer une fois pile sur
+      // la cible puis relâcher (plus aucun échantillon pris ensuite) donnait
+      // 100% de précision en ne comptant jamais les ratés du reste du temps
+      // — exploit remonté par des joueurs sur le classement. Ne pas tenir le
+      // viseur = raté, comme dans les autres modes.
+      if (cfg.mode === 'tracking' && phaseRef.current === 'running') {
         const TRACK_SAMPLE_INTERVAL_MS = 100;
-        state.raycaster.setFromCamera(state.center, camera);
-        const meshes = state.targets.map((entry) => entry.mesh);
-        const intersections = state.raycaster.intersectObjects(meshes);
-        const onTarget = intersections.length > 0;
-        const endPoint = onTarget
-          ? intersections[0].point
-          : camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(30).add(camera.position);
+        const held = state.isTrackingHeld;
+        let onTarget = false;
+        let endPoint = null;
+        if (held) {
+          state.raycaster.setFromCamera(state.center, camera);
+          const meshes = state.targets.map((entry) => entry.mesh);
+          const intersections = state.raycaster.intersectObjects(meshes);
+          onTarget = intersections.length > 0;
+          endPoint = onTarget
+            ? intersections[0].point
+            : camera.getWorldDirection(new THREE.Vector3()).multiplyScalar(30).add(camera.position);
+        }
 
         if (now - state.lastTrackSample >= TRACK_SAMPLE_INTERVAL_MS) {
           state.lastTrackSample = now;
           setStats((prev) =>
-            onTarget ? { ...prev, hits: prev.hits + 1 } : { ...prev, misses: prev.misses + 1 },
+            held && onTarget ? { ...prev, hits: prev.hits + 1 } : { ...prev, misses: prev.misses + 1 },
           );
         }
 
-        const muzzleWorldPos = new THREE.Vector3();
-        state.muzzleTip.getWorldPosition(muzzleWorldPos);
-        if (!state.trackBeam) {
-          const beamGeometry = new THREE.BufferGeometry().setFromPoints([muzzleWorldPos, endPoint]);
-          const beamMaterial = new THREE.LineBasicMaterial({
-            color: onTarget ? 0x3ddc84 : 0xffe9a8,
-            transparent: true,
-            opacity: 0.85,
-          });
-          state.trackBeam = new THREE.Line(beamGeometry, beamMaterial);
-          scene.add(state.trackBeam);
-        } else {
-          state.trackBeam.geometry.setFromPoints([muzzleWorldPos, endPoint]);
-          state.trackBeam.material.color.setHex(onTarget ? 0x3ddc84 : 0xffe9a8);
+        if (held) {
+          const muzzleWorldPos = new THREE.Vector3();
+          state.muzzleTip.getWorldPosition(muzzleWorldPos);
+          if (!state.trackBeam) {
+            const beamGeometry = new THREE.BufferGeometry().setFromPoints([muzzleWorldPos, endPoint]);
+            const beamMaterial = new THREE.LineBasicMaterial({
+              color: onTarget ? 0x3ddc84 : 0xffe9a8,
+              transparent: true,
+              opacity: 0.85,
+            });
+            state.trackBeam = new THREE.Line(beamGeometry, beamMaterial);
+            scene.add(state.trackBeam);
+          } else {
+            state.trackBeam.geometry.setFromPoints([muzzleWorldPos, endPoint]);
+            state.trackBeam.material.color.setHex(onTarget ? 0x3ddc84 : 0xffe9a8);
+          }
+        } else if (state.trackBeam) {
+          scene.remove(state.trackBeam);
+          state.trackBeam.geometry.dispose();
+          state.trackBeam.material.dispose();
+          state.trackBeam = null;
         }
       } else if (state.trackBeam) {
         // Sécurité : le clic a pu être relâché hors du listener normal (perte
