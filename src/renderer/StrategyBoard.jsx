@@ -5,7 +5,7 @@ import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
 import spikeIconUrl from '../assets/spike.png';
 
-const VIEWPORT_SIZE = 640;
+const VIEWPORT_SIZE = 860;
 const MIN_ZOOM_FACTOR = 0.6;
 const MAX_ZOOM_FACTOR = 6;
 const ZOOM_STEP = 1.2;

@@ -3849,6 +3849,7 @@ li {
 
 .strategy-layout {
   display: flex;
+  flex-wrap: wrap;
   gap: 1.25rem;
   align-items: flex-start;
 }
@@ -3858,8 +3859,8 @@ li {
   flex-direction: column;
   gap: 0.9rem;
   flex: 1;
-  min-width: 300px;
-  max-width: 380px;
+  min-width: 340px;
+  max-width: 480px;
 }
 
 .strategy-toolbar-section {
@@ -3994,6 +3995,8 @@ input[type='color'] {
 .strategy-canvas-wrap canvas {
   border-radius: 8px;
   display: block;
+  max-width: 100%;
+  height: auto;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
