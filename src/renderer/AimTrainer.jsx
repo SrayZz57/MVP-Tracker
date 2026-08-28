@@ -159,13 +159,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   return (
     <div>
       {/* --- Comment ça marche --------------------------------------------- */}
-      <div className="card aim-howto-card">
-        <div className="aim-howto-head">
-          <div>
-            <h3>{t('aimTrainer.howtoTitle')}</h3>
-            <p className="label">{t('aimTrainer.howtoIntro')}</p>
-          </div>
-        </div>
+      <CollapsibleCard id="aimTrainer.howto" title={t('aimTrainer.howtoTitle')} className="aim-howto-card">
+        <p className="label">{t('aimTrainer.howtoIntro')}</p>
 
         <div className="aim-howto-steps">
           {[1, 2, 3, 4].map((n) => (
@@ -190,7 +185,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             <kbd>Échap</kbd> {t('aimTrainer.controlPause')}
           </span>
         </div>
-      </div>
+      </CollapsibleCard>
 
       {/* --- Défi du jour + série ------------------------------------------ */}
       <div className="aim-top-row">
@@ -255,58 +250,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </div>
       </div>
 
-      {/* --- Impact sur les vraies parties ---------------------------------- */}
-      {impact && (
-        <CollapsibleCard id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
-          <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
-          {!impact.ready ? (
-            <p className="label">
-              {t('aimTrainer.impactNotReady', {
-                trained: impact.trainedGames,
-                untrained: impact.untrainedGames,
-                needed: impact.needed,
-              })}
-            </p>
-          ) : (
-            <>
-              <p className="label">{t('aimTrainer.impactHint')}</p>
-              <div className="aim-impact-grid">
-                {[
-                  { key: 'hsPercent', label: t('aimTrainer.impactHs'), suffix: '%', decimals: 1 },
-                  { key: 'kd', label: t('aimTrainer.impactKd'), suffix: '', decimals: 2 },
-                  { key: 'winrate', label: t('aimTrainer.impactWinrate'), suffix: '%', decimals: 0 },
-                ].map(({ key, label, suffix, decimals }) => {
-                  const delta = impact.deltas[key];
-                  if (delta === null) return null;
-                  const positive = delta >= 0;
-                  return (
-                    <div key={key} className="aim-impact-tile">
-                      <span className={positive ? 'aim-impact-delta up' : 'aim-impact-delta down'}>
-                        {positive ? '+' : ''}
-                        {delta.toFixed(decimals)}
-                        {suffix}
-                      </span>
-                      <span className="aim-impact-label">{label}</span>
-                      <span className="aim-impact-detail">
-                        {impact.trained[key] === null ? '—' : impact.trained[key].toFixed(decimals)}
-                        {suffix} vs {impact.untrained[key] === null ? '—' : impact.untrained[key].toFixed(decimals)}
-                        {suffix}
-                      </span>
-                    </div>
-                  );
-                })}
-              </div>
-              <p className="label aim-impact-footnote">
-                {t('aimTrainer.impactFootnote', {
-                  trained: impact.trained.games,
-                  untrained: impact.untrained.games,
-                })}
-              </p>
-            </>
-          )}
-        </CollapsibleCard>
-      )}
-
+      {/* --- Aim Trainer : mode, réglages, lancement ------------------------- */}
       <div className="card">
         <h3>{t('aimTrainer.title')}</h3>
         <p className="label">{t('aimTrainer.hint')}</p>
@@ -458,6 +402,58 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
         <p className="label" style={{ marginTop: '0.75rem' }}>{t('aimTrainer.accuracyNote')}</p>
       </div>
+
+      {/* --- Impact sur les vraies parties ---------------------------------- */}
+      {impact && (
+        <CollapsibleCard id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
+          <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
+          {!impact.ready ? (
+            <p className="label">
+              {t('aimTrainer.impactNotReady', {
+                trained: impact.trainedGames,
+                untrained: impact.untrainedGames,
+                needed: impact.needed,
+              })}
+            </p>
+          ) : (
+            <>
+              <p className="label">{t('aimTrainer.impactHint')}</p>
+              <div className="aim-impact-grid">
+                {[
+                  { key: 'hsPercent', label: t('aimTrainer.impactHs'), suffix: '%', decimals: 1 },
+                  { key: 'kd', label: t('aimTrainer.impactKd'), suffix: '', decimals: 2 },
+                  { key: 'winrate', label: t('aimTrainer.impactWinrate'), suffix: '%', decimals: 0 },
+                ].map(({ key, label, suffix, decimals }) => {
+                  const delta = impact.deltas[key];
+                  if (delta === null) return null;
+                  const positive = delta >= 0;
+                  return (
+                    <div key={key} className="aim-impact-tile">
+                      <span className={positive ? 'aim-impact-delta up' : 'aim-impact-delta down'}>
+                        {positive ? '+' : ''}
+                        {delta.toFixed(decimals)}
+                        {suffix}
+                      </span>
+                      <span className="aim-impact-label">{label}</span>
+                      <span className="aim-impact-detail">
+                        {impact.trained[key] === null ? '—' : impact.trained[key].toFixed(decimals)}
+                        {suffix} vs {impact.untrained[key] === null ? '—' : impact.untrained[key].toFixed(decimals)}
+                        {suffix}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+              <p className="label aim-impact-footnote">
+                {t('aimTrainer.impactFootnote', {
+                  trained: impact.trained.games,
+                  untrained: impact.untrained.games,
+                })}
+              </p>
+            </>
+          )}
+        </CollapsibleCard>
+      )}
 
       {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
       <div className="aim-bottom-row">
