@@ -1,4 +1,0 @@
-[build]
-  # Site 100% statique (HTML/CSS/JS, pas de framework) — aucune commande de
-  # build n'est nécessaire, Netlify sert directement le dossier tel quel.
-  publish = "site"
