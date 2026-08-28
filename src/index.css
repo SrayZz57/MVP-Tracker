@@ -2005,7 +2005,8 @@ form button[type='submit']:hover:not(:disabled) {
 }
 
 input,
-select {
+select,
+textarea {
   /* Champ "creusé" dans la surface (ombre interne) plutôt que posé dessus —
      l'inverse exact du traitement des boutons, ce qui rend saisie et action
      immédiatement distinguables au premier coup d'œil. */
@@ -2020,12 +2021,20 @@ select {
   transition: border-color 0.2s var(--ease-out), box-shadow 0.2s var(--ease-out), background 0.2s var(--ease-out);
 }
 
-input::placeholder {
+textarea {
+  width: 100%;
+  resize: vertical;
+  min-height: 100px;
+}
+
+input::placeholder,
+textarea::placeholder {
   color: var(--text-dim);
 }
 
 input:focus,
-select:focus {
+select:focus,
+textarea:focus {
   outline: none;
   background: #151922;
   border-color: var(--accent);
@@ -5386,6 +5395,8 @@ input[type='color'] {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
   gap: 1.25rem;
+  margin-top: 1.25rem;
+  margin-bottom: 1.25rem;
 }
 
 .trophy-card {
