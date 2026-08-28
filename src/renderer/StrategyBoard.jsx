@@ -725,7 +725,7 @@ function StrategyBoard() {
 
         <div className="strategy-toolbar-section">
           <div className="strategy-section-label">{t('strategy.iconsSection')}</div>
-          <div className="strategy-toolbar-row">
+          <div className="strategy-toolbar-row strategy-icons-row">
             <button className="strategy-tool" onClick={handleStampSpike}>
               {t('strategy.spike')}
             </button>

@@ -3892,6 +3892,11 @@ li {
   flex-wrap: wrap;
 }
 
+.strategy-icons-row > .strategy-tool {
+  flex: 1;
+  text-align: center;
+}
+
 .strategy-tool-group {
   display: flex;
   gap: 0.3rem;
