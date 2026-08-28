@@ -3862,6 +3862,7 @@ li {
   min-width: 320px;
   max-width: 620px;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .strategy-toolbar-section {
@@ -3871,6 +3872,8 @@ li {
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--border);
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .strategy-toolbar-section:last-child {
@@ -3893,6 +3896,8 @@ li {
   gap: 0.5rem;
   flex-wrap: wrap;
   min-width: 0;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .strategy-tool-group {
