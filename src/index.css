@@ -3858,7 +3858,7 @@ li {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  flex: 1 1 50%;
+  flex: 1;
   min-width: 400px;
 }
 
@@ -3982,7 +3982,8 @@ input[type='color'] {
 }
 
 .strategy-canvas-wrap {
-  flex: 1 1 50%;
+  display: inline-block;
+  flex-shrink: 0;
   padding: 0.5rem;
   margin-bottom: 0;
   border-radius: 14px;
