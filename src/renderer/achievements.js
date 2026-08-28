@@ -251,6 +251,6 @@ export function deriveAchievements(t, i18nLang, hof) {
       return 0;
     });
     const unlockedCount = items.filter((i) => i.unlocked).length;
-    return { label: t(`hallOfFame.groups.${group.key}.label`), items: sorted, unlockedCount, total: items.length };
+    return { key: group.key, label: t(`hallOfFame.groups.${group.key}.label`), items: sorted, unlockedCount, total: items.length };
   });
 }

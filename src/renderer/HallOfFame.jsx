@@ -5,6 +5,7 @@ import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
 import LoadingState from './LoadingState.jsx';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function formatDate(locale, ms) {
   if (!ms) return '?';
@@ -94,10 +95,9 @@ function HallOfFame({ settings, matches, loading }) {
   return (
     <div>
       {celebrate && <ConfettiBurst />}
-      <div className="card">
-        <h3>{t('hallOfFame.title')}</h3>
+      <CollapsibleCard id="hallOfFame.intro" title={t('hallOfFame.title')}>
         <p className="label">{t('hallOfFame.description')}</p>
-      </div>
+      </CollapsibleCard>
 
       <div className="trophy-grid">
         <TrophyCard
@@ -144,17 +144,20 @@ function HallOfFame({ settings, matches, loading }) {
         />
       </div>
 
-      <div className="card">
-        <h3>{t('hallOfFame.achievementsTitle', { unlocked: unlockedCount, total: totalCount })}</h3>
+      <CollapsibleCard
+        id="hallOfFame.achievements"
+        title={t('hallOfFame.achievementsTitle', { unlocked: unlockedCount, total: totalCount })}
+      >
         <p className="label">{t('hallOfFame.achievementsHint')}</p>
-      </div>
+      </CollapsibleCard>
 
       {achievementGroups.map((group) => (
-        <div key={group.label} className="card">
-          <div className="achievement-group-header">
-            <h3>{group.label}</h3>
-            <span className="achievement-group-count">{group.unlockedCount}/{group.total}</span>
-          </div>
+        <CollapsibleCard
+          key={group.key}
+          id={`hallOfFame.group.${group.key}`}
+          title={group.label}
+          headerExtra={<span className="achievement-group-count">{group.unlockedCount}/{group.total}</span>}
+        >
           <div className="achievement-group-track">
             <div
               className="achievement-group-fill"
@@ -166,7 +169,7 @@ function HallOfFame({ settings, matches, loading }) {
               <AchievementBadge key={item.id} {...item} />
             ))}
           </div>
-        </div>
+        </CollapsibleCard>
       ))}
     </div>
   );
