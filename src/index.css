@@ -3305,11 +3305,14 @@ li {
 }
 
 .crosshair-item {
-  /* `flex-grow` (pas juste une largeur fixe) : sans ça, une dernière ligne
-     avec peu d'éléments (ex. 3 sur une grille qui en tient 12) laisse un
-     grand vide à droite plutôt que de répartir l'espace restant. */
+  /* `flex-grow` (pas juste une largeur fixe), sans plafond de largeur : sans
+     ça, une dernière ligne avec peu d'éléments (ex. 3 sur une grille qui en
+     tient 12) laisse un grand vide à droite au lieu de vraiment combler la
+     ligne. Un plafond modéré (220px) testé d'abord ne suffisait pas à
+     combler un vide aussi large — les lignes bien remplies (10+ éléments)
+     ne grandissent de toute façon presque pas, seules les lignes creuses
+     s'étirent vraiment. */
   flex: 1 1 160px;
-  max-width: 220px;
   background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
