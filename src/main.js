@@ -370,35 +370,6 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
   return result;
 });
 
-// Aperçu léger d'un AUTRE joueur (survol d'une ligne de classement Aim
-// Trainer) : un seul K/D récent sur une page de matchs (10, comme
-// valorant:preview-account pour le rang), SANS jamais toucher au cache de
-// matchs local ni à valorantSettings — contrairement à valorant:get-matches,
-// pensé uniquement pour LE compte que l'utilisateur suit lui-même. Renvoie
-// null en cas d'échec (compte introuvable, rate limit...) : un survol de
-// classement n'a pas besoin d'afficher d'erreur, juste de ne rien montrer.
-//
-// `region`/`platforms` viennent du résultat de valorant:preview-account
-// (déjà appelé juste avant côté renderer pour le même joueur) — pas de
-// nouvel appel à getAccount ici, ça évite de le refaire deux fois pour un
-// seul survol (repéré via les logs de requêtes : deux v2/account identiques
-// consécutifs à chaque survol avant ce correctif).
-ipcMain.handle('valorant:preview-recent-stats', async (_event, { name, tag, apiKey, region, platforms }) => {
-  const cached = getPreviewCache('recent', name, tag);
-  if (cached) return cached;
-
-  try {
-    const matches = await getMatchesWithFallback({ region, platforms }, name, tag, apiKey, { size: 10, start: 0 });
-    const ranked = excludeDeathmatch(matches);
-    const form = formStats(ranked, name, tag);
-    const result = { kd: form.overallKd, matchesAnalyzed: ranked.length };
-    setPreviewCache('recent', name, tag, result);
-    return result;
-  } catch {
-    return null;
-  }
-});
-
 ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => {
   const account = await getAccount(name, tag, apiKey);
   store.set('valorantSettings', { name, tag, apiKey, puuid: account.puuid });

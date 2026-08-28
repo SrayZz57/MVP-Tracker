@@ -8,10 +8,10 @@ const CARD_WIDTH = 220;
 const CARD_MARGIN = 10;
 
 // Une ligne de classement Aim Trainer (défi du jour ou amis), avec une carte
-// au survol montrant rang + K/D récent + réglages souris pour CE score —
-// chargée à la demande (pas pour toutes les lignes d'un coup, pour ne pas
-// saturer le quota API sur un classement de 20 joueurs) et mise en cache
-// pour ne pas rappeler l'API à chaque survol du même joueur.
+// au survol montrant rang + réglages souris pour CE score — chargée à la
+// demande (pas pour toutes les lignes d'un coup, pour ne pas saturer le
+// quota API sur un classement de 20 joueurs) et mise en cache pour ne pas
+// rappeler l'API à chaque survol du même joueur.
 //
 // Rendue via un portail dans <body>, positionnée en `fixed` à partir du
 // rectangle réel de la ligne (pas en `absolute` imbriquée dans la liste) :
@@ -24,7 +24,6 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
   const nameRef = useRef(null);
   const [cardPos, setCardPos] = useState(null); // null = pas survolé
   const [preview, setPreview] = useState(undefined); // undefined = pas encore chargé, null = échec
-  const [recentStats, setRecentStats] = useState(undefined);
 
   const isSelf = row.user_id === myId;
 
@@ -48,28 +47,12 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
     const { riot_name: name, riot_tag: tag } = row.profiles;
     window.electronAPI
       .previewRiotAccount({ name, tag, apiKey })
-      .then((result) => {
-        setPreview(result);
-        if (!result) {
-          setRecentStats(null);
-          return;
-        }
-        // Réutilise le compte déjà résolu (region/plateformes) au lieu de
-        // rappeler getAccount une seconde fois pour le même joueur — ce
-        // doublon était visible dans les logs HenrikDev à chaque survol.
-        window.electronAPI
-          .previewRecentStats({ name, tag, apiKey, region: result.region, platforms: result.platforms })
-          .then(setRecentStats)
-          .catch(() => setRecentStats(null));
-      })
-      .catch(() => {
-        setPreview(null);
-        setRecentStats(null);
-      });
+      .then(setPreview)
+      .catch(() => setPreview(null));
   };
 
   const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
-  const loadingPreview = preview === undefined || recentStats === undefined;
+  const loadingPreview = preview === undefined;
 
   return (
     <div
@@ -97,16 +80,6 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
               <div className="aim-board-hover-stat">
                 {tier?.icon && <img src={tier.icon} alt="" />}
                 <span>{preview === undefined ? '…' : (tier?.tierName ?? t('friends.unranked'))}</span>
-              </div>
-              <div className="aim-board-hover-stat">
-                <span className="label">K/D</span>
-                <span>
-                  {recentStats === undefined
-                    ? '…'
-                    : recentStats?.kd !== null && recentStats?.kd !== undefined
-                      ? recentStats.kd.toFixed(2)
-                      : '—'}
-                </span>
               </div>
               {row.dpi && row.sens && (
                 <div className="aim-board-hover-stat">
