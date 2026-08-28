@@ -7,6 +7,7 @@ import { useAgentIcons, useAgentRoles, useAgentAbilities } from './agentIcons.js
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function BuyAnalysisSection({ settings, matches }) {
   const { t, i18n } = useTranslation();
@@ -182,17 +183,15 @@ function BuySimulator({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('buySim.roundAnalysisTitle')}</h3>
+      <CollapsibleCard id="buySim.roundAnalysis" title={t('buySim.roundAnalysisTitle')}>
         <p className="label">{t('buySim.roundAnalysisHint')}</p>
         <BuyAnalysisSection settings={settings} matches={filteredMatches} />
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('buySim.calculatorTitle')}</h3>
+      <CollapsibleCard id="buySim.calculator" title={t('buySim.calculatorTitle')}>
         <p className="label">{t('buySim.calculatorHint')}</p>
         <BuyCalculatorSection />
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

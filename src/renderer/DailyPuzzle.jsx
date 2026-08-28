@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { ECONOMY_TIERS } from './valorantStats.js';
 import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS } from './dailyPuzzle.js';
 import Skeleton from './Skeleton.jsx';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function todayKey() {
   const now = new Date();
@@ -73,8 +74,7 @@ function DailyPuzzle({ settings, matches }) {
 
   return (
     <div>
-      <div className="card">
-        <h3>{t('puzzle.title')}</h3>
+      <CollapsibleCard id="puzzle.today" title={t('puzzle.title')}>
         <p className="label">{t('puzzle.description')}</p>
 
         {puzzle === undefined && <Skeleton lines={4} />}
@@ -133,10 +133,9 @@ function DailyPuzzle({ settings, matches }) {
             )}
           </>
         )}
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('puzzle.historyTitle')}</h3>
+      <CollapsibleCard id="puzzle.history" title={t('puzzle.historyTitle')}>
         {successRate !== null && (
           <div className="stat-tiles">
             <div className="stat-tile">
@@ -167,7 +166,7 @@ function DailyPuzzle({ settings, matches }) {
             })}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

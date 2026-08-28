@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function BetsTracker({ settings, matches }) {
   const { t, i18n } = useTranslation();
@@ -60,8 +61,7 @@ function BetsTracker({ settings, matches }) {
 
   return (
     <div>
-      <div className="card comp-score-card">
-        <h3>{t('bets.title')}</h3>
+      <CollapsibleCard id="bets.summary" title={t('bets.title')} className="comp-score-card">
         <div className="comp-score-main">
           <div
             className="comp-score-ring"
@@ -75,7 +75,7 @@ function BetsTracker({ settings, matches }) {
           <div className="label">{t('bets.accumulatedPoints')}</div>
         </div>
         <p className="label">{t('bets.description')}</p>
-      </div>
+      </CollapsibleCard>
 
       <div className={pending ? 'card tilt-card calm' : 'card'}>
         {pending === undefined ? (
@@ -118,8 +118,7 @@ function BetsTracker({ settings, matches }) {
         )}
       </div>
 
-      <div className="card">
-        <h3>{t('bets.historyTitle')}</h3>
+      <CollapsibleCard id="bets.history" title={t('bets.historyTitle')}>
         {history.length === 0 ? (
           <p>{t('bets.noHistory')}</p>
         ) : (
@@ -135,7 +134,7 @@ function BetsTracker({ settings, matches }) {
             ))}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

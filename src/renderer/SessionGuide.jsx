@@ -4,6 +4,7 @@ import { buildSessionPlan } from './sessionPlan.js';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function buildChecklist(t, plan, latestStrategy) {
   const items = [
@@ -102,22 +103,23 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('session.title')}</h3>
+      <CollapsibleCard id="session.intro" title={t('session.title')}>
         <p className="label">{t('session.description')}</p>
         <button className="refresh" onClick={handleLaunch} disabled={loading}>
           {plan ? t('session.newSession') : t('session.launch')}
         </button>
-      </div>
+      </CollapsibleCard>
 
       {plan && (
-        <div className="card">
-          <div className="achievement-group-header">
-            <h3>{t('session.checklistTitle')}</h3>
+        <CollapsibleCard
+          id="session.checklist"
+          title={t('session.checklistTitle')}
+          headerExtra={
             <span className="achievement-group-count">
               {Object.values(checked).filter(Boolean).length}/{checklist.length}
             </span>
-          </div>
+          }
+        >
           <div className="achievement-group-track">
             <div
               className="achievement-group-fill"
@@ -136,7 +138,7 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
               </label>
             ))}
           </div>
-        </div>
+        </CollapsibleCard>
       )}
     </div>
   );
