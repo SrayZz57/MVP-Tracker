@@ -6,6 +6,7 @@ import CountUp from '../CountUp.jsx';
 import { supabase } from '../supabaseClient.js';
 import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
 import usePlatformFilter from '../usePlatformFilter.js';
+import CollapsibleCard from '../CollapsibleCard.jsx';
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
@@ -149,13 +150,11 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
 
       <NetworkMonitor />
 
-      <div className="card">
-        <h3>{t('network.pingHistory')}</h3>
+      <CollapsibleCard id="network.pingHistory" title={t('network.pingHistory')}>
         <PingSparkline samples={pingSamples} />
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('network.deathCorrelation')}</h3>
+      <CollapsibleCard id="network.deathCorrelation" title={t('network.deathCorrelation')}>
         {pingStats.deathsAnalyzed === 0 ? (
           <p>{t('network.notEnoughNetworkData')}</p>
         ) : (
@@ -186,7 +185,7 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
             </div>
           </div>
         )}
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

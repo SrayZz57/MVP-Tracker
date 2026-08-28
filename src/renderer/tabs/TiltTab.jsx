@@ -5,6 +5,7 @@ import CountUp from '../CountUp.jsx';
 import LoadingState from '../LoadingState.jsx';
 import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
 import usePlatformFilter from '../usePlatformFilter.js';
+import CollapsibleCard from '../CollapsibleCard.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 
@@ -66,8 +67,7 @@ function TiltTab({ settings, matches, loading }) {
         </div>
       </div>
 
-      <div className="card">
-        <h3>{t('tilt.recentResults')}</h3>
+      <CollapsibleCard id="tilt.recentResults" title={t('tilt.recentResults')}>
         <div className="streak-dots">
           {recentResults.map((r) => (
             <span
@@ -80,10 +80,9 @@ function TiltTab({ settings, matches, loading }) {
         <p className="label" style={{ marginTop: '0.5rem' }}>
           {t('tilt.dotsHint')}
         </p>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('tilt.frequencyTitle')}</h3>
+      <CollapsibleCard id="tilt.frequency" title={t('tilt.frequencyTitle')}>
         {frequency.total === 0 ? (
           <p className="label">{t('tilt.notEnoughMatches')}</p>
         ) : (
@@ -109,11 +108,10 @@ function TiltTab({ settings, matches, loading }) {
             </p>
           </>
         )}
-      </div>
+      </CollapsibleCard>
 
       <div className="tilt-columns">
-        <div className="card">
-          <h3>{t('tilt.whatIsWatched')}</h3>
+        <CollapsibleCard id="tilt.whatIsWatched" title={t('tilt.whatIsWatched')}>
           <div className="stat-tiles">
             <div className="stat-tile">
               <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>
@@ -132,10 +130,9 @@ function TiltTab({ settings, matches, loading }) {
               <div className="label">{t('tilt.ofOverallAverage')}</div>
             </div>
           </div>
-        </div>
+        </CollapsibleCard>
 
-        <div className="card">
-          <h3>{t('tilt.howItWorks')}</h3>
+        <CollapsibleCard id="tilt.howItWorks" title={t('tilt.howItWorks')}>
           <p className="label">{t('tilt.howItWorksIntro')}</p>
           <div className="tilt-rule-list">
             <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
@@ -147,7 +144,7 @@ function TiltTab({ settings, matches, loading }) {
               {t('tilt.rule2')}
             </div>
           </div>
-        </div>
+        </CollapsibleCard>
       </div>
     </div>
   );

@@ -14,6 +14,7 @@ import {
 import LoadingState from '../LoadingState.jsx';
 import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
 import usePlatformFilter from '../usePlatformFilter.js';
+import CollapsibleCard from '../CollapsibleCard.jsx';
 
 const WEEKDAY_ICONS = {
   Lundi: '📅', Mardi: '📅', Mercredi: '📅', Jeudi: '📅', Vendredi: '📅', Samedi: '🎉', Dimanche: '🎉',
@@ -29,10 +30,9 @@ function timeSlotIcon(key) {
 
 // Fonction utilitaire (pas un composant) : reçoit `t` et une fonction de
 // traduction de la clé de ligne (les jours sont en français en interne).
-function renderStatBars(t, title, rows, icon, rowIcon, rowLabel) {
+function renderStatBars(t, id, title, rows, icon, rowIcon, rowLabel) {
   return (
-    <div className="card">
-      <h3>{icon} {title}</h3>
+    <CollapsibleCard id={id} title={<>{icon} {title}</>}>
       {rows.length === 0 ? (
         <p>{t('form.noDataYet')}</p>
       ) : (
@@ -54,7 +54,7 @@ function renderStatBars(t, title, rows, icon, rowIcon, rowLabel) {
           </div>
         ))
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
@@ -104,8 +104,7 @@ function FormTab({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <div className="card">
-        <h3>{t('form.recentForm')}</h3>
+      <CollapsibleCard id="form.recentForm" title={t('form.recentForm')}>
         <div className="stat-tiles">
           <div className="stat-tile">
             {form.streakType === null ? (
@@ -126,11 +125,10 @@ function FormTab({ settings, matches, loading }) {
             <div className="label">{t('form.kdOverall')}</div>
           </div>
         </div>
-      </div>
+      </CollapsibleCard>
 
       {(bestTimeSlot || bestDay) && (
-        <div className="card highlight-card">
-          <h3>{t('form.bestTimeToPlay')}</h3>
+        <CollapsibleCard id="form.bestTimeToPlay" title={t('form.bestTimeToPlay')} className="highlight-card">
           <div className="stat-tiles">
             {bestTimeSlot && (
               <div className="stat-tile">
@@ -156,11 +154,11 @@ function FormTab({ settings, matches, loading }) {
           <p className="label" style={{ marginTop: '0.5rem' }}>
             {t('form.bestMomentHint')}
           </p>
-        </div>
+        </CollapsibleCard>
       )}
 
-      {renderStatBars(t, t('form.statsByTimeSlot'), timeSlotStats, '🕐', timeSlotIcon)}
-      {renderStatBars(t, t('form.statsByWeekday'), dayOfWeekStats, '📅', (key) => WEEKDAY_ICONS[key], dayLabel)}
+      {renderStatBars(t, 'form.statsByTimeSlot', t('form.statsByTimeSlot'), timeSlotStats, '🕐', timeSlotIcon)}
+      {renderStatBars(t, 'form.statsByWeekday', t('form.statsByWeekday'), dayOfWeekStats, '📅', (key) => WEEKDAY_ICONS[key], dayLabel)}
     </div>
   );
 }

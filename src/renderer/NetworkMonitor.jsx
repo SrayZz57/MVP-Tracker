@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function NetworkMonitor() {
   const { t } = useTranslation();
@@ -15,8 +16,7 @@ function NetworkMonitor() {
   const pingClass = status.latestPing === null ? '' : status.latestPing < 60 ? 'good' : status.latestPing < 120 ? 'mid' : 'bad';
 
   return (
-    <div className="card">
-      <h3>{t('network.status')}</h3>
+    <CollapsibleCard id="network.status" title={t('network.status')}>
       <div className={`network-status-banner ${status.valorantRunning ? 'online' : ''}`}>
         <span className="status-dot-lg" />
         {status.valorantRunning ? t('network.detected') : t('network.notDetected')}
@@ -31,7 +31,7 @@ function NetworkMonitor() {
           </div>
         </div>
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
