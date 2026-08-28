@@ -4,6 +4,7 @@ import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
 import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const PAGE_SIZE = 30;
 
@@ -127,8 +128,7 @@ function SkinsCatalog({ myId }) {
       </nav>
 
       {view === 'catalogue' && (
-        <div className="card">
-          <h3>{t('skins.catalogTitle', { count: filteredCatalog.length })}</h3>
+        <CollapsibleCard id="skins.catalogue" title={t('skins.catalogTitle', { count: filteredCatalog.length })}>
           <div className="filter-bar">
             <input
               placeholder={t('skins.searchPlaceholder')}
@@ -180,12 +180,11 @@ function SkinsCatalog({ myId }) {
               {showAll ? t('skins.showLess') : t('skins.showMore', { count: filteredCatalog.length - PAGE_SIZE })}
             </button>
           )}
-        </div>
+        </CollapsibleCard>
       )}
 
       {view === 'wishlist' && (
-        <div className="card">
-          <h3>{t('skins.wishlistTitle', { count: wishlistSkins.length })}</h3>
+        <CollapsibleCard id="skins.wishlist" title={t('skins.wishlistTitle', { count: wishlistSkins.length })}>
           {wishlistSkins.length === 0 ? (
             <p>{t('skins.emptyWishlist')}</p>
           ) : (
@@ -202,7 +201,7 @@ function SkinsCatalog({ myId }) {
               ))}
             </div>
           )}
-        </div>
+        </CollapsibleCard>
       )}
 
       {selectedSkin && (

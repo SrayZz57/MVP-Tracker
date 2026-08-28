@@ -2,6 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import { PRO_CROSSHAIRS } from './crosshairPresets.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const PRO_PAGE_SIZE = 15;
 const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
@@ -77,8 +78,7 @@ function CrosshairLibrary() {
         <p className="label">{t('crosshairs.libraryDescription', { count: PRO_CROSSHAIRS.length })}</p>
       </div>
 
-      <div className="card">
-        <h3>{t('crosshairs.proTitle')}</h3>
+      <CollapsibleCard id="crosshairs.pro" title={t('crosshairs.proTitle')}>
         <p className="label">{t('crosshairs.proHint')}</p>
         <div className="filter-bar">
           <input
@@ -107,10 +107,9 @@ function CrosshairLibrary() {
             {showAllPro ? t('crosshairs.showLess') : t('crosshairs.showMore', { count: filteredPro.length - PRO_PAGE_SIZE })}
           </button>
         )}
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('crosshairs.addCustomTitle')}</h3>
+      <CollapsibleCard id="crosshairs.addCustom" title={t('crosshairs.addCustomTitle')}>
         <form onSubmit={handleSave} className="crosshair-form">
           <div className="crosshair-form-fields">
             <input placeholder={t('crosshairs.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
@@ -139,10 +138,9 @@ function CrosshairLibrary() {
             <button type="submit">{t('crosshairs.save')}</button>
           </div>
         </form>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('crosshairs.libraryCount', { count: crosshairs.length })}</h3>
+      <CollapsibleCard id="crosshairs.myLibrary" title={t('crosshairs.libraryCount', { count: crosshairs.length })}>
         {crosshairs.length === 0 ? (
           <p>{t('crosshairs.libraryEmpty')}</p>
         ) : (
@@ -164,7 +162,7 @@ function CrosshairLibrary() {
             ))}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
     </div>
   );
 }

@@ -5,6 +5,7 @@ import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
 import { loadCollection, loadWishlist, toggleWishlist, toggleCollection, setCollectionPrice } from './personalData.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 // Page dédiée à la collection personnelle — auparavant un petit onglet noyé
 // dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
@@ -72,8 +73,7 @@ function MySkinsCollection({ myId }) {
         </div>
       </div>
 
-      <div className="card">
-        <h3>{t('skins.myCollectionTitle')}</h3>
+      <CollapsibleCard id="skins.myCollection" title={t('skins.myCollectionTitle')}>
         {collectionSkins.length === 0 ? (
           <p>{t('skins.emptyCollection')}</p>
         ) : (
@@ -103,7 +103,7 @@ function MySkinsCollection({ myId }) {
             ))}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
 
       {selectedSkin && (
         <SkinDetailModal
