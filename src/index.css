@@ -3860,6 +3860,8 @@ li {
   gap: 0.9rem;
   flex: 1 1 340px;
   min-width: 320px;
+  max-width: 620px;
+  box-sizing: border-box;
 }
 
 .strategy-toolbar-section {
@@ -3868,6 +3870,7 @@ li {
   gap: 0.5rem;
   padding-bottom: 0.9rem;
   border-bottom: 1px solid var(--border);
+  min-width: 0;
 }
 
 .strategy-toolbar-section:last-child {
@@ -3889,6 +3892,7 @@ li {
   align-items: center;
   gap: 0.5rem;
   flex-wrap: wrap;
+  min-width: 0;
 }
 
 .strategy-tool-group {
