@@ -131,10 +131,29 @@ export const MODES = {
     labelKey: 'aimTrainer.modes.tracking',
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
+    // Clic maintenu + précision échantillonnée en continu, plutôt que des
+    // tirs discrets — voir le bloc dédié dans la boucle d'animation et
+    // handleClick. Réservé à "Pro" et à Multi (ci-dessous) : Débutant et
+    // Intermédiaire restent en tir classique sur cible mobile, et le
+    // resteraient même si on l'ajoutait plus tard (des scores existants sont
+    // déjà enregistrés sur leur mécanique actuelle).
+    holdTracking: true,
     lifetime: null,
     driftSpeed: [2, 4],
     driftChangeInterval: [350, 850],
     preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 60 },
+  },
+  trackingMulti: {
+    icon: '🌊',
+    accent: '#4ec9f5',
+    labelKey: 'aimTrainer.modes.trackingMulti',
+    descKey: 'aimTrainer.modes.trackingMultiDesc',
+    movement: 'drift',
+    holdTracking: true,
+    lifetime: null,
+    driftSpeed: [1.8, 3],
+    driftChangeInterval: [500, 1100],
+    preset: { targetCount: 2, targetSize: 0.34, spread: 28, duration: 60 },
   },
   reflex: {
     icon: '⚡',
@@ -171,6 +190,78 @@ export const MODES = {
     movement: 'peek',
     lifetime: null,
     preset: { targetCount: 1, targetSize: 0.16, spread: 20, duration: 60 },
+  },
+  strafe: {
+    icon: '↔️',
+    accent: '#4ec9f5',
+    labelKey: 'aimTrainer.modes.strafe',
+    descKey: 'aimTrainer.modes.strafeDesc',
+    movement: 'drift',
+    // Cap verrouillé + intervalle de changement quasi infini : la cible
+    // traverse tout droit à vitesse constante, ne rebondissant que sur les
+    // bords — un vrai strafe, pas un Tracking un peu plus rapide.
+    driftLockY: true,
+    driftSpeed: [3, 5],
+    driftChangeInterval: [999999, 999999],
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.3, spread: 30, duration: 60 },
+  },
+  switch: {
+    icon: '🔀',
+    accent: '#ffc857',
+    labelKey: 'aimTrainer.modes.switchMode',
+    descKey: 'aimTrainer.modes.switchModeDesc',
+    // Cibles statiques numérotées à toucher dans l'ordre affiché — voir
+    // state.reshuffleSwitch/state.switchNext (créés dans l'effet principal)
+    // et la branche dédiée de handleClick.
+    movement: 'switch',
+    lifetime: null,
+    preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 60 },
+  },
+  strafeTap: {
+    icon: '🧨',
+    accent: '#ff8fab',
+    labelKey: 'aimTrainer.modes.strafeTap',
+    descKey: 'aimTrainer.modes.strafeTapDesc',
+    movement: 'drift',
+    // Plusieurs touches nécessaires avant que la cible ne se replace pour de
+    // bon — voir `entry.hitsRemaining` dans handleClick.
+    hitsRequired: 3,
+    driftSpeed: [1.5, 2.5],
+    driftChangeInterval: [600, 1200],
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.3, spread: 26, duration: 60 },
+  },
+  precision: {
+    icon: '🪡',
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.precision',
+    descKey: 'aimTrainer.modes.precisionDesc',
+    movement: 'none',
+    lifetime: 850,
+    preset: { targetCount: 1, targetSize: 0.08, spread: 16, duration: 60 },
+  },
+  popcorn: {
+    icon: '🍿',
+    accent: '#ffb84d',
+    labelKey: 'aimTrainer.modes.popcorn',
+    descKey: 'aimTrainer.modes.popcornDesc',
+    movement: 'none',
+    lifetime: 900,
+    preset: { targetCount: 3, targetSize: 0.22, spread: 32, duration: 60 },
+  },
+  snapHold: {
+    icon: '⏳',
+    accent: '#9b7bff',
+    labelKey: 'aimTrainer.modes.snapHold',
+    descKey: 'aimTrainer.modes.snapHoldDesc',
+    // Un clic arme la cible mais ne suffit pas : il faut y rester `holdMs` —
+    // voir la branche dédiée de handleClick et le bloc de maintien dans la
+    // boucle d'animation.
+    movement: 'snap',
+    holdMs: 350,
+    lifetime: 2200,
+    preset: { targetCount: 1, targetSize: 0.24, spread: 30, duration: 60 },
   },
 };
 
@@ -240,6 +331,18 @@ function resetTargetForMode(entry, mode, cfg, now, state) {
     Object.assign(entry, state.makeMotion(mode));
     entry.peek = null;
   }
+  // Switch : la pastille n'est utile que dans ce mode — masquée ailleurs,
+  // le vrai ordre est réassigné juste après par state.reshuffleSwitch (appelé
+  // une fois pour TOUTES les cibles, pas ici cible par cible).
+  if (entry.numberLabel) entry.numberLabel.visible = mode.movement === 'switch';
+  entry.order = null;
+  // Rafale (Strafe-tap) : nombre de touches encore nécessaires avant que la
+  // cible ne se replace vraiment — voir handleClick.
+  entry.hitsRemaining = mode.hitsRequired ?? null;
+  // Maintien (Snap-hold) : instant où le viseur s'est posé sur la cible,
+  // remis à zéro à chaque réinitialisation — voir handleClick et la boucle
+  // d'animation.
+  entry.snapArmedAt = null;
   entry.spawnedAt = now;
   entry.poppedAt = now;
 }
@@ -375,6 +478,31 @@ function makeGlowTexture(color) {
   ctx.fillStyle = gradient;
   ctx.fillRect(0, 0, size, size);
   return new THREE.CanvasTexture(canvas);
+}
+
+// Pastille numérotée pour le mode Switch — même logique "canvas plutôt
+// qu'asset externe" que makeGlowTexture ci-dessus.
+function makeNumberTexture(n) {
+  const size = 128;
+  const canvas = document.createElement('canvas');
+  canvas.width = size;
+  canvas.height = size;
+  const ctx = canvas.getContext('2d');
+  ctx.fillStyle = 'rgba(10, 12, 16, 0.85)';
+  ctx.beginPath();
+  ctx.arc(size / 2, size / 2, size / 2 - 4, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.strokeStyle = 'rgba(255, 255, 255, 0.85)';
+  ctx.lineWidth = 4;
+  ctx.stroke();
+  ctx.fillStyle = '#ffffff';
+  ctx.font = 'bold 72px "Chakra Petch", sans-serif';
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  ctx.fillText(String(n), size / 2, size / 2 + 4);
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.colorSpace = THREE.SRGBColorSpace;
+  return texture;
 }
 
 // --- Audio -------------------------------------------------------------
@@ -642,8 +770,11 @@ function AimTrainerGame({ config: rawConfig }) {
     // difficulté du Tracking, une cible plus lente est mécaniquement plus
     // facile à suivre.
     const DEFAULT_DRIFT_SPEED = [2, 4];
-    const randomDrift = (speedRange = DEFAULT_DRIFT_SPEED) =>
-      new THREE.Vector3(Math.random() * 2 - 1, (Math.random() * 2 - 1) * 0.5, 0)
+    // `lockY` (mode Strafe) : dérive purement horizontale, aucune composante
+    // verticale — sinon Strafe ne serait qu'un Tracking plus rapide au lieu
+    // d'une vraie traversée latérale à la Valorant.
+    const randomDrift = (speedRange = DEFAULT_DRIFT_SPEED, lockY = false) =>
+      new THREE.Vector3(Math.random() * 2 - 1, lockY ? 0 : (Math.random() * 2 - 1) * 0.5, 0)
         .normalize()
         .multiplyScalar(speedRange[0] + Math.random() * (speedRange[1] - speedRange[0]));
 
@@ -653,7 +784,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const makeMotion = (mode) => {
       const [changeMin, changeMax] = mode?.driftChangeInterval ?? DEFAULT_DRIFT_CHANGE_INTERVAL;
       return {
-        drift: randomDrift(mode?.driftSpeed),
+        drift: randomDrift(mode?.driftSpeed, mode?.driftLockY),
         // Prochain changement de cap en vol, indépendant des rebonds sur les
         // bords — c'est ce qui rend la trajectoire imprévisible en Tracking.
         // Un intervalle plus long (paliers faciles) laisse plus de temps
@@ -698,10 +829,23 @@ function AimTrainerGame({ config: rawConfig }) {
       body.visible = false;
       scene.add(body);
 
+      // Pastille numérotée du mode Switch — existe pour toutes les cibles
+      // (même logique que box/body ci-dessus) mais invisible hors de ce mode.
+      const numberLabel = new THREE.Sprite(
+        new THREE.SpriteMaterial({ transparent: true, depthTest: false }),
+      );
+      numberLabel.scale.set(0.4, 0.4, 1);
+      numberLabel.visible = false;
+      scene.add(numberLabel);
+
       const entry = {
         mesh,
         box,
         body,
+        numberLabel,
+        order: null,
+        hitsRemaining: null,
+        snapArmedAt: null,
         peekLayout,
         spawnedAt: performance.now(),
         poppedAt: performance.now(),
@@ -710,6 +854,37 @@ function AimTrainerGame({ config: rawConfig }) {
       };
       entry.peek = initPeekState(entry, performance.now());
       targets.push(entry);
+    }
+
+    // Assigne un ordre 1..N mélangé aux cibles du mode Switch, et fait
+    // pointer chaque pastille vers la texture correspondante — appelé à la
+    // création ET à chaque nouveau cycle complet (voir handleClick). Les
+    // textures sont créées une seule fois par session (pas à chaque mélange)
+    // pour éviter d'accumuler des CanvasTexture jetables.
+    const switchNumberTextures = targets.map((_, i) => makeNumberTexture(i + 1));
+    const positionNumberLabel = (entry, cfg) => {
+      entry.numberLabel.position.set(
+        entry.mesh.position.x,
+        entry.mesh.position.y + cfg.targetSize + 0.3,
+        entry.mesh.position.z,
+      );
+    };
+    const reshuffleSwitch = (entries, cfg) => {
+      const orders = entries.map((_, i) => i + 1);
+      for (let i = orders.length - 1; i > 0; i -= 1) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [orders[i], orders[j]] = [orders[j], orders[i]];
+      }
+      entries.forEach((entry, i) => {
+        entry.order = orders[i];
+        entry.numberLabel.material.map = switchNumberTextures[entry.order - 1];
+        entry.numberLabel.material.needsUpdate = true;
+        entry.numberLabel.visible = true;
+        positionNumberLabel(entry, cfg);
+      });
+    };
+    if (MODES[config.mode]?.movement === 'switch') {
+      reshuffleSwitch(targets, config);
     }
 
     const flashTexture = makeGlowTexture('rgba(255, 210, 130, 0.95)');
@@ -744,6 +919,9 @@ function AimTrainerGame({ config: rawConfig }) {
       targets,
       makeMotion,
       initPeekState,
+      reshuffleSwitch,
+      positionNumberLabel,
+      switchNext: 1,
       raycaster,
       center,
       muzzleTip,
@@ -838,7 +1016,7 @@ function AimTrainerGame({ config: rawConfig }) {
           // ligne droite qui ricoche, prévisible dès le deuxième aller-retour.
           if (now >= entry.driftChangeAt) {
             const [changeMin, changeMax] = mode.driftChangeInterval ?? [350, 850];
-            entry.drift = randomDrift(mode.driftSpeed);
+            entry.drift = randomDrift(mode.driftSpeed, mode.driftLockY);
             entry.driftChangeAt = now + changeMin + Math.random() * (changeMax - changeMin);
           }
 
@@ -912,11 +1090,35 @@ function AimTrainerGame({ config: rawConfig }) {
           entry.mesh.position.set(x, layout.headY, p.boxCenter.z);
         }
 
+        // Maintien (Snap-hold) : un clic arme la cible (voir handleClick),
+        // mais il faut GARDER le viseur dessus pendant `holdMs` pour que ça
+        // compte — un flick "au pif" qui retombe dessus par hasard, sans
+        // vraiment s'y stabiliser, ne suffit plus. Quitter la cible avant la
+        // fin annule juste l'armement (pas de raté immédiat, on peut
+        // recliquer) ; le timeout de mode.lifetime ci-dessous sanctionne un
+        // flick qui ne se conclut jamais.
+        if (mode.movement === 'snap' && entry.snapArmedAt !== null) {
+          state.raycaster.setFromCamera(state.center, camera);
+          const stillOn = state.raycaster.intersectObject(entry.mesh).length > 0;
+          if (!stillOn) {
+            entry.snapArmedAt = null;
+          } else if (now - entry.snapArmedAt >= (mode.holdMs ?? 350)) {
+            const reactionMs = now - entry.spawnedAt;
+            entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+            entry.anchor.copy(entry.mesh.position);
+            entry.snapArmedAt = null;
+            entry.spawnedAt = now;
+            entry.poppedAt = now;
+            setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+          }
+        }
+
         // Mode réflexe : une cible non touchée à temps disparaît et compte
         // comme manquée, pour forcer la réactivité plutôt que la lenteur.
         if (mode.lifetime && now - entry.spawnedAt > mode.lifetime) {
           entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
           entry.anchor.copy(entry.mesh.position);
+          entry.snapArmedAt = null;
           entry.spawnedAt = now;
           entry.poppedAt = now;
           setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
@@ -935,7 +1137,7 @@ function AimTrainerGame({ config: rawConfig }) {
       // 100% de précision en ne comptant jamais les ratés du reste du temps
       // — exploit remonté par des joueurs sur le classement. Ne pas tenir le
       // viseur = raté, comme dans les autres modes.
-      if (cfg.mode === 'tracking' && phaseRef.current === 'running') {
+      if (MODES[cfg.mode]?.holdTracking && phaseRef.current === 'running') {
         const TRACK_SAMPLE_INTERVAL_MS = 100;
         const held = state.isTrackingHeld;
         let onTarget = false;
@@ -1064,7 +1266,7 @@ function AimTrainerGame({ config: rawConfig }) {
       // Tracking : pas de tir discret, il faut rester appuyé sur la cible en
       // mouvement — le pourcentage se calcule en continu dans la boucle
       // d'animation (voir plus bas), pas ici.
-      if (configRef.current.mode === 'tracking') {
+      if (MODES[configRef.current.mode]?.holdTracking) {
         state.isTrackingHeld = true;
         state.lastTrackSample = 0;
         return;
@@ -1131,14 +1333,45 @@ function AimTrainerGame({ config: rawConfig }) {
           entry.spawnedAt = performance.now();
           entry.poppedAt = performance.now();
           setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+        } else if (mode.movement === 'switch') {
+          // Il faut toucher les cibles dans l'ORDRE affiché — une cible
+          // touchée hors de son tour ne compte pas comme une réussite (elle
+          // reste en place, toujours avec son numéro), un vrai raté.
+          if (entry.order === state.switchNext) {
+            state.switchNext += 1;
+            setStats((prev) => ({ ...prev, hits: prev.hits + 1 }));
+            if (state.switchNext > targets.length) {
+              state.reshuffleSwitch(targets, configRef.current);
+              state.switchNext = 1;
+            }
+          } else {
+            setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
+          }
+        } else if (mode.movement === 'snap') {
+          // N'arme pas tout de suite un hit/raté : il faut GARDER le viseur
+          // dessus le temps du maintien requis — voir la boucle d'animation,
+          // qui valide (ou annule si le viseur part trop tôt) ce maintien.
+          if (entry.snapArmedAt === null) entry.snapArmedAt = performance.now();
         } else {
-          const reactionMs = performance.now() - entry.spawnedAt;
-          entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
-          entry.anchor.copy(entry.mesh.position);
-          Object.assign(entry, state.makeMotion(mode));
-          entry.spawnedAt = performance.now();
-          entry.poppedAt = performance.now();
-          setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+          // Rafale (Strafe-tap) : `hitsRequired` > 1 impose plusieurs touches
+          // avant que la cible ne se replace vraiment — chaque tap intermédiaire
+          // compte pour la précision mais ne relance ni position ni temps de
+          // réaction, seul le tap final le fait.
+          const remaining = mode.hitsRequired ? (entry.hitsRemaining ?? mode.hitsRequired) - 1 : 0;
+          if (mode.hitsRequired && remaining > 0) {
+            entry.hitsRemaining = remaining;
+            entry.poppedAt = performance.now();
+            setStats((prev) => ({ ...prev, hits: prev.hits + 1 }));
+          } else {
+            const reactionMs = performance.now() - entry.spawnedAt;
+            entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
+            entry.anchor.copy(entry.mesh.position);
+            Object.assign(entry, state.makeMotion(mode));
+            entry.hitsRemaining = mode.hitsRequired ?? null;
+            entry.spawnedAt = performance.now();
+            entry.poppedAt = performance.now();
+            setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
+          }
         }
       } else {
         setStats((prev) => ({ ...prev, misses: prev.misses + 1 }));
@@ -1245,6 +1478,10 @@ function AimTrainerGame({ config: rawConfig }) {
     stateRef.current.targets?.forEach((entry) => {
       resetTargetForMode(entry, mode, config, now, stateRef.current);
     });
+    if (mode.movement === 'switch') {
+      stateRef.current.reshuffleSwitch(stateRef.current.targets, config);
+      stateRef.current.switchNext = 1;
+    }
     // Le verrouillage du pointeur doit être demandé de façon synchrone dans la
     // foulée du clic (exigence de sécurité de Chromium) — pas d'await avant.
     lockPointer();
@@ -1265,6 +1502,10 @@ function AimTrainerGame({ config: rawConfig }) {
     stateRef.current.targets?.forEach((entry) => {
       resetTargetForMode(entry, mode, mode.preset, now, stateRef.current);
     });
+    if (mode.movement === 'switch') {
+      stateRef.current.reshuffleSwitch(stateRef.current.targets, mode.preset);
+      stateRef.current.switchNext = 1;
+    }
     lockPointer();
     setPhase('running');
   };
@@ -1358,8 +1599,14 @@ function AimTrainerGame({ config: rawConfig }) {
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
                 {config.challengeDate && <p className="aim-game-tip">🏆 Défi du jour — score comptabilisé au classement</p>}
-                {config.mode === 'tracking' && (
+                {MODES[config.mode]?.holdTracking && (
                   <p className="aim-game-tip">🌊 Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
+                )}
+                {MODES[config.mode]?.movement === 'switch' && (
+                  <p className="aim-game-tip">🔀 Touche les cibles dans l'ordre affiché — une erreur d'ordre compte comme un raté.</p>
+                )}
+                {MODES[config.mode]?.movement === 'snap' && (
+                  <p className="aim-game-tip">⏳ Un flick ne suffit pas : reste stabilisé sur la cible un instant pour que le tir compte.</p>
                 )}
 
                 <div className="aim-game-controls">
@@ -1367,8 +1614,8 @@ function AimTrainerGame({ config: rawConfig }) {
                     <kbd>Souris</kbd> viser
                   </span>
                   <span>
-                    <kbd>{config.mode === 'tracking' ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
-                    {config.mode === 'tracking' ? 'suivre' : 'tirer'}
+                    <kbd>{MODES[config.mode]?.holdTracking ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
+                    {MODES[config.mode]?.holdTracking ? 'suivre' : 'tirer'}
                   </span>
                   <span>
                     <kbd>Échap</kbd> pause
