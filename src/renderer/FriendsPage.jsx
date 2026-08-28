@@ -58,18 +58,20 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
 
   const otherProfile = (f) => (f.requester_id === myId ? f.addressee : f.requester);
 
+  // Chargé à la demande (au clic sur un ami, pas pour toute la liste au
+  // montage) — c'est un appel HenrikDev par ami, et le seul endroit qui lit
+  // `friendPreviews` est la modale ouverte par ce clic (voir plus bas) : pas
+  // besoin de payer le quota pour des amis dont la fiche n'est jamais ouverte.
   useEffect(() => {
-    if (!apiKey) return;
-    accepted.forEach((f) => {
-      const p = otherProfile(f);
-      if (!p || friendPreviews[p.id] !== undefined) return;
-      window.electronAPI
-        .previewRiotAccount({ name: p.riot_name, tag: p.riot_tag, apiKey })
-        .then((preview) => setFriendPreviews((prev) => ({ ...prev, [p.id]: preview })))
-        .catch(() => setFriendPreviews((prev) => ({ ...prev, [p.id]: null })));
-    });
+    if (!apiKey || !openSummaryFor) return;
+    const p = openSummaryFor;
+    if (friendPreviews[p.id] !== undefined) return;
+    window.electronAPI
+      .previewRiotAccount({ name: p.riot_name, tag: p.riot_tag, apiKey })
+      .then((preview) => setFriendPreviews((prev) => ({ ...prev, [p.id]: preview })))
+      .catch(() => setFriendPreviews((prev) => ({ ...prev, [p.id]: null })));
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [accepted, apiKey]);
+  }, [openSummaryFor, apiKey]);
 
   const handleSearch = async (event) => {
     event.preventDefault();

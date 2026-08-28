@@ -411,6 +411,13 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   // exploitable (ex. erreur 500 constatée sur "console" pour un compte qui
   // ne joue que sur PC malgré le crossplay activé), elle est simplement
   // ignorée sans bloquer l'autre.
+  // Les matchs les plus récents arrivent en premier (start=0) — dès qu'une
+  // page entière est déjà en cache, tout ce qui suit l'est forcément aussi
+  // (pas de trou possible dans l'historique). Une resynchro "à vide" (rien
+  // de nouveau) coûte donc 1 requête par plateforme au lieu des 4 qu'il
+  // fallait avant pour vérifier les 40 derniers matchs à chaque fois.
+  const cachedIds = new Set(getCachedMatches(account.puuid).map((m) => m.metadata.matchid));
+
   let rateLimited = false;
   for (const candidate of platformCandidates(account)) {
     if (rateLimited) break;
@@ -418,6 +425,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
       try {
         const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start });
         if (page.length > 0) saveMatches(account.puuid, page);
+        if (page.length > 0 && page.every((m) => cachedIds.has(m.metadata.matchid))) break; // rien de nouveau au-delà
         if (page.length < PAGE_SIZE) break; // plus d'historique derrière sur cette plateforme
       } catch (err) {
         if (err.status === 429) {
