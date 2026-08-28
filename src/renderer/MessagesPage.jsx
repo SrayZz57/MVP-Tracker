@@ -1,11 +1,62 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryCard from './FriendSummaryCard.jsx';
+import { useE2EE } from './E2EEContext.jsx';
+
+// Écran affiché tant que la clé de messagerie n'est pas en mémoire — arrive
+// après chaque redémarrage de l'app (session Supabase restaurée sans jamais
+// redemander le mot de passe, donc sans repasser par l'endroit qui débloque
+// normalement la clé — voir AccountAuth.jsx). Ce mot de passe ne sert qu'à
+// déchiffrer localement la clé déjà stockée (chiffrée) côté serveur — il
+// n'est jamais renvoyé ni conservé au-delà de cet instant.
+function UnlockMessagingForm({ myId }) {
+  const { t } = useTranslation();
+  const { unlockForUser } = useE2EE();
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState(null);
+  const [loading, setLoading] = useState(false);
+
+  const handleSubmit = async (event) => {
+    event.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      await unlockForUser(myId, password, { allowRegenerate: false });
+    } catch {
+      setError(t('messages.unlockWrongPassword'));
+    }
+    setLoading(false);
+  };
+
+  return (
+    <div className="messages-page">
+      <div className="messages-thread card messages-unlock">
+        <h3>{t('messages.unlockTitle')}</h3>
+        <p className="label">{t('messages.unlockHint')}</p>
+        <form onSubmit={handleSubmit} className="account-auth-form">
+          <input
+            type="password"
+            placeholder={t('auth.passwordPlaceholder')}
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            autoFocus
+            required
+          />
+          <button type="submit" disabled={loading}>
+            {loading ? t('auth.loading') : t('messages.unlockButton')}
+          </button>
+        </form>
+        {error && <p className="warning">{error}</p>}
+      </div>
+    </div>
+  );
+}
 
 function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = null, onConsumedInitialFriendId, apiKey }) {
   const { t } = useTranslation();
+  const { ready: keysReady, encryptFor, decryptFrom } = useE2EE();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
@@ -91,7 +142,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     setMessagesLoading(true);
     const { data, error } = await supabase
       .from('messages')
-      .select('id, sender_id, recipient_id, content, created_at')
+      .select('id, sender_id, recipient_id, content, nonce, created_at')
       .or(
         `and(sender_id.eq.${myId},recipient_id.eq.${friendId}),and(sender_id.eq.${friendId},recipient_id.eq.${myId})`,
       )
@@ -126,24 +177,46 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
 
   const handleSend = async (event) => {
     event.preventDefault();
-    const content = draft.trim();
-    if (!content || !selectedFriendId) return;
+    const text = draft.trim();
+    if (!text || !selectedFriendId || !selectedProfile?.public_key) return;
+    const encrypted = encryptFor(selectedProfile.public_key, text);
+    if (!encrypted) return;
     setDraft('');
     const optimistic = {
       id: `optimistic-${Date.now()}`,
       sender_id: myId,
       recipient_id: selectedFriendId,
-      content,
+      content: encrypted.ciphertext,
+      nonce: encrypted.nonce,
       created_at: new Date().toISOString(),
     };
     setMessages((prev) => [...prev, optimistic]);
     const { error } = await supabase
       .from('messages')
-      .insert({ sender_id: myId, recipient_id: selectedFriendId, content });
+      .insert({ sender_id: myId, recipient_id: selectedFriendId, content: encrypted.ciphertext, nonce: encrypted.nonce });
     if (error) console.error('[messages] échec de l\'envoi :', error.message);
   };
 
+  // Les messages "legacy" (envoyés avant le chiffrement de bout en bout,
+  // reconnaissables à l'absence de `nonce`) restent affichés tels quels —
+  // ils étaient déjà en clair dans la base avant ce changement, les masquer
+  // n'y changerait rien. Les nouveaux sont déchiffrés à la volée ici plutôt
+  // qu'au chargement, pour que les messages arrivant en temps réel (voir
+  // l'abonnement plus haut) passent par le même chemin sans code dupliqué.
+  const decryptedMessages = useMemo(() => {
+    if (!selectedProfile?.public_key) return [];
+    return messages.map((msg) => ({
+      ...msg,
+      text: !msg.nonce
+        ? msg.content
+        : keysReady
+          ? (decryptFrom(selectedProfile.public_key, msg.content, msg.nonce) ?? t('messages.decryptFailed'))
+          : '…',
+    }));
+  }, [messages, selectedProfile, keysReady, decryptFrom, t]);
+
   if (loading) return <p className="label">{t('messages.loading')}</p>;
+  if (!keysReady) return <UnlockMessagingForm myId={myId} />;
 
   return (
     <div className="messages-page">
@@ -201,30 +274,34 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
               ) : messages.length === 0 ? (
                 <p className="label">{t('messages.noMessagesYet')}</p>
               ) : (
-                messages.map((msg) => (
+                decryptedMessages.map((msg) => (
                   <div
                     key={msg.id}
                     className={msg.sender_id === myId ? 'message-bubble mine' : 'message-bubble'}
                   >
-                    {msg.content}
+                    {msg.text}
                   </div>
                 ))
               )}
               <div ref={messagesEndRef} />
             </div>
 
-            <form onSubmit={handleSend} className="messages-input-row">
-              <input
-                type="text"
-                placeholder={t('messages.messagePlaceholder')}
-                value={draft}
-                onChange={(e) => setDraft(e.target.value)}
-                maxLength={2000}
-              />
-              <button type="submit" disabled={!draft.trim()}>
-                {t('messages.send')}
-              </button>
-            </form>
+            {selectedProfile.public_key ? (
+              <form onSubmit={handleSend} className="messages-input-row">
+                <input
+                  type="text"
+                  placeholder={t('messages.messagePlaceholder')}
+                  value={draft}
+                  onChange={(e) => setDraft(e.target.value)}
+                  maxLength={2000}
+                />
+                <button type="submit" disabled={!draft.trim()}>
+                  {t('messages.send')}
+                </button>
+              </form>
+            ) : (
+              <p className="label messages-no-key-hint">{t('messages.friendNoKeyYet')}</p>
+            )}
           </>
         )}
       </div>

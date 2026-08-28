@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
+import { useE2EE } from './E2EEContext.jsx';
 
 function SetNewPasswordScreen({ onDone }) {
   const { t } = useTranslation();
+  const { unlockForUser } = useE2EE();
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
   const [error, setError] = useState(null);
@@ -17,12 +19,15 @@ function SetNewPasswordScreen({ onDone }) {
       return;
     }
     setLoading(true);
-    const { error: updateError } = await supabase.auth.updateUser({ password });
+    const { data, error: updateError } = await supabase.auth.updateUser({ password });
     setLoading(false);
     if (updateError) {
       setError(updateError.message);
       return;
     }
+    // Le nouveau mot de passe vient d'être posé à l'instant — sûr de
+    // régénérer la clé de messagerie si l'ancienne est devenue orpheline.
+    if (data.user) unlockForUser(data.user.id, password);
     onDone();
   };
 

@@ -2,6 +2,7 @@ import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useValorantData from './useValorantData.js';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
+import { useE2EE } from './E2EEContext.jsx';
 import StatsTab from './tabs/StatsTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
 import NetworkTab from './tabs/NetworkTab.jsx';
@@ -187,6 +188,7 @@ function App() {
     toggle: toggleSection,
     refresh: refreshCollapsedBlocks,
   } = useCollapsedBlocks();
+  const { lock: lockMessagingKey } = useE2EE();
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
   // Ami à ouvrir en conversation dès l'arrivée sur l'onglet Messages, posé
@@ -676,7 +678,7 @@ function App() {
             apiKey={settings?.apiKey}
             onUpdate={updateProfile}
             onUpdateApiKey={updateApiKey}
-            onSignOut={() => supabase.auth.signOut()}
+            onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
           />
         );
       default:
@@ -763,7 +765,7 @@ function App() {
           <button
             className="sidebar-signout"
             title={t('nav.signOut')}
-            onClick={() => supabase.auth.signOut()}
+            onClick={() => supabase.auth.signOut().then(lockMessagingKey)}
           >
             🚪
           </button>

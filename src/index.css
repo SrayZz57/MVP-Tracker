@@ -7112,6 +7112,22 @@ input[type='color'] {
   justify-content: center;
 }
 
+.messages-unlock {
+  padding: 2rem 1.75rem;
+  max-width: 380px;
+  margin: 3rem auto;
+  text-align: center;
+}
+
+.messages-unlock .account-auth-form {
+  margin-top: 1rem;
+}
+
+.messages-no-key-hint {
+  padding: 0.85rem 1.25rem;
+  text-align: center;
+}
+
 .messages-thread-header {
   display: flex;
   align-items: center;

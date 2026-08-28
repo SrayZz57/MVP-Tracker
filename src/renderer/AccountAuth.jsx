@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
+import { useE2EE } from './E2EEContext.jsx';
 
 function AccountAuth() {
   const { t } = useTranslation();
+  const { unlockForUser } = useE2EE();
   const TITLES = {
     signin: t('auth.titles.signin'),
     signup: t('auth.titles.signup'),
@@ -30,7 +32,7 @@ function AccountAuth() {
     resetMessages();
     setLoading(true);
 
-    const { error: authError } =
+    const { data, error: authError } =
       mode === 'signup'
         ? await supabase.auth.signUp({ email, password })
         : await supabase.auth.signInWithPassword({ email, password });
@@ -42,9 +44,18 @@ function AccountAuth() {
       return;
     }
 
-    if (mode === 'signup') {
+    if (mode === 'signup' && !data.session) {
+      // Confirmation par email requise avant toute session active — la clé
+      // de messagerie sera créée à la vraie première connexion (une fois la
+      // session active, le mot de passe redevient disponible ici).
       setInfo(t('auth.signupSuccess'));
+      return;
     }
+
+    // Supabase vient de vérifier ce mot de passe lui-même (connexion ou
+    // inscription à confirmation immédiate) — sûr de régénérer la clé de
+    // messagerie si elle est orpheline (voir E2EEContext.jsx).
+    if (data.user) unlockForUser(data.user.id, password);
     // En connexion, onAuthStateChange (écouté dans App.jsx) prend le relais automatiquement.
   };
 
@@ -82,12 +93,16 @@ function AccountAuth() {
       setError(verifyError.message);
       return;
     }
-    const { error: updateError } = await supabase.auth.updateUser({ password: newPassword });
+    const { data: updateData, error: updateError } = await supabase.auth.updateUser({ password: newPassword });
     setLoading(false);
     if (updateError) {
       setError(updateError.message);
       return;
     }
+    // Le nouveau mot de passe vient d'être posé côté Supabase à l'instant —
+    // sûr de régénérer la clé de messagerie (l'ancienne, enveloppée avec
+    // l'ancien mot de passe, est désormais irrécupérable).
+    if (updateData.user) unlockForUser(updateData.user.id, newPassword);
     // onAuthStateChange (App.jsx) prend le relais — la session est déjà active.
   };
 

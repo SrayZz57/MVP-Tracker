@@ -619,7 +619,13 @@
     "loading": "Chargement...",
     "noMessagesYet": "Pas encore de message — dis bonjour !",
     "messagePlaceholder": "Écris un message...",
-    "send": "Envoyer"
+    "send": "Envoyer",
+    "unlockTitle": "🔒 Messagerie chiffrée",
+    "unlockHint": "Tes messages sont chiffrés de bout en bout — même nous, on ne peut pas les lire. Entre ton mot de passe pour les déverrouiller sur cet appareil.",
+    "unlockButton": "Déverrouiller",
+    "unlockWrongPassword": "Mot de passe incorrect.",
+    "decryptFailed": "⚠️ Message impossible à déchiffrer",
+    "friendNoKeyYet": "Cet ami n'a pas encore de clé de messagerie configurée — il doit ouvrir MVP Tracker au moins une fois pour l'activer."
   },
   "hallOfFame": {
     "title": "🏆 Hall of Fame",

@@ -619,7 +619,13 @@
     "loading": "Loading...",
     "noMessagesYet": "No messages yet — say hi!",
     "messagePlaceholder": "Write a message...",
-    "send": "Send"
+    "send": "Send",
+    "unlockTitle": "🔒 Encrypted messaging",
+    "unlockHint": "Your messages are end-to-end encrypted — even we can't read them. Enter your password to unlock them on this device.",
+    "unlockButton": "Unlock",
+    "unlockWrongPassword": "Wrong password.",
+    "decryptFailed": "⚠️ Couldn't decrypt this message",
+    "friendNoKeyYet": "This friend doesn't have a messaging key set up yet — they need to open MVP Tracker at least once to enable it."
   },
   "hallOfFame": {
     "title": "🏆 Hall of Fame",
