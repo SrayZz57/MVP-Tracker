@@ -3858,8 +3858,9 @@ li {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
-  flex: 1;
+  flex: 1 1 340px;
   min-width: 320px;
+  max-width: 480px;
 }
 
 .strategy-toolbar-section {
@@ -3982,7 +3983,10 @@ input[type='color'] {
 }
 
 .strategy-canvas-wrap {
-  width: clamp(340px, 52vw, 1100px);
+  flex: 3 1 400px;
+  min-width: 320px;
+  max-width: 1120px;
+  box-sizing: border-box;
   padding: 0.5rem;
   margin-bottom: 0;
   border-radius: 14px;
@@ -3993,8 +3997,6 @@ input[type='color'] {
 .strategy-canvas-wrap canvas {
   border-radius: 8px;
   display: block;
-  max-width: 100%;
-  height: auto;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 

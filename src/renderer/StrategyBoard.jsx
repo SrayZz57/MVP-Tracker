@@ -124,6 +124,7 @@ function StrategyBoard() {
   const [lockPicking, setLockPicking] = useState(false);
 
   const canvasElRef = useRef(null);
+  const canvasWrapRef = useRef(null);
   const fabricCanvasRef = useRef(null);
   const toolRef = useRef(tool);
   const colorRef = useRef(color);
@@ -173,6 +174,7 @@ function StrategyBoard() {
   useEffect(() => {
     const canvas = new Canvas(canvasElRef.current, { selection: true });
     fabricCanvasRef.current = canvas;
+    canvas.setDimensions({ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE });
     canvas.freeDrawingBrush = new PencilBrush(canvas);
     canvas.freeDrawingBrush.width = 5;
     canvas.freeDrawingBrush.color = colorRef.current;
@@ -385,6 +387,24 @@ function StrategyBoard() {
     };
   }, []);
 
+  // Adapte la taille AFFICHÉE du canvas à la taille de son conteneur (donc à
+  // la fenêtre de l'app), sans toucher à sa résolution interne (VIEWPORT_SIZE)
+  // — les coordonnées des objets (dessins, icônes, stratégies sauvegardées)
+  // restent donc valables quelle que soit la taille de la fenêtre.
+  useEffect(() => {
+    const wrap = canvasWrapRef.current;
+    if (!wrap) return;
+    const observer = new ResizeObserver((entries) => {
+      const canvas = fabricCanvasRef.current;
+      if (!canvas) return;
+      const { width, height } = entries[0].contentRect;
+      const size = Math.max(200, Math.floor(Math.min(width, height || width)));
+      canvas.setDimensions({ width: size, height: size }, { cssOnly: true });
+    });
+    observer.observe(wrap);
+    return () => observer.disconnect();
+  }, []);
+
   // Bascule dessin libre / sélection / déplacement de la vue.
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
@@ -407,7 +427,6 @@ function StrategyBoard() {
     let cancelled = false;
     canvas.clear();
     canvas.backgroundColor = '#0f1115';
-    canvas.setDimensions({ width: VIEWPORT_SIZE, height: VIEWPORT_SIZE });
 
     FabricImage.fromURL(url, { crossOrigin: 'anonymous' }).then((img) => {
       if (cancelled) return;
@@ -614,7 +633,7 @@ function StrategyBoard() {
   return (
     <div className="strategy-board">
       <div className="strategy-layout">
-        <div className="strategy-canvas-wrap card">
+        <div className="strategy-canvas-wrap card" ref={canvasWrapRef}>
           <canvas ref={canvasElRef} />
         </div>
 
