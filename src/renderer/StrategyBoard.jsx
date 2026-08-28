@@ -613,7 +613,12 @@ function StrategyBoard() {
 
   return (
     <div className="strategy-board">
-      <div className="strategy-toolbar card">
+      <div className="strategy-layout">
+        <div className="strategy-canvas-wrap card">
+          <canvas ref={canvasElRef} />
+        </div>
+
+        <div className="strategy-toolbar card">
         <div className="strategy-toolbar-section">
           <div className="strategy-section-label">{t('strategy.mapSection')}</div>
           <div className="strategy-toolbar-row">
@@ -739,29 +744,7 @@ function StrategyBoard() {
           </div>
         </div>
 
-        <div className="strategy-toolbar-section">
-          <div className="strategy-section-label">{t('strategy.layersSection')}</div>
-          <div className="strategy-toolbar-row">
-            {LAYER_DEFS.map((l) => (
-              <label key={l.key} className="strategy-layer-toggle">
-                <input
-                  type="checkbox"
-                  checked={layers[l.key]}
-                  onChange={(e) => setLayers((prev) => ({ ...prev, [l.key]: e.target.checked }))}
-                />
-                {t(l.labelKey)}
-              </label>
-            ))}
-          </div>
-        </div>
-      </div>
-
-      <div className="strategy-body">
-        <div className="strategy-canvas-wrap card">
-          <canvas ref={canvasElRef} />
-        </div>
-
-        <div className="strategy-side card">
+        <div className="strategy-toolbar-section strategy-save-section">
           <h3>{t('strategy.save')}</h3>
           <div className="strategy-save-row">
             <input
@@ -795,6 +778,23 @@ function StrategyBoard() {
               ))}
             </ul>
           )}
+        </div>
+
+        <div className="strategy-toolbar-section">
+          <div className="strategy-section-label">{t('strategy.layersSection')}</div>
+          <div className="strategy-toolbar-row">
+            {LAYER_DEFS.map((l) => (
+              <label key={l.key} className="strategy-layer-toggle">
+                <input
+                  type="checkbox"
+                  checked={layers[l.key]}
+                  onChange={(e) => setLayers((prev) => ({ ...prev, [l.key]: e.target.checked }))}
+                />
+                {t(l.labelKey)}
+              </label>
+            ))}
+          </div>
+        </div>
         </div>
       </div>
     </div>

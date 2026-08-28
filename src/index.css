@@ -3847,10 +3847,19 @@ li {
   font-weight: 600;
 }
 
+.strategy-layout {
+  display: flex;
+  gap: 1.25rem;
+  align-items: flex-start;
+}
+
 .strategy-toolbar {
   display: flex;
   flex-direction: column;
   gap: 0.9rem;
+  flex: 1;
+  min-width: 300px;
+  max-width: 380px;
 }
 
 .strategy-toolbar-section {
@@ -3972,12 +3981,6 @@ input[type='color'] {
   background: rgba(255, 70, 85, 0.08);
 }
 
-.strategy-body {
-  display: flex;
-  gap: 1.25rem;
-  align-items: flex-start;
-}
-
 .strategy-canvas-wrap {
   display: inline-block;
   padding: 0.5rem;
@@ -3990,20 +3993,15 @@ input[type='color'] {
 .strategy-canvas-wrap canvas {
   border-radius: 8px;
   display: block;
+  max-width: 100%;
   box-shadow: 0 8px 28px rgba(0, 0, 0, 0.45);
 }
 
-.strategy-side {
-  flex: 1;
-  min-width: 260px;
-  margin-bottom: 0;
-}
-
-.strategy-side h3 {
+.strategy-save-section h3 {
   margin-top: 0;
 }
 
-.strategy-side h3:not(:first-child) {
+.strategy-save-section h3:not(:first-child) {
   margin-top: 1.25rem;
   padding-top: 1rem;
   border-top: 1px solid var(--border);
