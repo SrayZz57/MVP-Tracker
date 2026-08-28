@@ -582,6 +582,12 @@ function AimTrainerGame({ config: rawConfig }) {
   const [timeLeft, setTimeLeft] = useState(config.duration);
   const [stats, setStats] = useState({ hits: 0, misses: 0, times: [] });
   const [locked, setLocked] = useState(false);
+  // Diagnostic visible directement dans l'app (pas besoin d'ouvrir la
+  // console) : certains testeurs sur Discord ont signalé une sensation de
+  // lissage de la souris — utile pour confirmer d'un coup d'œil si l'entrée
+  // brute (unadjustedMovement) a vraiment pu s'activer sur leur machine.
+  // null = pas encore tenté, true/false = résultat du dernier essai.
+  const [rawInputActive, setRawInputActive] = useState(null);
 
   const stateRef = useRef({});
   const configRef = useRef(config);
@@ -1428,10 +1434,23 @@ function AimTrainerGame({ config: rawConfig }) {
     const canvas = mountRef.current?.querySelector('canvas');
     if (!canvas) return;
     const result = canvas.requestPointerLock({ unadjustedMovement: true });
-    // Sur une plateforme qui ne supporte pas l'option (rare — surtout hors
-    // Windows/Chromium), la promesse rejette : on retente sans l'option
-    // plutôt que de laisser le verrouillage échouer complètement.
-    result?.catch?.(() => canvas.requestPointerLock());
+    // Journalisé (renvoyé vers le terminal via console-message dans main.js)
+    // pour pouvoir vérifier si `unadjustedMovement` échoue réellement sur une
+    // machine donnée plutôt que de le découvrir uniquement via un ressenti
+    // utilisateur difficile à objectiver.
+    result
+      ?.then(() => {
+        console.log('[aim-trainer] pointer lock : unadjustedMovement actif');
+        setRawInputActive(true);
+      })
+      // Sur une plateforme qui ne supporte pas l'option (rare — surtout hors
+      // Windows/Chromium), la promesse rejette : on retente sans l'option
+      // plutôt que de laisser le verrouillage échouer complètement.
+      .catch((err) => {
+        console.log('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans —', err?.message ?? err);
+        setRawInputActive(false);
+        canvas.requestPointerLock();
+      });
   };
 
   // Coupe le suivi en maintien (mode Tracking) proprement : en pause, en fin
@@ -1625,6 +1644,11 @@ function AimTrainerGame({ config: rawConfig }) {
                   ▶️ Démarrer
                 </button>
                 <p className="aim-game-tip">Échap pour mettre en pause · la fenêtre se ferme avec le bouton ci-dessous</p>
+                {rawInputActive !== null && (
+                  <p className="aim-game-tip">
+                    🖱️ Entrée souris brute : {rawInputActive ? 'active' : 'non disponible sur cette machine'}
+                  </p>
+                )}
               </>
             )}
 
