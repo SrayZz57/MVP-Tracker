@@ -95,6 +95,18 @@ function DailyPuzzle({ settings, matches }) {
                 <div className="label">{t('puzzle.scoreBefore')}</div>
               </div>
               <div className="stat-tile">
+                <div className="value">
+                  <span className="value-icon">
+                    {puzzle.situation.side === 'attack'
+                      ? t('puzzle.sideAttack')
+                      : puzzle.situation.side === 'defense'
+                        ? t('puzzle.sideDefense')
+                        : t('puzzle.sideUnknown')}
+                  </span>
+                </div>
+                <div className="label">{t('puzzle.sideLabel')}</div>
+              </div>
+              <div className="stat-tile">
                 <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.myEconomyTier)}`)}</div>
                 <div className="label">{t('puzzle.myEconomy')}</div>
               </div>

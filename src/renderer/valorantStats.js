@@ -507,7 +507,7 @@ function directAttackerTeam(round) {
 // Reconstruit, pour un match donné, l'équipe qui attaquait à chaque round —
 // logique partagée par mapSideStats() et deathLocationsOnMap() (filtre
 // attaque/défense de la heatmap).
-function attackerTeamByRound(match) {
+export function attackerTeamByRound(match) {
   const rounds = match.rounds || [];
   const attackerByRound = rounds.map(directAttackerTeam);
 

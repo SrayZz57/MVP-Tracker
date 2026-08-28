@@ -1,4 +1,4 @@
-import { excludeDeathmatch, findMe, ECONOMY_TIERS } from './valorantStats.js';
+import { excludeDeathmatch, findMe, ECONOMY_TIERS, attackerTeamByRound } from './valorantStats.js';
 
 // Deux options poussent vers un engagement rapide, deux vers la prudence —
 // pour rester honnête, le "bucket" auquel une option est associée est la
@@ -27,6 +27,8 @@ function economyTier(value) {
 }
 
 function buildSituation(match, round, roundIndex, me, myPs) {
+  const attackerTeam = attackerTeamByRound(match)[roundIndex];
+  const side = attackerTeam === null ? null : attackerTeam === me.team ? 'attack' : 'defense';
   const playerStats = round.player_stats || [];
   const myLoadoutValue = myPs.economy?.loadout_value ?? null;
   const enemyLoadouts = playerStats
@@ -64,6 +66,7 @@ function buildSituation(match, round, roundIndex, me, myPs) {
     roundIndex,
     map: match.metadata?.map ?? '?',
     roundNumber: roundIndex + 1,
+    side,
     myLoadoutValue,
     myEconomyTier: economyTier(myLoadoutValue),
     enemyAvgLoadoutValue,

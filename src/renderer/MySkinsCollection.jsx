@@ -30,7 +30,8 @@ function MySkinsCollection({ myId }) {
         const skin = catalog.find((s) => s.uuid === entry.uuid);
         return skin ? { ...skin, priceVp: entry.priceVp } : null;
       })
-      .filter(Boolean);
+      .filter(Boolean)
+      .sort((a, b) => (b.priceVp || 0) - (a.priceVp || 0));
   }, [catalog, collection]);
 
   const totalValueEuros = useMemo(

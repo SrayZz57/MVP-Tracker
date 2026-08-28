@@ -78,6 +78,63 @@ function CrosshairLibrary() {
         <p className="label">{t('crosshairs.libraryDescription', { count: PRO_CROSSHAIRS.length })}</p>
       </div>
 
+      <div className="tilt-columns">
+        <CollapsibleCard id="crosshairs.myLibrary" title={t('crosshairs.libraryCount', { count: crosshairs.length })}>
+          {crosshairs.length === 0 ? (
+            <p>{t('crosshairs.libraryEmpty')}</p>
+          ) : (
+            <div className="crosshair-grid">
+              {crosshairs.map((ch) => (
+                <div key={ch.id} className="crosshair-item">
+                  {ch.image ? (
+                    <img src={ch.image} alt={ch.name} className="crosshair-custom-preview" />
+                  ) : (
+                    <CrosshairPreview code={ch.code} />
+                  )}
+                  <p>{ch.name}</p>
+                  {ch.color && <p className="label">{ch.color}</p>}
+                  <div className="crosshair-item-actions">
+                    <button onClick={() => navigator.clipboard.writeText(ch.code)}>{t('crosshairs.copy')}</button>
+                    <button onClick={() => handleDelete(ch.id)}>{t('crosshairs.delete')}</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CollapsibleCard>
+
+        <CollapsibleCard id="crosshairs.addCustom" title={t('crosshairs.addCustomTitle')}>
+          <form onSubmit={handleSave} className="crosshair-form">
+            <div className="crosshair-form-fields">
+              <input placeholder={t('crosshairs.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
+              <input
+                placeholder={t('crosshairs.codePlaceholder')}
+                value={code}
+                onChange={(e) => setCode(e.target.value)}
+                required
+              />
+              <input placeholder={t('crosshairs.colorPlaceholder')} value={color} onChange={(e) => setColor(e.target.value)} />
+              <label>
+                {t('crosshairs.imageOptional')}
+                <input type="file" accept="image/*" onChange={handleImageChange} />
+              </label>
+            </div>
+            <div className="crosshair-form-preview">
+              {code.trim() !== '' ? (
+                image ? (
+                  <img src={image} alt={t('crosshairs.previewAlt')} className="crosshair-custom-preview" />
+                ) : (
+                  <CrosshairPreview code={code.trim()} />
+                )
+              ) : (
+                <div className="crosshair-preview-placeholder">{t('crosshairs.previewPlaceholder')}</div>
+              )}
+              <button type="submit">{t('crosshairs.save')}</button>
+            </div>
+          </form>
+        </CollapsibleCard>
+      </div>
+
       <CollapsibleCard id="crosshairs.pro" title={t('crosshairs.proTitle')}>
         <p className="label">{t('crosshairs.proHint')}</p>
         <div className="filter-bar">
@@ -106,61 +163,6 @@ function CrosshairLibrary() {
           <button className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
             {showAllPro ? t('crosshairs.showLess') : t('crosshairs.showMore', { count: filteredPro.length - PRO_PAGE_SIZE })}
           </button>
-        )}
-      </CollapsibleCard>
-
-      <CollapsibleCard id="crosshairs.addCustom" title={t('crosshairs.addCustomTitle')}>
-        <form onSubmit={handleSave} className="crosshair-form">
-          <div className="crosshair-form-fields">
-            <input placeholder={t('crosshairs.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />
-            <input
-              placeholder={t('crosshairs.codePlaceholder')}
-              value={code}
-              onChange={(e) => setCode(e.target.value)}
-              required
-            />
-            <input placeholder={t('crosshairs.colorPlaceholder')} value={color} onChange={(e) => setColor(e.target.value)} />
-            <label>
-              {t('crosshairs.imageOptional')}
-              <input type="file" accept="image/*" onChange={handleImageChange} />
-            </label>
-          </div>
-          <div className="crosshair-form-preview">
-            {code.trim() !== '' ? (
-              image ? (
-                <img src={image} alt={t('crosshairs.previewAlt')} className="crosshair-custom-preview" />
-              ) : (
-                <CrosshairPreview code={code.trim()} />
-              )
-            ) : (
-              <div className="crosshair-preview-placeholder">{t('crosshairs.previewPlaceholder')}</div>
-            )}
-            <button type="submit">{t('crosshairs.save')}</button>
-          </div>
-        </form>
-      </CollapsibleCard>
-
-      <CollapsibleCard id="crosshairs.myLibrary" title={t('crosshairs.libraryCount', { count: crosshairs.length })}>
-        {crosshairs.length === 0 ? (
-          <p>{t('crosshairs.libraryEmpty')}</p>
-        ) : (
-          <div className="crosshair-grid">
-            {crosshairs.map((ch) => (
-              <div key={ch.id} className="crosshair-item">
-                {ch.image ? (
-                  <img src={ch.image} alt={ch.name} className="crosshair-custom-preview" />
-                ) : (
-                  <CrosshairPreview code={ch.code} />
-                )}
-                <p>{ch.name}</p>
-                {ch.color && <p className="label">{ch.color}</p>}
-                <div className="crosshair-item-actions">
-                  <button onClick={() => navigator.clipboard.writeText(ch.code)}>{t('crosshairs.copy')}</button>
-                  <button onClick={() => handleDelete(ch.id)}>{t('crosshairs.delete')}</button>
-                </div>
-              </div>
-            ))}
-          </div>
         )}
       </CollapsibleCard>
     </div>
