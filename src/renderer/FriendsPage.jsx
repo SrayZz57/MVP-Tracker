@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryModal from './FriendSummaryModal.jsx';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, apiKey }) {
   const { t } = useTranslation();
@@ -123,8 +124,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
 
   return (
     <div className="friends-page">
-      <div className="card">
-        <h3>{t('friends.addFriendTitle')}</h3>
+      <CollapsibleCard id="friends.addFriend" title={t('friends.addFriendTitle')}>
         <form onSubmit={handleSearch} className="friend-search-form">
           <div className="search-bar-riotid">
             <input placeholder={t('friends.usernamePlaceholder')} value={searchName} onChange={(e) => setSearchName(e.target.value)} required />
@@ -153,11 +153,10 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
             )}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
 
       {incomingPending.length > 0 && (
-        <div className="card">
-          <h3>{t('friends.incomingRequests')}</h3>
+        <CollapsibleCard id="friends.incoming" title={t('friends.incomingRequests')}>
           <div className="friend-list">
             {incomingPending.map((f) => (
               <div key={f.id} className="friend-request-row">
@@ -170,12 +169,11 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleCard>
       )}
 
       {outgoingPending.length > 0 && (
-        <div className="card">
-          <h3>{t('friends.outgoingRequests')}</h3>
+        <CollapsibleCard id="friends.outgoing" title={t('friends.outgoingRequests')}>
           <div className="friend-list">
             {outgoingPending.map((f) => (
               <div key={f.id} className="friend-request-row">
@@ -185,11 +183,10 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               </div>
             ))}
           </div>
-        </div>
+        </CollapsibleCard>
       )}
 
-      <div className="card">
-        <h3>{t('friends.friendsCount', { count: accepted.length })}</h3>
+      <CollapsibleCard id="friends.myFriends" title={t('friends.friendsCount', { count: accepted.length })}>
         {accepted.length === 0 ? (
           <p className="label">{t('friends.noFriendsYet')}</p>
         ) : (
@@ -215,7 +212,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
             })}
           </div>
         )}
-      </div>
+      </CollapsibleCard>
 
       {openSummaryFor && (
         <FriendSummaryModal

@@ -7,6 +7,7 @@ import { excludeDeathmatch, groupStats, overallWinrate } from './valorantStats.j
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
 import { supabase } from './supabaseClient.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
@@ -170,8 +171,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
         </div>
       </div>
 
-      <div className="card">
-        <h3>{t('account.playerProfileTitle')}</h3>
+      <CollapsibleCard id="account.playerProfile" title={t('account.playerProfileTitle')}>
         <p className="label">{t('account.playerProfileHint')}</p>
 
         <h4 className="account-subsection-title">{t('account.yourRole')}</h4>
@@ -225,10 +225,9 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
             <RoleStackedBar rows={roleDistribution} />
           </>
         )}
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('account.settingsTitle')}</h3>
+      <CollapsibleCard id="account.settings" title={t('account.settingsTitle')}>
         <p className="label">{t('account.settingsHint')}</p>
         {email && (
           <p className="account-email-row">
@@ -246,10 +245,9 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
         </div>
         {resetStatus === 'sent' && <p className="label account-reset-status">{t('account.forgotPasswordSent')}</p>}
         {resetStatus === 'error' && <p className="warning account-reset-status">{t('account.forgotPasswordError')}</p>}
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('account.contactTitle')}</h3>
+      <CollapsibleCard id="account.contact" title={t('account.contactTitle')}>
         <p className="label">{t('account.contactHint')}</p>
         <button
           className="account-contact-button"
@@ -257,7 +255,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
         >
           ✉️ {CONTACT_EMAIL}
         </button>
-      </div>
+      </CollapsibleCard>
 
       {avatarPickerOpen && (
         <IconPickerModal
