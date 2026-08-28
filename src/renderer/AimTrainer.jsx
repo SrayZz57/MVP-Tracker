@@ -25,7 +25,11 @@ const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#
 
 // Le bloc mode est devenu bien trop grand une fois tous les modes ajoutés —
 // on n'en montre que les premiers, avec un bouton pour dérouler le reste.
-const MODE_PAGE_SIZE = 8;
+// 11 : avec la carte "Personnalisé" toujours affichée en plus (+1), ça fait
+// 12 cartes = 2 lignes complètes à 6 colonnes (largeur de carte habituelle)
+// — évite une dernière ligne à moitié vide, même logique que pour les
+// autres grilles paginées de l'app (crosshairs, skins).
+const MODE_PAGE_SIZE = 11;
 
 // Routine d'échauffement : trois modes complémentaires enchaînés, à lancer
 // avant une session de jeu (visée sèche, suivi, puis précision fine).
