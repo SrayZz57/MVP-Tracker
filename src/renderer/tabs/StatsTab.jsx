@@ -19,6 +19,7 @@ import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
 import PlayerProfileCard from '../PlayerProfileCard.jsx';
 import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
 import usePlatformFilter from '../usePlatformFilter.js';
+import CollapsibleCard from '../CollapsibleCard.jsx';
 import RankMomentumCard from '../RankMomentumCard.jsx';
 import MatchDetailModal from '../MatchDetailModal.jsx';
 import MapDetailModal from '../MapDetailModal.jsx';
@@ -40,10 +41,9 @@ const SCOPE_OPTIONS = [
 
 // Fonction utilitaire (pas un composant) : reçoit `t` en paramètre plutôt que
 // d'appeler useTranslation() elle-même.
-function renderModeStats(t, title, rows, icons) {
+function renderModeStats(t, id, title, rows, icons) {
   return (
-    <div className="card">
-      <h3>{title}</h3>
+    <CollapsibleCard id={id} title={title}>
       {rows.length === 0 ? (
         <p>{t('stats.noDataYet')}</p>
       ) : (
@@ -66,7 +66,7 @@ function renderModeStats(t, title, rows, icons) {
           </div>
         ))
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
@@ -78,8 +78,7 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
   const visibleRows = showAll ? rows : rows.slice(0, AGENT_CARDS_PAGE_SIZE);
 
   return (
-    <div className="card">
-      <h3>{t('stats.statsByAgent')}</h3>
+    <CollapsibleCard id="stats.statsByAgent" title={t('stats.statsByAgent')}>
       <div className="map-card-list">
         {visibleRows.map((row) => {
           const image = portraits.get(row.key);
@@ -124,7 +123,7 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
           {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - AGENT_CARDS_PAGE_SIZE })}
         </button>
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
@@ -136,8 +135,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
   const visibleRows = showAll ? rows : rows.slice(0, MAP_CARDS_PAGE_SIZE);
 
   return (
-    <div className="card">
-      <h3>{t('stats.statsByMap')}</h3>
+    <CollapsibleCard id="stats.statsByMap" title={t('stats.statsByMap')}>
       <div className="map-card-list">
         {visibleRows.map((row) => {
           const image = mapImages.get(row.key);
@@ -164,7 +162,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
           {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - MAP_CARDS_PAGE_SIZE })}
         </button>
       )}
-    </div>
+    </CollapsibleCard>
   );
 }
 
@@ -452,8 +450,7 @@ function StatsTab({ settings, matches, rank, loading }) {
       <PlayerProfileCard settings={settings} matches={scopedMatches} />
       <RankMomentumCard settings={settings} matches={scopedMatches} />
 
-      <div className="card">
-        <h3>{t('stats.kdProgressionTitle', { count: kdProgression.length })}</h3>
+      <CollapsibleCard id="stats.kdProgression" title={t('stats.kdProgressionTitle', { count: kdProgression.length })}>
         {kdStats && (
           <div className="stat-tiles">
             <div className="stat-tile">
@@ -507,10 +504,9 @@ function StatsTab({ settings, matches, rank, loading }) {
             <p className="label kd-period-hint">{t('stats.periodHint')}</p>
           </div>
         </div>
-      </div>
+      </CollapsibleCard>
 
-      <div className="card">
-        <h3>{t('stats.globalStatsTitle', { count: scopedMatches.length })}</h3>
+      <CollapsibleCard id="stats.globalStats" title={t('stats.globalStatsTitle', { count: scopedMatches.length })}>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value">{globalStats.hsPercent === null ? '?' : `${globalStats.hsPercent.toFixed(1)}%`}</div>
@@ -546,7 +542,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             ));
           })()
         )}
-      </div>
+      </CollapsibleCard>
 
       <AgentCards
         rows={agentStats}
@@ -557,11 +553,10 @@ function StatsTab({ settings, matches, rank, loading }) {
         onRowClick={(name) => setSelectedAgent(name)}
       />
       <MapCards rows={mapStats} mapImages={mapImages} onRowClick={(mapName) => setSelectedMap(mapName)} />
-      {renderModeStats(t, t('stats.statsByRole'), roleStats, roleIcons)}
-      {renderModeStats(t, t('stats.statsByMode'), modeStats)}
+      {renderModeStats(t, 'stats.statsByRole', t('stats.statsByRole'), roleStats, roleIcons)}
+      {renderModeStats(t, 'stats.statsByMode', t('stats.statsByMode'), modeStats)}
 
-      <div className="card">
-        <h3>{t('stats.matchHistory', { count: filteredMatches.length })}</h3>
+      <CollapsibleCard id="stats.matchHistory" title={t('stats.matchHistory', { count: filteredMatches.length })}>
         <div className="filter-bar">
           <select
             value={modeFilter}
@@ -613,7 +608,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             {showAllMatches ? t('stats.showLess') : t('stats.showMore', { count: filteredMatches.length - MATCH_HISTORY_PAGE_SIZE })}
           </button>
         )}
-      </div>
+      </CollapsibleCard>
 
       {selectedMatch && (
         <MatchDetailModal

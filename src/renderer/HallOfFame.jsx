@@ -6,7 +6,6 @@ import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
 import LoadingState from './LoadingState.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
-import SuggestAchievementModal from './SuggestAchievementModal.jsx';
 
 function formatDate(locale, ms) {
   if (!ms) return '?';
@@ -68,7 +67,6 @@ function HallOfFame({ settings, matches, loading }) {
   const totalCount = achievementGroups.reduce((sum, g) => sum + g.items.length, 0);
   const unlockedCount = achievementGroups.reduce((sum, g) => sum + g.items.filter((i) => i.unlocked).length, 0);
   const [celebrate, setCelebrate] = useState(false);
-  const [suggestOpen, setSuggestOpen] = useState(false);
 
   // Compare aux succès déjà vus (stockés localement par compte) pour ne
   // fêter que ceux qui viennent réellement de tomber, pas ceux déjà connus
@@ -151,12 +149,7 @@ function HallOfFame({ settings, matches, loading }) {
         title={t('hallOfFame.achievementsTitle', { unlocked: unlockedCount, total: totalCount })}
       >
         <p className="label">{t('hallOfFame.achievementsHint')}</p>
-        <button className="account-forgot-password" onClick={() => setSuggestOpen(true)}>
-          💡 {t('hallOfFame.suggestButton')}
-        </button>
       </CollapsibleCard>
-
-      {suggestOpen && <SuggestAchievementModal onClose={() => setSuggestOpen(false)} />}
 
       {achievementGroups.map((group) => (
         <CollapsibleCard

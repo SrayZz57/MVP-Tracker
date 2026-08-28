@@ -60,6 +60,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   savePuzzle: (date, situationJson) => ipcRenderer.invoke('puzzle:save', { date, situationJson }),
   answerPuzzle: (date, choice, correct) => ipcRenderer.invoke('puzzle:answer', { date, choice, correct }),
   getPuzzleHistory: (limit) => ipcRenderer.invoke('puzzle:history', limit),
+  getCollapsedBlocks: () => ipcRenderer.invoke('ui:get-collapsed-blocks'),
+  toggleCollapsedBlock: (blockId) => ipcRenderer.invoke('ui:toggle-collapsed-block', blockId),
   getSkinsWishlist: () => ipcRenderer.invoke('skins:get-wishlist'),
   toggleSkinWishlist: (uuid) => ipcRenderer.invoke('skins:toggle-wishlist', uuid),
   getSkinsCollection: () => ipcRenderer.invoke('skins:get-collection'),

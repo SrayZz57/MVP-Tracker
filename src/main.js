@@ -562,6 +562,24 @@ function scopedKey(base) {
   return puuid ? `${base}:${puuid}` : null;
 }
 
+// Blocs réduits (chaque carte de chaque onglet, voir CollapsibleCard.jsx) —
+// liste d'identifiants stables (ex. "stats.profileHeader"), scopée au compte
+// LIÉ comme le reste des préférences personnelles (jamais au profil
+// actuellement affiché, qui change à chaque recherche).
+ipcMain.handle('ui:get-collapsed-blocks', () => {
+  const key = scopedKey('collapsedBlocks');
+  return key ? store.get(key) || [] : [];
+});
+
+ipcMain.handle('ui:toggle-collapsed-block', (_event, blockId) => {
+  const key = scopedKey('collapsedBlocks');
+  if (!key) return [];
+  const collapsed = store.get(key) || [];
+  const next = collapsed.includes(blockId) ? collapsed.filter((id) => id !== blockId) : [...collapsed, blockId];
+  store.set(key, next);
+  return next;
+});
+
 ipcMain.handle('skins:get-wishlist', () => {
   const key = scopedKey('skinsWishlist');
   return key ? store.get(key) || [] : [];
