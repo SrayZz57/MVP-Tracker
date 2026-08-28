@@ -1184,6 +1184,20 @@ h1 {
   white-space: nowrap;
 }
 
+/* `color: transparent` + `background-clip: text` sur `.stat-tile .value`
+   masque aussi les glyphes couleur des emoji (rendus comme un calque à part
+   par le moteur, pas juste une couleur de texte) — invisibles plutôt que
+   dégradés comme prévu. Un emoji placé devant le texte doit donc être dans
+   son propre span, hors de ce clip. */
+.stat-tile .value-icon {
+  background: none;
+  -webkit-background-clip: initial;
+  background-clip: initial;
+  -webkit-text-fill-color: initial;
+  color: initial;
+  filter: none;
+}
+
 .stat-tile .value.compact {
   font-size: 1.35rem;
   letter-spacing: -0.015em;

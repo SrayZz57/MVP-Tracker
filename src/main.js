@@ -198,10 +198,18 @@ const createWindow = () => {
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
+    // `show: false` + maximize()/show() une fois prête évite un flash visible
+    // de la fenêtre à sa petite taille par défaut avant l'agrandissement.
+    show: false,
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
+  });
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow.maximize();
+    mainWindow.show();
   });
 
   mainWindow.webContents.on('console-message', (_e, _level, message) => {

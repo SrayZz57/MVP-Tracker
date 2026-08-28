@@ -134,7 +134,9 @@ function FormTab({ settings, matches, loading }) {
           <div className="stat-tiles">
             {bestTimeSlot && (
               <div className="stat-tile">
-                <div className="value">{timeSlotIcon(bestTimeSlot.key)} {bestTimeSlot.key}</div>
+                <div className="value">
+                  <span className="value-icon">{timeSlotIcon(bestTimeSlot.key)}</span> {bestTimeSlot.key}
+                </div>
                 <div className="label">
                   {t('form.winratePlays', { percent: bestTimeSlot.winrate.toFixed(0), count: bestTimeSlot.games })}
                 </div>
@@ -142,7 +144,9 @@ function FormTab({ settings, matches, loading }) {
             )}
             {bestDay && (
               <div className="stat-tile">
-                <div className="value">{WEEKDAY_ICONS[bestDay.key]} {dayLabel(bestDay.key)}</div>
+                <div className="value">
+                  <span className="value-icon">{WEEKDAY_ICONS[bestDay.key]}</span> {dayLabel(bestDay.key)}
+                </div>
                 <div className="label">
                   {t('form.winratePlays', { percent: bestDay.winrate.toFixed(0), count: bestDay.games })}
                 </div>

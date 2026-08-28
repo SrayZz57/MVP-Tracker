@@ -28,7 +28,16 @@ export function computeActualAnswers(match, allMatches, name, tag) {
   const deaths = me.stats?.deaths ?? 0;
   const matchKd = deaths > 0 ? kills / deaths : kills;
 
-  const ranked = excludeDeathmatch(allMatches);
+  // Exclut CE match des matchs de référence : comparer contre une moyenne
+  // qui l'inclut déjà biaise la comparaison, surtout avec peu d'historique —
+  // un joueur qui n'a AUCUN autre match aurait toujours un ratio de pile 1.0
+  // quel que soit son score, la "moyenne" étant alors exactement lui-même
+  // (bucket 'moyen' garanti, jamais 'oui' même sur un carry). Sur un compte
+  // avec plus d'historique, l'effet est plus discret mais joue quand même
+  // dans le même sens : la moyenne inclut d'office la meilleure performance
+  // qu'on cherche justement à comparer, ce qui la relève artificiellement.
+  const priorMatches = allMatches.filter((m) => m.metadata?.matchid !== match.metadata?.matchid);
+  const ranked = excludeDeathmatch(priorMatches);
   const overallKd = formStats(ranked, name, tag).overallKd;
   const overallHs = overallHsPercent(ranked, name, tag);
   const { hsPercent } = hitStats(me);
