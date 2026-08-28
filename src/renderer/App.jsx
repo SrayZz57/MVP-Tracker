@@ -188,7 +188,7 @@ function App() {
     toggle: toggleSection,
     refresh: refreshCollapsedBlocks,
   } = useCollapsedBlocks();
-  const { lock: lockMessagingKey } = useE2EE();
+  const { lock: lockMessagingKey, tryAutoUnlock: tryAutoUnlockMessagingKey } = useE2EE();
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
   // Ami à ouvrir en conversation dès l'arrivée sur l'onglet Messages, posé
@@ -215,6 +215,16 @@ function App() {
 
   const myUserId = session?.user?.id ?? null;
   const onlineFriendIds = useOnlinePresence(myUserId);
+
+  // Tente de récupérer la clé de messagerie déjà mise en cache localement
+  // sur CET appareil (voir E2EEContext.jsx) dès que la session est connue —
+  // couvre le cas normal (redémarrage de l'app, session Supabase déjà
+  // persistée) sans jamais redemander le mot de passe. Si rien n'est en
+  // cache (premier lancement sur cet appareil), MessagesPage affichera son
+  // propre écran de déverrouillage le moment venu.
+  useEffect(() => {
+    if (myUserId) tryAutoUnlockMessagingKey(myUserId);
+  }, [myUserId, tryAutoUnlockMessagingKey]);
 
   // Notifications "sociales" (badge sur l'onglet Messages + notif Windows) —
   // volontairement séparées de la logique interne de MessagesPage : ça doit

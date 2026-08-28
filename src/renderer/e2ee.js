@@ -45,6 +45,17 @@ export function encodePublicKey(publicKeyBytes) {
   return encodeBase64(publicKeyBytes);
 }
 
+// Génériques (marchent pour n'importe quelle clé brute, pas seulement la
+// publique) — utilisés pour faire transiter la clé privée vers/depuis le
+// cache local chiffré par le système (voir E2EEContext.jsx).
+export function encodeKeyBytes(bytes) {
+  return encodeBase64(bytes);
+}
+
+export function decodeKeyBytes(base64) {
+  return decodeBase64(base64);
+}
+
 // "Enveloppe" la clé privée avec une clé dérivée du mot de passe du compte —
 // c'est CE blob chiffré (pas le mot de passe, jamais lui) qui est stocké
 // côté serveur, pour pouvoir retrouver la clé de messagerie depuis n'importe

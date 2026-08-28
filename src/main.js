@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage } from 'electron';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
@@ -339,6 +339,41 @@ ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
   } else {
     store.delete('linkedAccountPuuid');
   }
+});
+
+// Cache local (par compte MVP Tracker, pas par compte Riot) de la clé de
+// messagerie déjà déchiffrée — chiffré par le coffre-fort du système
+// (DPAPI sous Windows, Trousseau sous macOS) via safeStorage, PAS par
+// electron-store lui-même (qui écrit du JSON en clair sur disque). Le mot
+// de passe du compte ne sert donc qu'une fois par appareil : une fois cette
+// clé mise en cache ici, les lancements suivants n'ont plus besoin de le
+// redemander. Un nouvel appareil (ou ce cache vidé) redemande le mot de
+// passe une fois — voir wrapped_private_key côté Supabase pour cette
+// récupération, jamais la clé elle-même en clair côté serveur.
+ipcMain.handle('messaging:cache-key', (_event, { userId, publicKey, secretKeyBase64 }) => {
+  if (!safeStorage.isEncryptionAvailable()) return false;
+  const payload = JSON.stringify({ publicKey, secretKeyBase64 });
+  const encrypted = safeStorage.encryptString(payload);
+  store.set(`messagingKeyCache.${userId}`, encrypted.toString('base64'));
+  return true;
+});
+
+ipcMain.handle('messaging:get-cached-key', (_event, userId) => {
+  if (!safeStorage.isEncryptionAvailable()) return null;
+  const cached = store.get(`messagingKeyCache.${userId}`);
+  if (!cached) return null;
+  try {
+    const decrypted = safeStorage.decryptString(Buffer.from(cached, 'base64'));
+    return JSON.parse(decrypted);
+  } catch {
+    // Coffre-fort système inaccessible/déplacé (ex. profil Windows recréé) —
+    // pas grave, ça retombe sur la demande de mot de passe habituelle.
+    return null;
+  }
+});
+
+ipcMain.handle('messaging:clear-cached-key', (_event, userId) => {
+  store.delete(`messagingKeyCache.${userId}`);
 });
 
 // Cherche un compte Riot sans rien enregistrer — sert à afficher un aperçu

@@ -1,6 +1,15 @@
 import { createContext, useCallback, useContext, useState } from 'react';
 import { supabase } from './supabaseClient.js';
-import { generateKeyPair, wrapPrivateKey, unwrapPrivateKey, encryptMessage, decryptMessage, encodePublicKey } from './e2ee.js';
+import {
+  generateKeyPair,
+  wrapPrivateKey,
+  unwrapPrivateKey,
+  encryptMessage,
+  decryptMessage,
+  encodePublicKey,
+  encodeKeyBytes,
+  decodeKeyBytes,
+} from './e2ee.js';
 
 const E2EEContext = createContext(null);
 
@@ -10,6 +19,25 @@ const E2EEContext = createContext(null);
 // juste après authentification, pour déchiffrer (ou créer) cette clé.
 export function E2EEProvider({ children }) {
   const [keyPair, setKeyPair] = useState(null); // { publicKey: string base64, secretKey: Uint8Array } | null
+
+  // Tenté au démarrage (une fois `session` connue côté App.jsx) — si la clé a
+  // déjà été mise en cache lors d'un précédent déverrouillage SUR CET
+  // APPAREIL (voir cacheKeyLocally plus bas), on la récupère directement,
+  // sans redemander le mot de passe. Renvoie true si ça a marché.
+  const tryAutoUnlock = useCallback(async (userId) => {
+    const cached = await window.electronAPI.getCachedMessagingKey(userId);
+    if (!cached) return false;
+    setKeyPair({ publicKey: cached.publicKey, secretKey: decodeKeyBytes(cached.secretKeyBase64) });
+    return true;
+  }, []);
+
+  // Coffre-fort système (DPAPI/Trousseau via safeStorage, voir main.js) —
+  // PAS un simple fichier local en clair. Appelé après chaque déverrouillage
+  // réussi (mot de passe entré) pour que les lancements suivants sur CET
+  // appareil n'aient plus jamais besoin de le redemander.
+  const cacheKeyLocally = useCallback((userId, publicKey, secretKey) => {
+    window.electronAPI.cacheMessagingKey({ userId, publicKey, secretKeyBase64: encodeKeyBytes(secretKey) });
+  }, []);
 
   // `allowRegenerate` distingue deux contextes :
   // - true (juste après connexion/inscription/reset) : Supabase vient de
@@ -38,6 +66,7 @@ export function E2EEProvider({ children }) {
           password,
         );
         setKeyPair({ publicKey: profile.public_key, secretKey });
+        cacheKeyLocally(userId, profile.public_key, secretKey);
         return;
       } catch {
         if (!allowRegenerate) throw new Error('wrong-password');
@@ -57,7 +86,8 @@ export function E2EEProvider({ children }) {
       .eq('id', userId);
     if (updateError) throw new Error(`key-save-failed: ${updateError.message}`);
     setKeyPair({ publicKey: publicKeyB64, secretKey: fresh.secretKey });
-  }, []);
+    cacheKeyLocally(userId, publicKeyB64, fresh.secretKey);
+  }, [cacheKeyLocally]);
 
   // À la déconnexion — la clé ne doit pas traîner en mémoire pour la session
   // (ou le prochain compte) suivante.
