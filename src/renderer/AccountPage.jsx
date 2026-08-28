@@ -21,7 +21,7 @@ function formatMemberSince(isoDate, locale) {
   return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, onSignOut }) {
+function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onSignOut }) {
   const { t, i18n } = useTranslation();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
@@ -29,6 +29,9 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
   const [resetStatus, setResetStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
+  const [editingApiKey, setEditingApiKey] = useState(false);
+  const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
+  const [savingApiKey, setSavingApiKey] = useState(false);
 
   const avatarCardUuid = profile.avatar_card_uuid ?? myRank?.cardUuid;
   const avatarArt = usePlayerCardArt(avatarCardUuid);
@@ -100,6 +103,13 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
     await onUpdate({ display_name: trimmed || null });
     setSaving(false);
     setEditingName(false);
+  };
+
+  const handleSaveApiKey = async () => {
+    setSavingApiKey(true);
+    await onUpdateApiKey(apiKeyDraft);
+    setSavingApiKey(false);
+    setEditingApiKey(false);
   };
 
   return (
@@ -235,6 +245,38 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, onUpdate, 
             <span>{email}</span>
           </p>
         )}
+        <div className="account-email-row">
+          <span className="account-tile-label">{t('account.apiKeyLabel')}</span>
+          {editingApiKey ? (
+            <div className="account-name-edit-row">
+              <input
+                type="password"
+                value={apiKeyDraft}
+                onChange={(e) => setApiKeyDraft(e.target.value)}
+                placeholder={t('linkRiot.apiKeyPlaceholder')}
+                autoFocus
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
+              />
+              <button onClick={handleSaveApiKey} disabled={savingApiKey}>
+                {savingApiKey ? '...' : '✓'}
+              </button>
+              <button
+                className="account-name-cancel"
+                onClick={() => {
+                  setApiKeyDraft(apiKey ?? '');
+                  setEditingApiKey(false);
+                }}
+              >
+                ✕
+              </button>
+            </div>
+          ) : (
+            <span className="account-name-display" onClick={() => setEditingApiKey(true)} title={t('account.clickToEdit')}>
+              {apiKey ? '••••••••••••' : t('account.apiKeyMissing')}
+              <span className="account-name-pencil">✏️</span>
+            </span>
+          )}
+        </div>
         <div className="account-settings-actions">
           <button className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}

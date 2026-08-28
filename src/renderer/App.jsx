@@ -154,11 +154,12 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
 }
 
 // Bascule FR/EN — persistée via electron-store, indépendante de tout le
-// reste (compte, profil consulté). Le libellé affiché est celui de la
-// langue qu'on OBTIENDRAIT en cliquant, pas la langue actuelle.
+// reste (compte, profil consulté). Le drapeau affiché est celui de la
+// langue ACTUELLE ; cliquer bascule vers l'autre.
 function LanguageToggle() {
   const { i18n } = useTranslation();
   const next = i18n.language === 'fr' ? 'en' : 'fr';
+  const currentFlag = i18n.language === 'fr' ? '🇫🇷' : '🇬🇧';
 
   const switchLanguage = () => {
     i18n.changeLanguage(next);
@@ -167,7 +168,7 @@ function LanguageToggle() {
 
   return (
     <button className="topbar-icon-button" onClick={switchLanguage} title={i18n.language === 'fr' ? 'English' : 'Français'}>
-      <span style={{ fontWeight: 700, fontSize: '0.78rem' }}>{next.toUpperCase()}</span>
+      <span style={{ fontSize: '1.1rem' }}>{currentFlag}</span>
     </button>
   );
 }
@@ -449,6 +450,18 @@ function App() {
     setProfile((prev) => ({ ...prev, ...patch }));
   };
 
+  // Change la clé API HenrikDev — déplacé depuis la barre de recherche (trop
+  // exposée) vers "Mon compte" : met à jour Supabase (source durable) ET le
+  // cache local (`settings`/electron-store) pour que le reste de l'app
+  // utilise la nouvelle clé immédiatement, sans redémarrage.
+  const updateApiKey = async (newKey) => {
+    const trimmed = newKey.trim();
+    await updateProfile({ henrikdev_api_key: trimmed || null });
+    const updatedSettings = { ...settings, apiKey: trimmed };
+    setSettings(updatedSettings);
+    window.electronAPI.saveSettings(updatedSettings);
+  };
+
   // Sur une machine neuve (pas encore de réglages locaux), reconstruit
   // automatiquement `settings` à partir du compte lié plutôt que de forcer
   // un nouveau passage par l'écran de liaison — le Riot ID et la clé API
@@ -661,7 +674,9 @@ function App() {
             myMatches={myMatches}
             myRank={myRank}
             email={session.user.email}
+            apiKey={settings?.apiKey}
             onUpdate={updateProfile}
+            onUpdateApiKey={updateApiKey}
             onSignOut={() => supabase.auth.signOut()}
           />
         );

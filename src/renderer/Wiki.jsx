@@ -196,7 +196,6 @@ function MapGrid({ maps, onSelect }) {
             <div className="wiki-map-card-name">{map.displayName}</div>
             <div className="wiki-map-card-meta">
               <span>{map.tacticalDescription}</span>
-              {map.coordinates && <span>{map.coordinates}</span>}
             </div>
           </div>
         </div>
@@ -215,7 +214,7 @@ function MapModal({ map, minimapUrl, onClose }) {
         <div className="modal-banner" style={{ backgroundImage: `url(${map.splash})` }}>
           <div className="modal-banner-text">
             <h2>{map.displayName}</h2>
-            <p>{map.tacticalDescription} — {map.coordinates}</p>
+            <p>{map.tacticalDescription}</p>
           </div>
         </div>
 

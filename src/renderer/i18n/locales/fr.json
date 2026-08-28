@@ -1420,6 +1420,8 @@
     "settingsTitle": "⚙️ Compte",
     "settingsHint": "Connecté avec ton compte MVP Tracker — ton Riot ID lié reste indépendant de ce compte.",
     "emailLabel": "Adresse mail",
+    "apiKeyLabel": "Clé API HenrikDev",
+    "apiKeyMissing": "Non renseignée",
     "signOut": "🚪 Se déconnecter",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordSending": "Envoi en cours...",

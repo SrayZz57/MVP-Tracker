@@ -5,14 +5,16 @@ function SearchBar({ initialSettings, onSearch }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initialSettings?.name ?? '');
   const [tag, setTag] = useState(initialSettings?.tag ?? '');
-  const [apiKey, setApiKey] = useState(initialSettings?.apiKey ?? '');
+  const apiKey = initialSettings?.apiKey ?? '';
 
   const handleSubmit = async (event) => {
     event.preventDefault();
     // Pas de spread de `initialSettings` ici : une nouvelle recherche vise
     // potentiellement un tout autre profil, l'ancien `puuid` ne doit surtout
     // pas être recopié (sinon l'app croit encore regarder le profil précédent).
-    const settings = { name: name.trim(), tag: tag.trim(), apiKey: apiKey.trim() };
+    // La clé API n'est plus éditable ici (déplacée dans Mon compte) — on
+    // réutilise simplement celle déjà connue.
+    const settings = { name: name.trim(), tag: tag.trim(), apiKey };
     await window.electronAPI.saveSettings(settings);
     onSearch(settings);
   };
@@ -30,14 +32,6 @@ function SearchBar({ initialSettings, onSearch }) {
           className="search-bar-tag"
         />
       </div>
-      <input
-        placeholder={t('linkRiot.apiKeyPlaceholder')}
-        type="password"
-        value={apiKey}
-        onChange={(e) => setApiKey(e.target.value)}
-        required
-        className="search-bar-key"
-      />
       <button type="submit">{t('linkRiot.search')}</button>
     </form>
   );
