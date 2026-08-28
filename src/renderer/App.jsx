@@ -178,21 +178,20 @@ function App() {
   const [settings, setSettings] = useState(undefined);
   const [activeTab, setActiveTab] = useState('stats');
   const data = useValorantData(settings);
-  const { refresh: refreshCollapsedBlocks } = useCollapsedBlocks();
+  // Les catégories du menu (Performance, Mon compte...) partagent le même
+  // magasin persistant que les blocs réduits (CollapsibleCard) — un identifiant
+  // de catégorie ("nav.sections.performance") n'est jamais qu'un ID de bloc
+  // de plus, aucune collision possible avec ceux des cartes.
+  const {
+    collapsed: collapsedSections,
+    toggle: toggleSection,
+    refresh: refreshCollapsedBlocks,
+  } = useCollapsedBlocks();
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
-  const [collapsedSections, setCollapsedSections] = useState(new Set());
   // Ami à ouvrir en conversation dès l'arrivée sur l'onglet Messages, posé
   // par le bouton "💬" de la page Amis — one-shot, consommé au montage.
   const [pendingOpenFriendId, setPendingOpenFriendId] = useState(null);
-  const toggleSection = (label) => {
-    setCollapsedSections((prev) => {
-      const next = new Set(prev);
-      if (next.has(label)) next.delete(label);
-      else next.add(label);
-      return next;
-    });
-  };
   const [session, setSession] = useState(undefined); // undefined = chargement, null = déconnecté
   const [profile, setProfile] = useState(undefined); // undefined = chargement, null = pas encore lié
   // true dès que le lien "mot de passe oublié" a rouvert l'app avec une

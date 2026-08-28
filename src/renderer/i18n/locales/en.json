@@ -291,6 +291,8 @@
     "title": "🎯 Aim Trainer",
     "hint": "A 3D \"flick\" mode calibrated to your real Valorant sensitivity. Configure everything here, then launch the session in a fullscreen game window.",
     "modeSection": "Training mode",
+    "showMoreModes": "Show {{count}} more modes",
+    "showFewerModes": "Show fewer modes",
     "modes": {
       "flick": "🎯 Flick",
       "flickDesc": "One target at a time, hit it as fast as you can. The basics.",

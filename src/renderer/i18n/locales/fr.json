@@ -291,6 +291,8 @@
     "title": "🎯 Aim Trainer",
     "hint": "Un mode « flick » 3D calibré sur ta vraie sensibilité Valorant. Règle tout ici, puis lance la session dans une fenêtre de jeu plein écran.",
     "modeSection": "Mode d'entraînement",
+    "showMoreModes": "Voir {{count}} modes de plus",
+    "showFewerModes": "Voir moins de modes",
     "modes": {
       "flick": "🎯 Flick",
       "flickDesc": "Une cible à la fois, à toucher le plus vite possible. La base.",

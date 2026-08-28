@@ -238,7 +238,7 @@ export const MODES = {
     labelKey: 'aimTrainer.modes.precision',
     descKey: 'aimTrainer.modes.precisionDesc',
     movement: 'none',
-    lifetime: 850,
+    lifetime: 1500,
     preset: { targetCount: 1, targetSize: 0.08, spread: 16, duration: 60 },
   },
   popcorn: {
@@ -247,7 +247,7 @@ export const MODES = {
     labelKey: 'aimTrainer.modes.popcorn',
     descKey: 'aimTrainer.modes.popcornDesc',
     movement: 'none',
-    lifetime: 900,
+    lifetime: 1300,
     preset: { targetCount: 3, targetSize: 0.22, spread: 32, duration: 60 },
   },
   snapHold: {
