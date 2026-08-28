@@ -362,6 +362,20 @@ section { position: relative; padding: 7rem 0; }
   -webkit-text-fill-color: transparent;
 }
 
+/* Le titre "révélé mot par mot" (voir data-split dans app.js) découpe le
+   texte en <span class="word"> display:inline-block — ça casse le clip du
+   dégradé ci-dessus, qui ne peut plus s'appliquer qu'au texte direct de
+   l'élément, pas à des boîtes enfants. Sans ça, le dégradé se peint comme un
+   aplat de couleur plein derrière un texte blanc opaque au lieu d'être
+   découpé à la forme des lettres. On réapplique donc le même clip sur
+   chaque mot. */
+.gradient-text .word {
+  background: inherit;
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
 /* --- Décor de fond : halos colorés animés -------------------------------- */
 .glow-field {
   position: absolute;
