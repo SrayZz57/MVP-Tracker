@@ -3983,9 +3983,9 @@ input[type='color'] {
 }
 
 .strategy-canvas-wrap {
-  flex: 3 1 400px;
+  flex: 2 1 360px;
   min-width: 320px;
-  max-width: 1120px;
+  max-width: 800px;
   box-sizing: border-box;
   padding: 0.5rem;
   margin-bottom: 0;
