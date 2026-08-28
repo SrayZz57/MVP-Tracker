@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { computePlayerProfile } from './playerProfile.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 const SCORE_ICONS = {
   aggression: '⚔️',
@@ -25,18 +26,16 @@ function PlayerProfileCard({ settings, matches }) {
 
   if (!profile.ready) {
     return (
-      <div className="card profile-adn-card">
-        <h3>{t('profile.cardTitle')}</h3>
+      <CollapsibleCard id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
         <p className="label">
           {t('profile.notReady', { count: profile.minMatches - profile.matchesAnalyzed })}
         </p>
-      </div>
+      </CollapsibleCard>
     );
   }
 
   return (
-    <div className="card profile-adn-card">
-      <h3>{t('profile.cardTitle')}</h3>
+    <CollapsibleCard id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
       <div className="profile-adn-title">{t(`profile.archetypes.${profile.archetype}.title`)}</div>
       <p className="label">{t(`profile.archetypes.${profile.archetype}.text`)}</p>
 
@@ -68,7 +67,7 @@ function PlayerProfileCard({ settings, matches }) {
           clutches: profile.clutchAttempts,
         })}
       </p>
-    </div>
+    </CollapsibleCard>
   );
 }
 

@@ -1,6 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { computeRankMomentum } from './rankMomentum.js';
+import CollapsibleCard from './CollapsibleCard.jsx';
 
 function fmt(value, suffix = '') {
   return value === null ? '?' : `${value.toFixed(value < 10 ? 2 : 0)}${suffix}`;
@@ -15,18 +16,20 @@ function RankMomentumCard({ settings, matches }) {
 
   if (!momentum.ready) {
     return (
-      <div className="card">
-        <h3>{t('rankMomentum.title')}</h3>
+      <CollapsibleCard id="rankMomentum" title={t('rankMomentum.title')}>
         <p className="label">
           {t('rankMomentum.notReady', { count: momentum.minGames - momentum.gamesAnalyzed })}
         </p>
-      </div>
+      </CollapsibleCard>
     );
   }
 
   return (
-    <div className={`card ${momentum.trending ? 'highlight-card' : ''}`}>
-      <h3>{t('rankMomentum.title')}</h3>
+    <CollapsibleCard
+      id="rankMomentum"
+      title={t('rankMomentum.title')}
+      className={momentum.trending ? 'highlight-card' : ''}
+    >
       {momentum.trending ? (
         <p className="warning" style={{ fontWeight: 600 }}>{t('rankMomentum.trending')}</p>
       ) : (
@@ -55,7 +58,7 @@ function RankMomentumCard({ settings, matches }) {
       </div>
 
       <p className="label" style={{ marginTop: '0.75rem' }}>{t('rankMomentum.hint')}</p>
-    </div>
+    </CollapsibleCard>
   );
 }
 

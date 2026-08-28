@@ -198,6 +198,92 @@ h1 {
   background: linear-gradient(90deg, rgba(255, 70, 85, 0.5), var(--border) 22%, transparent 92%);
 }
 
+/* CollapsibleCard : même liseré que `.card > h3:first-child`, mais porté par
+   l'en-tête (le h3 n'est plus tout à fait le premier enfant direct de
+   `.card` au sens CSS une fois wrappé, donc le style est réappliqué ici). */
+.collapsible-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  position: relative;
+  padding-bottom: 0.7rem;
+  margin-bottom: 0.9rem;
+}
+
+.collapsible-card-header::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, rgba(255, 70, 85, 0.5), var(--border) 22%, transparent 92%);
+}
+
+.collapsible-card-header > h3 {
+  margin: 0;
+  font-size: 1rem;
+  letter-spacing: 0.005em;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.collapsible-card-header-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+/* Bouton "Réduire"/"Agrandir" bien visible plutôt qu'un simple chevron
+   discret — demande explicite après un premier essai jugé pas assez
+   repérable (pastille contrastée, pas juste du texte nu). */
+.collapsible-card-toggle {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: var(--surface-alt);
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  padding: 0.35rem 0.75rem;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.18s var(--ease-out),
+    border-color 0.18s var(--ease-out);
+}
+
+.collapsible-card-toggle:hover {
+  background: var(--accent-soft);
+  border-color: var(--accent);
+  color: var(--accent);
+}
+
+.collapsible-card-chevron {
+  flex-shrink: 0;
+  display: inline-block;
+  transition: transform 0.2s var(--ease-out);
+}
+
+.collapsible-card.collapsed .collapsible-card-chevron {
+  transform: rotate(-90deg);
+}
+
+.collapsible-card.collapsed .collapsible-card-header {
+  padding-bottom: 0;
+  margin-bottom: 0;
+}
+
+.collapsible-card.collapsed .collapsible-card-header::after {
+  display: none;
+}
+
 .app {
   height: 100vh;
   overflow: hidden;

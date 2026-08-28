@@ -1,4 +1,8 @@
 {
+  "collapsible": {
+    "collapse": "Réduire",
+    "expand": "Agrandir"
+  },
   "platformFilter": {
     "all": "Tout",
     "pc": "PC",

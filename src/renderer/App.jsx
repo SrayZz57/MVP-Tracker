@@ -1,6 +1,7 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import useValorantData from './useValorantData.js';
+import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import StatsTab from './tabs/StatsTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
 import NetworkTab from './tabs/NetworkTab.jsx';
@@ -176,6 +177,7 @@ function App() {
   const [settings, setSettings] = useState(undefined);
   const [activeTab, setActiveTab] = useState('stats');
   const data = useValorantData(settings);
+  const { refresh: refreshCollapsedBlocks } = useCollapsedBlocks();
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
   const [collapsedSections, setCollapsedSections] = useState(new Set());
@@ -324,10 +326,20 @@ function App() {
 
   // Garde main.js informé du puuid du compte réellement lié — c'est cette
   // valeur (pas les réglages "vue courante") qui scope crosshairs, stratégies,
-  // paris, puzzles, wrapped, objectifs et skins côté disque.
+  // paris, puzzles, wrapped, objectifs, skins et blocs réduits côté disque.
   useEffect(() => {
-    window.electronAPI.setLinkedPuuid(profile?.riot_puuid ?? null);
-  }, [profile?.riot_puuid]);
+    window.electronAPI.setLinkedPuuid(profile?.riot_puuid ?? null).then(() => {
+      // Au tout premier rendu, `profile` part de `null` le temps que la
+      // session Supabase se recharge — cet effet tourne donc une première
+      // fois avec un puuid vide, qui vide `linkedAccountPuuid` côté disque
+      // avant que le vrai profil ne le rétablisse juste après. Un chargement
+      // des blocs réduits fait une seule fois au montage du Provider pouvait
+      // tomber dans cette fenêtre et rater les données déjà persistées —
+      // on force donc un rechargement à chaque fois que le puuid lié change
+      // réellement (y compris ce tout premier passage à sa vraie valeur).
+      refreshCollapsedBlocks();
+    });
+  }, [profile?.riot_puuid, refreshCollapsedBlocks]);
 
   // Compte MVP Tracker (Supabase) — étape à part du Riot ID : se connecter au
   // compte de l'app ne veut pas dire avoir déjà lié un pseudo Valo.
