@@ -6,9 +6,9 @@ import Skeleton from './Skeleton.jsx';
 import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 
-// 36 = multiple de plusieurs largeurs de grille (6/9/12 colonnes) — réduit les
-// lignes à moitié vides, même logique que pour la bibliothèque de crosshairs.
-const PAGE_SIZE = 36;
+// 40 = multiple de 8 (colonnes observées à largeur de carte habituelle) —
+// réduit les lignes à moitié vides, même logique que pour les crosshairs.
+const PAGE_SIZE = 40;
 
 // Recherche insensible aux accents ("celeste" doit trouver "céleste").
 function normalizeText(text) {
