@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session } from 'electron';
 import path from 'node:path';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
@@ -732,6 +732,42 @@ ipcMain.handle('goals:delete', (_event, id) => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  // Content-Security-Policy — uniquement en production packagée : le serveur
+  // de dev Vite a besoin d'unsafe-eval pour le rechargement à chaud, inutile
+  // (et contre-productif) de le restreindre en dev. Les seules origines
+  // distantes réellement contactées par l'app : HenrikDev (matchs/rang),
+  // valorant-api.com (assets du jeu, images servies depuis le sous-domaine
+  // media.valorant-api.com) et Supabase (comptes/social, https + websocket
+  // pour le temps réel).
+  if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    const csp = [
+      "default-src 'self'",
+      "script-src 'self'",
+      "style-src 'self' 'unsafe-inline'",
+      "img-src 'self' data: https://*.valorant-api.com",
+      "font-src 'self' data:",
+      "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
+      "object-src 'none'",
+      "base-uri 'self'",
+    ].join('; ');
+    session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+      callback({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': [csp] } });
+    });
+  }
+
+  // Empêche toute fenêtre de l'app de naviguer ailleurs que vers son propre
+  // contenu — les liens externes (Discord, mailto...) passent déjà par
+  // shell.openExternal, jamais par une navigation dans la fenêtre. Défense
+  // en profondeur si du contenu inattendu tentait de rediriger la fenêtre.
+  app.on('web-contents-created', (_event, contents) => {
+    contents.on('will-navigate', (navEvent, url) => {
+      const isAppUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
+        ? url.startsWith(MAIN_WINDOW_VITE_DEV_SERVER_URL)
+        : url.startsWith('file://');
+      if (!isAppUrl) navEvent.preventDefault();
+    });
+  });
+
   createWindow();
 
   // Premier lancement déclenché directement par le lien (l'app n'était pas
