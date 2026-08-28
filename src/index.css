@@ -4625,36 +4625,6 @@ input[type='color'] {
   50% { box-shadow: 0 0 32px rgba(255, 70, 85, 1), 0 0 12px rgba(255, 70, 85, 1); }
 }
 
-/* Réduit l'onglet "SEMAINE" sur les fenêtres étroites — sinon il flotte par
-   dessus le contenu qui va lui aussi jusqu'au bord droit (ex : le menu de
-   l'onglet Stratégie) et les deux se chevauchent. */
-@media (max-width: 1400px) {
-  .weekly-notch {
-    width: 34px;
-    height: 120px;
-    top: 90px;
-  }
-
-  .weekly-notch-icon {
-    font-size: 1.05rem;
-  }
-
-  .weekly-notch span:not(.weekly-notch-icon) {
-    font-size: 0.6rem;
-  }
-}
-
-@media (max-width: 1000px) {
-  .weekly-notch {
-    width: 26px;
-    height: 90px;
-  }
-
-  .weekly-notch span:not(.weekly-notch-icon) {
-    display: none;
-  }
-}
-
 .weekly-drawer-backdrop {
   position: fixed;
   inset: 0;
