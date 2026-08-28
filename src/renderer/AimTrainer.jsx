@@ -16,6 +16,7 @@ import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CustomModeConfig from './CustomModeConfig.jsx';
 import AimLeaderboardRow from './AimLeaderboardRow.jsx';
+import CollapsibleCard from './CollapsibleCard.jsx';
 import { supabase } from './supabaseClient.js';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
@@ -256,8 +257,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
       {/* --- Impact sur les vraies parties ---------------------------------- */}
       {impact && (
-        <div className="card">
-          <h3>{t('aimTrainer.impactTitle')}</h3>
+        <CollapsibleCard id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
           <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
           {!impact.ready ? (
             <p className="label">
@@ -304,7 +304,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               </p>
             </>
           )}
-        </div>
+        </CollapsibleCard>
       )}
 
       <div className="card">
@@ -461,8 +461,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
       {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
       <div className="aim-bottom-row">
-        <div className="card">
-          <h3>{t('aimTrainer.progressTitle', { mode: activeModeLabel })}</h3>
+        <CollapsibleCard id="aimTrainer.progression" title={t('aimTrainer.progressTitle', { mode: activeModeLabel })}>
           {progression.length < 2 ? (
             <p className="label">{t('aimTrainer.progressNotEnough')}</p>
           ) : (
@@ -477,10 +476,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               </p>
             </>
           )}
-        </div>
+        </CollapsibleCard>
 
-        <div className="card">
-          <h3>{t('aimTrainer.friendsTitle')}</h3>
+        <CollapsibleCard id="aimTrainer.friendsBoard" title={t('aimTrainer.friendsTitle')}>
           {friendsBoard.length === 0 ? (
             <p className="label">{t('aimTrainer.friendsEmpty')}</p>
           ) : (
@@ -499,7 +497,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               ))}
             </div>
           )}
-        </div>
+        </CollapsibleCard>
       </div>
 
       {showCustomConfig && (
