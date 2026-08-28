@@ -2,11 +2,27 @@ import { normalizeV4Match } from './matchNormalizer.js';
 
 const BASE_URL = 'https://api.henrikdev.xyz';
 
+// Compteur de requêtes HenrikDev pour CETTE session de l'app (remis à zéro à
+// chaque lancement) — pour voir en direct dans la console ce qui consomme le
+// quota (utile pour repérer d'où vient un 429, ex. ouvrir Amis vs Rafraîchir).
+let requestCount = 0;
+
 async function henrikFetch(path, apiKey) {
+  requestCount += 1;
+  const label = path.split('?')[0];
+  const startedAt = Date.now();
+
   const response = await fetch(`${BASE_URL}${path}`, {
     headers: { Authorization: apiKey },
   });
   const body = await response.json();
+  const elapsed = Date.now() - startedAt;
+
+  // HenrikDev renvoie parfois le quota restant dans les en-têtes — affiché
+  // s'il est présent, sans faire planter le log s'il ne l'est pas.
+  const remaining = response.headers.get('x-ratelimit-remaining');
+  const quotaInfo = remaining !== null ? `, quota restant: ${remaining}` : '';
+  console.log(`[henrikdev] requête #${requestCount} → ${label} (${response.status}, ${elapsed}ms${quotaInfo})`);
 
   if (!response.ok) {
     const message = body?.errors?.[0]?.message || `Erreur API (${response.status})`;
