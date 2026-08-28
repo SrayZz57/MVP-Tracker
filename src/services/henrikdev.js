@@ -9,6 +9,10 @@ let requestCount = 0;
 
 async function henrikFetch(path, apiKey) {
   requestCount += 1;
+  // Capturé tout de suite : avec des requêtes concurrentes, `requestCount`
+  // (variable partagée) aurait déjà changé au moment du log plus bas, ce qui
+  // faisait apparaître deux requêtes différentes sous le même numéro.
+  const num = requestCount;
   const label = path.split('?')[0];
   const startedAt = Date.now();
 
@@ -22,7 +26,7 @@ async function henrikFetch(path, apiKey) {
   // s'il est présent, sans faire planter le log s'il ne l'est pas.
   const remaining = response.headers.get('x-ratelimit-remaining');
   const quotaInfo = remaining !== null ? `, quota restant: ${remaining}` : '';
-  console.log(`[henrikdev] requête #${requestCount} → ${label} (${response.status}, ${elapsed}ms${quotaInfo})`);
+  console.log(`[henrikdev] requête #${num} → ${label} (${response.status}, ${elapsed}ms${quotaInfo})`);
 
   if (!response.ok) {
     const message = body?.errors?.[0]?.message || `Erreur API (${response.status})`;

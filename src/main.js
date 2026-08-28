@@ -333,6 +333,7 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
     tag,
     puuid: account.puuid,
     region: account.region,
+    platforms: account.platforms,
     accountLevel: account.account_level,
     cardUuid: account.card,
     rank,
@@ -346,10 +347,15 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
 // pensé uniquement pour LE compte que l'utilisateur suit lui-même. Renvoie
 // null en cas d'échec (compte introuvable, rate limit...) : un survol de
 // classement n'a pas besoin d'afficher d'erreur, juste de ne rien montrer.
-ipcMain.handle('valorant:preview-recent-stats', async (_event, { name, tag, apiKey }) => {
+//
+// `region`/`platforms` viennent du résultat de valorant:preview-account
+// (déjà appelé juste avant côté renderer pour le même joueur) — pas de
+// nouvel appel à getAccount ici, ça évite de le refaire deux fois pour un
+// seul survol (repéré via les logs de requêtes : deux v2/account identiques
+// consécutifs à chaque survol avant ce correctif).
+ipcMain.handle('valorant:preview-recent-stats', async (_event, { name, tag, apiKey, region, platforms }) => {
   try {
-    const account = await getAccount(name, tag, apiKey);
-    const matches = await getMatchesWithFallback(account, name, tag, apiKey, { size: 10, start: 0 });
+    const matches = await getMatchesWithFallback({ region, platforms }, name, tag, apiKey, { size: 10, start: 0 });
     const ranked = excludeDeathmatch(matches);
     const form = formStats(ranked, name, tag);
     return { kd: form.overallKd, matchesAnalyzed: ranked.length };

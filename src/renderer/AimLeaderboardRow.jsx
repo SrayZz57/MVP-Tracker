@@ -44,18 +44,28 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
       setCardPos({ top, left });
     }
     if (isSelf || !apiKey || !row.profiles) return;
-    if (preview === undefined) {
-      window.electronAPI
-        .previewRiotAccount({ name: row.profiles.riot_name, tag: row.profiles.riot_tag, apiKey })
-        .then(setPreview)
-        .catch(() => setPreview(null));
-    }
-    if (recentStats === undefined) {
-      window.electronAPI
-        .previewRecentStats({ name: row.profiles.riot_name, tag: row.profiles.riot_tag, apiKey })
-        .then(setRecentStats)
-        .catch(() => setRecentStats(null));
-    }
+    if (preview !== undefined) return; // déjà chargé (ou en échec) pour ce joueur
+    const { riot_name: name, riot_tag: tag } = row.profiles;
+    window.electronAPI
+      .previewRiotAccount({ name, tag, apiKey })
+      .then((result) => {
+        setPreview(result);
+        if (!result) {
+          setRecentStats(null);
+          return;
+        }
+        // Réutilise le compte déjà résolu (region/plateformes) au lieu de
+        // rappeler getAccount une seconde fois pour le même joueur — ce
+        // doublon était visible dans les logs HenrikDev à chaque survol.
+        window.electronAPI
+          .previewRecentStats({ name, tag, apiKey, region: result.region, platforms: result.platforms })
+          .then(setRecentStats)
+          .catch(() => setRecentStats(null));
+      })
+      .catch(() => {
+        setPreview(null);
+        setRecentStats(null);
+      });
   };
 
   const tier = preview?.rank ? rankTiers.get(preview.rank.tierId) : null;
