@@ -157,7 +157,7 @@ if (started) {
 
 // Vérifie les GitHub Releases au démarrage puis toutes les heures ; ne fait
 // rien en dev (app pas empaquetée), donc sûr à laisser tel quel.
-updateElectronApp({ repo: 'SrayZz57/MVP-Tracker' });
+updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
 
 // Enlève le bandeau de menu natif (File/Edit/View/Window) — l'app a sa propre
 // navigation, ce menu par défaut d'Electron n'a aucune utilité ici.

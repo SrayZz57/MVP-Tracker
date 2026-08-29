@@ -253,7 +253,7 @@
     if (!btn) return;
 
     try {
-      const res = await fetch('https://api.github.com/repos/SrayZz57/MVP-Tracker/releases/latest');
+      const res = await fetch('https://api.github.com/repos/SrayZz57/mvp-tracker-client/releases/latest');
       if (!res.ok) throw new Error('GitHub API unavailable');
       const release = await res.json();
       const exeAsset = (release.assets || []).find((a) => a.name.endsWith('.exe'));

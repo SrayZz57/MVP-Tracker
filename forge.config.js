@@ -21,7 +21,7 @@ module.exports = {
       config: {
         repository: {
           owner: 'SrayZz57',
-          name: 'MVP-Tracker',
+          name: 'mvp-tracker-client',
         },
         prerelease: false,
       },
