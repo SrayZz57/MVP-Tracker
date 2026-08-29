@@ -1,4 +1,4 @@
-import { excludeDeathmatch, findMe, resultLabel } from './valorantStats.js';
+import { excludeDeathmatch, findMe, resultLabel, normalizeRiotIdPart } from './valorantStats.js';
 
 const MIN_GAMES_TOGETHER = 2;
 const MIN_GAMES_FACED = 2;
@@ -59,7 +59,7 @@ export function computeTeammateSynergy(matches, name, tag) {
 // kills/morts, sur l'ensemble de son historique (kill_events + roster du
 // match pour retrouver l'agent joué par le puuid adverse).
 function computeAgentNemesis(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const stats = new Map(); // agent -> { kills, deaths }
 
   excludeDeathmatch(matches).forEach((match) => {
@@ -70,8 +70,8 @@ function computeAgentNemesis(matches, name, tag) {
     (match.rounds || []).forEach((round) => {
       (round.player_stats || []).forEach((ps) => {
         (ps.kill_events || []).forEach((k) => {
-          const isMyKill = k.killer_display_name?.toLowerCase() === fullName;
-          const isMyDeath = k.victim_display_name?.toLowerCase() === fullName;
+          const isMyKill = normalizeRiotIdPart(k.killer_display_name) === fullName;
+          const isMyDeath = normalizeRiotIdPart(k.victim_display_name) === fullName;
           if (!isMyKill && !isMyDeath) return;
 
           const enemyPuuid = isMyKill ? k.victim_puuid : k.killer_puuid;

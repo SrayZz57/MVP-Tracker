@@ -5,10 +5,24 @@ export function excludeDeathmatch(matches) {
   return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch');
 }
 
+// `.normalize('NFC')` : un même nom affiché à l'identique peut être encodé
+// en Unicode de deux façons différentes (accent précomposé vs décomposé) —
+// visuellement indiscernable, mais une comparaison stricte échoue entre les
+// deux formes. Repéré sur un compte où le rang/niveau (recherchés par
+// nom+tag directement via l'API) s'affichaient bien, mais où TOUT ce qui
+// dépend de se retrouver dans la liste des joueurs d'un match (K/D/A,
+// précision, armes...) restait bloqué à "?" malgré des matchs bien en cache
+// — signe que la comparaison échouait silencieusement pour ce compte-là.
+export function normalizeRiotIdPart(value) {
+  return (value ?? '').trim().normalize('NFC').toLowerCase();
+}
+
 export function findMe(match, name, tag) {
   const players = match?.players?.all_players || [];
+  const targetName = normalizeRiotIdPart(name);
+  const targetTag = normalizeRiotIdPart(tag);
   return players.find(
-    (p) => p.name?.toLowerCase() === name.toLowerCase() && p.tag?.toLowerCase() === tag.toLowerCase(),
+    (p) => normalizeRiotIdPart(p.name) === targetName && normalizeRiotIdPart(p.tag) === targetTag,
   );
 }
 
@@ -22,7 +36,7 @@ export function findMe(match, name, tag) {
 // au round.player_stats du TUEUR (voir matchNormalizer), donc en mode
 // 'deaths' il faut chercher séparément mon propre player_stats de ce round.
 export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths') {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const points = [];
 
   matches
@@ -42,8 +56,8 @@ export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths'
           (ps.kill_events || []).forEach((k) => {
             const relevant =
               mode === 'kills'
-                ? k.killer_display_name?.toLowerCase() === fullName
-                : k.victim_display_name?.toLowerCase() === fullName;
+                ? normalizeRiotIdPart(k.killer_display_name) === fullName
+                : normalizeRiotIdPart(k.victim_display_name) === fullName;
             if (relevant && k.victim_death_location) {
               points.push({
                 ...k.victim_death_location,
@@ -71,7 +85,7 @@ const DEATH_TIMING_BUCKETS = [
 // arrivent — kill_time_in_round (ms) est déjà présent dans les kill_events
 // utilisés pour la heatmap, juste pas encore exploité pour son axe temporel.
 export function deathTimingStats(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const counts = { early: 0, mid: 0, late: 0 };
   let total = 0;
 
@@ -79,7 +93,7 @@ export function deathTimingStats(matches, name, tag) {
     (match.rounds || []).forEach((round) => {
       (round.player_stats || []).forEach((ps) => {
         (ps.kill_events || []).forEach((k) => {
-          if (k.victim_display_name?.toLowerCase() !== fullName) return;
+          if (normalizeRiotIdPart(k.victim_display_name) !== fullName) return;
           total += 1;
           const bucket = DEATH_TIMING_BUCKETS.find((b) => k.kill_time_in_round < b.max);
           counts[bucket.id] += 1;
@@ -147,7 +161,7 @@ export function clutchStats(matches, name, tag) {
 // proxy d'agressivité — plus fiable qu'un ratio K/D brut puisqu'il capture
 // spécifiquement la prise d'initiative en tout début de round.
 export function firstBloodStats(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let firstBloods = 0;
   let firstDeaths = 0;
   let roundsWithKills = 0;
@@ -161,8 +175,8 @@ export function firstBloodStats(matches, name, tag) {
       allKills.sort((a, b) => a.kill_time_in_round - b.kill_time_in_round);
       const first = allKills[0];
       roundsWithKills += 1;
-      if (first.killer_display_name?.toLowerCase() === fullName) firstBloods += 1;
-      else if (first.victim_display_name?.toLowerCase() === fullName) firstDeaths += 1;
+      if (normalizeRiotIdPart(first.killer_display_name) === fullName) firstBloods += 1;
+      else if (normalizeRiotIdPart(first.victim_display_name) === fullName) firstDeaths += 1;
     });
   });
 
@@ -225,7 +239,7 @@ export function killDistance(k) {
 // si l'aim baisse avec la distance : le taux de victoire en duel (kills vs morts du
 // joueur suivi) selon la distance entre les deux joueurs au moment du kill.
 export function duelDistanceStats(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const buckets = {};
   DISTANCE_BUCKETS.forEach((b) => { buckets[b.id] = { kills: 0, deaths: 0 }; });
 
@@ -236,8 +250,8 @@ export function duelDistanceStats(matches, name, tag) {
     (match.rounds || []).forEach((round) => {
       (round.player_stats || []).forEach((ps) => {
         (ps.kill_events || []).forEach((k) => {
-          const isMyKill = k.killer_display_name?.toLowerCase() === fullName;
-          const isMyDeath = k.victim_display_name?.toLowerCase() === fullName;
+          const isMyKill = normalizeRiotIdPart(k.killer_display_name) === fullName;
+          const isMyDeath = normalizeRiotIdPart(k.victim_display_name) === fullName;
           if (!isMyKill && !isMyDeath) return;
 
           const distance = killDistance(k);
@@ -288,7 +302,7 @@ export const ECONOMY_TIERS = [
 // Winrate selon la valeur du loadout du joueur suivi à chaque round
 // (economy.loadout_value), pour voir l'impact réel des rounds d'éco/save.
 export function economyImpactStats(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const buckets = { eco: { rounds: 0, wins: 0 }, semi: { rounds: 0, wins: 0 }, full: { rounds: 0, wins: 0 } };
 
   excludeDeathmatch(matches).forEach((match) => {
@@ -296,7 +310,7 @@ export function economyImpactStats(matches, name, tag) {
     if (!me?.team) return;
 
     (match.rounds || []).forEach((round) => {
-      const ps = (round.player_stats || []).find((p) => p.player_display_name?.toLowerCase() === fullName);
+      const ps = (round.player_stats || []).find((p) => normalizeRiotIdPart(p.player_display_name) === fullName);
       const loadoutValue = ps?.economy?.loadout_value;
       if (loadoutValue === undefined) return;
 
@@ -382,7 +396,7 @@ export function weaponKillsFor(match, puuid) {
 // possible ici — seul le total (toutes armes confondues) l'est, déjà affiché
 // dans "Stats globales".
 export function weaponDetailStats(matches, name, tag, weaponName) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let totalKills = 0;
   const byMap = new Map();
   const byAgent = new Map();
@@ -391,7 +405,7 @@ export function weaponDetailStats(matches, name, tag, weaponName) {
   matches.forEach((match) => {
     const me = findMe(match, name, tag);
     (match.kills || []).forEach((k) => {
-      if (k.killer_display_name?.toLowerCase() !== fullName || k.damage_weapon_name !== weaponName) return;
+      if (normalizeRiotIdPart(k.killer_display_name) !== fullName || k.damage_weapon_name !== weaponName) return;
       totalKills += 1;
       byMap.set(match.metadata?.map ?? '?', (byMap.get(match.metadata?.map ?? '?') || 0) + 1);
       const agent = me?.character ?? '?';

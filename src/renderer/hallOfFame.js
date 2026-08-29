@@ -9,6 +9,7 @@ import {
   overallHsPercent,
   weaponKillsFor,
   duelDistanceStats,
+  normalizeRiotIdPart,
 } from './valorantStats.js';
 
 const ACE_THRESHOLD = 5;
@@ -24,7 +25,7 @@ function matchContext(match) {
 // Meilleur "ace" : le round avec le plus de kills du joueur suivi (à partir
 // de 5, seuil classique d'un ace en 5v5), toutes équipes confondues.
 function findBestAce(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
 
   excludeDeathmatch(matches).forEach((match) => {
@@ -181,7 +182,7 @@ function findBestKillsMatch(matches, name, tag) {
 // Kill le plus lointain jamais enregistré (mêmes coordonnées/conversion que
 // duelDistanceStats — voir killDistance() dans valorantStats.js).
 function findBestKillDistance(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
 
   excludeDeathmatch(matches).forEach((match) => {
@@ -190,7 +191,7 @@ function findBestKillDistance(matches, name, tag) {
     (match.rounds || []).forEach((round) => {
       (round.player_stats || []).forEach((ps) => {
         (ps.kill_events || []).forEach((k) => {
-          if (k.killer_display_name?.toLowerCase() !== fullName) return;
+          if (normalizeRiotIdPart(k.killer_display_name) !== fullName) return;
           const distance = killDistance(k);
           if (distance === null) return;
           if (!best || distance > best.distance) {
@@ -307,14 +308,14 @@ function careerCounters(matches, name, tag) {
 // defuse_events n'existent que sur le round où l'action a eu lieu (sinon les
 // champs sont null), pas besoin de reconstruire quoi que ce soit.
 function countSpikeActions(matches, name, tag) {
-  const fullName = `${name}#${tag}`.toLowerCase();
+  const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let plants = 0;
   let defuses = 0;
 
   excludeDeathmatch(matches).forEach((match) => {
     (match.rounds || []).forEach((round) => {
-      if (round.plant_events?.planted_by?.display_name?.toLowerCase() === fullName) plants += 1;
-      if (round.defuse_events?.defused_by?.display_name?.toLowerCase() === fullName) defuses += 1;
+      if (normalizeRiotIdPart(round.plant_events?.planted_by?.display_name) === fullName) plants += 1;
+      if (normalizeRiotIdPart(round.defuse_events?.defused_by?.display_name) === fullName) defuses += 1;
     });
   });
 
