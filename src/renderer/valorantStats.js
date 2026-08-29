@@ -5,16 +5,27 @@ export function excludeDeathmatch(matches) {
   return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch');
 }
 
-// `.normalize('NFC')` : un même nom affiché à l'identique peut être encodé
-// en Unicode de deux façons différentes (accent précomposé vs décomposé) —
-// visuellement indiscernable, mais une comparaison stricte échoue entre les
-// deux formes. Repéré sur un compte où le rang/niveau (recherchés par
-// nom+tag directement via l'API) s'affichaient bien, mais où TOUT ce qui
-// dépend de se retrouver dans la liste des joueurs d'un match (K/D/A,
-// précision, armes...) restait bloqué à "?" malgré des matchs bien en cache
-// — signe que la comparaison échouait silencieusement pour ce compte-là.
+// Compare les noms SANS tenir compte des accents, pas juste en unifiant leur
+// encodage (NFC seul ne suffit pas) — repéré sur un compte réel où l'API
+// HenrikDev renvoie "sampl" + ę (ogonek, U+0119) sur l'endpoint compte mais
+// "sampl" + ȩ (cédille, U+0229) sur l'endpoint matchs : deux caractères
+// Unicode différents, quasi indiscernables à l'œil, mais qui ne sont PAS
+// équivalents pour .normalize('NFC') puisque ce ne sont pas deux écritures
+// de la même lettre. Décomposer (NFD) puis retirer tous les diacritiques
+// (accents, cédille, ogonek...) ramène les deux à "e" nu — même technique
+// déjà utilisée pour la recherche insensible aux accents (crosshairs).
+// Construit via les codes plutôt qu'écrit en littéral : des caractères
+// combinants bruts dans le code source sont fragiles (éditeur, encodage du
+// fichier) — même approche que CrosshairLibrary.jsx pour sa recherche
+// insensible aux accents.
+const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
+
 export function normalizeRiotIdPart(value) {
-  return (value ?? '').trim().normalize('NFC').toLowerCase();
+  return (value ?? '')
+    .trim()
+    .normalize('NFD')
+    .replace(DIACRITICS_RE, '')
+    .toLowerCase();
 }
 
 export function findMe(match, name, tag) {

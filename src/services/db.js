@@ -265,10 +265,20 @@ export function saveMatches(puuid, matches) {
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
   );
   // HenrikDev renvoie parfois une entrée null/incomplète dans la liste (match
-  // corrompu de leur côté) — on l'ignore plutôt que de planter dessus.
+  // corrompu de leur côté) — on l'ignore plutôt que de planter dessus. Logué
+  // (pas juste silencieusement ignoré) pour pouvoir diagnostiquer un compte
+  // dont AUCUN match n'arrive jamais en cache malgré une requête HenrikDev
+  // réussie — sinon ce cas précis est indiscernable d'un simple 0 match.
+  let skipped = 0;
   for (const match of matches) {
-    if (!match?.metadata?.matchid) continue;
+    if (!match?.metadata?.matchid) {
+      skipped += 1;
+      continue;
+    }
     insert.run(match.metadata.matchid, puuid, match.metadata.game_start, JSON.stringify(match));
+  }
+  if (skipped > 0) {
+    console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) — metadata.matchid manquant`);
   }
 }
 

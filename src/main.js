@@ -471,6 +471,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     for (let start = 0; start < HISTORY_CAP; start += PAGE_SIZE) {
       try {
         const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start });
+        console.log(`[henrikdev] page ${candidate}/start=${start} → ${page.length} match(s) normalisé(s)`);
         if (page.length > 0) saveMatches(account.puuid, page);
         if (page.length > 0 && page.every((m) => cachedIds.has(m.metadata.matchid))) break; // rien de nouveau au-delà
         if (page.length < PAGE_SIZE) break; // plus d'historique derrière sur cette plateforme
