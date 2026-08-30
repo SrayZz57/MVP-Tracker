@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage } from 'electron';
 import path from 'node:path';
+import fs from 'node:fs';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
@@ -158,6 +159,42 @@ if (started) {
 // Vérifie les GitHub Releases au démarrage puis toutes les heures ; ne fait
 // rien en dev (app pas empaquetée), donc sûr à laisser tel quel.
 updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
+
+// Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
+// version dans son propre dossier `app-<version>` et supprime normalement
+// les anciennes une fois la mise à jour appliquée — mais seulement s'il a pu
+// le faire (dossier pas verrouillé par une instance encore ouverte, app
+// fermée proprement). Ça peut laisser d'anciennes versions traîner dans
+// %LocalAppData%\MVP Tracker\ indéfiniment. Ce nettoyage ne touche QUE ce
+// dossier d'installation (le code de l'app) — jamais `app.getPath('userData')`
+// (%AppData%\MVP Tracker\, où vivent matches.db, les réglages, etc.), qui est
+// un chemin totalement différent.
+function cleanupOldSquirrelVersions() {
+  if (!app.isPackaged || process.platform !== 'win32') return;
+  try {
+    // En Squirrel.Windows, l'exécutable qui tourne est toujours
+    // <racine>\app-<version courante>\<ProductName>.exe — on en déduit la
+    // racine d'installation et le nom du dossier à préserver.
+    const currentVersionDir = path.dirname(process.execPath);
+    const installRoot = path.dirname(currentVersionDir);
+    const currentVersionFolder = path.basename(currentVersionDir);
+    if (!currentVersionFolder.startsWith('app-')) return;
+
+    const entries = fs.readdirSync(installRoot, { withFileTypes: true });
+    entries
+      .filter((entry) => entry.isDirectory() && entry.name.startsWith('app-') && entry.name !== currentVersionFolder)
+      .forEach((entry) => {
+        const staleDir = path.join(installRoot, entry.name);
+        fs.rm(staleDir, { recursive: true, force: true }, (err) => {
+          if (err) console.warn('[squirrel-cleanup] échec de la suppression de', staleDir, ':', err.message);
+          else console.log('[squirrel-cleanup] ancienne version supprimée :', entry.name);
+        });
+      });
+  } catch (err) {
+    // Best-effort : un échec ici ne doit jamais empêcher l'app de démarrer.
+    console.warn('[squirrel-cleanup] échec du nettoyage :', err.message);
+  }
+}
 
 // Enlève le bandeau de menu natif (File/Edit/View/Window) — l'app a sa propre
 // navigation, ce menu par défaut d'Electron n'a aucune utilité ici.
@@ -784,6 +821,8 @@ ipcMain.handle('goals:delete', (_event, id) => {
 // initialization and is ready to create browser windows.
 // Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
+  cleanupOldSquirrelVersions();
+
   // Content-Security-Policy — uniquement en production packagée : le serveur
   // de dev Vite a besoin d'unsafe-eval pour le rechargement à chaud, inutile
   // (et contre-productif) de le restreindre en dev. Les seules origines
