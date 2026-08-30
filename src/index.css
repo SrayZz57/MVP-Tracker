@@ -6816,27 +6816,34 @@ input[type='color'] {
   margin-bottom: 0.5rem;
 }
 
+.friend-search-form {
+  max-width: 560px;
+}
+
 .friend-search-form .search-bar-riotid {
-  flex: 1;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .friend-search-form .search-bar-riotid input:first-child {
-  flex: 0 1 320px;
+  flex: 1 1 auto;
   min-width: 0;
 }
 
 .friend-search-form .search-bar-tag {
-  width: 140px;
+  width: 100px;
   flex-shrink: 0;
 }
 
 .friend-search-form button {
-  flex: 1 1 auto;
-  min-width: 42px;
+  flex-shrink: 0;
+  width: auto;
+  padding: 0 1.1rem;
+  white-space: nowrap;
   display: flex;
   align-items: center;
   justify-content: center;
+  gap: 0.4rem;
 }
 
 .friend-search-result {

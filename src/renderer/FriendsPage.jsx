@@ -139,8 +139,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               className="search-bar-tag"
             />
           </div>
-          <button type="submit" disabled={searching}>
-            {searching ? '...' : '🔍'}
+          <button type="submit" className="friend-search-btn" disabled={searching}>
+            {searching ? '...' : `🔍 ${t('friends.searchBtn')}`}
           </button>
         </form>
         {searchResult === null && <p className="label">{t('friends.noPlayerFound')}</p>}

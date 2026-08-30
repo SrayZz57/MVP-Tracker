@@ -592,6 +592,7 @@
     "addFriendTitle": "👥 Ajouter un ami",
     "usernamePlaceholder": "Pseudo",
     "tagPlaceholder": "Tag",
+    "searchBtn": "Rechercher",
     "noPlayerFound": "Aucun joueur MVP Tracker avec ce Riot ID.",
     "requestSent": "Demande envoyée ✓",
     "add": "Ajouter",
