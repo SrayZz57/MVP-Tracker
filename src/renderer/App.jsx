@@ -298,6 +298,16 @@ function App() {
   const [enteredApp, setEnteredApp] = useState(false);
   const [showGeneralSearch, setShowGeneralSearch] = useState(false);
 
+  // Le halo d'ambiance (aurora-drift, voir index.css) ne tourne que sur les
+  // écrans d'avant-app (bienvenue, connexion, liaison de compte) — une fois
+  // dans l'app, il tournait en continu derrière la topbar/sidebar en
+  // backdrop-filter, forçant un repaint permanent pour un effet qu'on ne
+  // voit plus vraiment une fois noyé sous l'interface.
+  useEffect(() => {
+    document.body.classList.toggle('in-app', enteredApp);
+    return () => document.body.classList.remove('in-app');
+  }, [enteredApp]);
+
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
     window.electronAPI.getLanguage().then((lang) => {

@@ -78,6 +78,14 @@ body::before {
   animation: aurora-drift 46s var(--ease-in-out) infinite alternate;
 }
 
+/* Une fois dans l'app (au-delà des écrans de bienvenue/connexion), le halo
+   est retiré : il tournait en continu derrière la topbar/sidebar qui ont un
+   backdrop-filter, ce qui forçait un repaint permanent de ce flou pour un
+   effet à peine visible sous le reste de l'interface. */
+body.in-app::before {
+  display: none;
+}
+
 @keyframes aurora-drift {
   from {
     transform: translate3d(0, 0, 0) scale(1);
