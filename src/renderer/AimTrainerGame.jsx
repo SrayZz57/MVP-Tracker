@@ -1540,14 +1540,18 @@ function AimTrainerGame({ config: rawConfig }) {
   const bestReaction = stats.times.length > 0 ? Math.min(...stats.times) : null;
   const hitsPerSecond = config.duration > 0 ? stats.hits / config.duration : 0;
 
-  // Note globale simple et lisible : la précision compte le plus, la vitesse
-  // de réaction module le reste. Sert de repère de progression d'une session
-  // à l'autre, pas de classement absolu.
-  // Le mode Tracking n'a pas de "temps de réaction" (le viseur reste
-  // maintenu sur une cible en mouvement, il n'y a pas de tir discret) — son
-  // score se réduit donc au seul pourcentage de temps passé sur cible.
-  const score =
-    accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3);
+  // Le classement se base sur le nombre de cibles touchées, pas sur un score
+  // pondéré par la précision — sinon quelqu'un qui ne tire que sur des
+  // cibles sûres (ex. 7 tirs, 7 touchées, 0 raté = 100% précision) obtient
+  // un meilleur score qu'un joueur qui en touche 50 avec 80% de précision,
+  // alors qu'il a objectivement fait beaucoup moins. Repéré via un score de
+  // classement anormalement haut avec seulement 7 touchées.
+  // Exception : le mode Tracking (holdTracking) n'a pas de "cible touchée"
+  // discrète — le viseur reste maintenu en continu sur une cible en
+  // mouvement, seul le pourcentage de précision a un sens pour lui.
+  const score = MODES[config.mode]?.holdTracking
+    ? (accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3))
+    : (total > 0 ? stats.hits : null);
 
   // Enregistre le score une fois la session terminée. Placé après le calcul
   // du score, et protégé par un drapeau pour ne partir qu'une seule fois par
