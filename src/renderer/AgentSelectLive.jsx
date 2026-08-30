@@ -1,14 +1,18 @@
+import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAgentsById } from './agentIcons.js';
+import { useAgentsById, useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 import { useAgentSelectData } from './useAgentSelectData.js';
+import { useMapUrlToName } from './mapImages.js';
+import { suggestAgents } from './agentSuggestion.js';
 
 // =============================================================================
 // SÉLECTION D'AGENT EN DIRECT, PUIS DÉBUT DE PARTIE
 //
-// Affiche le rang et l'agent choisi des autres joueurs. Entièrement alimenté
-// par l'API locale du client Valorant : aucune requête HenrikDev, donc aucun
-// quota consommé et aucune latence.
+// Affiche le rang et l'agent choisi des autres joueurs, plus une suggestion
+// de pick pendant la sélection. Entièrement alimenté par l'API locale du
+// client Valorant (joueurs) et l'historique déjà stocké localement (stats) :
+// aucune requête HenrikDev, donc aucun quota consommé et aucune latence.
 //
 // Le bandeau n'apparaît QUE pendant la sélection ou le tout début de partie
 // et disparaît tout seul ensuite — c'est le seul moment où l'info sert.
@@ -49,15 +53,59 @@ function PlayerCard({ player, agentsById, rankTiers, t }) {
   );
 }
 
-function AgentSelectLive() {
+function SuggestionRow({ suggestion, agentIcons, t }) {
+  return (
+    <div className="agent-suggestion-row">
+      <div className="agent-suggestion-avatar">
+        {agentIcons.get(suggestion.agent) && <img src={agentIcons.get(suggestion.agent)} alt="" />}
+      </div>
+      <span className="agent-suggestion-name">{suggestion.agent}</span>
+      <span className="agent-suggestion-reason">
+        {suggestion.source === 'personal'
+          ? t('agentSelect.suggestPersonal', { winrate: suggestion.winrate, games: suggestion.games })
+          : t('agentSelect.suggestCommunity')}
+      </span>
+      {suggestion.fillsGap && <span className="agent-suggestion-gap">{t('agentSelect.suggestFillsGap')}</span>}
+    </div>
+  );
+}
+
+function AgentSelectLive({ matches = [], settings = null }) {
   const { t } = useTranslation();
   const agentsById = useAgentsById();
+  const agentIcons = useAgentIcons();
+  const agentRoles = useAgentRoles();
   const rankTiers = useRankTiers();
+  const mapUrlToName = useMapUrlToName();
   const data = useAgentSelectData();
+
+  const inGame = data.state === 'ok' && data.phase === 'game';
+  const inSelect = data.state === 'ok' && data.phase === 'select';
+  const me = data.state === 'ok' ? data.players.find((p) => p.isMe) : null;
+  const mapName = data.state === 'ok' ? mapUrlToName.get(data.mapId) ?? null : null;
+
+  const suggestions = useMemo(() => {
+    if (!inSelect || !settings?.name || me?.selectionState === 'locked') return [];
+    const teammateAgentNames = data.players
+      .filter((p) => !p.isMe && p.agentId)
+      .map((p) => agentsById.get(p.agentId.toLowerCase())?.name)
+      .filter(Boolean);
+    return suggestAgents({
+      matches,
+      name: settings.name,
+      tag: settings.tag,
+      mapName,
+      teammateAgentNames,
+      agentRoles,
+    });
+  }, [inSelect, settings, me?.selectionState, data.players, agentsById, matches, mapName, agentRoles]);
+
+  useEffect(() => {
+    window.electronAPI.setAgentSelectSuggestions(suggestions);
+  }, [suggestions]);
 
   if (data.state !== 'ok' || data.players.length === 0) return null;
 
-  const inGame = data.phase === 'game';
   const allies = inGame ? data.players.filter((p) => p.team !== 'enemy') : data.players;
   const enemies = inGame ? data.players.filter((p) => p.team === 'enemy') : [];
 
@@ -70,6 +118,15 @@ function AgentSelectLive() {
         </span>
         <span className="label">{t(inGame ? 'agentSelect.hintGame' : 'agentSelect.hint')}</span>
       </header>
+
+      {suggestions.length > 0 && (
+        <div className="agent-suggestion-block">
+          <p className="agent-select-team-label">{t('agentSelect.suggestTitle')}</p>
+          {suggestions.map((suggestion) => (
+            <SuggestionRow key={suggestion.agent} suggestion={suggestion} agentIcons={agentIcons} t={t} />
+          ))}
+        </div>
+      )}
 
       {inGame && enemies.length > 0 ? (
         <>

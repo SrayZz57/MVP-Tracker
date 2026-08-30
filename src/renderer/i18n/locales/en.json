@@ -1542,6 +1542,10 @@
     "unranked": "Unranked",
     "you": "You",
     "allies": "Allies",
-    "enemies": "Enemies"
+    "enemies": "Enemies",
+    "suggestTitle": "Suggestion for this map",
+    "suggestPersonal": "{{winrate}}% win rate for you ({{games}} games)",
+    "suggestCommunity": "community pick",
+    "suggestFillsGap": "missing role"
   }
 }

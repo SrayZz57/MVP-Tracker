@@ -86,6 +86,29 @@ export function useMapCoordinates() {
   return coordinates;
 }
 
+let urlToNameCache = null;
+
+async function loadMapUrlToName() {
+  if (urlToNameCache) return urlToNameCache;
+  const maps = await loadMaps();
+  urlToNameCache = new Map(maps.map((map) => [map.mapUrl, map.displayName]));
+  return urlToNameCache;
+}
+
+// `mapUrl` (ex. "/Game/Maps/Ascent/Ascent") est le format renvoyé par l'API
+// locale du client Valorant (`MapID` en sélection d'agent) — rien à voir avec
+// le nom affiché ("Ascent") utilisé partout ailleurs dans l'appli pour
+// indexer les stats par map. Cette table fait le pont entre les deux.
+export function useMapUrlToName() {
+  const [table, setTable] = useState(new Map());
+
+  useEffect(() => {
+    loadMapUrlToName().then(setTable);
+  }, []);
+
+  return table;
+}
+
 // Données complètes des vraies maps (nombre de sites, coordonnées in-fiction,
 // splash art) pour le wiki.
 export function useMapsData() {

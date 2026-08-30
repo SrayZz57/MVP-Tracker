@@ -1,6 +1,6 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { useAgentsById } from './agentIcons.js';
+import { useAgentsById, useAgentIcons } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 import { useAgentSelectData } from './useAgentSelectData.js';
 
@@ -11,6 +11,10 @@ import { useAgentSelectData } from './useAgentSelectData.js';
 //
 // Ne fonctionne qu'en Sans bordure / Fenêtré. En plein écran exclusif,
 // aucune fenêtre ne peut passer devant — limite de Windows, pas de l'app.
+//
+// Les suggestions de pick sont calculées dans la fenêtre PRINCIPALE (elle
+// seule a accès au compte lié et à l'historique de matchs) et relayées ici
+// par IPC — voir agent-select-overlay:set-suggestions dans main.js.
 
 function OverlayPlayer({ player, agentsById, rankTiers, t }) {
   const agent = player.agentId ? agentsById.get(player.agentId.toLowerCase()) : null;
@@ -38,12 +42,16 @@ function OverlayPlayer({ player, agentsById, rankTiers, t }) {
 function AgentSelectOverlay() {
   const { t } = useTranslation();
   const agentsById = useAgentsById();
+  const agentIcons = useAgentIcons();
   const rankTiers = useRankTiers();
   const data = useAgentSelectData();
+  const [suggestions, setSuggestions] = useState([]);
 
   useEffect(() => {
     document.body.classList.add('overlay-window');
   }, []);
+
+  useEffect(() => window.electronAPI.onAgentSelectSuggestions(setSuggestions), []);
 
   const visible = data.state === 'ok' && data.players.length > 0;
 
@@ -63,6 +71,27 @@ function AgentSelectOverlay() {
         <span className="agent-select-dot" aria-hidden="true" />
         {t(inGame ? 'agentSelect.titleGame' : 'agentSelect.title')}
       </div>
+
+      {!inGame && suggestions.length > 0 && (
+        <>
+          <p className="overlay-agent-select-team-label">{t('agentSelect.suggestTitle')}</p>
+          {suggestions.map((suggestion) => (
+            <div key={suggestion.agent} className="overlay-agent-suggestion-row">
+              <div className="overlay-agent-select-avatar">
+                {agentIcons.get(suggestion.agent) && <img src={agentIcons.get(suggestion.agent)} alt="" />}
+              </div>
+              <div className="overlay-agent-select-info">
+                <span className="overlay-agent-select-agent">{suggestion.agent}</span>
+                <span className="overlay-agent-select-rank">
+                  {suggestion.source === 'personal'
+                    ? t('agentSelect.suggestPersonal', { winrate: suggestion.winrate, games: suggestion.games })
+                    : t('agentSelect.suggestCommunity')}
+                </span>
+              </div>
+            </div>
+          ))}
+        </>
+      )}
 
       {inGame && enemies.length > 0 ? (
         <>

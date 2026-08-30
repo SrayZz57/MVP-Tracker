@@ -673,9 +673,10 @@ let overlayTopmostInterval = null;
 function createAgentSelectOverlay() {
   agentSelectOverlayWindow = new BrowserWindow({
     width: 300,
-    // Assez haut pour les deux équipes une fois en partie (10 joueurs) ; en
-    // sélection (5 joueurs max), l'espace en trop reste transparent, invisible.
-    height: 560,
+    // Assez haut pour les deux équipes une fois en partie (10 joueurs) ou les
+    // suggestions de pick + l'équipe en sélection ; l'espace en trop reste
+    // transparent, invisible.
+    height: 700,
     show: false,
     frame: false,
     transparent: true,
@@ -733,6 +734,15 @@ ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
     clearInterval(overlayTopmostInterval);
     overlayTopmostInterval = null;
   }
+});
+
+// Les suggestions d'agent sont calculées dans la fenêtre PRINCIPALE (seule à
+// connaître le compte MVP Tracker lié et son historique de matchs — la
+// fenêtre overlay, elle, n'a aucune session Supabase). On les relaie donc
+// simplement à l'overlay au lieu de dupliquer cette logique côté overlay.
+ipcMain.handle('agent-select-overlay:set-suggestions', (_event, suggestions) => {
+  if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
+  agentSelectOverlayWindow.webContents.send('agent-select-overlay:suggestions', suggestions);
 });
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));

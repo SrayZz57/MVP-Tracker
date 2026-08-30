@@ -1542,6 +1542,10 @@
     "unranked": "Non classé",
     "you": "Toi",
     "allies": "Alliés",
-    "enemies": "Adversaires"
+    "enemies": "Adversaires",
+    "suggestTitle": "Suggestion pour cette map",
+    "suggestPersonal": "{{winrate}}% de victoires avec toi ({{games}} matchs)",
+    "suggestCommunity": "recommandé par la communauté",
+    "suggestFillsGap": "rôle manquant"
   }
 }

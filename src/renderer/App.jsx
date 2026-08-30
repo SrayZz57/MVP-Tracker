@@ -863,7 +863,7 @@ function App() {
               ouvert, puisqu'il ne dure que le temps de la sélection et qu'on
               n'a pas le réflexe de changer d'onglet à ce moment-là. Se
               masque tout seul en dehors de cette phase. */}
-          <AgentSelectLive />
+          <AgentSelectLive matches={myMatches} settings={mySettings} />
           {renderValorantTab()}
         </main>
       </div>
