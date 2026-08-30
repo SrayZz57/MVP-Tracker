@@ -127,16 +127,83 @@ function glzHeaders(auth, version) {
   };
 }
 
+// Sélection d'agent ('pregame') : seule MON équipe est exposée par Riot à ce
+// stade en classé (`EnemyTeam` est null) — rien à faire côté adversaires ici.
+async function fetchPregame(glz, headers, puuid) {
+  const playerRes = await fetch(`${glz}/pregame/v1/players/${puuid}`, { headers });
+  if (playerRes.status === 404) return null;
+  if (!playerRes.ok) throw new Error(`pregame-player ${playerRes.status}`);
+  const { MatchID: matchId } = await playerRes.json();
+  if (!matchId) return null;
+
+  const matchRes = await fetch(`${glz}/pregame/v1/matches/${matchId}`, { headers });
+  if (matchRes.status === 404) return null;
+  if (!matchRes.ok) throw new Error(`pregame-match ${matchRes.status}`);
+  const match = await matchRes.json();
+
+  const players = (match.AllyTeam?.Players ?? []).map((p) => ({
+    puuid: p.Subject,
+    // Numéro de palier ; la conversion en nom et en icône se fait côté
+    // interface, avec la table déjà utilisée pour le rang du joueur.
+    competitiveTier: p.CompetitiveTier ?? 0,
+    agentId: p.CharacterID || null,
+    // '' | 'selected' | 'locked'
+    selectionState: p.CharacterSelectionState ?? '',
+    accountLevel: p.PlayerIdentity?.AccountLevel ?? null,
+    incognito: p.PlayerIdentity?.Incognito ?? false,
+    isMe: p.Subject === puuid,
+    team: 'ally',
+  }));
+
+  return { state: 'ok', phase: 'select', matchId, mapId: match.MapID ?? null, mode: match.QueueID ?? null, players };
+}
+
+// Partie en cours ('core-game'), à partir du chargement juste après la
+// sélection : contrairement au pregame, LES DEUX équipes sont exposées ici —
+// c'est ce qui permet d'afficher enfin les adversaires.
+async function fetchCoregame(glz, headers, puuid) {
+  const playerRes = await fetch(`${glz}/core-game/v1/players/${puuid}`, { headers });
+  if (playerRes.status === 404) return null;
+  if (!playerRes.ok) throw new Error(`coregame-player ${playerRes.status}`);
+  const { MatchID: matchId } = await playerRes.json();
+  if (!matchId) return null;
+
+  const matchRes = await fetch(`${glz}/core-game/v1/matches/${matchId}`, { headers });
+  if (matchRes.status === 404) return null;
+  if (!matchRes.ok) throw new Error(`coregame-match ${matchRes.status}`);
+  const match = await matchRes.json();
+
+  const myTeam = (match.Players ?? []).find((p) => p.Subject === puuid)?.TeamID ?? null;
+
+  const players = (match.Players ?? []).map((p) => ({
+    puuid: p.Subject,
+    // Rang vit sous un autre nom que côté pregame (`SeasonalBadgeInfo.Rank`
+    // plutôt que `CompetitiveTier`), même numéro de palier en dessous.
+    competitiveTier: p.SeasonalBadgeInfo?.Rank ?? 0,
+    agentId: p.CharacterID || null,
+    selectionState: 'locked',
+    accountLevel: p.PlayerIdentity?.AccountLevel ?? null,
+    incognito: p.PlayerIdentity?.Incognito ?? false,
+    isMe: p.Subject === puuid,
+    team: myTeam && p.TeamID === myTeam ? 'ally' : 'enemy',
+  }));
+
+  return { state: 'ok', phase: 'game', matchId, mapId: match.MapID ?? null, mode: match.ModeID ?? null, players };
+}
+
 /**
- * État de la sélection d'agent en cours.
+ * État de la sélection d'agent, puis de la partie qui suit (chargement +
+ * début de match), en direct.
  *
  * Renvoie toujours un objet avec un `state`, jamais une exception : cette
- * fonction est appelée en boucle par l'interface, et « le joueur n'est pas en
- * sélection » est le cas NORMAL, pas une erreur.
+ * fonction est appelée en boucle par l'interface, et « le joueur n'est ni en
+ * sélection ni en partie » est le cas NORMAL, pas une erreur.
  *
- *   'idle'        — pas en sélection d'agent (cas courant)
+ *   'idle'        — ni en sélection ni en partie (cas courant)
  *   'unavailable' — client fermé, log absent, ou API injoignable
- *   'ok'          — sélection en cours, `players` renseigné
+ *   'ok'          — `players` renseigné, `phase` distingue 'select' (agents
+ *                    alliés uniquement) de 'game' (alliés + adversaires,
+ *                    `team` sur chaque joueur)
  */
 export async function getAgentSelect() {
   try {
@@ -150,43 +217,13 @@ export async function getAgentSelect() {
     const version = await getClientVersion();
     const headers = glzHeaders(auth, version);
 
-    // 1) Y a-t-il une sélection en cours ? 404 = non, ce n'est pas une erreur.
-    const playerRes = await fetch(`${glz}/pregame/v1/players/${auth.puuid}`, { headers });
-    if (playerRes.status === 404) return { state: 'idle' };
-    if (!playerRes.ok) return { state: 'unavailable', reason: `pregame-player ${playerRes.status}` };
-    const { MatchID: matchId } = await playerRes.json();
-    if (!matchId) return { state: 'idle' };
+    const pregame = await fetchPregame(glz, headers, auth.puuid);
+    if (pregame) return pregame;
 
-    // 2) Détail de la sélection : les joueurs de MON équipe, leur rang et
-    //    l'agent qu'ils ont choisi ou verrouillé.
-    const matchRes = await fetch(`${glz}/pregame/v1/matches/${matchId}`, { headers });
-    if (matchRes.status === 404) return { state: 'idle' };
-    if (!matchRes.ok) return { state: 'unavailable', reason: `pregame-match ${matchRes.status}` };
-    const match = await matchRes.json();
+    const coregame = await fetchCoregame(glz, headers, auth.puuid);
+    if (coregame) return coregame;
 
-    // L'équipe adverse n'est pas exposée pendant la sélection en classé
-    // (`EnemyTeam` est null) — on ne travaille donc que sur l'équipe alliée.
-    const players = (match.AllyTeam?.Players ?? []).map((p) => ({
-      puuid: p.Subject,
-      // Numéro de palier ; la conversion en nom et en icône se fait côté
-      // interface, avec la table déjà utilisée pour le rang du joueur.
-      competitiveTier: p.CompetitiveTier ?? 0,
-      agentId: p.CharacterID || null,
-      // '' | 'selected' | 'locked'
-      selectionState: p.CharacterSelectionState ?? '',
-      accountLevel: p.PlayerIdentity?.AccountLevel ?? null,
-      incognito: p.PlayerIdentity?.Incognito ?? false,
-      isMe: p.Subject === auth.puuid,
-    }));
-
-    return {
-      state: 'ok',
-      matchId,
-      mapId: match.MapID ?? null,
-      mode: match.QueueID ?? null,
-      phase: match.Teams?.[0]?.Players ? 'select' : 'select',
-      players,
-    };
+    return { state: 'idle' };
   } catch (err) {
     // Réseau coupé, client fermé en cours de route, endpoint modifié par
     // Riot... Rien de tout ça ne doit remonter jusqu'à l'interface.

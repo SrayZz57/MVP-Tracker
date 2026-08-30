@@ -673,7 +673,9 @@ let overlayTopmostInterval = null;
 function createAgentSelectOverlay() {
   agentSelectOverlayWindow = new BrowserWindow({
     width: 300,
-    height: 380,
+    // Assez haut pour les deux équipes une fois en partie (10 joueurs) ; en
+    // sélection (5 joueurs max), l'espace en trop reste transparent, invisible.
+    height: 560,
     show: false,
     frame: false,
     transparent: true,

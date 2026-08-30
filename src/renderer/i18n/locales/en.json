@@ -1534,10 +1534,14 @@
   },
   "agentSelect": {
     "title": "Agent select in progress",
+    "titleGame": "Match loading",
     "hint": "Your teammates' ranks, live from your client",
+    "hintGame": "Both teams, live from your client",
     "choosing": "Choosing…",
     "locked": "Locked",
     "unranked": "Unranked",
-    "you": "You"
+    "you": "You",
+    "allies": "Allies",
+    "enemies": "Enemies"
   }
 }
