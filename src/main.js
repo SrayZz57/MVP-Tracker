@@ -664,6 +664,12 @@ ipcMain.handle('valorant-local:agent-select', () => getAgentSelect());
 // Windows lui-même, aucun outil ne peut passer devant.
 let agentSelectOverlayWindow = null;
 
+// Réaffirme le premier plan pendant que l'overlay est visible : Windows lui
+// fait perdre son rang "always on top" dès qu'on reclique sur le jeu (qui
+// redevient l'appli active), donc un seul setAlwaysOnTop() à la création ne
+// suffit pas — il faut regagner ce combat de z-order en continu.
+let overlayTopmostInterval = null;
+
 function createAgentSelectOverlay() {
   agentSelectOverlayWindow = new BrowserWindow({
     width: 300,
@@ -675,7 +681,10 @@ function createAgentSelectOverlay() {
     resizable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    focusable: false,
+    // `focusable: false` empêchait la fenêtre de repasser devant d'autres
+    // fenêtres "always on top" (dont le jeu) de façon fiable sous Windows —
+    // le clic-traversant ci-dessous protège déjà des clics volés, donc rien
+    // à perdre à la laisser focusable.
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -706,8 +715,22 @@ function createAgentSelectOverlay() {
 
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
   if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
-  if (visible) agentSelectOverlayWindow.showInactive();
-  else agentSelectOverlayWindow.hide();
+
+  if (visible) {
+    agentSelectOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+    agentSelectOverlayWindow.showInactive();
+    if (!overlayTopmostInterval) {
+      overlayTopmostInterval = setInterval(() => {
+        if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+          agentSelectOverlayWindow.moveTop();
+        }
+      }, 1000);
+    }
+  } else {
+    agentSelectOverlayWindow.hide();
+    clearInterval(overlayTopmostInterval);
+    overlayTopmostInterval = null;
+  }
 });
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
