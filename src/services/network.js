@@ -1,4 +1,4 @@
-import { exec } from 'node:child_process';
+import { execFile } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 
@@ -40,9 +40,16 @@ export function isValorantRunning() {
   }
 }
 
+// `execFile` plutôt que `exec` : `exec` passe systématiquement par un shell
+// (cmd.exe sous Windows) pour interpréter la commande, ce qui veut dire
+// démarrer un interpréteur de commande complet en plus du ping lui-même —
+// à chaque appel, toutes les 5 secondes tant que Valorant tourne (voir
+// main.js). `execFile` lance directement ping.exe, sans shell intermédiaire.
+// Aucune fonctionnalité shell n'était utilisée ici (pas de pipe, pas de
+// redirection), donc rien ne change dans le résultat, juste dans le coût.
 export function pingOnce(target = PING_TARGET) {
   return new Promise((resolve) => {
-    exec(`ping -n 1 -w 2000 ${target}`, (err, stdout) => {
+    execFile('ping', ['-n', '1', '-w', '2000', target], (err, stdout) => {
       if (err) {
         resolve(null);
         return;
