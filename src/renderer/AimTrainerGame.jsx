@@ -1430,7 +1430,14 @@ function AimTrainerGame({ config: rawConfig }) {
   // (un utilisateur l'a signalé sur Discord — plus lent que sur Valorant).
   // L'appel doit rester synchrone dans le geste utilisateur ; seul le
   // traitement du résultat est asynchrone, ce qui ne casse pas cette règle.
-  const lockPointer = () => {
+  // `onLocked` n'est appelé qu'une fois le verrouillage RÉELLEMENT acquis —
+  // pas juste demandé. Important juste après un Échap : Chromium refuse
+  // brièvement tout nouveau verrouillage du pointeur pendant une fraction de
+  // seconde (protection anti-piégeage du curseur). Sans ça, resumeSession()
+  // passait en phase "running" même quand le verrouillage échouait — le
+  // crosshair restait caché (conditionné à `locked`) et la souris système
+  // ne se capturait jamais, la partie semblait "cassée" après une pause.
+  const lockPointer = (onLocked) => {
     const canvas = mountRef.current?.querySelector('canvas');
     if (!canvas) return;
     const result = canvas.requestPointerLock({ unadjustedMovement: true });
@@ -1442,6 +1449,7 @@ function AimTrainerGame({ config: rawConfig }) {
       ?.then(() => {
         console.log('[aim-trainer] pointer lock : unadjustedMovement actif');
         setRawInputActive(true);
+        onLocked?.();
       })
       // Sur une plateforme qui ne supporte pas l'option (rare — surtout hors
       // Windows/Chromium), la promesse rejette : on retente sans l'option
@@ -1449,7 +1457,16 @@ function AimTrainerGame({ config: rawConfig }) {
       .catch((err) => {
         console.log('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans —', err?.message ?? err);
         setRawInputActive(false);
-        canvas.requestPointerLock();
+        const fallback = canvas.requestPointerLock();
+        fallback
+          ?.then(() => onLocked?.())
+          .catch((fallbackErr) => {
+            // Les deux tentatives ont échoué — le plus souvent le cooldown
+            // Chromium juste après un Échap. On ne force rien ici : c'est à
+            // l'appelant de décider (ex. rester en pause pour laisser un
+            // nouveau clic, un vrai geste utilisateur, retenter).
+            console.log('[aim-trainer] pointer lock : repli aussi refusé —', fallbackErr?.message ?? fallbackErr);
+          });
       });
   };
 
@@ -1503,8 +1520,10 @@ function AimTrainerGame({ config: rawConfig }) {
     }
     // Le verrouillage du pointeur doit être demandé de façon synchrone dans la
     // foulée du clic (exigence de sécurité de Chromium) — pas d'await avant.
-    lockPointer();
-    setPhase('running');
+    // La phase ne passe en "running" qu'une fois le verrouillage confirmé
+    // (voir lockPointer) — sinon le crosshair resterait caché et la souris
+    // système visible si jamais la demande échouait.
+    lockPointer(() => setPhase('running'));
   };
 
   // Étape suivante de la routine : on change de mode puis on relance dans la
@@ -1525,13 +1544,16 @@ function AimTrainerGame({ config: rawConfig }) {
       stateRef.current.reshuffleSwitch(stateRef.current.targets, mode.preset);
       stateRef.current.switchNext = 1;
     }
-    lockPointer();
-    setPhase('running');
+    lockPointer(() => setPhase('running'));
   };
 
   const resumeSession = () => {
-    lockPointer();
-    setPhase('running');
+    // C'est le cas le plus exposé au cooldown Chromium : reprendre juste
+    // après avoir quitté via Échap, l'action même qui déclenche ce cooldown.
+    // Reste en "paused" si le verrouillage échoue — le bouton "Reprendre"
+    // reste affiché, un nouveau clic (geste utilisateur frais) repasse
+    // généralement une fois le cooldown écoulé (une fraction de seconde).
+    lockPointer(() => setPhase('running'));
   };
 
   const total = stats.hits + stats.misses;
