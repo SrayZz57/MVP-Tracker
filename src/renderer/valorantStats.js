@@ -1,18 +1,10 @@
-// Le Combat à mort n'a pas d'équipes/de winrate — à exclure des stats qui en dépendent
-// (par agent, par map, par tranche horaire, par jour), pas des stats par mode (où il
-// reste une catégorie légitime à afficher).
+// Le Combat à mort n'a pas d'équipes/de winrate, et une partie perso a des
+// réglages libres (bots, rounds illimités, règles modifiées) — les deux
+// faussent les stats qui en dépendent (par agent, par map, par tranche
+// horaire, par jour, K/D global, records...), pas les stats PAR MODE (où
+// ils restent des catégories légitimes à afficher, voir StatsTab qui liste
+// les modes depuis les matchs bruts, sans passer par cette fonction).
 export function excludeDeathmatch(matches) {
-  return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch');
-}
-
-// Combat à mort ET partie perso (custom) — réglages libres (bots, rounds
-// illimités, règles modifiées), donc des stats qui n'ont rien de comparable
-// à une vraie partie et qui peuvent fausser des records (ex. un ace à 15
-// kills en partie perso). Réservé au Hall of Fame et aux succès, où seule
-// une vraie performance en partie normale doit compter — les stats
-// générales (K/D global, etc.) continuent d'inclure les parties perso via
-// excludeDeathmatch ci-dessus, ça reste un match légitimement joué.
-export function excludeCustomAndDeathmatch(matches) {
   return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch' && m.metadata?.mode_id !== 'custom');
 }
 
