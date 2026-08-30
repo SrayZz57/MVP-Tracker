@@ -6822,14 +6822,13 @@ input[type='color'] {
 }
 
 .friend-search-form .search-bar-riotid input:first-child {
-  flex: 1 1 auto;
+  flex: 0 1 320px;
   min-width: 0;
-  max-width: 55%;
 }
 
 .friend-search-form .search-bar-tag {
-  width: 140px;
-  flex-shrink: 0;
+  flex: 1 1 auto;
+  min-width: 140px;
 }
 
 .friend-search-form button {
