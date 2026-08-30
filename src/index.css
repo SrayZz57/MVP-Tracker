@@ -4215,6 +4215,15 @@ input[type='color'] {
   object-fit: cover;
 }
 
+/* Réserve l'espace que .stats-scope-card va reprendre juste après via sa
+   marge négative (voir plus bas) — sans ça, ce bandeau sticky remonte
+   par-dessus le sélecteur PC/Console au lieu de la zone vide prévue à
+   l'origine, qui n'existe que pour les comptes mono-plateforme (seul cas
+   testé quand cette astuce a été écrite). */
+.platform-filter-toggle {
+  margin-bottom: 1.5rem;
+}
+
 .stats-scope-card {
   display: flex;
   align-items: center;
