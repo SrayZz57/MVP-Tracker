@@ -1531,5 +1531,13 @@
       "long": "Longue (20-35m)",
       "verylong": "Très longue (35m+)"
     }
+  },
+  "agentSelect": {
+    "title": "Sélection d’agent en cours",
+    "hint": "Rang de tes coéquipiers, en direct depuis ton client",
+    "choosing": "Choisit…",
+    "locked": "Verrouillé",
+    "unranked": "Non classé",
+    "you": "Toi"
   }
 }

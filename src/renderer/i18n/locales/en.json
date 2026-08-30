@@ -1531,5 +1531,13 @@
       "long": "Long (20-35m)",
       "verylong": "Very long (35m+)"
     }
+  },
+  "agentSelect": {
+    "title": "Agent select in progress",
+    "hint": "Your teammates' ranks, live from your client",
+    "choosing": "Choosing…",
+    "locked": "Locked",
+    "unranked": "Unranked",
+    "you": "You"
   }
 }

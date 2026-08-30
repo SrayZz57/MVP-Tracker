@@ -27,6 +27,7 @@ import GoalsWidget from './GoalsWidget.jsx';
 import WeeklyRecapCard from './WeeklyRecapCard.jsx';
 import PostMortemModal from './PostMortemModal.jsx';
 import SearchBar from './SearchBar.jsx';
+import AgentSelectLive from './AgentSelectLive.jsx';
 import WelcomeScreen from './WelcomeScreen.jsx';
 import LinkRiotAccount from './LinkRiotAccount.jsx';
 import AccountGreeting from './AccountGreeting.jsx';
@@ -858,6 +859,11 @@ function App() {
           ))}
 
         <main className="content" key={activeTab}>
+          {/* Bandeau de sélection d'agent : affiché quel que soit l'onglet
+              ouvert, puisqu'il ne dure que le temps de la sélection et qu'on
+              n'a pas le réflexe de changer d'onglet à ce moment-là. Se
+              masque tout seul en dehors de cette phase. */}
+          <AgentSelectLive />
           {renderValorantTab()}
         </main>
       </div>

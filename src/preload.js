@@ -25,6 +25,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRankFor: (puuid) => ipcRenderer.invoke('valorant:get-rank-for', puuid),
   getNetworkStatus: () => ipcRenderer.invoke('network:get-status'),
   getPingSamples: () => ipcRenderer.invoke('network:get-ping-samples'),
+  // Sélection d'agent en direct (API locale du client Valorant).
+  getAgentSelect: () => ipcRenderer.invoke('valorant-local:agent-select'),
   getDeviceId: () => ipcRenderer.invoke('network:get-device-id'),
   openAimTrainer: (config) => ipcRenderer.invoke('aim-trainer:open', config),
   closeAimTrainer: () => ipcRenderer.invoke('aim-trainer:close'),

@@ -37,6 +37,7 @@ import {
   backfillLegacyPuuid,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
+import { getAgentSelect } from './services/valorantLocal.js';
 import { updateElectronApp } from 'update-electron-app';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
@@ -647,6 +648,12 @@ setInterval(() => {
 }, 120000);
 
 ipcMain.handle('network:get-ping-samples', () => (currentPuuid() ? getAllPingSamples(currentPuuid()) : []));
+
+// Sélection d'agent en direct, via l'API locale du client Valorant. Passe
+// obligatoirement par le process principal : lecture du lockfile et du log du
+// jeu, plus un certificat auto-signé à accepter — trois choses impossibles
+// depuis le renderer, que la CSP bloquerait de toute façon.
+ipcMain.handle('valorant-local:agent-select', () => getAgentSelect());
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 
