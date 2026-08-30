@@ -5,6 +5,17 @@ export function excludeDeathmatch(matches) {
   return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch');
 }
 
+// Combat à mort ET partie perso (custom) — réglages libres (bots, rounds
+// illimités, règles modifiées), donc des stats qui n'ont rien de comparable
+// à une vraie partie et qui peuvent fausser des records (ex. un ace à 15
+// kills en partie perso). Réservé au Hall of Fame et aux succès, où seule
+// une vraie performance en partie normale doit compter — les stats
+// générales (K/D global, etc.) continuent d'inclure les parties perso via
+// excludeDeathmatch ci-dessus, ça reste un match légitimement joué.
+export function excludeCustomAndDeathmatch(matches) {
+  return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch' && m.metadata?.mode_id !== 'custom');
+}
+
 // Compare les noms SANS tenir compte des accents, pas juste en unifiant leur
 // encodage (NFC seul ne suffit pas) — repéré sur un compte réel où l'API
 // HenrikDev renvoie "sampl" + ę (ogonek, U+0119) sur l'endpoint compte mais

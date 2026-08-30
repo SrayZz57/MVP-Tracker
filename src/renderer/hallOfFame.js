@@ -1,5 +1,5 @@
 import {
-  excludeDeathmatch,
+  excludeCustomAndDeathmatch,
   findMe,
   resultLabel,
   hitStats,
@@ -28,7 +28,7 @@ function findBestAce(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me?.puuid) return;
     (match.rounds || []).forEach((round, roundIndex) => {
@@ -49,7 +49,7 @@ function findBestAce(matches, name, tag) {
 // Plus longue série de victoires jamais observée dans l'historique (pas
 // seulement la série en cours) — rejoue les résultats en ordre chronologique.
 function findLongestWinStreak(matches, name, tag) {
-  const chronological = [...excludeDeathmatch(matches)].reverse();
+  const chronological = [...excludeCustomAndDeathmatch(matches)].reverse();
   let bestStreak = 0;
   let bestStart = null;
   let bestEnd = null;
@@ -90,7 +90,7 @@ function findLongestWinStreak(matches, name, tag) {
 function findBestClutch(matches, name, tag) {
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me?.puuid || !me?.team) return;
 
@@ -131,7 +131,7 @@ function findBestClutch(matches, name, tag) {
 function findBestKda(matches, name, tag) {
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me) return;
     const kills = me.stats?.kills ?? 0;
@@ -150,7 +150,7 @@ function findBestKda(matches, name, tag) {
 function findBestHsPercent(matches, name, tag) {
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me) return;
     const { hsPercent, headshots, bodyshots, legshots } = hitStats(me);
@@ -167,7 +167,7 @@ function findBestHsPercent(matches, name, tag) {
 function findBestKillsMatch(matches, name, tag) {
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me) return;
     const kills = me.stats?.kills ?? 0;
@@ -185,7 +185,7 @@ function findBestKillDistance(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me) return;
     (match.rounds || []).forEach((round) => {
@@ -208,7 +208,7 @@ function findBestKillDistance(matches, name, tag) {
 // Nombre d'agents distincts joués (matchs classés/non-deathmatch).
 function countAgentDiversity(matches, name, tag) {
   const agents = new Set();
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (me?.character) agents.add(me.character);
   });
@@ -220,7 +220,7 @@ function countAgentDiversity(matches, name, tag) {
 function findBestPerfectMatch(matches, name, tag) {
   let best = null;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
     if (!me) return;
     const deaths = me.stats?.deaths ?? 0;
@@ -238,7 +238,7 @@ function findBestPerfectMatch(matches, name, tag) {
 // Compteurs "carrière" (cumulés sur tout l'historique en cache), pour des
 // succès de progression sur le long terme plutôt que des records ponctuels.
 function careerCounters(matches, name, tag) {
-  const clean = excludeDeathmatch(matches);
+  const clean = excludeCustomAndDeathmatch(matches);
   let totalKills = 0;
   let totalWins = 0;
   let totalPlaytimeSeconds = 0;
@@ -312,7 +312,7 @@ function countSpikeActions(matches, name, tag) {
   let plants = 0;
   let defuses = 0;
 
-  excludeDeathmatch(matches).forEach((match) => {
+  excludeCustomAndDeathmatch(matches).forEach((match) => {
     (match.rounds || []).forEach((round) => {
       if (normalizeRiotIdPart(round.plant_events?.planted_by?.display_name) === fullName) plants += 1;
       if (normalizeRiotIdPart(round.defuse_events?.defused_by?.display_name) === fullName) defuses += 1;
