@@ -38,6 +38,7 @@ import {
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
 import { getAgentSelect } from './services/valorantLocal.js';
+import { syncMatches } from './services/matchSync.js';
 import { updateElectronApp } from 'update-electron-app';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
@@ -744,6 +745,8 @@ ipcMain.handle('agent-select-overlay:set-suggestions', (_event, suggestions) => 
   if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
   agentSelectOverlayWindow.webContents.send('agent-select-overlay:suggestions', suggestions);
 });
+
+ipcMain.handle('sync:matches', (_event, payload) => syncMatches(payload));
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 

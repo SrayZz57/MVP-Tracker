@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Sélection d'agent en direct (API locale du client Valorant).
   getAgentSelect: () => ipcRenderer.invoke('valorant-local:agent-select'),
   setAgentSelectOverlayVisible: (visible) => ipcRenderer.invoke('agent-select-overlay:set-visible', visible),
+  syncMatches: (payload) => ipcRenderer.invoke('sync:matches', payload),
   setAgentSelectSuggestions: (suggestions) =>
     ipcRenderer.invoke('agent-select-overlay:set-suggestions', suggestions),
   onAgentSelectSuggestions: (callback) => {

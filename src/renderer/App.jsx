@@ -334,6 +334,23 @@ function App() {
   const isViewingSelf = !!profile && settings?.puuid === profile.riot_puuid;
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
 
+  // Synchro vers Supabase (résumés + détail des 50 plus récents) — voir
+  // matchSync.js. Se redéclenche à chaque nouveau chargement de myMatches
+  // (cache initial ou vrai rafraîchissement) ; le module lui-même ne
+  // ré-uploade jamais ce qui est déjà là, donc les appels redondants sont
+  // sans frais réels, juste un aller-retour de vérification.
+  useEffect(() => {
+    if (!session || myMatches.length === 0 || !mySettings?.name) return;
+    window.electronAPI.syncMatches({
+      matches: myMatches,
+      name: mySettings.name,
+      tag: mySettings.tag,
+      userId: session.user.id,
+      accessToken: session.access_token,
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myMatches]);
+
   // Même principe que pour les matchs : le rang stocké localement ne l'était
   // que pour "le dernier profil consulté", pas par compte — on le relit
   // explicitement pour le puuid du compte lié, peu importe qui est affiché.
