@@ -46,12 +46,20 @@ async function henrikFetch(path, apiKey) {
 // autre tracker. `force=true` contourne ce cache et force un nouveau calcul.
 const STALE_MATCH_CACHE_ERROR = 'Error while fetching needed match data';
 
+// Même piège pour un compte jamais recherché avant sur HenrikDev : leur v2/account
+// renvoie un vrai 404 "Account not found" tant que personne n'a déclenché la toute
+// première récupération côté Riot — confirmé en conditions réelles (le champ
+// `updated_at` de la réponse ne date que du retry ci-dessous, jamais d'avant).
+// `force=true` déclenche cette récupération immédiatement au lieu de faire
+// échouer la recherche pour un compte pourtant bien réel.
+const ACCOUNT_NOT_FOUND_ERROR = 'Account not found';
+
 export async function getAccount(name, tag, apiKey) {
   const path = `/valorant/v2/account/${encodeURIComponent(name)}/${encodeURIComponent(tag)}`;
   try {
     return await henrikFetch(path, apiKey);
   } catch (error) {
-    if (error.message?.includes(STALE_MATCH_CACHE_ERROR)) {
+    if (error.message?.includes(STALE_MATCH_CACHE_ERROR) || error.message?.includes(ACCOUNT_NOT_FOUND_ERROR)) {
       return henrikFetch(`${path}?force=true`, apiKey);
     }
     throw error;
