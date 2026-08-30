@@ -18,6 +18,21 @@ function playerName(p) {
   return p ? `${p.name}#${p.tag}` : null;
 }
 
+// HenrikDev renvoie `weapon.id` mais pas `weapon.name` pour les "armes" qui
+// sont en réalité des compétences équipables — le pistolet Headhunter et
+// l'ult Tour De Force de Chamber — car elles n'existent pas dans son
+// catalogue d'armes achetables. Sans ce repli, `damage_weapon_name` était
+// vide et ces kills disparaissaient purement et simplement des stats par
+// arme (filtrées par `weaponKillsFor` et consorts, qui exigent un nom non
+// vide). IDs confirmés en croisant leur fréquence d'apparition sur tout
+// l'historique local en cache : Headhunter revient plusieurs fois par
+// partie (arme secondaire réutilisable), Tour De Force beaucoup plus
+// rarement (dépend de la charge d'ult) — cohérent avec leur rôle respectif.
+export const ABILITY_WEAPON_NAMES = {
+  '856d9a7e-4b06-dc37-15dc-9d809c37cb90': 'Headhunter',
+  '39099fb5-4293-def4-1e09-2e9080ce7456': 'Tour De Force',
+};
+
 function normalizeKillEvent(k) {
   return {
     kill_time_in_round: k.time_in_round_in_ms,
@@ -30,7 +45,7 @@ function normalizeKillEvent(k) {
     victim_team: k.victim?.team ?? null,
     victim_death_location: k.location ?? null,
     damage_weapon_id: k.weapon?.id ?? null,
-    damage_weapon_name: k.weapon?.name ?? null,
+    damage_weapon_name: k.weapon?.name ?? ABILITY_WEAPON_NAMES[k.weapon?.id] ?? null,
     secondary_fire_mode: k.secondary_fire_mode ?? false,
     player_locations_on_kill: (k.player_locations ?? []).map((pl) => ({
       player_puuid: pl.player?.puuid ?? null,

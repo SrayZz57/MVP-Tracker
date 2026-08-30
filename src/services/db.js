@@ -1,6 +1,7 @@
 import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { app } from 'electron';
+import { ABILITY_WEAPON_NAMES } from './matchNormalizer.js';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
@@ -38,6 +39,45 @@ db.exec(`
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) SELECT match_id, puuid, game_start, data FROM matches_legacy',
   );
   db.exec('DROP TABLE matches_legacy');
+})();
+
+// Correctif rétroactif (une seule fois, via PRAGMA user_version comme
+// marqueur) : avant l'ajout d'ABILITY_WEAPON_NAMES dans matchNormalizer.js,
+// les kills au pistolet Headhunter et à l'ult Tour De Force de Chamber
+// étaient stockés avec un nom d'arme vide (HenrikDev ne renvoie pas leur nom,
+// seulement leur id) et donc invisibles dans les stats par arme. L'id, lui,
+// était bien conservé — on répare les matchs déjà en cache directement,
+// sans devoir tout re-télécharger depuis HenrikDev.
+(function backfillAbilityWeaponNames() {
+  const userVersion = db.prepare('PRAGMA user_version').get().user_version;
+  if (userVersion >= 1) return;
+
+  const rows = db.prepare('SELECT match_id, puuid, data FROM matches').all();
+  const update = db.prepare('UPDATE matches SET data = ? WHERE match_id = ? AND puuid = ?');
+  let patched = 0;
+  for (const row of rows) {
+    let match;
+    try {
+      match = JSON.parse(row.data);
+    } catch {
+      continue;
+    }
+    let changed = false;
+    const fixKill = (k) => {
+      if (!k.damage_weapon_name && ABILITY_WEAPON_NAMES[k.damage_weapon_id]) {
+        k.damage_weapon_name = ABILITY_WEAPON_NAMES[k.damage_weapon_id];
+        changed = true;
+      }
+    };
+    (match.kills ?? []).forEach(fixKill);
+    (match.rounds ?? []).forEach((r) => (r.player_stats ?? []).forEach((ps) => (ps.kill_events ?? []).forEach(fixKill)));
+    if (changed) {
+      update.run(JSON.stringify(match), row.match_id, row.puuid);
+      patched += 1;
+    }
+  }
+  if (patched > 0) console.log(`[db] backfillAbilityWeaponNames : ${patched} match(s) corrigé(s)`);
+  db.exec('PRAGMA user_version = 1');
 })();
 
 db.exec(`
