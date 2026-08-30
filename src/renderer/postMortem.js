@@ -18,6 +18,13 @@ export const ANSWER_LEVELS = [
   { id: 'non', labelKey: 'postmortem.answers.no' },
 ];
 
+// Position de chaque niveau sur une échelle — sert à mesurer l'ÉCART entre la
+// réponse du joueur et la réalité calculée, pas juste "égal ou pas égal".
+// Répondre "Oui" quand la réalité est "Moyen" n'est pas la même erreur que
+// répondre "Oui" quand la réalité est "Non" (contradiction franche) : le
+// premier cas doit se distinguer comme "proche", pas comme un échec total.
+const ANSWER_ORDER = { non: 0, moyen: 1, oui: 2 };
+
 // Calcule ce que les stats réelles du match disent pour chaque question,
 // comparé aux moyennes du joueur suivi sur l'ensemble de ses matchs.
 export function computeActualAnswers(match, allMatches, name, tag) {
@@ -65,12 +72,20 @@ export function gradeAnswers(userAnswers, actualAnswers) {
   return POST_MORTEM_QUESTIONS.map((q) => {
     const actual = actualAnswers[q.id]?.actual ?? null;
     const userAnswer = userAnswers[q.id] ?? null;
+    const bothKnown = actual !== null && userAnswer !== null;
+    const distance = bothKnown ? Math.abs(ANSWER_ORDER[actual] - ANSWER_ORDER[userAnswer]) : null;
     return {
       id: q.id,
       textKey: q.textKey,
       userAnswer,
       actual,
-      correct: actual !== null && userAnswer !== null ? actual === userAnswer : null,
+      correct: bothKnown ? distance === 0 : null,
+      // Un seul cran d'écart (Oui/Moyen ou Moyen/Non) — le joueur n'était pas
+      // dans l'erreur, juste optimiste ou pessimiste sur l'ampleur. Absent
+      // (undefined → faux) sur les évaluations enregistrées avant ce
+      // correctif : elles continuent de s'afficher correct/faux comme avant,
+      // pas besoin de migration.
+      close: bothKnown ? distance === 1 : false,
       detail: actualAnswers[q.id],
     };
   });

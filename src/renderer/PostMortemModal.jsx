@@ -100,21 +100,22 @@ function PostMortemModal({ settings, matches }) {
         ) : (
           <>
             <h3>{t('postmortem.resultTitle')}</h3>
-            {graded.map((r) => (
-              <div
-                key={r.id}
-                className={`postmortem-result ${r.correct === null ? '' : r.correct ? 'correct' : 'incorrect'}`}
-              >
-                <div className="postmortem-result-title">
-                  {t('postmortem.resultHeading', {
-                    icon: r.correct === null ? 'ℹ️' : r.correct ? '✅' : '❌',
-                    question: t(r.textKey),
-                    answer: t(ANSWER_LEVELS.find((l) => l.id === r.userAnswer)?.labelKey),
-                  })}
+            {graded.map((r) => {
+              const state = r.correct === null ? 'unknown' : r.correct ? 'correct' : r.close ? 'close' : 'incorrect';
+              const icon = { unknown: 'ℹ️', correct: '✅', close: '〜', incorrect: '❌' }[state];
+              return (
+                <div key={r.id} className={`postmortem-result ${state === 'unknown' ? '' : state}`}>
+                  <div className="postmortem-result-title">
+                    {t('postmortem.resultHeading', {
+                      icon,
+                      question: t(r.textKey),
+                      answer: t(ANSWER_LEVELS.find((l) => l.id === r.userAnswer)?.labelKey),
+                    })}
+                  </div>
+                  <p className="label">{buildComparisonText(t, r)}</p>
                 </div>
-                <p className="label">{buildComparisonText(t, r)}</p>
-              </div>
-            ))}
+              );
+            })}
             <div className="postmortem-actions">
               <button className="refresh" onClick={handleDismiss}>
                 {t('postmortem.close')}

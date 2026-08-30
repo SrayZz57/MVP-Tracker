@@ -5416,6 +5416,10 @@ input[type='color'] {
   border-left-color: #3ddc84;
 }
 
+.postmortem-result.close {
+  border-left-color: var(--warning);
+}
+
 .postmortem-result.incorrect {
   border-left-color: var(--accent);
 }
