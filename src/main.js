@@ -237,6 +237,16 @@ const createWindow = () => {
     mainWindow.show();
   });
 
+  // `Menu.setApplicationMenu(null)` ci-dessous supprime aussi le raccourci
+  // DevTools par défaut (Ctrl+Maj+I) — celui-ci le restitue via F12, pour
+  // pouvoir profiler l'app (utile pour investiguer un souci de perf signalé
+  // par un utilisateur avancé) sans avoir à relancer en mode dev.
+  mainWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'F12') {
+      mainWindow.webContents.toggleDevTools();
+    }
+  });
+
   mainWindow.webContents.on('console-message', (_e, _level, message) => {
     console.log('[renderer]', message);
   });
@@ -282,6 +292,12 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
       search: query,
     });
   }
+
+  aimTrainerWindow.webContents.on('before-input-event', (_event, input) => {
+    if (input.type === 'keyDown' && input.key === 'F12') {
+      aimTrainerWindow.webContents.toggleDevTools();
+    }
+  });
 
   // Sans ça, les erreurs de la fenêtre de jeu (échec d'enregistrement d'un
   // score, par exemple) sont invisibles : elles ne remontent pas dans la
