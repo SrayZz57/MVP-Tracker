@@ -24,13 +24,11 @@ const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
 const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#ffffff'];
 
-// Le bloc mode est devenu bien trop grand une fois tous les modes ajoutés —
-// on n'en montre que les premiers, avec un bouton pour dérouler le reste.
-// 11 : avec la carte "Personnalisé" toujours affichée en plus (+1), ça fait
-// 12 cartes = 2 lignes complètes à 6 colonnes (largeur de carte habituelle)
-// — évite une dernière ligne à moitié vide, même logique que pour les
-// autres grilles paginées de l'app (crosshairs, skins).
-const MODE_PAGE_SIZE = 11;
+// Le nombre de colonnes de la grille dépend de la largeur de fenêtre (grid
+// auto-fill) : une pagination à taille fixe laissait une dernière ligne
+// très clairsemée en plein écran large (ex. 3 cartes + bouton sur une ligne
+// qui en contient 9). Tous les modes tiennent sans problème en une ou deux
+// lignes complètes selon la largeur — plus besoin de les cacher.
 
 // Routine d'échauffement : trois modes complémentaires enchaînés, à lancer
 // avant une session de jeu (visée sèche, suivi, puis précision fine).
@@ -62,7 +60,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [dailyBoard, setDailyBoard] = useState([]);
   const [friendsBoard, setFriendsBoard] = useState([]);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
-  const [showAllModes, setShowAllModes] = useState(false);
   const [crosshairs, setCrosshairs] = useState([]);
   // Statut d'amitié envers chaque joueur croisé dans les classements —
   // chargé une fois (pas par ligne survolée) pour savoir quel bouton
@@ -174,17 +171,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
   const activeModeAccent = MODES[config.mode]?.accent ?? '#8a8f9c';
 
-  // Le mode actif reste visible même replié (pas de carte active qui
-  // disparaîtrait sous "voir plus"), le reste se déroule à la demande —
-  // sinon la grille est devenue bien trop grande avec tous les modes.
   const allModeEntries = useMemo(() => Object.entries(MODES), []);
-  const visibleModeEntries = useMemo(
-    () =>
-      showAllModes
-        ? allModeEntries
-        : allModeEntries.filter(([id], i) => i < MODE_PAGE_SIZE || id === config.mode),
-    [allModeEntries, showAllModes, config.mode],
-  );
 
   return (
     <div>
@@ -287,7 +274,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
         <h4 className="account-subsection-title">{t('aimTrainer.modeSection')}</h4>
         <div className="aim-mode-grid">
-          {visibleModeEntries.map(([id, mode]) => {
+          {allModeEntries.map(([id, mode]) => {
             const personal = personalBests[id];
             const global = globalBests[id];
             const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
@@ -335,14 +322,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>
           </button>
         </div>
-
-        {allModeEntries.length > MODE_PAGE_SIZE && (
-          <button className="show-more-btn" onClick={() => setShowAllModes(!showAllModes)}>
-            {showAllModes
-              ? t('aimTrainer.showFewerModes')
-              : t('aimTrainer.showMoreModes', { count: allModeEntries.length - visibleModeEntries.length })}
-          </button>
-        )}
 
         {/* Résumé en lecture seule : les 6 modes standards sont figés (mêmes
             réglages pour tout le monde), et même le mode Personnalisé ne se
