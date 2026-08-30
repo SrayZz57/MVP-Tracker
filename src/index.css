@@ -61,6 +61,17 @@ body {
   text-rendering: optimizeLegibility;
 }
 
+/* Fenêtre overlay de sélection d'agent : fond réellement transparent, pour
+   flotter par-dessus Valorant sans rectangle opaque autour de la carte. */
+body.overlay-window {
+  background: transparent;
+}
+
+body.overlay-window::before,
+body.overlay-window::after {
+  content: none;
+}
+
 /* Atmosphère ambiante : deux halos colorés qui dérivent très lentement.
    Fixé derrière tout le reste, ça donne à l'app une présence "vivante" au
    lieu d'un aplat statique — sans jamais distraire puisque le mouvement est
@@ -7489,6 +7500,95 @@ input[type='color'] {
 }
 
 .agent-select-you {
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* =========================================================================
+   OVERLAY DE SÉLECTION D'AGENT (fenêtre séparée, par-dessus Valorant)
+   Fond transparent (voir body.overlay-window) : seule la carte est visible.
+   ========================================================================= */
+.overlay-agent-select {
+  margin: 10px;
+  padding: 0.75rem 0.85rem 0.9rem;
+  border-radius: var(--r-md);
+  border: 1px solid var(--accent);
+  background: color-mix(in srgb, var(--bg-deep) 88%, transparent);
+  box-shadow: var(--elev-2);
+  backdrop-filter: blur(4px);
+}
+
+.overlay-agent-select-head {
+  display: flex;
+  align-items: center;
+  gap: 0.45rem;
+  font-family: var(--font-display);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--accent);
+  margin-bottom: 0.55rem;
+}
+
+.overlay-agent-select-player {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0;
+  border-top: 1px solid var(--border);
+}
+
+.overlay-agent-select-player:first-of-type {
+  border-top: none;
+}
+
+.overlay-agent-select-avatar {
+  width: 30px;
+  height: 30px;
+  flex-shrink: 0;
+  border-radius: var(--r-sm);
+  overflow: hidden;
+  background: var(--bg-deep);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-dim);
+  font-size: 0.85rem;
+}
+
+.overlay-agent-select-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.overlay-agent-select-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.overlay-agent-select-agent {
+  font-size: 0.78rem;
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.overlay-agent-select-rank {
+  font-size: 0.68rem;
+  color: var(--text-muted);
+}
+
+.overlay-agent-select-you {
+  margin-left: auto;
+  flex-shrink: 0;
+  font-size: 0.6rem;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
   color: var(--accent);
   font-weight: 700;
 }

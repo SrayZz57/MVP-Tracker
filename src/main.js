@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -655,6 +655,61 @@ ipcMain.handle('network:get-ping-samples', () => (currentPuuid() ? getAllPingSam
 // depuis le renderer, que la CSP bloquerait de toute façon.
 ipcMain.handle('valorant-local:agent-select', () => getAgentSelect());
 
+// Overlay de sélection d'agent : une fenêtre séparée, transparente et
+// toujours au premier plan — PAS une injection dans le jeu. Elle reste
+// invisible aux anti-triches (Vanguard) parce qu'elle ne touche jamais au
+// processus de Valorant : c'est juste une fenêtre de plus gérée par Windows,
+// comme n'importe quelle autre appli flottante. Ne fonctionne qu'en Sans
+// bordure / Fenêtré : le plein écran exclusif bloque toute fenêtre par
+// Windows lui-même, aucun outil ne peut passer devant.
+let agentSelectOverlayWindow = null;
+
+function createAgentSelectOverlay() {
+  agentSelectOverlayWindow = new BrowserWindow({
+    width: 300,
+    height: 380,
+    show: false,
+    frame: false,
+    transparent: true,
+    hasShadow: false,
+    resizable: false,
+    skipTaskbar: true,
+    alwaysOnTop: true,
+    focusable: false,
+    autoHideMenuBar: true,
+    webPreferences: {
+      preload: path.join(__dirname, 'preload.js'),
+    },
+  });
+
+  agentSelectOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
+  // Clic-traversant par défaut : l'overlay ne doit jamais voler un clic
+  // destiné au jeu en dessous.
+  agentSelectOverlayWindow.setIgnoreMouseEvents(true, { forward: true });
+
+  const display = screen.getPrimaryDisplay().workArea;
+  agentSelectOverlayWindow.setPosition(display.x + display.width - 316, display.y + 16);
+
+  const query = 'view=agent-select-overlay';
+  if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
+    agentSelectOverlayWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?${query}`);
+  } else {
+    agentSelectOverlayWindow.loadFile(path.join(__dirname, `../renderer/${MAIN_WINDOW_VITE_NAME}/index.html`), {
+      search: query,
+    });
+  }
+
+  agentSelectOverlayWindow.webContents.on('console-message', (_e, _level, message) => {
+    console.log('[agent-select-overlay]', message);
+  });
+}
+
+ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
+  if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
+  if (visible) agentSelectOverlayWindow.showInactive();
+  else agentSelectOverlayWindow.hide();
+});
+
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 
 ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
@@ -867,6 +922,7 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+  createAgentSelectOverlay();
 
   // Premier lancement déclenché directement par le lien (l'app n'était pas
   // encore ouverte) — le lien arrive dans les arguments de démarrage.

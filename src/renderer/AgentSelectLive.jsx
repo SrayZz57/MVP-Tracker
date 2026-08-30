@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useAgentsById } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
+import { useAgentSelectData } from './useAgentSelectData.js';
 
 // =============================================================================
 // SÉLECTION D'AGENT EN DIRECT
@@ -17,39 +17,11 @@ import { useRankTiers } from './rankData.js';
 // (`EnemyTeam` est null), on ne peut donc afficher que ses alliés.
 // =============================================================================
 
-// 4 s : la sélection dure environ 100 s et un joueur peut changer d'agent
-// jusqu'au dernier moment. Plus court solliciterait le client pour rien,
-// plus long ferait rater des changements.
-const POLL_MS = 4000;
-
 function AgentSelectLive() {
   const { t } = useTranslation();
   const agentsById = useAgentsById();
   const rankTiers = useRankTiers();
-  const [data, setData] = useState({ state: 'idle' });
-
-  useEffect(() => {
-    let cancelled = false;
-    let timer = null;
-
-    const poll = async () => {
-      try {
-        const result = await window.electronAPI.getAgentSelect();
-        if (!cancelled) setData(result);
-      } catch {
-        // L'API locale est non officielle : un échec ne doit jamais casser
-        // l'interface, on retentera au prochain tour.
-        if (!cancelled) setData({ state: 'unavailable' });
-      }
-      if (!cancelled) timer = setTimeout(poll, POLL_MS);
-    };
-
-    poll();
-    return () => {
-      cancelled = true;
-      if (timer) clearTimeout(timer);
-    };
-  }, []);
+  const data = useAgentSelectData();
 
   if (data.state !== 'ok' || data.players.length === 0) return null;
 
