@@ -303,6 +303,29 @@ function randomTargetPosition(spreadDeg, targetSize = 0.45) {
   );
 }
 
+const OVERLAP_REPOSITION_ATTEMPTS = 8;
+
+// Comme randomTargetPosition, mais évite (autant que possible en quelques
+// essais) de faire spawn une cible sur une autre déjà active — sans ça,
+// les modes multi-cibles (Gridshot, Popcorn, Switch...) peuvent faire
+// apparaître deux sphères confondues, ce qui fausse la précision perçue.
+function pickNonOverlappingPosition(spreadDeg, targetSize, siblings, excludeEntry) {
+  const minDist = targetSize * 2.4;
+  let candidate = randomTargetPosition(spreadDeg, targetSize);
+  if (!siblings || siblings.length === 0) return candidate;
+  for (let attempt = 0; attempt < OVERLAP_REPOSITION_ATTEMPTS; attempt += 1) {
+    const overlaps = siblings.some(
+      (other) =>
+        other !== excludeEntry &&
+        other.mesh?.visible &&
+        candidate.distanceTo(other.mesh.position) < minDist,
+    );
+    if (!overlaps) break;
+    candidate = randomTargetPosition(spreadDeg, targetSize);
+  }
+  return candidate;
+}
+
 // Repositionne une cible pour un mode donné — logique commune au départ
 // d'une session et au passage à l'étape suivante d'une routine enchaînée.
 // Centralisée ici pour que le mode Peek (box + corps visibles, tête en
@@ -326,7 +349,7 @@ function resetTargetForMode(entry, mode, cfg, now, state) {
     entry.box.visible = false;
     entry.body.visible = false;
     entry.mesh.visible = true;
-    entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+    entry.mesh.position.copy(pickNonOverlappingPosition(cfg.spread, cfg.targetSize, state.targets, entry));
     entry.anchor.copy(entry.mesh.position);
     Object.assign(entry, state.makeMotion(mode));
     entry.peek = null;
@@ -819,7 +842,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const targets = [];
     for (let i = 0; i < config.targetCount; i += 1) {
       const mesh = new THREE.Mesh(targetGeo, targetMat);
-      mesh.position.copy(randomTargetPosition(config.spread, config.targetSize));
+      mesh.position.copy(pickNonOverlappingPosition(config.spread, config.targetSize, targets));
       mesh.scale.setScalar(config.targetSize);
       scene.add(mesh);
 
@@ -1110,7 +1133,7 @@ function AimTrainerGame({ config: rawConfig }) {
             entry.snapArmedAt = null;
           } else if (now - entry.snapArmedAt >= (mode.holdMs ?? 350)) {
             const reactionMs = now - entry.spawnedAt;
-            entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+            entry.mesh.position.copy(pickNonOverlappingPosition(cfg.spread, cfg.targetSize, state.targets, entry));
             entry.anchor.copy(entry.mesh.position);
             entry.snapArmedAt = null;
             entry.spawnedAt = now;
@@ -1122,7 +1145,7 @@ function AimTrainerGame({ config: rawConfig }) {
         // Mode réflexe : une cible non touchée à temps disparaît et compte
         // comme manquée, pour forcer la réactivité plutôt que la lenteur.
         if (mode.lifetime && now - entry.spawnedAt > mode.lifetime) {
-          entry.mesh.position.copy(randomTargetPosition(cfg.spread, cfg.targetSize));
+          entry.mesh.position.copy(pickNonOverlappingPosition(cfg.spread, cfg.targetSize, state.targets, entry));
           entry.anchor.copy(entry.mesh.position);
           entry.snapArmedAt = null;
           entry.spawnedAt = now;
@@ -1370,7 +1393,9 @@ function AimTrainerGame({ config: rawConfig }) {
             setStats((prev) => ({ ...prev, hits: prev.hits + 1 }));
           } else {
             const reactionMs = performance.now() - entry.spawnedAt;
-            entry.mesh.position.copy(randomTargetPosition(configRef.current.spread, configRef.current.targetSize));
+            entry.mesh.position.copy(
+              pickNonOverlappingPosition(configRef.current.spread, configRef.current.targetSize, targets, entry),
+            );
             entry.anchor.copy(entry.mesh.position);
             Object.assign(entry, state.makeMotion(mode));
             entry.hitsRemaining = mode.hitsRequired ?? null;
