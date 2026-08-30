@@ -9,6 +9,7 @@ import wallColorUrl from '../assets/textures/wall-color.jpg';
 import wallNormalUrl from '../assets/textures/wall-normal.jpg';
 import wallRoughnessUrl from '../assets/textures/wall-roughness.jpg';
 import { saveScore } from './aimScores.js';
+import CrosshairPreview from './CrosshairPreview.jsx';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -276,6 +277,9 @@ export const DEFAULT_CONFIG = {
   spread: 28,
   fov: 103,
   showWeapon: true,
+  // Code de la bibliothèque de crosshairs à afficher pendant la session ;
+  // null = croix blanche par défaut (voir .aim-trainer-crosshair).
+  crosshairCode: null,
 };
 
 // Les FPS (Valorant inclus) expriment le champ de vision à l'HORIZONTALE,
@@ -1633,7 +1637,16 @@ function AimTrainerGame({ config: rawConfig }) {
 
       {phase === 'running' && locked && (
         <>
-          <div className="aim-trainer-crosshair" />
+          {config.crosshairCode ? (
+            <CrosshairPreview
+              code={config.crosshairCode}
+              bare
+              size={64}
+              className="aim-trainer-crosshair-custom"
+            />
+          ) : (
+            <div className="aim-trainer-crosshair" />
+          )}
           <div className="aim-game-hud">
             <div className="aim-game-hud-item">
               <span className="aim-game-hud-value">{timeLeft}</span>

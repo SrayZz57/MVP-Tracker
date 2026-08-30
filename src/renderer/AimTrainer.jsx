@@ -17,6 +17,7 @@ import usePlatformFilter from './usePlatformFilter.js';
 import CustomModeConfig from './CustomModeConfig.jsx';
 import AimLeaderboardRow from './AimLeaderboardRow.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import CrosshairPreview from './CrosshairPreview.jsx';
 import { supabase } from './supabaseClient.js';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
@@ -62,6 +63,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [friendsBoard, setFriendsBoard] = useState([]);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
   const [showAllModes, setShowAllModes] = useState(false);
+  const [crosshairs, setCrosshairs] = useState([]);
   // Statut d'amitié envers chaque joueur croisé dans les classements —
   // chargé une fois (pas par ligne survolée) pour savoir quel bouton
   // proposer dans la carte au survol (voir AimLeaderboardRow.jsx).
@@ -89,6 +91,13 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
     refresh();
     return window.electronAPI.onAimTrainerClosed(refresh);
   }, [refresh]);
+
+  // Bibliothèque de crosshairs (compte lié) : sert au sélecteur dans les
+  // réglages d'affichage, pour viser avec sa vraie croix Valorant plutôt que
+  // la croix par défaut de l'Aim Trainer.
+  useEffect(() => {
+    window.electronAPI.listCrosshairs().then(setCrosshairs);
+  }, []);
 
 
   useEffect(() => {
@@ -419,6 +428,33 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             <button className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
               {t('aimTrainer.resetDefaults')}
             </button>
+          </div>
+
+          <div className="aim-config-block">
+            <h4 className="account-subsection-title">{t('aimTrainer.crosshairSection')}</h4>
+            {crosshairs.length === 0 ? (
+              <p className="label">{t('aimTrainer.crosshairEmpty')}</p>
+            ) : (
+              <div className="aim-crosshair-picker">
+                <button
+                  className={config.crosshairCode ? 'aim-crosshair-option' : 'aim-crosshair-option active'}
+                  onClick={() => set({ crosshairCode: null })}
+                  title={t('aimTrainer.crosshairDefault')}
+                >
+                  <div className="aim-trainer-crosshair-static-preview" />
+                </button>
+                {crosshairs.map((ch) => (
+                  <button
+                    key={ch.id}
+                    className={config.crosshairCode === ch.code ? 'aim-crosshair-option active' : 'aim-crosshair-option'}
+                    onClick={() => set({ crosshairCode: ch.code })}
+                    title={ch.name}
+                  >
+                    <CrosshairPreview code={ch.code} bare size={40} />
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
         </div>
 

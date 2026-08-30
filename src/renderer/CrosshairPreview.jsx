@@ -46,7 +46,7 @@ function parseValue(type, raw) {
   return raw;
 }
 
-function parseCrosshair(code) {
+export function parseCrosshair(code) {
   const tokens = code.split(';');
   if (tokens[0] !== '0') return null;
 
@@ -131,29 +131,42 @@ function lineSegments(spec, keyPrefix) {
   ));
 }
 
-function CrosshairPreview({ code }) {
+// `bare` : sans fond ni grille, pour un usage en surimpression (overlay de
+// visée dans l'Aim Trainer) plutôt qu'en vignette de bibliothèque.
+function CrosshairPreview({ code, bare = false, size = 100, className }) {
   const { t } = useTranslation();
   const parsed = useMemo(() => parseCrosshair(code), [code]);
   const rawId = useId();
   const uid = rawId.replace(/:/g, '');
 
   if (!parsed) {
+    if (bare) return null;
     return <p style={{ color: 'red' }}>{t('crosshairs.invalidCode')}</p>;
   }
 
   return (
-    <svg width={100} height={100} viewBox="0 0 100 100" className="crosshair-preview-svg" stroke={parsed.color}>
-      <defs>
-        <radialGradient id={`chbg-${uid}`} cx="50%" cy="50%" r="72%">
-          <stop offset="0%" stopColor="#2a2a33" />
-          <stop offset="100%" stopColor="#16161b" />
-        </radialGradient>
-        <pattern id={`chgrid-${uid}`} width="10" height="10" patternUnits="userSpaceOnUse">
-          <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#34343c" strokeWidth="0.5" />
-        </pattern>
-      </defs>
-      <rect width="100" height="100" fill={`url(#chbg-${uid})`} stroke="none" />
-      <rect width="100" height="100" fill={`url(#chgrid-${uid})`} opacity="0.5" stroke="none" />
+    <svg
+      width={size}
+      height={size}
+      viewBox="0 0 100 100"
+      className={className ?? 'crosshair-preview-svg'}
+      stroke={parsed.color}
+    >
+      {!bare && (
+        <>
+          <defs>
+            <radialGradient id={`chbg-${uid}`} cx="50%" cy="50%" r="72%">
+              <stop offset="0%" stopColor="#2a2a33" />
+              <stop offset="100%" stopColor="#16161b" />
+            </radialGradient>
+            <pattern id={`chgrid-${uid}`} width="10" height="10" patternUnits="userSpaceOnUse">
+              <path d="M 10 0 L 0 0 0 10" fill="none" stroke="#34343c" strokeWidth="0.5" />
+            </pattern>
+          </defs>
+          <rect width="100" height="100" fill={`url(#chbg-${uid})`} stroke="none" />
+          <rect width="100" height="100" fill={`url(#chgrid-${uid})`} opacity="0.5" stroke="none" />
+        </>
+      )}
       {lineSegments(parsed.outer, 'outer')}
       {lineSegments(parsed.inner, 'inner')}
       {parsed.dot.enabled && (

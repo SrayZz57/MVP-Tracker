@@ -3028,6 +3028,59 @@ li {
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+.aim-crosshair-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.aim-crosshair-option {
+  width: 48px;
+  height: 48px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  border: 2px solid transparent;
+  background: #16161b;
+  cursor: pointer;
+}
+
+.aim-crosshair-option.active {
+  border-color: #fff;
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.aim-trainer-crosshair-static-preview {
+  position: relative;
+  width: 16px;
+  height: 16px;
+}
+
+.aim-trainer-crosshair-static-preview::before,
+.aim-trainer-crosshair-static-preview::after {
+  content: '';
+  position: absolute;
+  background: #fff;
+}
+
+.aim-trainer-crosshair-static-preview::before {
+  left: 50%;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  transform: translateX(-50%);
+}
+
+.aim-trainer-crosshair-static-preview::after {
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 2px;
+  transform: translateY(-50%);
+}
+
 .aim-config-check {
   display: flex;
   align-items: center;
@@ -3078,6 +3131,16 @@ li {
   transform: translate(-50%, -50%);
   pointer-events: none;
   z-index: 10;
+}
+
+.aim-trainer-crosshair-custom {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  z-index: 10;
+  filter: drop-shadow(0 0 3px rgba(0, 0, 0, 0.9));
 }
 
 .aim-trainer-crosshair::before,
