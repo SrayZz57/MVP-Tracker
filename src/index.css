@@ -7840,8 +7840,12 @@ input[type='color'] {
 }
 
 .tournament-card-delete {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   width: 28px;
   height: 28px;
+  padding: 0;
   border-radius: 50%;
   background: rgba(0, 0, 0, 0.45);
   color: #fff;
