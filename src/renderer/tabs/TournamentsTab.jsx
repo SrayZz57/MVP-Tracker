@@ -3,7 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.js';
 import { useMapImages } from '../mapImages.js';
 import { useAgentPortraits } from '../agentIcons.js';
-import { pickSplash, pickAgentPortrait } from '../tournamentVisuals.js';
+import { pickSplash } from '../tournamentVisuals.js';
 import TournamentDetail from '../TournamentDetail.jsx';
 
 const STATUS_LABELS = {
@@ -12,6 +12,33 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
+// Panneau décoratif dans l'espace vide à droite de la liste — Neon en
+// vedette (thème électrique/néon, cohérent avec l'identité du module),
+// purement visuel, ne réagit à aucune donnée.
+function TournamentsPromo() {
+  const { t } = useTranslation();
+  const agentPortraits = useAgentPortraits();
+  const portrait = agentPortraits.get('Neon');
+
+  return (
+    <aside className="tournaments-promo">
+      <span className="tournaments-promo-watermark" aria-hidden="true">
+        {t('tournaments.promoWatermark')}
+      </span>
+      <div className="tournaments-promo-logo" aria-hidden="true">
+        <svg viewBox="0 0 24 24" width="28" height="28">
+          <path
+            fill="currentColor"
+            d="M4 3h16v2h-2v2a6 6 0 0 1-5 5.92V15h3v2H8v-2h3v-2.08A6 6 0 0 1 6 7V5H4V3Zm4 2v2a4 4 0 0 0 8 0V5H8Z"
+          />
+        </svg>
+        <span>{t('tournaments.promoTag')}</span>
+      </div>
+      {portrait && <img className="tournaments-promo-portrait" src={portrait} alt="" />}
+    </aside>
+  );
+}
+
 // Liste des tournois — sert de page d'entrée pour tous les comptes connectés
 // (pas encore une vraie page publique accessible sans compte, ça viendra
 // séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
@@ -19,7 +46,6 @@ const STATUS_LABELS = {
 function TournamentsTab({ myId, isAdmin }) {
   const { t } = useTranslation();
   const mapImages = useMapImages();
-  const agentPortraits = useAgentPortraits();
   const [tournaments, setTournaments] = useState([]);
   const [winnerNames, setWinnerNames] = useState(new Map());
   const [loading, setLoading] = useState(true);
@@ -84,34 +110,35 @@ function TournamentsTab({ myId, isAdmin }) {
   }
 
   return (
-    <div className="tournaments-list">
-      {tournaments.map((tournament, index) => {
-        const splash = pickSplash(tournament.id, mapImages);
-        const portrait = pickAgentPortrait(tournament.id, agentPortraits);
-        const winner = winnerNames.get(tournament.id);
-        return (
-          <button
-            key={tournament.id}
-            className="tournament-card"
-            style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
-            onClick={() => setSelectedId(tournament.id)}
-          >
-            {portrait && <img className="tournament-card-portrait" src={portrait} alt="" />}
-            <span className={`tournament-status-badge ${tournament.status}`}>
-              {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
-            </span>
-            <div className="tournament-card-content">
-              <span className="tournament-card-name">{tournament.name}</span>
-              {tournament.description && <p className="tournament-card-description">{tournament.description}</p>}
-              {tournament.status === 'completed' && winner && (
-                <p className="tournament-card-winner">
-                  <span aria-hidden="true">🏆</span> {t('tournaments.winner', { name: winner })}
-                </p>
-              )}
-            </div>
-          </button>
-        );
-      })}
+    <div className="tournaments-page">
+      <div className="tournaments-list">
+        {tournaments.map((tournament, index) => {
+          const splash = pickSplash(tournament.id, mapImages);
+          const winner = winnerNames.get(tournament.id);
+          return (
+            <button
+              key={tournament.id}
+              className="tournament-card"
+              style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
+              onClick={() => setSelectedId(tournament.id)}
+            >
+              <span className={`tournament-status-badge ${tournament.status}`}>
+                {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
+              </span>
+              <div className="tournament-card-content">
+                <span className="tournament-card-name">{tournament.name}</span>
+                {tournament.description && <p className="tournament-card-description">{tournament.description}</p>}
+                {tournament.status === 'completed' && winner && (
+                  <p className="tournament-card-winner">
+                    <span aria-hidden="true">🏆</span> {t('tournaments.winner', { name: winner })}
+                  </p>
+                )}
+              </div>
+            </button>
+          );
+        })}
+      </div>
+      <TournamentsPromo />
     </div>
   );
 }

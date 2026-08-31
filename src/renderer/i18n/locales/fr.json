@@ -27,6 +27,8 @@
     "empty": "Aucun tournoi pour l'instant.",
     "notFound": "Tournoi introuvable.",
     "winner": "Vainqueur : {{name}}",
+    "promoWatermark": "Tournoi",
+    "promoTag": "Compétition",
     "back": "Retour",
     "teamsCount": "{{count}}/{{max}} équipes",
     "registeredTeams": "Équipes inscrites",

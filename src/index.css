@@ -7478,7 +7478,7 @@ input[type='color'] {
   background-position: center;
   background-color: var(--surface, #17181f);
   border: 1px solid transparent;
-  transition: transform 0.25s var(--ease-out, ease), border-color 0.25s, background-size 0.4s var(--ease-out, ease);
+  transition: transform 0.25s var(--ease-out, ease), border-color 0.25s;
   animation: tournamentCardIn 0.45s var(--ease-out, ease) both;
   animation-delay: calc(var(--i, 0) * 0.07s);
 }
@@ -7527,7 +7527,6 @@ input[type='color'] {
 .tournament-card:hover {
   border-color: var(--accent, #ff4655);
   transform: translateY(-3px);
-  background-size: 112%;
 }
 
 .tournament-card .tournament-status-badge {
@@ -7599,26 +7598,103 @@ input[type='color'] {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
 
-/* Portrait d'agent en filigrane — affectation stable par tournoi (voir
-   pickAgentPortrait), positionné à droite et fondu sur la gauche pour ne
-   jamais gêner la lecture du titre. */
-.tournament-card-portrait {
-  position: absolute;
-  right: -0.5rem;
-  bottom: -6%;
-  height: 118%;
-  z-index: 0;
-  object-fit: contain;
-  object-position: bottom right;
-  opacity: 0.9;
-  -webkit-mask-image: linear-gradient(to left, black 42%, transparent 88%);
-  mask-image: linear-gradient(to left, black 42%, transparent 88%);
-  pointer-events: none;
-  transition: transform 0.4s var(--ease-out, ease);
+/* Page tournois : liste à gauche, panneau promo décoratif à droite dans
+   l'espace qui restait vide. */
+.tournaments-page {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
 }
 
-.tournament-card:hover .tournament-card-portrait {
-  transform: translateY(-4px) scale(1.03);
+.tournaments-page .tournaments-list {
+  flex: 1 1 auto;
+}
+
+/* Panneau promo : purement décoratif, Neon en vedette (thème néon/électrique),
+   grand texte "TOURNOI" en filigrane, logo maison (pas d'assets/wordmark
+   Riot). Reste discret sur petite fenêtre : caché sous une largeur donnée. */
+.tournaments-promo {
+  position: sticky;
+  top: 0;
+  flex: 0 0 300px;
+  width: 300px;
+  min-height: 520px;
+  border-radius: 18px;
+  overflow: hidden;
+  isolation: isolate;
+  background: radial-gradient(120% 90% at 20% 0%, #3d1f6e 0%, #1a0f3a 55%, #0b0716 100%);
+  animation: tournamentCardIn 0.5s var(--ease-out, ease) both;
+}
+
+@media (max-width: 1100px) {
+  .tournaments-promo {
+    display: none;
+  }
+}
+
+.tournaments-promo-watermark {
+  position: absolute;
+  top: 2.2rem;
+  left: -0.4rem;
+  z-index: 0;
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-weight: 700;
+  font-size: 3.6rem;
+  line-height: 0.9;
+  letter-spacing: 0.02em;
+  color: transparent;
+  -webkit-text-stroke: 1px rgba(255, 255, 255, 0.18);
+  text-transform: uppercase;
+  writing-mode: vertical-rl;
+  transform: rotate(180deg);
+  user-select: none;
+}
+
+.tournaments-promo-logo {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.25rem 1.25rem 0;
+  color: #d9c6ff;
+  filter: drop-shadow(0 0 10px rgba(179, 102, 255, 0.65));
+}
+
+.tournaments-promo-logo span {
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  font-size: 0.85rem;
+}
+
+.tournaments-promo-portrait {
+  position: absolute;
+  z-index: 1;
+  bottom: -4%;
+  left: 50%;
+  transform: translateX(-46%);
+  height: 108%;
+  object-fit: contain;
+  filter: drop-shadow(0 0 28px rgba(120, 60, 255, 0.55)) drop-shadow(0 0 60px rgba(255, 60, 220, 0.25));
+  animation: tournamentsPromoFloat 5s ease-in-out infinite;
+}
+
+@keyframes tournamentsPromoFloat {
+  0%,
+  100% {
+    transform: translateX(-46%) translateY(0);
+  }
+  50% {
+    transform: translateX(-46%) translateY(-10px);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournaments-promo-portrait {
+    animation: none;
+  }
 }
 
 /* Pas de max-width sur .tournament-detail lui-même : un enfant ne peut pas
