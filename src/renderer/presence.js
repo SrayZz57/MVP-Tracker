@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { supabase } from './supabaseClient.js';
 
-// Un seul canal partagé "qui est en ligne" — chaque client s'y annonce
+// Un seul canal partagé "qui est en ligne", chaque client s'y annonce
 // (track) et écoute la liste à jour des présents (sync). Pas de table ni de
 // polling : Supabase Realtime Presence gère ça nativement.
 export function useOnlinePresence(myId) {

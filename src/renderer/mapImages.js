@@ -6,7 +6,7 @@ let coordinatesCache = null;
 
 // L'endpoint /v1/maps renvoie aussi des maps d'entraînement/événements qui
 // n'existent pas en vrai partie (Skirmish A-E, District, Kasbah, Drift,
-// Glitch, Piazza, Basic Training, The Range) — vérifié via recherche du pool
+// Glitch, Piazza, Basic Training, The Range), vérifié via recherche du pool
 // de maps réel (compétitif + celles juste sorties de rotation mais toujours
 // jouables en Non classé/Swiftplay).
 const REAL_MAPS = new Set([
@@ -96,7 +96,7 @@ async function loadMapUrlToName() {
 }
 
 // `mapUrl` (ex. "/Game/Maps/Ascent/Ascent") est le format renvoyé par l'API
-// locale du client Valorant (`MapID` en sélection d'agent) — rien à voir avec
+// locale du client Valorant (`MapID` en sélection d'agent), rien à voir avec
 // le nom affiché ("Ascent") utilisé partout ailleurs dans l'appli pour
 // indexer les stats par map. Cette table fait le pont entre les deux.
 export function useMapUrlToName() {

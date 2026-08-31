@@ -39,7 +39,7 @@ function computeBucketStats(matches, name, tag) {
 }
 
 // Pas de donnée publique sur "la moyenne des joueurs de ton rang" (aucune API
-// ne l'expose) — impossible d'honnêtement comparer à une moyenne de
+// ne l'expose), impossible d'honnêtement comparer à une moyenne de
 // population. À la place, on compare tes RECENT_WINDOW derniers matchs à tes
 // matchs précédents : si tu joues nettement et durablement au-dessus de ta
 // propre moyenne historique récente, c'est un signal (pas une preuve) que tu

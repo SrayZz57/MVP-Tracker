@@ -5,7 +5,7 @@ const ROLE_NAMES = {
   sentinel: 'Sentinelle',
 };
 
-// Règles générales largement admises dans la communauté Valorant — des conseils,
+// Règles générales largement admises dans la communauté Valorant, des conseils,
 // pas un verdict garanti (aucune donnée de winrate par compo/map n'est disponible
 // publiquement pour aller plus loin que ça).
 export function analyzeComposition(agentNames, agentRoles) {
@@ -50,7 +50,7 @@ const NOTE_WEIGHT = { warning: -20, info: -8, good: 5 };
 
 // Score composite /100 = 50% équilibre des rôles + 50% "fit" map/agent
 // (avis communautaires figés, voir mapAgentTiers.js). Volontairement pas une
-// science exacte — combine deux estimations, pas des winrates mesurés.
+// science exacte, combine deux estimations, pas des winrates mesurés.
 export function scoreComposition(agentNames, mapName, agentRoles, getAgentMapTier) {
   const chosen = agentNames.filter(Boolean);
   if (chosen.length < 5 || !mapName) return null;

@@ -14,12 +14,12 @@ export function CollapsedBlocksProvider({ children }) {
   }, []);
 
   // Chargé au montage ET rappelé depuis App.jsx une fois le compte lié
-  // réellement connu (voir son effet sur `profile?.riot_puuid`) — au
+  // réellement connu (voir son effet sur `profile?.riot_puuid`), au
   // démarrage, ce puuid part de `null` le temps que le profil Supabase soit
   // rechargé, ce qui vide `linkedAccountPuuid` côté main.js entre-temps. Un
   // chargement une seule fois au montage pouvait donc tomber pile dans cette
   // fenêtre et lire "aucun bloc réduit" alors que les vraies données
-  // persistées existaient déjà sous le bon compte — d'où les blocs qui
+  // persistées existaient déjà sous le bon compte, d'où les blocs qui
   // semblaient "oublier" leur état réduit après un redémarrage.
   useEffect(() => {
     refresh();

@@ -9,7 +9,7 @@ function useValorantData(settings) {
 
   // Incrémenté à chaque changement de profil suivi. Une requête réseau lancée
   // pour un profil précédent peut répondre APRÈS que l'utilisateur soit déjà
-  // passé à un autre profil (ex. rate limit qui retarde la réponse) — sans ce
+  // passé à un autre profil (ex. rate limit qui retarde la réponse), sans ce
   // garde-fou, cette réponse tardive écraserait l'affichage du nouveau profil
   // avec les données de l'ancien.
   const requestIdRef = useRef(0);
@@ -38,7 +38,7 @@ function useValorantData(settings) {
     if (!settings) return;
     requestIdRef.current += 1;
     const requestId = requestIdRef.current;
-    // Vide tout de suite (synchrone) avant même de relire le cache — sinon,
+    // Vide tout de suite (synchrone) avant même de relire le cache, sinon,
     // le temps que les appels async ci-dessous répondent, le nom affiché en
     // haut peut déjà être le nouveau pendant que la photo/le rang à l'écran
     // sont encore ceux du profil précédent.

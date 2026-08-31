@@ -1,6 +1,6 @@
 // Codes publiés par des joueurs pro, récupérés sur thespike.gg/valorant/crosshairs/codes
 // (vérifiés : structure de code valide, pas de valeurs aberrantes). Plusieurs pros ont
-// changé de crosshair au fil du temps — les variantes sont numérotées (2nd, 3rd...).
+// changé de crosshair au fil du temps, les variantes sont numérotées (2nd, 3rd...).
 export const PRO_CROSSHAIRS = [
   { name: 'AAAAY', code: '0;P;h;0;0t;1;0l;4;0o;0;0a;1;0f;0;1b;0' },
   { name: 'Afajer', code: '0;s;1;P;c;5;o;1;d;1;z;3;0b;0;1b;0;S;s;0.628;o;1' },

@@ -73,6 +73,9 @@
      background-color. */
   --hover-veil: rgba(255, 255, 255, 0.055);
   --press-veil: inset 0 0 0 999px rgba(0, 0, 0, 0.2);
+
+  --skeleton-fill: rgba(255, 255, 255, 0.075);
+  --skeleton-sheen: rgba(255, 255, 255, 0.075);
 }
 
 * {
@@ -8959,7 +8962,7 @@ body:not(.overlay-window) .agent-select-dot {
   position: relative;
   display: inline-block;
   overflow: hidden;
-  background: var(--surface-alt);
+  background: var(--skeleton-fill);
   border-radius: var(--r-sm);
   color: transparent;
   -webkit-text-fill-color: transparent;
@@ -8970,7 +8973,7 @@ body:not(.overlay-window) .agent-select-dot {
   content: '';
   position: absolute;
   inset: 0;
-  background: linear-gradient(90deg, transparent, var(--hover-veil), transparent);
+  background: linear-gradient(90deg, transparent, var(--skeleton-sheen), transparent);
   transform: translateX(-100%);
   animation: skeleton-sheen var(--t-live) infinite;
 }
@@ -9054,7 +9057,7 @@ body:not(.overlay-window) .agent-select-dot {
 }
 
 .kpi-tile.is-skeleton {
-  background: var(--surface-alt);
+  background: none;
   border-color: var(--border);
 }
 
@@ -9062,14 +9065,13 @@ body:not(.overlay-window) .agent-select-dot {
   min-height: 360px;
   border-radius: var(--r-lg);
   border: 1px solid var(--border);
-  background-color: var(--surface-alt);
+  background-color: transparent;
 }
 
 .heatmap-grid-cell.skeleton {
   min-height: 44px;
   border-radius: 8px;
   border: 1px solid var(--border);
-  background: var(--surface-alt);
 }
 
 .card-picker-item.is-skeleton {

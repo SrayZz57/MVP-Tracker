@@ -1,6 +1,6 @@
 import { supabase } from './supabaseClient.js';
 
-// Objectifs, wishlist et collection de skins — liés au compte MVP Tracker
+// Objectifs, wishlist et collection de skins, liés au compte MVP Tracker
 // (Supabase) plutôt qu'au PC. Au tout premier chargement sur un compte,
 // si le cloud est vide, on regarde s'il existe encore des données locales
 // (ancien stockage electron-store) et on les fait migrer une seule fois,

@@ -8,7 +8,7 @@ import Button from './ui/Button';
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
 
 // Écran d'accueil affiché à chaque lancement une fois le compte lié. Deux
-// entrées côte à côte : consulter ses stats, ou s'échauffer avant de jouer —
+// entrées côte à côte : consulter ses stats, ou s'échauffer avant de jouer,
 // l'Aim Trainer étant surtout utile juste avant une session, c'est ici qu'il
 // a le plus de chances d'être lancé.
 function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther, onOpenAimTrainer }) {
@@ -70,16 +70,16 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
                     className="greeting-stat-value"
                     style={{ color: summary.winrate >= 50 ? '#3ddc84' : 'var(--accent)' }}
                   >
-                    {summary.winrate === null ? '—' : `${summary.winrate.toFixed(0)}%`}
+                    {summary.winrate === null ? '–' : `${summary.winrate.toFixed(0)}%`}
                   </span>
                   <span className="greeting-stat-label">{t('accountGreeting.statWinrate')}</span>
                 </div>
                 <div className="greeting-stat">
-                  <span className="greeting-stat-value">{summary.kd === null ? '—' : summary.kd.toFixed(2)}</span>
+                  <span className="greeting-stat-value">{summary.kd === null ? '–' : summary.kd.toFixed(2)}</span>
                   <span className="greeting-stat-label">{t('accountGreeting.statKd')}</span>
                 </div>
                 <div className="greeting-stat">
-                  <span className="greeting-stat-value">{summary.hs === null ? '—' : `${summary.hs.toFixed(0)}%`}</span>
+                  <span className="greeting-stat-value">{summary.hs === null ? '–' : `${summary.hs.toFixed(0)}%`}</span>
                   <span className="greeting-stat-label">{t('accountGreeting.statHs')}</span>
                 </div>
               </div>

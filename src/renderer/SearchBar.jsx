@@ -13,7 +13,7 @@ function SearchBar({ initialSettings, onSearch }) {
     // Pas de spread de `initialSettings` ici : une nouvelle recherche vise
     // potentiellement un tout autre profil, l'ancien `puuid` ne doit surtout
     // pas être recopié (sinon l'app croit encore regarder le profil précédent).
-    // La clé API n'est plus éditable ici (déplacée dans Mon compte) — on
+    // La clé API n'est plus éditable ici (déplacée dans Mon compte), on
     // réutilise simplement celle déjà connue.
     const settings = { name: name.trim(), tag: tag.trim(), apiKey };
     await window.electronAPI.saveSettings(settings);

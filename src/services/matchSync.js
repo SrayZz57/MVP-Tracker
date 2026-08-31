@@ -7,7 +7,7 @@ import { findMe, resultLabel, matchScore } from '../renderer/valorantStats.js';
 // Version asynchrone (déléguée au thread pool libuv) plutôt que
 // brotliCompressSync : le process principal d'Electron est mono-thread pour
 // le JS, donc une compression Brotli qualité 11 synchrone (la plus lente) le
-// bloquait entièrement pendant son calcul — chaque clic dans l'app devait
+// bloquait entièrement pendant son calcul, chaque clic dans l'app devait
 // alors attendre la fin de la compression en cours pour être traité, jusqu'à
 // ~2 minutes de délai perçu au premier lancement (jusqu'à 50 matchs à
 // compresser). Le résultat est identique, seul le thread qui fait le travail
@@ -29,18 +29,18 @@ const brotliCompress = promisify(zlib.brotliCompress);
 //     round, compressé en Brotli (~22 Ko/match mesuré en réel, ~35x plus
 //     petit que le brut), dans le bucket Storage "match-details"
 //
-// Toujours dans le dossier `{userId}/...` de l'utilisateur — c'est ce que
+// Toujours dans le dossier `{userId}/...` de l'utilisateur, c'est ce que
 // vérifient les policies RLS posées côté Supabase, aucun autre chemin ne
 // passerait de toute façon.
 //
 // ÉTAT CONNU (2026-08-31) : l'upload vers Storage échoue systématiquement en
 // ce moment ("row-level security policy", même avec une policy triviale ne
 // vérifiant que le rôle) alors que Postgrest, avec le MÊME jeton au même
-// instant, fonctionne normalement — vérifié en écartant toutes les causes
+// instant, fonctionne normalement, vérifié en écartant toutes les causes
 // côté appli (policies correctes en SQL brut, identité JWT/userId identique,
 // jeton rafraîchi juste avant l'appel, reproductible en curl pur en dehors
 // de l'appli). Tout pointe vers un désalignement de config JWT côté projet
-// Supabase (Storage vs Postgrest), pas vers ce code — probablement réglé par
+// Supabase (Storage vs Postgrest), pas vers ce code, probablement réglé par
 // un redémarrage du projet, pas encore fait pour ne pas couper les testeurs
 // en pleine session. Le détail complet reste donc pour l'instant
 // indisponible ; l'échec est isolé (catch dans la boucle) pour ne PAS
@@ -90,7 +90,7 @@ async function removeFromStorage(accessToken, paths) {
 /**
  * Synchronise jusqu'à 100 matchs (résumé) dont 50 avec le détail complet.
  * `matches` : déjà triés ou non, on trie nous-mêmes par date décroissante.
- * Ne lève jamais d'exception vers l'appelant — un souci réseau ponctuel ne
+ * Ne lève jamais d'exception vers l'appelant, un souci réseau ponctuel ne
  * doit pas faire échouer le rafraîchissement des matchs qui a déclenché ça.
  */
 export async function syncMatches({ matches, name, tag, userId, accessToken }) {
@@ -125,7 +125,7 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
       // On ne recompresse/ré-uploade jamais un match déjà présent : un match
       // terminé ne change plus, inutile de repayer le travail à chaque sync.
       // Un échec d'upload (voir note en tête de fichier) ne doit PAS priver
-      // le résumé léger, qui lui fonctionne — juste noter que le détail
+      // le résumé léger, qui lui fonctionne, juste noter que le détail
       // complet n'est pas dispo pour ce match.
       if (wantsDetail && !alreadyHasDetail) {
         try {
@@ -163,7 +163,7 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
     }
 
     // Purge : ne garder que les 100 résumés (et donc, parmi eux, au plus 50
-    // détails complets) les plus récents — un nouveau match en fait sortir
+    // détails complets) les plus récents, un nouveau match en fait sortir
     // un ancien, des deux côtés (table + Storage).
     const keptIds = new Set(rows.map((r) => r.match_id));
     const toDelete = [...existingIds].filter((id) => !keptIds.has(id));

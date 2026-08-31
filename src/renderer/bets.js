@@ -20,7 +20,7 @@ export function describeBet(t, type, threshold) {
 }
 
 // Compare un pari (type + seuil) à ce qui s'est réellement passé dans le
-// prochain match joué après le pari — pas de négatif si perdu, juste 0 point
+// prochain match joué après le pari, pas de négatif si perdu, juste 0 point
 // (l'esprit reste ludique, pas punitif).
 export function evaluateBet(type, threshold, match, name, tag) {
   const me = findMe(match, name, tag);

@@ -10,9 +10,9 @@ function bucket(score) {
 }
 
 // Combinaisons de buckets (agressivité/stabilité/polyvalence/clutch) → un
-// simple archétype (clé i18n) — le vrai titre/texte est résolu à l'affichage
+// simple archétype (clé i18n), le vrai titre/texte est résolu à l'affichage
 // dans PlayerProfileCard.jsx via t('profile.archetypes.<key>.*'), pour rester
-// traduisible. Règles simples et lisibles, pas un modèle prédictif — juste
+// traduisible. Règles simples et lisibles, pas un modèle prédictif, juste
 // une façon de résumer 4 scores dérivés de vraies stats en une phrase.
 function describeProfile({ aggression, stability, versatility, clutch }) {
   const a = bucket(aggression);
@@ -27,7 +27,7 @@ function describeProfile({ aggression, stability, versatility, clutch }) {
 
   // "v=high && s=high" à lui seul regroupait une trop grande part des joueurs
   // (beaucoup de comptes actifs cumulent naturellement pas mal d'agents
-  // différents et peu de séries de défaites) — sous-découpé via clutch et
+  // différents et peu de séries de défaites), sous-découpé via clutch et
   // agressivité pour répartir ce cluster sur plusieurs profils au lieu d'un.
   if (v === 'high' && s === 'high' && c === 'high') return 'clutchAllrounder';
   if (v === 'high' && s === 'high' && a === 'low') return 'quietFlexible';

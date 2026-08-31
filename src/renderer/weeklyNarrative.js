@@ -98,7 +98,7 @@ function rankParagraph(t, currentRank, previousRank) {
     : t('weekly.narrative.rankDown', { previous: previousText, current: currentText });
 }
 
-// Génère 2-3 paragraphes à partir de règles simples (pas d'IA générative) —
+// Génère 2-3 paragraphes à partir de règles simples (pas d'IA générative),
 // même logique que playerProfile.js : combiner des vraies stats en phrases
 // lisibles, avec de la variation selon les tranches de valeurs. `t` reçu en
 // paramètre : le texte est figé dans la langue active au moment de la

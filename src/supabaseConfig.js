@@ -1,8 +1,8 @@
 // Partagé entre le renderer (src/renderer/supabaseClient.js, session utilisateur)
 // et le process principal (src/services/matchSync.js, écrit avec le jeton de
-// cette session) — un seul endroit à mettre à jour si la clé change un jour.
+// cette session), un seul endroit à mettre à jour si la clé change un jour.
 //
-// La clé "anon public" est faite pour être embarquée côté client — la vraie
+// La clé "anon public" est faite pour être embarquée côté client, la vraie
 // sécurité des données vient des règles RLS configurées côté Supabase, pas
 // du secret de cette clé (voir la doc Supabase sur ce point).
 export const SUPABASE_URL = 'https://hbfqtrqztyrnsqrrvmep.supabase.co';

@@ -18,7 +18,7 @@ function periodOf(match) {
 export { PERIODS };
 
 // Grille jour de la semaine × moment de la journée (4 créneaux plutôt que les
-// 8 tranches de 3h utilisées ailleurs — sinon la grille est trop clairsemée
+// 8 tranches de 3h utilisées ailleurs, sinon la grille est trop clairsemée
 // avec un historique de quelques dizaines de matchs).
 export function computeDayPeriodGrid(matches, name, tag) {
   const cells = new Map(); // "Lundi|morning" -> { games, wins }

@@ -4,7 +4,7 @@ import fr from './locales/fr.json';
 import en from './locales/en.json';
 
 // Langue posée de façon synchrone dès le premier rendu (avant même le fetch
-// IPC de la préférence sauvegardée) — évite un flash en français le temps
+// IPC de la préférence sauvegardée), évite un flash en français le temps
 // que electron-store réponde. App.jsx corrige ensuite avec la vraie valeur
 // persistée via `changeLanguage()`.
 i18n.use(initReactI18next).init({

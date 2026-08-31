@@ -15,7 +15,7 @@ const LATENCY_REGEX = /(?:temps|time)[=<](\d+)/i;
 
 // Le lockfile ("name:pid:port:password:protocol") n'est pas toujours effacé
 // proprement à la fermeture de Riot (crash, fermeture forcée, session Windows
-// coupée) — sa seule présence sur le disque ne prouve donc pas que le client
+// coupée), sa seule présence sur le disque ne prouve donc pas que le client
 // tourne encore, seulement qu'il a tourné à un moment donné. On vérifie en
 // plus que le PID qu'il contient correspond à un processus toujours actif.
 export function isValorantRunning() {
@@ -42,7 +42,7 @@ export function isValorantRunning() {
 
 // `execFile` plutôt que `exec` : `exec` passe systématiquement par un shell
 // (cmd.exe sous Windows) pour interpréter la commande, ce qui veut dire
-// démarrer un interpréteur de commande complet en plus du ping lui-même —
+// démarrer un interpréteur de commande complet en plus du ping lui-même,
 // à chaque appel, toutes les 5 secondes tant que Valorant tourne (voir
 // main.js). `execFile` lance directement ping.exe, sans shell intermédiaire.
 // Aucune fonctionnalité shell n'était utilisée ici (pas de pipe, pas de

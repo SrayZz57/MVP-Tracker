@@ -1,4 +1,4 @@
-// Logique pure de génération/lecture du bracket à élimination directe —
+// Logique pure de génération/lecture du bracket à élimination directe,
 // aucun appel réseau ici, juste des transformations de données, pour rester
 // facile à vérifier indépendamment de Supabase.
 
@@ -23,7 +23,7 @@ function shuffle(array) {
  * des byes dans l'arbre.
  *
  * Byes : si le nombre d'équipes n'est pas une puissance de 2, on complète
- * jusqu'à la puissance de 2 supérieure avec des emplacements vides — une
+ * jusqu'à la puissance de 2 supérieure avec des emplacements vides, une
  * équipe qui tombe face à un emplacement vide gagne son match automatiquement
  * (`is_bye: true`, `winner_id` déjà renseigné) SANS qu'aucun admin n'ait à
  * intervenir. Seul le premier tour peut contenir des byes : à partir du tour
@@ -36,11 +36,11 @@ export function generateBracketRows(tournamentId, teamIds) {
 
   // byeCount est toujours < bracketSize/2 (nombre de matchs du tour 1) : la
   // puissance de 2 supérieure ne peut jamais demander plus de la moitié des
-  // matchs en byes. On construit donc chaque bye à part — une vraie équipe
-  // face à un emplacement vide — PLUTÔT que de mélanger équipes et vides
+  // matchs en byes. On construit donc chaque bye à part, une vraie équipe
+  // face à un emplacement vide, PLUTÔT que de mélanger équipes et vides
   // dans un même tirage : un mélange global peut, par pur hasard, faire
   // tomber deux emplacements vides dans le même match (un "match" sans
-  // aucune équipe, qui ne progresse jamais) — bug réel rencontré en testant
+  // aucune équipe, qui ne progresse jamais), bug réel rencontré en testant
   // avec 6 équipes avant ce correctif.
   const shuffled = shuffle(teamIds);
   const byeTeams = shuffled.slice(0, byeCount);
@@ -77,7 +77,7 @@ export function generateBracketRows(tournamentId, teamIds) {
     }
   }
 
-  // Propage les vainqueurs de byes du tour 1 vers le tour 2 — le seul cas où
+  // Propage les vainqueurs de byes du tour 1 vers le tour 2, le seul cas où
   // un tour 2+ peut être partiellement rempli dès la génération.
   const round1ByesWithWinner = rows.filter((r) => r.round === 1 && r.winner_id);
   for (const bye of round1ByesWithWinner) {

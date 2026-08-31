@@ -73,7 +73,7 @@ export function summarizeRoundBuys(rounds) {
 }
 
 // Certains matchs en cache n'ont pas le joueur suivi dans leur roster (AFK,
-// changement de pseudo...) — les exclure ici plutôt que de laisser
+// changement de pseudo...), les exclure ici plutôt que de laisser
 // analyzeRoundBuys() renvoyer silencieusement une liste vide pour un match
 // sélectionné par défaut.
 export function listMatchesWithRounds(matches, name, tag) {
@@ -97,7 +97,7 @@ function bestAffordableWeapon(weapons, budget) {
 }
 
 // Règles générales d'économie (pas une science exacte, ni des prix de
-// capacités d'agent — non exposés par l'API) : priorise le bouclier complet
+// capacités d'agent, non exposés par l'API) : priorise le bouclier complet
 // s'il reste la place pour une arme correcte, sinon bouclier léger, sinon
 // arme seule. Le "en fonction de ton agent" se limite à un conseil de
 // priorité selon le rôle (donnée réelle), pas à des capacités précises.

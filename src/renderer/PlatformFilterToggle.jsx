@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
 
-// N'affiche rien si `platforms` est vide (compte mono-plateforme) — voir
+// N'affiche rien si `platforms` est vide (compte mono-plateforme), voir
 // usePlatformFilter.js pour la détection.
 function PlatformFilterToggle({ platforms, platform, onChange }) {
   const { t } = useTranslation();

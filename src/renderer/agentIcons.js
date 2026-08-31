@@ -75,7 +75,7 @@ export function useAgentRoles() {
   return roles;
 }
 
-// Données brutes complètes (rôle, description, capacités avec description) —
+// Données brutes complètes (rôle, description, capacités avec description),
 // pour le wiki, qui a besoin de plus que les Maps ciblées des autres hooks.
 export function useAgentsData() {
   const [agents, setAgents] = useState([]);

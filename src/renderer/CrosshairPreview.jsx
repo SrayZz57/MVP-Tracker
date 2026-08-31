@@ -13,7 +13,7 @@ const PALETTE_HEX = {
 };
 
 // @valapi/crosshair a un bug qui empêche l'import correct des champs de type
-// "couleur" (String) — on décode donc nous-mêmes le code, en se basant sur le
+// "couleur" (String), on décode donc nous-mêmes le code, en se basant sur le
 // vrai format et les vraies valeurs par défaut lus dans son code source.
 const PRIMARY_FIELDS = {
   b: { type: 'bool', default: 0 },

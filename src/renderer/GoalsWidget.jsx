@@ -29,7 +29,7 @@ function currentMetricValue(goal, matches, settings) {
 }
 
 // Un objectif déjà proposé (ajouté ou non, terminé ou non) sur le même
-// sujet ne doit pas être re-proposé — sinon un objectif déjà réussi une
+// sujet ne doit pas être re-proposé, sinon un objectif déjà réussi une
 // fois peut être ré-ajouté et re-marqué "atteint" à l'infini.
 function alreadyCovered(existingGoals, metric, subject) {
   return existingGoals.some(

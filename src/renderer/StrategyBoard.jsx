@@ -36,7 +36,7 @@ function genMarkerId() {
 // de sa bounding box (x:0.5, y:0), ce qui correspond exactement à la pointe
 // du cône (le rayon central de buildSightlinePoints() passe par ce point).
 // L'action pivote autour de l'ancrage réel de l'objet (getPositionByOrigin),
-// pas autour de son centre visuel — contrairement à la poignée 'mtr' par
+// pas autour de son centre visuel, contrairement à la poignée 'mtr' par
 // défaut de Fabric, qui pivote toujours au centre et ferait dériver la
 // pointe hors de la position du joueur.
 function renderSightlineRotateHandle(ctx, left, top, styleOverride, fabricObject) {
@@ -392,7 +392,7 @@ function StrategyBoard() {
 
   // Adapte la taille AFFICHÉE du canvas à la taille de son conteneur (donc à
   // la fenêtre de l'app), sans toucher à sa résolution interne (VIEWPORT_SIZE)
-  // — les coordonnées des objets (dessins, icônes, stratégies sauvegardées)
+  //, les coordonnées des objets (dessins, icônes, stratégies sauvegardées)
   // restent donc valables quelle que soit la taille de la fenêtre.
   useEffect(() => {
     const wrap = canvasWrapRef.current;
@@ -483,7 +483,7 @@ function StrategyBoard() {
     canvas.setViewportTransform([...initialViewportRef.current]);
   }
 
-  // Taille fixée une fois, à la pose, en unités de la carte — pas à l'écran :
+  // Taille fixée une fois, à la pose, en unités de la carte, pas à l'écran :
   // l'icône doit rester à la même taille RELATIVEMENT à la carte, donc suivre
   // le zoom exactement comme la carte elle-même, sans compensation.
   function placeStamp(objectFactory, layerType, scale, origin = { originX: 'center', originY: 'center' }) {
@@ -543,7 +543,7 @@ function StrategyBoard() {
     });
     // Rotation libre via une poignée custom ancrée sur la position (pas le
     // centre de la forme comme le ferait la poignée 'mtr' par défaut de
-    // Fabric) — voir attachSightlineControls(). Les boutons ↺/↻ restent
+    // Fabric), voir attachSightlineControls(). Les boutons ↺/↻ restent
     // disponibles pour des ajustements précis en plus du glisser-déposer.
     attachSightlineControls(cone);
     tagLayer(cone, 'icons');

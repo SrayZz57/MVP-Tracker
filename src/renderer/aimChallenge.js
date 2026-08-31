@@ -2,7 +2,7 @@ import { MODES } from './AimTrainerGame.jsx';
 
 // Défi du jour : mêmes réglages pour tout le monde, dérivés uniquement de la
 // date. Aucun aléa réel, donc aucun besoin de synchroniser quoi que ce soit
-// entre les joueurs — deux personnes qui ouvrent l'app le même jour obtiennent
+// entre les joueurs, deux personnes qui ouvrent l'app le même jour obtiennent
 // exactement le même défi, et le classement est comparable.
 function hashDate(dateKey) {
   let hash = 0;

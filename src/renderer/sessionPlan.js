@@ -33,7 +33,7 @@ function suggestWarmup(t, slotStats) {
 }
 
 // Génère le plan de session : échauffement, map/stratégie à revoir, état de
-// tilt, et un objectif du jour concret — le tout dérivé des modules déjà
+// tilt, et un objectif du jour concret, le tout dérivé des modules déjà
 // existants (Perf & Forme, Tilt, historique de matchs), sans nouvel appel API.
 // `t` reçu en paramètre : le texte généré est figé dans la langue active au
 // moment du lancement de la session (même pattern que weeklyNarrative.js).

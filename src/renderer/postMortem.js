@@ -2,7 +2,7 @@ import { findMe, hitStats, excludeDeathmatch, formStats, overallHsPercent } from
 
 // 3 questions simples, chacune avec 3 niveaux de réponse. Chaque réponse est
 // comparée à un signal réel du match (K/D vs moyenne perso, kills/deaths du
-// match, précision tête vs moyenne perso) — pas de jugement de "bon jeu" dans
+// match, précision tête vs moyenne perso), pas de jugement de "bon jeu" dans
 // l'absolu, juste un écart perception / stats mesurables.
 // `textKey`/id de niveau restent des codes internes traduits à l'affichage
 // (via t()), jamais comparés en tant que texte affiché.
@@ -18,7 +18,7 @@ export const ANSWER_LEVELS = [
   { id: 'non', labelKey: 'postmortem.answers.no' },
 ];
 
-// Position de chaque niveau sur une échelle — sert à mesurer l'ÉCART entre la
+// Position de chaque niveau sur une échelle, sert à mesurer l'ÉCART entre la
 // réponse du joueur et la réalité calculée, pas juste "égal ou pas égal".
 // Répondre "Oui" quand la réalité est "Moyen" n'est pas la même erreur que
 // répondre "Oui" quand la réalité est "Non" (contradiction franche) : le
@@ -36,7 +36,7 @@ export function computeActualAnswers(match, allMatches, name, tag) {
   const matchKd = deaths > 0 ? kills / deaths : kills;
 
   // Exclut CE match des matchs de référence : comparer contre une moyenne
-  // qui l'inclut déjà biaise la comparaison, surtout avec peu d'historique —
+  // qui l'inclut déjà biaise la comparaison, surtout avec peu d'historique,
   // un joueur qui n'a AUCUN autre match aurait toujours un ratio de pile 1.0
   // quel que soit son score, la "moyenne" étant alors exactement lui-même
   // (bucket 'moyen' garanti, jamais 'oui' même sur un carry). Sur un compte
@@ -80,7 +80,7 @@ export function gradeAnswers(userAnswers, actualAnswers) {
       userAnswer,
       actual,
       correct: bothKnown ? distance === 0 : null,
-      // Un seul cran d'écart (Oui/Moyen ou Moyen/Non) — le joueur n'était pas
+      // Un seul cran d'écart (Oui/Moyen ou Moyen/Non), le joueur n'était pas
       // dans l'erreur, juste optimiste ou pessimiste sur l'ampleur. Absent
       // (undefined → faux) sur les évaluations enregistrées avant ce
       // correctif : elles continuent de s'afficher correct/faux comme avant,

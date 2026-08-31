@@ -1,7 +1,7 @@
 import { Swords, Zap, Shield, Wallet } from 'lucide-react';
 import { excludeDeathmatch, findMe, ECONOMY_TIERS, attackerTeamByRound } from './valorantStats.js';
 
-// Deux options poussent vers un engagement rapide, deux vers la prudence —
+// Deux options poussent vers un engagement rapide, deux vers la prudence,
 // pour rester honnête, le "bucket" auquel une option est associée est la
 // seule chose comparée à la réalité, pas un jugement de "bonne tactique"
 // dans l'absolu (impossible à établir avec les seules données de match).

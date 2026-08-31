@@ -5,7 +5,7 @@ import { useEffect, useRef, useState } from 'react';
 // plus long ferait rater des changements.
 const POLL_MS = 4000;
 
-// Riot n'expose aucun signal "le round a commencé, tu peux bouger" — l'API
+// Riot n'expose aucun signal "le round a commencé, tu peux bouger", l'API
 // core-game reste active du chargement jusqu'à la fin du match, sans
 // distinction. On masque donc nous-mêmes, à l'ancienneté, un délai fixe
 // après l'apparition des adversaires (signe que le chargement est bien

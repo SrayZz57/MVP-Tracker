@@ -1,5 +1,5 @@
 // Coûts en crédits des capacités achetables (Ability 1, Ability 2, Grenade/
-// Signature — jamais l'Ultimate, qui se charge par kills/orbes/temps, pas
+// Signature, jamais l'Ultimate, qui se charge par kills/orbes/temps, pas
 // avec des crédits). Recherchés le 2026-08-17 sur le wiki officiel Riot
 // (wiki.playvalorant.com/en-us/Abilities) et croisés avec les vrais noms de
 // capacités par slot (valorant-api.com) pour éviter toute erreur d'association.
@@ -9,11 +9,11 @@
 // ne sont pas encore documentés par la source utilisée, et quelques agents au
 // kit atypique (Astra, Clove, Cypher, Deadlock, Fade, Gekko, Harbor, Iso,
 // KAY/O, Killjoy) ont une capacité dont le coût n'a pas pu être confirmé avec
-// certitude — pas de valeur inventée pour combler ces trous.
+// certitude, pas de valeur inventée pour combler ces trous.
 export const ABILITY_COSTS_SOURCE_DATE = '2026-08-17';
 
 // 0 = capacité gratuite (signature). Reyna : Devour/Dismiss partagent le même
-// pool de charges (Œil d'âme) — les deux sont listées au même coût par charge.
+// pool de charges (Œil d'âme), les deux sont listées au même coût par charge.
 export const AGENT_ABILITY_COSTS = {
   Breach: { Ability1: 250, Ability2: 0, Grenade: 200 },
   Brimstone: { Ability1: 250, Ability2: 100, Grenade: 200 },
@@ -37,7 +37,7 @@ export const AGENT_ABILITY_COSTS = {
 const PAID_SLOTS = ['Ability1', 'Ability2', 'Grenade'];
 
 // Combine le coût (par slot, ci-dessus) avec le nom/icône réel de la capacité
-// pour cet agent (déjà récupéré en français ailleurs dans l'app) — jointure
+// pour cet agent (déjà récupéré en français ailleurs dans l'app), jointure
 // par slot, jamais par nom, donc valable quelle que soit la langue.
 export function agentAbilityBudget(agentName, abilitiesForAgent) {
   const costs = AGENT_ABILITY_COSTS[agentName];

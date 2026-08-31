@@ -47,7 +47,7 @@ function findBestAce(matches, name, tag) {
 }
 
 // Plus longue série de victoires jamais observée dans l'historique (pas
-// seulement la série en cours) — rejoue les résultats en ordre chronologique.
+// seulement la série en cours), rejoue les résultats en ordre chronologique.
 function findLongestWinStreak(matches, name, tag) {
   const chronological = [...excludeDeathmatch(matches)].reverse();
   let bestStreak = 0;
@@ -180,7 +180,7 @@ function findBestKillsMatch(matches, name, tag) {
 }
 
 // Kill le plus lointain jamais enregistré (mêmes coordonnées/conversion que
-// duelDistanceStats — voir killDistance() dans valorantStats.js).
+// duelDistanceStats, voir killDistance() dans valorantStats.js).
 function findBestKillDistance(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
@@ -215,7 +215,7 @@ function countAgentDiversity(matches, name, tag) {
   return agents.size;
 }
 
-// Meilleur "match parfait" : victoire sans être mort une seule fois — on
+// Meilleur "match parfait" : victoire sans être mort une seule fois, on
 // garde celui avec le plus de kills parmi ces occurrences.
 function findBestPerfectMatch(matches, name, tag) {
   let best = null;
@@ -304,7 +304,7 @@ function careerCounters(matches, name, tag) {
   };
 }
 
-// Nombre de spikes posés / désamorcés par le joueur suivi — plant_events et
+// Nombre de spikes posés / désamorcés par le joueur suivi, plant_events et
 // defuse_events n'existent que sur le round où l'action a eu lieu (sinon les
 // champs sont null), pas besoin de reconstruire quoi que ce soit.
 function countSpikeActions(matches, name, tag) {
