@@ -7508,16 +7508,18 @@ input[type='color'] {
   font-size: 0.85rem;
 }
 
-.tournament-detail {
+/* Pas de max-width sur .tournament-detail lui-même : un enfant ne peut pas
+   dépasser la largeur de son parent juste en retirant SA propre limite — il
+   faut que le conteneur général reste libre, et brider uniquement les
+   sections qui doivent rester étroites (formulaires, listes). Le bracket a
+   besoin de toute la largeur disponible dès qu'il y a plusieurs tours
+   (chaque tour ajoute ~250px) : sur 3+ tours, 640px coupait carrément la
+   finale hors du cadre visible. */
+.tournament-registration,
+.tournament-teams-list,
+.tournament-admin-approvals,
+.tournament-admin-add-team {
   max-width: 640px;
-}
-
-/* Le bracket a besoin de bien plus de largeur qu'un formulaire dès qu'il y a
-   plusieurs tours (chaque tour ajoute ~250px) — il sort volontairement du
-   cadre étroit du reste de la page plutôt que de forcer un scroll horizontal
-   inutile pour seulement 2-3 colonnes. */
-.tournament-bracket-section {
-  max-width: none;
 }
 
 .link-back {
