@@ -1,9 +1,13 @@
-// Le Combat à mort n'a pas d'équipes/de winrate, et une partie perso a des
-// réglages libres (bots, rounds illimités, règles modifiées) — les deux
-// faussent les stats qui en dépendent (par agent, par map, par tranche
-// horaire, par jour, K/D global, records...), pas les stats PAR MODE (où
-// ils restent des catégories légitimes à afficher, voir StatsTab qui liste
-// les modes depuis les matchs bruts, sans passer par cette fonction).
+// Le Combat à mort n'a pas d'équipes/de winrate, une partie perso a des
+// réglages libres (bots, rounds illimités, règles modifiées), et l'Escalade
+// (mode_id 'ggteam' — nom interne Riot "GunGame") n'a ni rounds classiques ni
+// équipes 5v5 (les "rounds" y correspondent à des paliers d'arme, avec
+// respawns en continu) — les trois faussent les stats qui en dépendent (par
+// agent, par map, par tranche horaire, par jour, K/D global, records comme
+// le meilleur ace...), pas les stats PAR MODE (où ils restent des catégories
+// légitimes à afficher, voir StatsTab qui liste les modes depuis les matchs
+// bruts, sans passer par cette fonction). Signalé en vrai : un "meilleur ace"
+// à 23 kills en un round, provenant d'un match d'Escalade.
 // HenrikDev renvoie mode_id = "" (chaîne vide) pour une partie perso, pas
 // "custom" — repéré en inspectant les vrais matchs stockés localement, où
 // aucune partie perso n'avait jamais mode_id === 'custom'. Les skirmish
@@ -11,7 +15,11 @@
 // perso.
 export function excludeDeathmatch(matches) {
   return matches.filter(
-    (m) => m.metadata?.mode_id !== 'deathmatch' && m.metadata?.mode_id !== 'custom' && m.metadata?.mode_id !== '',
+    (m) =>
+      m.metadata?.mode_id !== 'deathmatch' &&
+      m.metadata?.mode_id !== 'custom' &&
+      m.metadata?.mode_id !== '' &&
+      m.metadata?.mode_id !== 'ggteam',
   );
 }
 
