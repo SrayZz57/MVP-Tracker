@@ -223,7 +223,11 @@ function TournamentsTab({ myId, isAdmin }) {
         {tournaments.length === 0 ? (
           <div className="tournaments-empty-state">
             <span className="tournaments-empty-icon" aria-hidden="true">
-              <svg viewBox="0 0 24 24" width="48" height="48">
+              {/* Même dessin que le logo du panneau promo, mais recadré : le
+                  trophée n'occupe que le haut d'un cadre 24x24 (y de 3 à
+                  17) — laissé tel quel là où l'icône est à côté d'un texte,
+                  mais visiblement pas centré une fois seule dans son cadre. */}
+              <svg viewBox="4 2 16 16" width="48" height="48">
                 <path
                   fill="currentColor"
                   d="M4 3h16v2h-2v2a6 6 0 0 1-5 5.92V15h3v2H8v-2h3v-2.08A6 6 0 0 1 6 7V5H4V3Zm4 2v2a4 4 0 0 0 8 0V5H8Z"
