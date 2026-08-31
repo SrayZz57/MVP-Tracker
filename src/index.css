@@ -7407,3 +7407,87 @@ input[type='color'] {
   background: rgba(150, 150, 150, 0.15);
   color: var(--text-muted);
 }
+
+.tournaments-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  max-width: 640px;
+}
+
+.tournament-card {
+  text-align: left;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius, 8px);
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid transparent;
+}
+
+.tournament-card:hover {
+  border-color: var(--accent, #ff4655);
+}
+
+.tournament-card-name {
+  font-weight: 700;
+  font-size: 1.05rem;
+}
+
+.tournament-card-description {
+  flex-basis: 100%;
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
+.tournament-detail {
+  max-width: 640px;
+}
+
+.link-back {
+  background: none;
+  border: none;
+  color: var(--text-muted);
+  padding: 0;
+  margin-bottom: 1rem;
+}
+
+.link-back:hover {
+  color: var(--accent, #ff4655);
+}
+
+.tournament-teams-list,
+.tournament-registration {
+  margin-top: 1.5rem;
+}
+
+.team-roster-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  max-width: 480px;
+}
+
+.team-roster-player-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.team-roster-player-row input {
+  width: 100%;
+}
+
+.tournament-team-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin-top: 0.75rem;
+}
+
+.button-danger {
+  background: rgba(255, 70, 85, 0.13);
+  color: var(--accent, #ff4655);
+}

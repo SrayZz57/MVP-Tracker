@@ -1,7 +1,6 @@
 {
   "admin": {
     "title": "Administration",
-    "placeholder": "The Tournament module will plug in here.",
     "tournaments": {
       "createTitle": "Create a tournament",
       "name": "Tournament name",
@@ -23,6 +22,33 @@
       }
     }
   },
+  "tournaments": {
+    "loading": "Loading…",
+    "empty": "No tournaments yet.",
+    "notFound": "Tournament not found.",
+    "back": "Back",
+    "teamsCount": "{{count}}/{{max}} teams",
+    "registeredTeams": "Registered teams",
+    "noTeamsYet": "No team registered yet.",
+    "yourTeam": "Your team",
+    "registerTeam": "Register your team",
+    "teamName": "Team name",
+    "playersHint": "The {{count}} team players (full Riot ID, e.g. Name#TAG)",
+    "riotName": "Name",
+    "riotTag": "Tag",
+    "register": "Register team",
+    "editTeam": "Edit team",
+    "saveChanges": "Save changes",
+    "cancel": "Cancel",
+    "withdraw": "Withdraw team",
+    "saving": "Saving…",
+    "registrationClosed": "Registration closed.",
+    "status": {
+      "registration": "Registration open",
+      "ongoing": "Ongoing",
+      "completed": "Completed"
+    }
+  },
   "collapsible": {
     "collapse": "Collapse",
     "expand": "Expand"
@@ -37,12 +63,14 @@
       "performance": "Performance",
       "myAccount": "My account",
       "network": "Network",
+      "tournaments": "Tournaments",
       "training": "Training",
       "tools": "Tools",
       "admin": "Administration"
     },
     "tabs": {
       "admin": "Administration",
+      "tournaments": "Tournaments",
       "stats": "Stats",
       "form": "Perf & Form",
       "tilt": "Tilt",

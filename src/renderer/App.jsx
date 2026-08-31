@@ -34,6 +34,7 @@ import AccountAuth from './AccountAuth.jsx';
 import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
 import AccountPage from './AccountPage.jsx';
 import AdminPage from './AdminPage.jsx';
+import TournamentsTab from './tabs/TournamentsTab.jsx';
 import MessagesTab from './tabs/MessagesTab.jsx';
 import FriendsTab from './tabs/FriendsTab.jsx';
 import { supabase } from './supabaseClient.js';
@@ -68,6 +69,10 @@ const NAV_SECTIONS = [
   {
     sectionKey: 'nav.sections.network',
     tabs: [{ id: 'reseau', labelKey: 'nav.tabs.network', icon: '📶' }],
+  },
+  {
+    sectionKey: 'nav.sections.tournaments',
+    tabs: [{ id: 'tournaments', labelKey: 'nav.tabs.tournaments', icon: '🏆' }],
   },
   {
     sectionKey: 'nav.sections.training',
@@ -630,6 +635,8 @@ function App() {
         return <FormTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'reseau':
         return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={data.pingSamples} myId={session.user.id} />;
+      case 'tournaments':
+        return <TournamentsTab myId={session.user.id} />;
       case 'tilt':
         return <TiltTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'crosshairs':

@@ -1,7 +1,6 @@
 {
   "admin": {
     "title": "Administration",
-    "placeholder": "Le module Tournoi viendra se brancher ici.",
     "tournaments": {
       "createTitle": "Créer un tournoi",
       "name": "Nom du tournoi",
@@ -23,6 +22,33 @@
       }
     }
   },
+  "tournaments": {
+    "loading": "Chargement…",
+    "empty": "Aucun tournoi pour l'instant.",
+    "notFound": "Tournoi introuvable.",
+    "back": "Retour",
+    "teamsCount": "{{count}}/{{max}} équipes",
+    "registeredTeams": "Équipes inscrites",
+    "noTeamsYet": "Aucune équipe inscrite pour l'instant.",
+    "yourTeam": "Ton équipe",
+    "registerTeam": "Inscrire ton équipe",
+    "teamName": "Nom de l'équipe",
+    "playersHint": "Les {{count}} joueurs de l'équipe (Riot ID complet, ex. Nom#TAG)",
+    "riotName": "Pseudo",
+    "riotTag": "Tag",
+    "register": "Inscrire l'équipe",
+    "editTeam": "Modifier l'équipe",
+    "saveChanges": "Enregistrer",
+    "cancel": "Annuler",
+    "withdraw": "Retirer l'équipe",
+    "saving": "Enregistrement…",
+    "registrationClosed": "Inscriptions closes.",
+    "status": {
+      "registration": "Inscriptions ouvertes",
+      "ongoing": "En cours",
+      "completed": "Terminé"
+    }
+  },
   "collapsible": {
     "collapse": "Réduire",
     "expand": "Agrandir"
@@ -37,12 +63,14 @@
       "performance": "Performance",
       "myAccount": "Mon compte",
       "network": "Réseau",
+      "tournaments": "Tournois",
       "training": "Entraînement",
       "tools": "Outils",
       "admin": "Administration"
     },
     "tabs": {
       "admin": "Administration",
+      "tournaments": "Tournois",
       "stats": "Stats",
       "form": "Perf & Forme",
       "tilt": "Tilt",

@@ -1,0 +1,266 @@
+import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
+import { supabase } from './supabaseClient.js';
+
+const PLAYER_COUNT = 5;
+const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({ riotName: '', riotTag: '' }));
+
+const STATUS_LABELS = {
+  registration: 'tournaments.status.registration',
+  ongoing: 'tournaments.status.ongoing',
+  completed: 'tournaments.status.completed',
+};
+
+function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, submitLabel }) {
+  const { t } = useTranslation();
+  const [name, setName] = useState(initialName);
+  const [players, setPlayers] = useState(initialPlayers);
+
+  function updatePlayer(index, field, value) {
+    setPlayers((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  }
+
+  function handleSubmit(e) {
+    e.preventDefault();
+    if (!name.trim() || players.some((p) => !p.riotName.trim() || !p.riotTag.trim())) return;
+    onSubmit(name.trim(), players);
+  }
+
+  return (
+    <form className="team-roster-form" onSubmit={handleSubmit}>
+      <label>
+        {t('tournaments.teamName')}
+        <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={40} />
+      </label>
+
+      <p className="label">{t('tournaments.playersHint', { count: PLAYER_COUNT })}</p>
+
+      {players.map((player, index) => (
+        <div key={index} className="team-roster-player-row">
+          <input
+            placeholder={t('tournaments.riotName')}
+            value={player.riotName}
+            onChange={(e) => updatePlayer(index, 'riotName', e.target.value)}
+            required
+            maxLength={30}
+          />
+          <span>#</span>
+          <input
+            placeholder={t('tournaments.riotTag')}
+            value={player.riotTag}
+            onChange={(e) => updatePlayer(index, 'riotTag', e.target.value)}
+            required
+            maxLength={10}
+          />
+        </div>
+      ))}
+
+      {error && <p className="error-banner">{error}</p>}
+
+      <button type="submit" disabled={saving}>
+        {saving ? t('tournaments.saving') : submitLabel}
+      </button>
+    </form>
+  );
+}
+
+// Détail d'un tournoi + inscription d'équipe. Toute la sécurité réelle est
+// côté RLS (voir les policies sur tournament_teams/tournament_team_players) :
+// ce composant se contente de ne PAS proposer les actions interdites, pour
+// une interface cohérente — même en cas de requête forcée, Supabase refuse.
+function TournamentDetail({ tournamentId, myId, onBack }) {
+  const { t } = useTranslation();
+  const [tournament, setTournament] = useState(null);
+  const [teams, setTeams] = useState([]);
+  const [myTeamPlayers, setMyTeamPlayers] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState(null);
+
+  async function loadAll() {
+    setLoading(true);
+    const [{ data: t1 }, { data: t2 }] = await Promise.all([
+      supabase.from('tournaments').select('*').eq('id', tournamentId).maybeSingle(),
+      supabase
+        .from('tournament_teams')
+        .select('id, name, captain_id, status')
+        .eq('tournament_id', tournamentId)
+        .neq('status', 'rejected'),
+    ]);
+    setTournament(t1 ?? null);
+    setTeams(t2 ?? []);
+
+    const myTeam = (t2 ?? []).find((team) => team.captain_id === myId);
+    if (myTeam) {
+      const { data: players } = await supabase
+        .from('tournament_team_players')
+        .select('id, riot_name, riot_tag')
+        .eq('team_id', myTeam.id);
+      setMyTeamPlayers(players ?? []);
+    } else {
+      setMyTeamPlayers([]);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    loadAll();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tournamentId]);
+
+  if (loading) return <p className="label">{t('tournaments.loading')}</p>;
+  if (!tournament) return <p className="label">{t('tournaments.notFound')}</p>;
+
+  const myTeam = teams.find((team) => team.captain_id === myId);
+  const isFull = teams.length >= tournament.max_teams;
+  const deadlinePassed =
+    tournament.registration_deadline && new Date(tournament.registration_deadline) < new Date();
+  const registrationClosed = tournament.status !== 'registration' || (isFull && !myTeam) || deadlinePassed;
+
+  async function handleRegister(name, players) {
+    setSaving(true);
+    setError(null);
+    const { data: team, error: teamError } = await supabase
+      .from('tournament_teams')
+      .insert({ tournament_id: tournamentId, name, captain_id: myId })
+      .select('id')
+      .single();
+    if (teamError) {
+      setSaving(false);
+      setError(teamError.message);
+      return;
+    }
+    const { error: playersError } = await supabase
+      .from('tournament_team_players')
+      .insert(players.map((p) => ({ team_id: team.id, riot_name: p.riotName, riot_tag: p.riotTag })));
+    setSaving(false);
+    if (playersError) {
+      setError(playersError.message);
+      return;
+    }
+    await loadAll();
+  }
+
+  async function handleUpdate(name, players) {
+    setSaving(true);
+    setError(null);
+    const { error: updateError } = await supabase.from('tournament_teams').update({ name }).eq('id', myTeam.id);
+    if (updateError) {
+      setSaving(false);
+      setError(updateError.message);
+      return;
+    }
+    // Roster remplacé en entier plutôt que fusionné : plus simple et sûr —
+    // pas de risque de mélanger d'anciens et de nouveaux joueurs sur les
+    // mêmes lignes si l'ordre a changé.
+    await supabase.from('tournament_team_players').delete().eq('team_id', myTeam.id);
+    const { error: playersError } = await supabase
+      .from('tournament_team_players')
+      .insert(players.map((p) => ({ team_id: myTeam.id, riot_name: p.riotName, riot_tag: p.riotTag })));
+    setSaving(false);
+    if (playersError) {
+      setError(playersError.message);
+      return;
+    }
+    setEditing(false);
+    await loadAll();
+  }
+
+  async function handleWithdraw() {
+    setSaving(true);
+    await supabase.from('tournament_teams').delete().eq('id', myTeam.id);
+    setSaving(false);
+    await loadAll();
+  }
+
+  return (
+    <div className="tournament-detail">
+      <button className="link-back" onClick={onBack}>
+        ← {t('tournaments.back')}
+      </button>
+
+      <h1>{tournament.name}</h1>
+      <span className={`tournament-status-badge ${tournament.status}`}>
+        {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
+      </span>
+      {tournament.description && <p>{tournament.description}</p>}
+      <p className="label">
+        {t('tournaments.teamsCount', { count: teams.length, max: tournament.max_teams })}
+      </p>
+
+      <section className="tournament-teams-list">
+        <h2>{t('tournaments.registeredTeams')}</h2>
+        {teams.length === 0 ? (
+          <p className="label">{t('tournaments.noTeamsYet')}</p>
+        ) : (
+          <ul>
+            {teams.map((team) => (
+              <li key={team.id}>
+                {team.name}
+                {team.captain_id === myId && ` (${t('tournaments.yourTeam')})`}
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
+
+      <section className="tournament-registration">
+        {myTeam && !editing ? (
+          <>
+            <h2>{t('tournaments.yourTeam')}</h2>
+            <p className="tournament-card-name">{myTeam.name}</p>
+            <ul>
+              {myTeamPlayers.map((p) => (
+                <li key={p.id}>
+                  {p.riot_name}#{p.riot_tag}
+                </li>
+              ))}
+            </ul>
+            {!registrationClosed && (
+              <div className="tournament-team-actions">
+                <button onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</button>
+                <button onClick={handleWithdraw} disabled={saving} className="button-danger">
+                  {t('tournaments.withdraw')}
+                </button>
+              </div>
+            )}
+          </>
+        ) : myTeam && editing ? (
+          <>
+            <h2>{t('tournaments.editTeam')}</h2>
+            <TeamRosterForm
+              initialName={myTeam.name}
+              initialPlayers={
+                myTeamPlayers.length === PLAYER_COUNT
+                  ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag }))
+                  : EMPTY_PLAYERS
+              }
+              saving={saving}
+              error={error}
+              onSubmit={handleUpdate}
+              submitLabel={t('tournaments.saveChanges')}
+            />
+            <button onClick={() => setEditing(false)}>{t('tournaments.cancel')}</button>
+          </>
+        ) : registrationClosed ? (
+          <p className="warning">{t('tournaments.registrationClosed')}</p>
+        ) : (
+          <>
+            <h2>{t('tournaments.registerTeam')}</h2>
+            <TeamRosterForm
+              initialName=""
+              initialPlayers={EMPTY_PLAYERS}
+              saving={saving}
+              error={error}
+              onSubmit={handleRegister}
+              submitLabel={t('tournaments.register')}
+            />
+          </>
+        )}
+      </section>
+    </div>
+  );
+}
+
+export default TournamentDetail;
