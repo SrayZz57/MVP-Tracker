@@ -292,7 +292,12 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         </div>
         <label className="account-email-row account-toggle-row">
           <span className="account-tile-label">{t('account.agentSelectOverlayLabel')}</span>
-          <input type="checkbox" checked={overlayEnabled} onChange={handleToggleOverlay} />
+          <span className={`switch ${overlayEnabled ? 'on' : ''}`}>
+            <input type="checkbox" checked={overlayEnabled} onChange={handleToggleOverlay} />
+            <span className="switch-track">
+              <span className="switch-thumb" />
+            </span>
+          </span>
         </label>
         <p className="label account-toggle-hint">{t('account.agentSelectOverlayHint')}</p>
         <div className="account-settings-actions">
