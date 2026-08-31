@@ -7643,7 +7643,7 @@ input[type='color'] {
   /* Décalage réglé à l'œil pour tomber au-dessus de l'espace entre
      "TOURNOI" et "POUR" dans le titre FR — purement cosmétique, à
      rajuster si le texte change. */
-  margin-left: 20px;
+  margin-left: 40px;
 }
 
 @media (prefers-reduced-motion: reduce) {
