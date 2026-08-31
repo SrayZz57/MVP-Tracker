@@ -74,6 +74,43 @@ function TournamentsHowItWorks() {
   );
 }
 
+// Sous "Comment ça marche" : accès rapide aux tournois où ce compte a une
+// équipe inscrite (n'importe quel statut sauf refusée) — évite d'avoir à
+// rechercher son propre tournoi dans la liste générale.
+function TournamentsMine({ myId, onSelect }) {
+  const { t } = useTranslation();
+  const [mine, setMine] = useState(null);
+
+  useEffect(() => {
+    supabase
+      .from('tournament_teams')
+      .select('status, tournaments(id, name, status)')
+      .eq('captain_id', myId)
+      .neq('status', 'rejected')
+      .then(({ data, error }) => setMine(error ? [] : (data ?? []).filter((row) => row.tournaments)));
+  }, [myId]);
+
+  if (mine === null || mine.length === 0) return null;
+
+  return (
+    <aside className="tournaments-mine">
+      <h2 className="tournaments-how-title">{t('tournaments.mine.title')}</h2>
+      <ul className="tournaments-mine-list">
+        {mine.map((row) => (
+          <li key={row.tournaments.id}>
+            <button onClick={() => onSelect(row.tournaments.id)}>
+              <span className="tournaments-mine-name">{row.tournaments.name}</span>
+              <span className={`tournament-status-badge ${row.tournaments.status}`}>
+                {t(STATUS_LABELS[row.tournaments.status] ?? row.tournaments.status)}
+              </span>
+            </button>
+          </li>
+        ))}
+      </ul>
+    </aside>
+  );
+}
+
 // Liste des tournois — sert de page d'entrée pour tous les comptes connectés
 // (pas encore une vraie page publique accessible sans compte, ça viendra
 // séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
@@ -181,7 +218,10 @@ function TournamentsTab({ myId, isAdmin }) {
           </button>
         )}
       </div>
-      <TournamentsHowItWorks />
+      <div className="tournaments-middle-column">
+        <TournamentsHowItWorks />
+        <TournamentsMine myId={myId} onSelect={setSelectedId} />
+      </div>
       <TournamentsPromo />
     </div>
   );

@@ -30,6 +30,9 @@
     "promoWatermark": "Tournoi",
     "promoTag": "Compétition",
     "showMore": "Voir {{count}} de plus",
+    "mine": {
+      "title": "Tes tournois"
+    },
     "howItWorks": {
       "title": "Comment ça marche",
       "step1Title": "Inscris ton équipe",
