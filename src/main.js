@@ -725,16 +725,17 @@ function createAgentSelectOverlay() {
     console.log('[agent-select-overlay]', message);
   });
 
-  agentSelectOverlayWindow.once('did-finish-load', () => {
-    agentSelectOverlayWindow?.showInactive();
-    if (!overlayTopmostInterval) {
-      overlayTopmostInterval = setInterval(() => {
-        if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
-          agentSelectOverlayWindow.moveTop();
-        }
-      }, 1000);
-    }
-  });
+  // Affichage direct plutôt qu'en attendant 'did-finish-load' : un contenu
+  // local se charge quasi instantanément, et si jamais cet événement ne se
+  // déclenchait pas comme prévu, la fenêtre resterait invisible pour de bon.
+  agentSelectOverlayWindow.showInactive();
+  if (!overlayTopmostInterval) {
+    overlayTopmostInterval = setInterval(() => {
+      if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+        agentSelectOverlayWindow.moveTop();
+      }
+    }, 1000);
+  }
 }
 
 // Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès

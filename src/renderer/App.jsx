@@ -970,12 +970,17 @@ function App() {
             <p className="warning">{t('nav.error', { message: data.error })}</p>
           ))}
 
+        {/* Bandeau de sélection d'agent : affiché quel que soit l'onglet
+            ouvert, puisqu'il ne dure que le temps de la sélection et qu'on
+            n'a pas le réflexe de changer d'onglet à ce moment-là. Se masque
+            tout seul en dehors de cette phase. Volontairement HORS de
+            <main key={activeTab}> : ce composant pilote aussi la fenêtre
+            overlay séparée (voir son effet sur setAgentSelectOverlayVisible)
+            — s'il était remonté à chaque changement d'onglet, l'overlay se
+            fermerait à chaque clic dans la sidebar pendant une sélection. */}
+        <AgentSelectLive matches={myMatches} settings={mySettings} />
+
         <main className="content" key={activeTab}>
-          {/* Bandeau de sélection d'agent : affiché quel que soit l'onglet
-              ouvert, puisqu'il ne dure que le temps de la sélection et qu'on
-              n'a pas le réflexe de changer d'onglet à ce moment-là. Se
-              masque tout seul en dehors de cette phase. */}
-          <AgentSelectLive matches={myMatches} settings={mySettings} />
           {renderValorantTab()}
         </main>
       </div>

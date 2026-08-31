@@ -7517,7 +7517,10 @@ input[type='color'] {
    Bandeau éphémère : n'existe que pendant la sélection, disparaît ensuite.
    ========================================================================= */
 .agent-select {
-  margin-bottom: 1.25rem;
+  /* Sibling direct de <main class="content"> (voir App.jsx) plutôt qu'un
+     enfant, donc pas le padding de 1.5rem de .content par héritage : on le
+     recrée ici en marge horizontale pour garder le même alignement visuel. */
+  margin: 1.25rem 1.5rem;
   padding: 1rem 1.25rem 1.15rem;
   border-radius: var(--r-lg);
   border: 1px solid var(--accent);
