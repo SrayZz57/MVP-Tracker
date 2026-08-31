@@ -26,6 +26,7 @@
     "loading": "Chargement…",
     "empty": "Aucun tournoi pour l'instant.",
     "notFound": "Tournoi introuvable.",
+    "winner": "Vainqueur : {{name}}",
     "back": "Retour",
     "teamsCount": "{{count}}/{{max}} équipes",
     "registeredTeams": "Équipes inscrites",

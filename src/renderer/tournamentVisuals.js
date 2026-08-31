@@ -15,3 +15,12 @@ export function pickSplash(tournamentId, mapImages) {
   if (names.length === 0) return null;
   return mapImages.get(names[hashString(tournamentId) % names.length]);
 }
+
+// Portrait d'agent en filigrane sur la carte — un salt différent de
+// pickSplash() pour que le choix de map et le choix d'agent d'un même
+// tournoi ne soient pas corrélés (deux hash indépendants).
+export function pickAgentPortrait(tournamentId, agentPortraits) {
+  const names = [...agentPortraits.keys()];
+  if (names.length === 0) return null;
+  return agentPortraits.get(names[hashString(`agent:${tournamentId}`) % names.length]);
+}

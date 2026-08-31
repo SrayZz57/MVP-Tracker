@@ -26,6 +26,7 @@
     "loading": "Loading…",
     "empty": "No tournaments yet.",
     "notFound": "Tournament not found.",
+    "winner": "Winner: {{name}}",
     "back": "Back",
     "teamsCount": "{{count}}/{{max}} teams",
     "registeredTeams": "Registered teams",
