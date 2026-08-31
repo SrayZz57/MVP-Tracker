@@ -4,8 +4,19 @@
 // horaire, par jour, K/D global, records...), pas les stats PAR MODE (où
 // ils restent des catégories légitimes à afficher, voir StatsTab qui liste
 // les modes depuis les matchs bruts, sans passer par cette fonction).
+// HenrikDev renvoie mode_id = "" (chaîne vide) pour une partie perso, pas
+// "custom" — repéré en inspectant les vrais matchs stockés localement, où
+// aucune partie perso n'avait jamais mode_id === 'custom'. Les skirmish
+// (2v2 etc., mode_id "skirmish_*") sont aussi des parties d'entraînement à
+// réglages libres, donc exclues pour la même raison que les customs.
 export function excludeDeathmatch(matches) {
-  return matches.filter((m) => m.metadata?.mode_id !== 'deathmatch' && m.metadata?.mode_id !== 'custom');
+  return matches.filter(
+    (m) =>
+      m.metadata?.mode_id !== 'deathmatch' &&
+      m.metadata?.mode_id !== 'custom' &&
+      m.metadata?.mode_id !== '' &&
+      !m.metadata?.mode_id?.startsWith('skirmish'),
+  );
 }
 
 // Compare les noms SANS tenir compte des accents, pas juste en unifiant leur
