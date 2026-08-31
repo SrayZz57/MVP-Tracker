@@ -7485,7 +7485,7 @@ input[type='color'] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 260px;
+  max-height: 340px;
   overflow-y: auto;
 }
 
