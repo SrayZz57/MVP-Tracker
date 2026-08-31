@@ -7640,6 +7640,10 @@ input[type='color'] {
   color: var(--accent, #ff4655);
   filter: drop-shadow(0 0 24px rgba(255, 70, 85, 0.35));
   animation: tournamentsPromoFloat 4s ease-in-out infinite;
+  /* Décalage réglé à l'œil pour tomber au-dessus de l'espace entre
+     "TOURNOI" et "POUR" dans le titre FR — purement cosmétique, à
+     rajuster si le texte change. */
+  margin-left: -14px;
 }
 
 @media (prefers-reduced-motion: reduce) {
