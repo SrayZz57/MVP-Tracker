@@ -139,8 +139,10 @@ function TournamentsTab({ myId, isAdmin }) {
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
   const [showAll, setShowAll] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
+  const [deleting, setDeleting] = useState(false);
 
-  useEffect(() => {
+  function loadTournaments() {
     supabase
       .from('tournaments')
       .select('id, name, description, status, max_teams')
@@ -181,6 +183,11 @@ function TournamentsTab({ myId, isAdmin }) {
         }
         setWinnerNames(winners);
       });
+  }
+
+  useEffect(() => {
+    loadTournaments();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   if (selectedId) {
@@ -189,49 +196,91 @@ function TournamentsTab({ myId, isAdmin }) {
 
   if (loading) return <p className="label">{t('tournaments.loading')}</p>;
 
-  if (tournaments.length === 0) {
-    return (
-      <div className="tournaments-empty-state">
-        <span className="tournaments-empty-icon">🏆</span>
-        <p className="label">{t('tournaments.empty')}</p>
-      </div>
-    );
+  // Suppression réservée à l'admin : côté serveur (RLS), la même barrière
+  // que pour créer/modifier un tournoi (public.is_admin()) — celle-ci
+  // existe déjà, aucune nouvelle policy à poser. La suppression cascade sur
+  // les équipes/matchs de ce tournoi (contrainte déjà posée sur ces tables).
+  async function handleDelete(tournamentId) {
+    setDeleting(true);
+    await supabase.from('tournaments').delete().eq('id', tournamentId);
+    setDeleting(false);
+    setConfirmDeleteId(null);
+    loadTournaments();
   }
 
   const visibleTournaments = showAll ? tournaments : tournaments.slice(0, VISIBLE_COUNT);
 
   return (
     <div className="tournaments-page">
-      <div className="tournaments-list">
-        {visibleTournaments.map((tournament, index) => {
-          const splash = pickSplash(tournament.id, mapImages);
-          const winner = winnerNames.get(tournament.id);
-          return (
-            <button
-              key={tournament.id}
-              className="tournament-card"
-              style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
-              onClick={() => setSelectedId(tournament.id)}
-            >
-              <span className={`tournament-status-badge ${tournament.status}`}>
-                {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
-              </span>
-              <div className="tournament-card-content">
-                <span className="tournament-card-name">{tournament.name}</span>
-                {tournament.description && <p className="tournament-card-description">{tournament.description}</p>}
-                {tournament.status === 'completed' && winner && (
-                  <p className="tournament-card-winner">
-                    <span aria-hidden="true">🏆</span> {t('tournaments.winner', { name: winner })}
-                  </p>
-                )}
-              </div>
-            </button>
-          );
-        })}
-        {!showAll && tournaments.length > VISIBLE_COUNT && (
-          <button className="tournaments-show-more" onClick={() => setShowAll(true)}>
-            {t('tournaments.showMore', { count: tournaments.length - VISIBLE_COUNT })}
-          </button>
+      <div className="tournaments-list-block">
+        {tournaments.length === 0 ? (
+          <div className="tournaments-empty-state">
+            <span className="tournaments-empty-icon">🏆</span>
+            <p className="label">{t('tournaments.empty')}</p>
+          </div>
+        ) : (
+          <div className="tournaments-list">
+            {visibleTournaments.map((tournament, index) => {
+              const splash = pickSplash(tournament.id, mapImages);
+              const winner = winnerNames.get(tournament.id);
+              const confirming = confirmDeleteId === tournament.id;
+              return (
+                <div
+                  key={tournament.id}
+                  className="tournament-card"
+                  role="button"
+                  tabIndex={0}
+                  style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
+                  onClick={() => setSelectedId(tournament.id)}
+                  onKeyDown={(e) => e.key === 'Enter' && setSelectedId(tournament.id)}
+                >
+                  {isAdmin && (
+                    <div className="tournament-card-admin-actions" onClick={(e) => e.stopPropagation()}>
+                      {confirming ? (
+                        <>
+                          <button
+                            className="tournament-card-delete-confirm"
+                            disabled={deleting}
+                            onClick={() => handleDelete(tournament.id)}
+                          >
+                            {deleting ? t('tournaments.saving') : t('tournaments.confirmDelete')}
+                          </button>
+                          <button className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
+                            {t('tournaments.cancel')}
+                          </button>
+                        </>
+                      ) : (
+                        <button
+                          className="tournament-card-delete"
+                          title={t('tournaments.deleteTournament')}
+                          onClick={() => setConfirmDeleteId(tournament.id)}
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+                  )}
+                  <span className={`tournament-status-badge ${tournament.status}`}>
+                    {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
+                  </span>
+                  <div className="tournament-card-content">
+                    <span className="tournament-card-name">{tournament.name}</span>
+                    {tournament.description && <p className="tournament-card-description">{tournament.description}</p>}
+                    {tournament.status === 'completed' && winner && (
+                      <p className="tournament-card-winner">
+                        <span aria-hidden="true">🏆</span> {t('tournaments.winner', { name: winner })}
+                      </p>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+            {!showAll && tournaments.length > VISIBLE_COUNT && (
+              <button className="tournaments-show-more" onClick={() => setShowAll(true)}>
+                {t('tournaments.showMore', { count: tournaments.length - VISIBLE_COUNT })}
+              </button>
+            )}
+          </div>
         )}
       </div>
       <div className="tournaments-middle-column">

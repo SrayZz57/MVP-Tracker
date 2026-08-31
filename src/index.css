@@ -7609,6 +7609,7 @@ input[type='color'] {
 .tournament-card {
   position: relative;
   isolation: isolate;
+  cursor: pointer;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
@@ -7750,8 +7751,60 @@ input[type='color'] {
   align-items: flex-start;
 }
 
-.tournaments-page .tournaments-list {
+/* "Bloc" englobant les cartes de tournoi — mêmes codes visuels que les
+   panneaux voisins (bordure, fond, coins arrondis) ; en cas de liste vide,
+   c'est CE bloc qui affiche le message, pas un écran à part qui remplacerait
+   toute la page (le panneau promo et "Comment ça marche" restent visibles). */
+.tournaments-list-block {
   flex: 1 1 auto;
+  min-width: 0;
+  padding: 1.5rem;
+  border-radius: 18px;
+  background: var(--surface, rgba(255, 255, 255, 0.03));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+}
+
+.tournament-card-admin-actions {
+  position: absolute;
+  z-index: 2;
+  top: 1rem;
+  right: 1rem;
+  display: flex;
+  gap: 0.4rem;
+}
+
+.tournament-card-delete {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
+  backdrop-filter: blur(4px);
+  font-size: 0.85rem;
+  line-height: 1;
+}
+
+.tournament-card-delete:hover {
+  background: var(--accent, #ff4655);
+}
+
+.tournament-card-delete-confirm,
+.tournament-card-delete-cancel {
+  padding: 0.35rem 0.75rem;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  backdrop-filter: blur(4px);
+}
+
+.tournament-card-delete-confirm {
+  background: var(--accent, #ff4655);
+  color: #fff;
+}
+
+.tournament-card-delete-cancel {
+  background: rgba(0, 0, 0, 0.45);
+  color: #fff;
 }
 
 /* Panneau promo : purement décoratif, Neon en vedette (thème néon/électrique),

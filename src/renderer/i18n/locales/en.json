@@ -61,6 +61,8 @@
     "cancel": "Cancel",
     "withdraw": "Withdraw team",
     "removeTeam": "Remove from tournament",
+    "deleteTournament": "Delete tournament",
+    "confirmDelete": "Confirm",
     "saving": "Saving…",
     "registrationClosed": "Registration closed.",
     "full": "The tournament is full.",

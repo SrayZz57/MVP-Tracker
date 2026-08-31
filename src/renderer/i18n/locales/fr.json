@@ -61,6 +61,8 @@
     "cancel": "Annuler",
     "withdraw": "Retirer l'équipe",
     "removeTeam": "Retirer du tournoi",
+    "deleteTournament": "Supprimer le tournoi",
+    "confirmDelete": "Confirmer",
     "saving": "Enregistrement…",
     "registrationClosed": "Inscriptions closes.",
     "full": "Le tournoi est complet.",
