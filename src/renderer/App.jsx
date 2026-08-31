@@ -356,6 +356,18 @@ function App() {
     }
     window.electronAPI.getCachedMatchesFor(profile.riot_puuid).then(setMyMatches);
   }, [profile?.riot_puuid, settings?.puuid, data.matches]);
+
+  // Même piège que pour myMatches : le puuid lié passe par un état vide
+  // juste après le lancement avant de se rétablir (voir le commentaire sur
+  // setLinkedPuuid plus bas) — les échantillons de ping (Réseau) restaient
+  // bloqués sur "vide" si leur toute première requête, dans useValorantData,
+  // tombait dans cette fenêtre : elle n'est déclenchée que par un changement
+  // de settings.name/tag, jamais rejouée une fois le puuid lié stabilisé.
+  const [myPingSamples, setMyPingSamples] = useState([]);
+  useEffect(() => {
+    if (!profile?.riot_puuid) return;
+    window.electronAPI.getPingSamples().then(setMyPingSamples);
+  }, [profile?.riot_puuid]);
   const isViewingSelf = !!profile && settings?.puuid === profile.riot_puuid;
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
   // Confort d'affichage uniquement — voir le commentaire sur ADMIN_SECTION.
@@ -645,7 +657,7 @@ function App() {
       case 'forme':
         return <FormTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'reseau':
-        return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={data.pingSamples} myId={session.user.id} />;
+        return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={myPingSamples} myId={session.user.id} />;
       case 'tournaments':
         return <TournamentsTab myId={session.user.id} isAdmin={isAdmin} />;
       case 'tilt':
