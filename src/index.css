@@ -7439,8 +7439,8 @@ input[type='color'] {
 .tournaments-list {
   display: flex;
   flex-direction: column;
-  gap: 1.5rem;
-  max-width: 780px;
+  gap: 1.75rem;
+  max-width: 900px;
 }
 
 .tournaments-empty-state {
@@ -7470,8 +7470,8 @@ input[type='color'] {
   justify-content: space-between;
   align-items: flex-start;
   text-align: left;
-  min-height: 200px;
-  padding: 1.5rem;
+  min-height: 280px;
+  padding: 2rem;
   border-radius: 14px;
   overflow: hidden;
   background-size: cover;
@@ -7558,7 +7558,7 @@ input[type='color'] {
   padding-left: 0.9rem;
   font-family: var(--font-display, 'Chakra Petch', sans-serif);
   font-weight: 700;
-  font-size: 1.7rem;
+  font-size: 2.2rem;
   line-height: 1.15;
   text-transform: uppercase;
   letter-spacing: 0.015em;
@@ -7587,7 +7587,7 @@ input[type='color'] {
   margin: 0;
   max-width: 55ch;
   color: rgba(255, 255, 255, 0.78);
-  font-size: 0.85rem;
+  font-size: 0.95rem;
 }
 
 .tournament-card-winner {
