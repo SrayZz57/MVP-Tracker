@@ -267,6 +267,10 @@ const createWindow = () => {
     // de la fenêtre à sa petite taille par défaut avant l'agrandissement.
     show: false,
     autoHideMenuBar: true,
+    // En dev, la fenêtre prend l'icône de l'app (sinon Electron affiche la
+    // sienne par défaut). En prod, c'est l'exe packagé (forge setupIcon) qui
+    // porte l'icône, donc on ne pointe pas vers un chemin src/ non empaqueté.
+    icon: MAIN_WINDOW_VITE_DEV_SERVER_URL ? path.join(app.getAppPath(), 'src/assets/favicon.ico') : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
