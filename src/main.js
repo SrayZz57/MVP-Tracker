@@ -646,7 +646,15 @@ setInterval(() => {
   if (isValorantRunning()) checkTiltAndNotify();
 }, 120000);
 
-ipcMain.handle('network:get-ping-samples', () => (currentPuuid() ? getAllPingSamples(currentPuuid()) : []));
+// Accepte un puuid explicite plutôt que de compter uniquement sur
+// currentPuuid() (lu depuis le disque) : au tout premier appel d'une
+// session, cet appel et celui qui enregistre linkedAccountPuuid partent en
+// parallèle depuis le renderer — currentPuuid() peut donc encore être vide
+// au moment où celui-ci s'exécute, même si le puuid demandé est le bon.
+ipcMain.handle('network:get-ping-samples', (_event, puuid) => {
+  const target = puuid ?? currentPuuid();
+  return target ? getAllPingSamples(target) : [];
+});
 
 ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
 

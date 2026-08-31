@@ -361,12 +361,18 @@ function App() {
   // juste après le lancement avant de se rétablir (voir le commentaire sur
   // setLinkedPuuid plus bas) — les échantillons de ping (Réseau) restaient
   // bloqués sur "vide" si leur toute première requête, dans useValorantData,
-  // tombait dans cette fenêtre : elle n'est déclenchée que par un changement
-  // de settings.name/tag, jamais rejouée une fois le puuid lié stabilisé.
+  // tombait dans cette fenêtre. Corrigé une première fois en rechargeant sur
+  // profile.riot_puuid (comme myMatches), MAIS ça ne suffisait pas : cet
+  // appel et celui qui enregistre linkedAccountPuuid (setLinkedPuuid,
+  // ci-dessous) partent tous les deux au même moment, et celui-ci pouvait
+  // arriver côté serveur AVANT que le puuid n'y soit encore écrit — vérifié
+  // en conditions réelles (0 échantillon reçu malgré ~47 000 en base). Le
+  // puuid est donc passé explicitement à getPingSamples() maintenant,
+  // au lieu de compter sur une valeur déjà enregistrée côté serveur.
   const [myPingSamples, setMyPingSamples] = useState([]);
   useEffect(() => {
     if (!profile?.riot_puuid) return;
-    window.electronAPI.getPingSamples().then(setMyPingSamples);
+    window.electronAPI.getPingSamples(profile.riot_puuid).then(setMyPingSamples);
   }, [profile?.riot_puuid]);
   const isViewingSelf = !!profile && settings?.puuid === profile.riot_puuid;
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
