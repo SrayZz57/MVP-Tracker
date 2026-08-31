@@ -7,6 +7,7 @@ import { useMapImages } from '../mapImages.js';
 import { useAgentPortraits } from '../agentIcons.js';
 import { pickSplash } from '../tournamentVisuals.js';
 import TournamentDetail from '../TournamentDetail.jsx';
+import Button from '../ui/Button';
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',
@@ -122,12 +123,12 @@ function TournamentsMine({ myId, onSelect }) {
         <ul className="tournaments-mine-list">
           {list.map((row) => (
             <li key={row.tournaments.id}>
-              <button onClick={() => onSelect(row.tournaments.id)}>
+              <Button variant="ghost" onClick={() => onSelect(row.tournaments.id)}>
                 <span className="tournaments-mine-name">{row.tournaments.name}</span>
                 <span className={`tournament-status-badge ${row.tournaments.status}`}>
                   {t(STATUS_LABELS[row.tournaments.status] ?? row.tournaments.status)}
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -259,25 +260,27 @@ function TournamentsTab({ myId, isAdmin }) {
                     <div className="tournament-card-admin-actions" onClick={(e) => e.stopPropagation()}>
                       {confirming ? (
                         <>
-                          <button
+                          <Button
+                            variant="danger"
                             className="tournament-card-delete-confirm"
                             disabled={deleting}
                             onClick={() => handleDelete(tournament.id)}
                           >
                             {deleting ? t('tournaments.saving') : t('tournaments.confirmDelete')}
-                          </button>
-                          <button className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
+                          </Button>
+                          <Button variant="ghost" className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
                             {t('tournaments.cancel')}
-                          </button>
+                          </Button>
                         </>
                       ) : (
-                        <button
+                        <Button
+                          variant="icon"
                           className="tournament-card-delete"
                           title={t('tournaments.deleteTournament')}
                           onClick={() => setConfirmDeleteId(tournament.id)}
                         >
                           <Icon icon={X} size={14} />
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -297,9 +300,9 @@ function TournamentsTab({ myId, isAdmin }) {
               );
             })}
             {!showAll && tournaments.length > VISIBLE_COUNT && (
-              <button className="tournaments-show-more" onClick={() => setShowAll(true)}>
+              <Button variant="ghost" className="tournaments-show-more" onClick={() => setShowAll(true)}>
                 {t('tournaments.showMore', { count: tournaments.length - VISIBLE_COUNT })}
-              </button>
+              </Button>
             )}
           </div>
         )}

@@ -6,6 +6,7 @@ import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryModal from './FriendSummaryModal.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, apiKey }) {
   const { t } = useTranslation();
@@ -141,9 +142,9 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               className="search-bar-tag"
             />
           </div>
-          <button type="submit" className="friend-search-btn" disabled={searching}>
+          <Button variant="primary" type="submit" className="friend-search-btn" disabled={searching}>
             {searching ? '...' : <><Icon icon={Search} size={16} /> {t('friends.searchBtn')}</>}
-          </button>
+          </Button>
         </form>
         {searchResult === null && <p className="label">{t('friends.noPlayerFound')}</p>}
         {searchResult && (
@@ -153,7 +154,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
             {requestSent ? (
               <span className="label">{t('friends.requestSent')}</span>
             ) : (
-              <button onClick={sendFriendRequest}>{t('friends.add')}</button>
+              <Button variant="primary" onClick={sendFriendRequest}>{t('friends.add')}</Button>
             )}
           </div>
         )}
@@ -167,8 +168,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
                 <div className="friend-request-actions">
-                  <button onClick={() => respondToRequest(f.id, true)} title={t('friends.accept')}><Icon icon={Check} size={16} /></button>
-                  <button onClick={() => respondToRequest(f.id, false)} title={t('friends.decline')}><Icon icon={X} size={16} /></button>
+                  <Button variant="icon" onClick={() => respondToRequest(f.id, true)} title={t('friends.accept')}><Icon icon={Check} size={16} /></Button>
+                  <Button variant="icon" onClick={() => respondToRequest(f.id, false)} title={t('friends.decline')}><Icon icon={X} size={16} /></Button>
                 </div>
               </div>
             ))}
@@ -183,7 +184,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               <div key={f.id} className="friend-request-row">
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
-                <button onClick={() => cancelRequest(f.id)} title={t('friends.cancel')}><Icon icon={X} size={16} /></button>
+                <Button variant="icon" onClick={() => cancelRequest(f.id)} title={t('friends.cancel')}><Icon icon={X} size={16} /></Button>
               </div>
             ))}
           </div>
@@ -199,17 +200,18 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               const p = otherProfile(f);
               return (
                 <div key={f.id} className="friend-request-row">
-                  <button
+                  <Button
+                    variant="icon"
                     className="friend-avatar-button"
                     title={t('friends.viewProfile')}
                     onClick={() => setOpenSummaryFor(p)}
                   >
                     <FriendAvatar profile={p} size={36} online={onlineFriendIds.has(p.id)} />
-                  </button>
+                  </Button>
                   <span>{friendLabel(p)}</span>
                   <div className="friend-request-actions friend-request-actions-lg">
-                    <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}><Icon icon={MessageCircle} size={16} /></button>
-                    <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}><Icon icon={X} size={16} /></button>
+                    <Button variant="icon" onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}><Icon icon={MessageCircle} size={16} /></Button>
+                    <Button variant="icon" onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}><Icon icon={X} size={16} /></Button>
                   </div>
                 </div>
               );

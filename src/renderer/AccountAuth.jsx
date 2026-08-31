@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { useE2EE } from './E2EEContext.jsx';
+import Button from './ui/Button';
 
 function AccountAuth() {
   const { t } = useTranslation();
@@ -143,9 +144,9 @@ function AccountAuth() {
             minLength={6}
             required
           />
-          <button type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading}>
             {loading ? t('auth.loading') : mode === 'signup' ? t('auth.createAccount') : t('auth.signIn')}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -158,9 +159,9 @@ function AccountAuth() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <button type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading}>
             {loading ? t('auth.sending') : t('auth.sendCode')}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -190,9 +191,9 @@ function AccountAuth() {
             minLength={6}
             required
           />
-          <button type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading}>
             {loading ? t('auth.validating') : t('auth.resetPassword')}
-          </button>
+          </Button>
         </form>
       )}
 
@@ -200,25 +201,26 @@ function AccountAuth() {
       {info && <p className="label">{info}</p>}
 
       {mode === 'signin' && (
-        <button type="button" className="account-auth-switch" onClick={() => switchMode('forgot')}>
+        <Button variant="ghost" type="button" className="account-auth-switch" onClick={() => switchMode('forgot')}>
           {t('auth.forgotPassword')}
-        </button>
+        </Button>
       )}
 
       {(mode === 'forgot' || mode === 'reset') && (
-        <button type="button" className="account-auth-switch" onClick={() => switchMode('signin')}>
+        <Button variant="ghost" type="button" className="account-auth-switch" onClick={() => switchMode('signin')}>
           {t('auth.backToSignin')}
-        </button>
+        </Button>
       )}
 
       {(mode === 'signin' || mode === 'signup') && (
-        <button
+        <Button
+          variant="ghost"
           type="button"
           className="account-auth-switch"
           onClick={() => switchMode(mode === 'signup' ? 'signin' : 'signup')}
         >
           {mode === 'signup' ? t('auth.alreadyHaveAccount') : t('auth.noAccountYet')}
-        </button>
+        </Button>
       )}
     </div>
   );

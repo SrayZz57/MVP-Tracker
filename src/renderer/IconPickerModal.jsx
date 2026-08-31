@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Button from './ui/Button';
 
 function IconPickerModal({ title, items, onSelect, onClose }) {
   const { t } = useTranslation();
@@ -14,7 +15,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card card-picker-modal" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <Button variant="ghost" type="button" className="modal-close" onClick={onClose}>{t('detail.close')}</Button>
         <h3>{title}</h3>
         <input
           type="text"
@@ -29,7 +30,8 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
         ) : (
           <div className="card-picker-grid">
             {filtered.map((item) => (
-              <button
+              <Button
+                variant="icon"
                 type="button"
                 key={item.id}
                 className="card-picker-item"
@@ -37,7 +39,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
                 onClick={() => onSelect(item.id)}
               >
                 <img src={item.icon} alt={item.label} loading="lazy" />
-              </button>
+              </Button>
             ))}
           </div>
         )}

@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Info, CheckCircle2, Minus, XCircle, ScanFace } from 'lucide-react';
 import { POST_MORTEM_QUESTIONS, ANSWER_LEVELS, computeActualAnswers, gradeAnswers, buildComparisonText } from './postMortem.js';
 import Icon from './Icon.jsx';
+import Button from './ui/Button';
 
 const RESULT_ICONS = { unknown: Info, correct: CheckCircle2, close: Minus, incorrect: XCircle };
 
@@ -83,22 +84,23 @@ function PostMortemModal({ settings, matches }) {
                 <p>{t(q.textKey)}</p>
                 <div className="postmortem-answers">
                   {ANSWER_LEVELS.map((level) => (
-                    <button
+                    <Button
+                      variant="ghost"
                       key={level.id}
                       className={answers[q.id] === level.id ? 'strategy-tool active' : 'strategy-tool'}
                       onClick={() => selectAnswer(q.id, level.id)}
                     >
                       {t(level.labelKey)}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </div>
             ))}
             <div className="postmortem-actions">
-              <button onClick={handleDismiss}>{t('postmortem.later')}</button>
-              <button className="refresh" onClick={handleSubmit} disabled={!allAnswered}>
+              <Button variant="ghost" onClick={handleDismiss}>{t('postmortem.later')}</Button>
+              <Button variant="primary" className="refresh" onClick={handleSubmit} disabled={!allAnswered}>
                 {t('postmortem.seeResult')}
-              </button>
+              </Button>
             </div>
           </>
         ) : (
@@ -120,9 +122,9 @@ function PostMortemModal({ settings, matches }) {
               );
             })}
             <div className="postmortem-actions">
-              <button className="refresh" onClick={handleDismiss}>
+              <Button variant="ghost" className="refresh" onClick={handleDismiss}>
                 {t('postmortem.close')}
-              </button>
+              </Button>
             </div>
           </>
         )}

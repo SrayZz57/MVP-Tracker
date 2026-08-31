@@ -21,6 +21,7 @@ import AimLeaderboardRow from './AimLeaderboardRow.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import { supabase } from './supabaseClient.js';
+import Button from './ui/Button';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -220,7 +221,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               count: challenge.targetCount,
             })}
           </p>
-          <button
+          <Button
+            variant="primary"
             className="refresh aim-challenge-btn"
             onClick={() =>
               launch({
@@ -235,7 +237,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             }
           >
             {challengeDone ? t('aimTrainer.retryChallenge') : t('aimTrainer.playChallenge')}
-          </button>
+          </Button>
 
           {dailyBoard.length > 0 && (
             <div className="aim-board">
@@ -263,9 +265,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           <p className="label aim-streak-hint">
             {streak > 0 ? t('aimTrainer.streakKeep') : t('aimTrainer.streakStart')}
           </p>
-          <button className="account-forgot-password" onClick={() => launch({ playlist: WARMUP_ROUTINE })}>
+          <Button variant="primary" className="account-forgot-password" onClick={() => launch({ playlist: WARMUP_ROUTINE })}>
             {t('aimTrainer.warmupRoutine')}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -281,7 +283,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             const global = globalBests[id];
             const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
             return (
-              <button
+              <Button
+                variant="ghost"
                 key={id}
                 className={id === config.mode ? 'aim-mode-card active' : 'aim-mode-card'}
                 style={{ '--mode-accent': mode.accent }}
@@ -304,14 +307,15 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
                     <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
                   </span>
                 </span>
-              </button>
+              </Button>
             );
           })}
 
           {/* Seul mode aux réglages libres — volontairement à part des 6
               autres : ceux-là doivent rester identiques pour tout le monde,
               sinon comparer les records n'a aucun sens. */}
-          <button
+          <Button
+            variant="ghost"
             className={config.mode === 'custom' ? 'aim-mode-card active' : 'aim-mode-card'}
             style={{ '--mode-accent': '#8a8f9c' }}
             onClick={() => setShowCustomConfig(true)}
@@ -322,7 +326,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             </span>
             <span className="aim-mode-name">{t('aimTrainer.customTitle')}</span>
             <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>
-          </button>
+          </Button>
         </div>
 
         {/* Résumé en lecture seule : les 6 modes standards sont figés (mêmes
@@ -334,9 +338,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           <span className="aim-mode-summary-item">{t('aimTrainer.summarySize', { size: config.targetSize.toFixed(2) })}</span>
           <span className="aim-mode-summary-item">{t('aimTrainer.summarySpread', { deg: config.spread })}</span>
           {config.mode === 'custom' && (
-            <button className="account-forgot-password" onClick={() => setShowCustomConfig(true)}>
+            <Button variant="ghost" className="account-forgot-password" onClick={() => setShowCustomConfig(true)}>
               {t('aimTrainer.customEdit')}
-            </button>
+            </Button>
           )}
         </div>
 
@@ -374,7 +378,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               <span className="label">{t('aimTrainer.targetColorLabel')}</span>
               <div className="aim-color-swatches">
                 {TARGET_COLORS.map((color) => (
-                  <button
+                  <Button
+                    variant="icon"
                     key={color}
                     className={color === config.targetColor ? 'aim-color-swatch active' : 'aim-color-swatch'}
                     style={{ background: color }}
@@ -406,9 +411,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               />
               <span>{t('aimTrainer.showWeaponLabel')}</span>
             </label>
-            <button className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
+            <Button variant="ghost" className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
               {t('aimTrainer.resetDefaults')}
-            </button>
+            </Button>
           </div>
 
           <div className="aim-config-block">
@@ -417,22 +422,24 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               <p className="label">{t('aimTrainer.crosshairEmpty')}</p>
             ) : (
               <div className="aim-crosshair-picker">
-                <button
+                <Button
+                  variant="icon"
                   className={config.crosshairCode ? 'aim-crosshair-option' : 'aim-crosshair-option active'}
                   onClick={() => set({ crosshairCode: null })}
                   title={t('aimTrainer.crosshairDefault')}
                 >
                   <div className="aim-trainer-crosshair-static-preview" />
-                </button>
+                </Button>
                 {crosshairs.map((ch) => (
-                  <button
+                  <Button
+                    variant="icon"
                     key={ch.id}
                     className={config.crosshairCode === ch.code ? 'aim-crosshair-option active' : 'aim-crosshair-option'}
                     onClick={() => set({ crosshairCode: ch.code })}
                     title={ch.name}
                   >
                     <CrosshairPreview code={ch.code} bare size={40} />
-                  </button>
+                  </Button>
                 ))}
               </div>
             )}
@@ -440,9 +447,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </div>
 
         <div className="aim-launch-row">
-          <button className="refresh aim-launch-btn" onClick={() => launch()}>
+          <Button variant="primary" className="refresh aim-launch-btn" onClick={() => launch()}>
             {t('aimTrainer.launch')}
-          </button>
+          </Button>
           <p className="label">{t('aimTrainer.launchHint')}</p>
         </div>
 

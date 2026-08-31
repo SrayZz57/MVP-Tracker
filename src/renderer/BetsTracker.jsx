@@ -6,6 +6,7 @@ import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 function BetsTracker({ settings, matches }) {
   const { t, i18n } = useTranslation();
@@ -89,7 +90,7 @@ function BetsTracker({ settings, matches }) {
               <h3>{t('bets.currentBetTitle')}</h3>
               <p style={{ fontWeight: 600 }}>{describeBet(t, pending.type, pending.threshold)}</p>
               <p className="label">{t('bets.waitingNextMatch')}</p>
-              <button onClick={handleCancelBet}>{t('bets.cancelBet')}</button>
+              <Button variant="ghost" onClick={handleCancelBet}>{t('bets.cancelBet')}</Button>
             </div>
           </div>
         ) : (
@@ -112,9 +113,9 @@ function BetsTracker({ settings, matches }) {
                   style={{ width: '80px' }}
                 />
               )}
-              <button className="refresh" onClick={handlePlaceBet}>
+              <Button variant="primary" className="refresh" onClick={handlePlaceBet}>
                 {t('bets.placeBetBtn')}
-              </button>
+              </Button>
             </div>
           </>
         )}

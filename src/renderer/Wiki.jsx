@@ -4,6 +4,7 @@ import { useAgentsData } from './agentIcons.js';
 import { useWeaponsData } from './weaponIcons.js';
 import { useMapsData, useMapMinimaps } from './mapImages.js';
 import { useRankLadder } from './rankData.js';
+import Button from './ui/Button';
 
 const CATEGORIES = [
   { id: 'agents', labelKey: 'wiki.categories.agents' },
@@ -54,7 +55,7 @@ function AgentModal({ agent, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('wiki.close')}</Button>
 
         <div className="agent-modal-header" style={{ borderColor: `${agentAccent(agent)}66` }}>
           <img src={agent.displayIcon} alt="" className="agent-modal-avatar" style={{ borderColor: agentAccent(agent) }} />
@@ -122,7 +123,7 @@ function WeaponModal({ weapon, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('wiki.close')}</Button>
 
         <div className="modal-banner" style={{ backgroundImage: `url(${weapon.displayIcon})`, backgroundSize: 'contain' }}>
           <div className="modal-banner-text">
@@ -209,7 +210,7 @@ function MapModal({ map, minimapUrl, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('wiki.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('wiki.close')}</Button>
 
         <div className="modal-banner" style={{ backgroundImage: `url(${map.splash})` }}>
           <div className="modal-banner-text">
@@ -316,13 +317,14 @@ function Wiki() {
         <p className="label">{t('wiki.description')}</p>
         <div className="filter-bar">
           {CATEGORIES.map((c) => (
-            <button
+            <Button
+              variant="ghost"
               key={c.id}
               className={c.id === category ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setCategory(c.id)}
             >
               {t(c.labelKey)}
-            </button>
+            </Button>
           ))}
         </div>
       </div>

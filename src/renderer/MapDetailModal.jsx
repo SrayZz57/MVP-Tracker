@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { agentUsageOnMap, weaponKillsOnMap, mapSideStats, excludeDeathmatch } from './valorantStats.js';
 import { useMapImages } from './mapImages.js';
 import { useWeaponIcons } from './weaponIcons.js';
+import Button from './ui/Button';
 
 function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
   const { t } = useTranslation();
@@ -19,7 +20,7 @@ function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('detail.close')}</Button>
 
         <div className="modal-banner" style={mapSplash ? { backgroundImage: `url(${mapSplash})` } : undefined}>
           <div className="modal-banner-text">

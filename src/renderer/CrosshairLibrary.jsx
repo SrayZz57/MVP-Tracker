@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import { PRO_CROSSHAIRS } from './crosshairPresets.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 // 24 = 2 lignes complètes à la largeur de carte habituelle sur un écran
 // large (12 colonnes) — 15 tombait souvent en plein milieu d'une ligne,
@@ -97,8 +98,8 @@ function CrosshairLibrary() {
                   <p>{ch.name}</p>
                   {ch.color && <p className="label">{ch.color}</p>}
                   <div className="crosshair-item-actions">
-                    <button onClick={() => navigator.clipboard.writeText(ch.code)}>{t('crosshairs.copy')}</button>
-                    <button onClick={() => handleDelete(ch.id)}>{t('crosshairs.delete')}</button>
+                    <Button variant="ghost" onClick={() => navigator.clipboard.writeText(ch.code)}>{t('crosshairs.copy')}</Button>
+                    <Button variant="danger" onClick={() => handleDelete(ch.id)}>{t('crosshairs.delete')}</Button>
                   </div>
                 </div>
               ))}
@@ -132,7 +133,7 @@ function CrosshairLibrary() {
               ) : (
                 <div className="crosshair-preview-placeholder">{t('crosshairs.previewPlaceholder')}</div>
               )}
-              <button type="submit">{t('crosshairs.save')}</button>
+              <Button variant="primary" type="submit">{t('crosshairs.save')}</Button>
             </div>
           </form>
         </CollapsibleCard>
@@ -157,15 +158,15 @@ function CrosshairLibrary() {
               <div key={preset.name} className="crosshair-item">
                 <CrosshairPreview code={preset.code} />
                 <p>{preset.name}</p>
-                <button onClick={() => handleUsePreset(preset)}>{t('crosshairs.addToLibrary')}</button>
+                <Button variant="primary" onClick={() => handleUsePreset(preset)}>{t('crosshairs.addToLibrary')}</Button>
               </div>
             ))}
           </div>
         )}
         {filteredPro.length > PRO_PAGE_SIZE && (
-          <button className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
+          <Button variant="ghost" className="show-more-btn" onClick={() => setShowAllPro(!showAllPro)}>
             {showAllPro ? t('crosshairs.showLess') : t('crosshairs.showMore', { count: filteredPro.length - PRO_PAGE_SIZE })}
-          </button>
+          </Button>
         )}
       </CollapsibleCard>
     </div>

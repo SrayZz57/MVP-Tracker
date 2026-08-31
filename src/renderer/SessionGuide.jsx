@@ -7,6 +7,7 @@ import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 function buildChecklist(t, plan, latestStrategy) {
   const items = [
@@ -107,9 +108,9 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
 
       <CollapsibleCard id="session.intro" title={t('session.title')}>
         <p className="label">{t('session.description')}</p>
-        <button className="refresh" onClick={handleLaunch} disabled={loading}>
+        <Button variant="primary" className="refresh" onClick={handleLaunch} disabled={loading}>
           {plan ? t('session.newSession') : t('session.launch')}
-        </button>
+        </Button>
       </CollapsibleCard>
 
       {plan && (

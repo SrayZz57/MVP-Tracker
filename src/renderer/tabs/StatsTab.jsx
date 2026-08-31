@@ -30,6 +30,7 @@ import WeaponDetailModal from '../WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 import CountUp from '../CountUp.jsx';
 import LoadingState from '../LoadingState.jsx';
+import Button from '../ui/Button';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
 
@@ -121,9 +122,9 @@ function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
         })}
       </div>
       {rows.length > AGENT_CARDS_PAGE_SIZE && (
-        <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+        <Button variant="ghost" className="show-more-btn" onClick={() => setShowAll(!showAll)}>
           {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - AGENT_CARDS_PAGE_SIZE })}
-        </button>
+        </Button>
       )}
     </CollapsibleCard>
   );
@@ -160,9 +161,9 @@ function MapCards({ rows, mapImages, onRowClick }) {
         })}
       </div>
       {rows.length > MAP_CARDS_PAGE_SIZE && (
-        <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+        <Button variant="ghost" className="show-more-btn" onClick={() => setShowAll(!showAll)}>
           {showAll ? t('stats.showLess') : t('stats.showMore', { count: rows.length - MAP_CARDS_PAGE_SIZE })}
-        </button>
+        </Button>
       )}
     </CollapsibleCard>
   );
@@ -356,7 +357,8 @@ function StatsTab({ settings, matches, rank, loading }) {
         <span className="stats-scope-label">{t('stats.scopeLabel')}</span>
         <div className="strategy-tool-group">
           {SCOPE_OPTIONS.map((opt) => (
-            <button
+            <Button
+              variant="ghost"
               key={opt.id}
               className={opt.id === scope ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => {
@@ -366,7 +368,7 @@ function StatsTab({ settings, matches, rank, loading }) {
               }}
             >
               {t(opt.labelKey)}
-            </button>
+            </Button>
           ))}
         </div>
         {availableActs.length > 0 && (
@@ -606,9 +608,9 @@ function StatsTab({ settings, matches, rank, loading }) {
           })}
         </div>
         {filteredMatches.length > MATCH_HISTORY_PAGE_SIZE && (
-          <button className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
+          <Button variant="ghost" className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
             {showAllMatches ? t('stats.showLess') : t('stats.showMore', { count: filteredMatches.length - MATCH_HISTORY_PAGE_SIZE })}
-          </button>
+          </Button>
         )}
       </CollapsibleCard>
 

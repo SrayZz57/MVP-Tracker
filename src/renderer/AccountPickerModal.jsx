@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { PROFILE_FIELDS } from './friendsShared.jsx';
+import Button from './ui/Button';
 
 // Recherche un compte MVP Tracker par Riot ID exact — même schéma que la
 // recherche d'ami déjà existante (nom + tag, résultat unique), pour rester
@@ -31,9 +32,9 @@ function AccountPickerModal({ onSelect, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button type="button" className="modal-close" onClick={onClose}>
+        <Button variant="ghost" type="button" className="modal-close" onClick={onClose}>
           {t('detail.close')}
-        </button>
+        </Button>
         <h3>{t('tournaments.pickAccount')}</h3>
         <p className="label">{t('tournaments.pickAccountHint')}</p>
 
@@ -46,9 +47,9 @@ function AccountPickerModal({ onSelect, onClose }) {
           <input placeholder={t('tournaments.riotName')} value={name} onChange={(e) => setName(e.target.value)} />
           <span>#</span>
           <input placeholder={t('tournaments.riotTag')} value={tag} onChange={(e) => setTag(e.target.value)} />
-          <button type="button" disabled={searching || !name.trim() || !tag.trim()} onClick={handleSearch}>
+          <Button variant="primary" type="button" disabled={searching || !name.trim() || !tag.trim()} onClick={handleSearch}>
             {searching ? t('tournaments.saving') : t('tournaments.search')}
-          </button>
+          </Button>
         </div>
 
         {result === null && <p className="warning">{t('tournaments.pickAccountNotFound')}</p>}
@@ -58,9 +59,9 @@ function AccountPickerModal({ onSelect, onClose }) {
             <span className="tournaments-mine-name">
               {result.riot_name}#{result.riot_tag}
             </span>
-            <button type="button" onClick={() => onSelect(result)}>
+            <Button variant="primary" type="button" onClick={() => onSelect(result)}>
               {t('tournaments.select')}
-            </button>
+            </Button>
           </div>
         )}
       </div>

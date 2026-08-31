@@ -5,6 +5,7 @@ import Icon from './Icon.jsx';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import ApiKeyHelp from './ApiKeyHelp.jsx';
 import logo from '../assets/logo.png';
+import Button from './ui/Button';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -96,9 +97,9 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
               onChange={(e) => setApiKey(e.target.value)}
               required
             />
-            <button type="submit" disabled={loading}>
+            <Button variant="primary" type="submit" disabled={loading}>
               {loading ? t('linkRiot.searching') : t('linkRiot.search')}
-            </button>
+            </Button>
           </form>
 
           {error && <p className="warning">{error}</p>}
@@ -117,12 +118,12 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
           <p className="welcome-tagline">{t('linkRiot.confirmTagline')}</p>
           <RiotProfilePreview name={preview.name} tag={preview.tag} cardUuid={preview.cardUuid} rank={preview.rank} />
           <div className="riot-confirm-actions">
-            <button className="riot-confirm-yes" onClick={handleConfirm}>
+            <Button variant="primary" className="riot-confirm-yes" onClick={handleConfirm}>
               {t('linkRiot.confirmYes')}
-            </button>
-            <button className="riot-confirm-no" onClick={handleDeny}>
+            </Button>
+            <Button variant="ghost" className="riot-confirm-no" onClick={handleDeny}>
               {t('linkRiot.confirmNo')}
-            </button>
+            </Button>
           </div>
         </>
       )}

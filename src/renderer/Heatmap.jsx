@@ -8,6 +8,7 @@ import { useWeaponCosts } from './weaponIcons.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 const CANVAS_SIZE = 640;
 const POINT_RADIUS = 26;
@@ -167,34 +168,37 @@ function Heatmap({ settings, matches }) {
             ))}
           </select>
           {MODES.map((m) => (
-            <button
+            <Button
+              variant="ghost"
               key={m.id}
               className={m.id === mode ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setMode(m.id)}
             >
               {t(m.labelKey)}
-            </button>
+            </Button>
           ))}
         </div>
 
         <div className="filter-bar">
           {SIDES.map((s) => (
-            <button
+            <Button
+              variant="ghost"
               key={s.id}
               className={s.id === side ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setSide(s.id)}
             >
               {t(s.labelKey)}
-            </button>
+            </Button>
           ))}
           {ROUND_TYPES.map((rt) => (
-            <button
+            <Button
+              variant="ghost"
               key={rt.id}
               className={rt.id === roundType ? 'strategy-tool active' : 'strategy-tool'}
               onClick={() => setRoundType(rt.id)}
             >
               {t(rt.labelKey)}
-            </button>
+            </Button>
           ))}
           <select value={weapon} onChange={(e) => setWeapon(e.target.value)}>
             <option value="">{t('heatmap.allWeapons')}</option>
@@ -203,13 +207,14 @@ function Heatmap({ settings, matches }) {
             ))}
           </select>
           <span className="heatmap-point-count">{t('heatmap.pointsAnalyzed', { count: points.length })}</span>
-          <button
+          <Button
+            variant="ghost"
             className="strategy-tool"
             onClick={() => setRotation((r) => (r + 90) % 360)}
             title={t('heatmap.rotate')}
           >
             <Icon icon={RotateCw} size={16} /> {t('heatmap.rotate')}
-          </button>
+          </Button>
           <div className="heatmap-legend">
             <span>{t('heatmap.legendLow')}</span>
             <span className={`heatmap-legend-bar ${mode}`} />

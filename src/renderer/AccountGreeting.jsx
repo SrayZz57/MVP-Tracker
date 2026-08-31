@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent, resultLabelKey, resultLabel, findMe } from './valorantStats.js';
 import logo from '../assets/logo.png';
+import Button from './ui/Button';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
 
@@ -101,12 +102,12 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
           )}
 
           <div className="riot-confirm-actions">
-            <button className="riot-confirm-yes" onClick={onEnter}>
+            <Button variant="primary" className="riot-confirm-yes" onClick={onEnter}>
               {t('accountGreeting.enter')}
-            </button>
-            <button className="riot-confirm-no" onClick={onSearchOther}>
+            </Button>
+            <Button variant="ghost" className="riot-confirm-no" onClick={onSearchOther}>
               {t('accountGreeting.searchOther')}
-            </button>
+            </Button>
           </div>
         </section>
 
@@ -132,9 +133,9 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
           <h2 className="greeting-aim-title">{t('accountGreeting.aimTitle')}</h2>
           <p className="label greeting-aim-text">{t('accountGreeting.aimText')}</p>
 
-          <button className="refresh greeting-aim-btn" onClick={onOpenAimTrainer}>
+          <Button variant="primary" className="refresh greeting-aim-btn" onClick={onOpenAimTrainer}>
             {t('accountGreeting.aimCta')}
-          </button>
+          </Button>
         </section>
       </div>
     </div>

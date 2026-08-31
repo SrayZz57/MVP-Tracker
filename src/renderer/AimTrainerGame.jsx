@@ -33,6 +33,7 @@ import wallNormalUrl from '../assets/textures/wall-normal.jpg';
 import wallRoughnessUrl from '../assets/textures/wall-roughness.jpg';
 import { saveScore } from './aimScores.js';
 import CrosshairPreview from './CrosshairPreview.jsx';
+import Button from './ui/Button';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -1727,9 +1728,9 @@ function AimTrainerGame({ config: rawConfig }) {
                     <kbd>Échap</kbd> pause
                   </span>
                 </div>
-                <button className="refresh aim-game-cta" onClick={startSession}>
+                <Button variant="primary" className="refresh aim-game-cta" onClick={startSession}>
                   <Icon icon={Play} size={16} /> Démarrer
-                </button>
+                </Button>
                 <p className="aim-game-tip">Échap pour mettre en pause · la fenêtre se ferme avec le bouton ci-dessous</p>
                 {rawInputActive !== null && (
                   <p className="aim-game-tip">
@@ -1743,9 +1744,9 @@ function AimTrainerGame({ config: rawConfig }) {
               <>
                 <h1>Pause</h1>
                 <p>Il te reste {timeLeft} secondes.</p>
-                <button className="refresh aim-game-cta" onClick={resumeSession}>
+                <Button variant="primary" className="refresh aim-game-cta" onClick={resumeSession}>
                   <Icon icon={Play} size={16} /> Reprendre
-                </button>
+                </Button>
               </>
             )}
 
@@ -1812,26 +1813,26 @@ function AimTrainerGame({ config: rawConfig }) {
                 )}
 
                 {playlist && !isLastStep && (
-                  <button className="refresh aim-game-cta" onClick={nextStep}>
+                  <Button variant="primary" className="refresh aim-game-cta" onClick={nextStep}>
                     <Icon icon={Play} size={16} /> Étape suivante —{' '}
                     <Icon icon={MODES[playlist[step + 1]].icon} style={{ color: MODES[playlist[step + 1]].accent }} />{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
-                  </button>
+                  </Button>
                 )}
                 {/* Défi du jour : un seul essai compte au classement — pas de
                     bouton pour relancer et retenter sa chance. */}
                 {!config.challengeDate && (
-                  <button className="refresh aim-game-cta" onClick={startSession}>
+                  <Button variant="primary" className="refresh aim-game-cta" onClick={startSession}>
                     <Icon icon={RotateCcw} size={16} /> Recommencer
-                  </button>
+                  </Button>
                 )}
               </>
             )}
 
-            <button className="aim-game-close" onClick={() => window.electronAPI.closeAimTrainer()}>
+            <Button variant="ghost" className="aim-game-close" onClick={() => window.electronAPI.closeAimTrainer()}>
               Fermer la fenêtre
-            </button>
+            </Button>
           </div>
         </div>
       )}

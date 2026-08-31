@@ -10,6 +10,7 @@ import { useMapImages } from './mapImages.js';
 import { pickSplash } from './tournamentVisuals.js';
 import IconPickerModal from './IconPickerModal.jsx';
 import AccountPickerModal from './AccountPickerModal.jsx';
+import Button from './ui/Button';
 
 const PLAYER_COUNT = 5;
 const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({
@@ -60,7 +61,8 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 
       {players.map((player, index) => (
         <div key={index} className="team-roster-player-row">
-          <button
+          <Button
+            variant="ghost"
             type="button"
             className="team-roster-agent-avatar"
             title={player.agent ?? t('tournaments.pickAgent')}
@@ -71,7 +73,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
             ) : (
               <span>?</span>
             )}
-          </button>
+          </Button>
 
           {player.linkedProfileId ? (
             <span className="team-roster-linked-account">
@@ -80,9 +82,9 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
           ) : (
             <span className="team-roster-linked-account placeholder">{t('tournaments.noAccountChosen')}</span>
           )}
-          <button type="button" onClick={() => setAccountPickerIndex(index)}>
+          <Button variant="ghost" type="button" onClick={() => setAccountPickerIndex(index)}>
             {player.linkedProfileId ? t('tournaments.change') : t('tournaments.pickAccount')}
-          </button>
+          </Button>
         </div>
       ))}
 
@@ -114,9 +116,9 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 
       {error && <p className="error-banner">{error}</p>}
 
-      <button type="submit" disabled={saving || players.some((p) => !p.linkedProfileId)}>
+      <Button variant="primary" type="submit" disabled={saving || players.some((p) => !p.linkedProfileId)}>
         {saving ? t('tournaments.saving') : submitLabel}
-      </button>
+      </Button>
     </form>
   );
 }
@@ -332,9 +334,9 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
 
   return (
     <div className="tournament-detail">
-      <button className="link-back" onClick={onBack}>
+      <Button variant="ghost" className="link-back" onClick={onBack}>
         <Icon icon={ArrowLeft} size={16} /> {t('tournaments.back')}
-      </button>
+      </Button>
 
       <div className="tournament-hero" style={splash ? { backgroundImage: `url(${splash})` } : undefined}>
         <span className={`tournament-status-badge ${tournament.status}`}>
@@ -360,10 +362,10 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               <li key={team.id}>
                 <span>{team.name}</span>
                 <div className="tournament-team-actions">
-                  <button onClick={() => handleTeamStatus(team.id, 'approved')}>{t('tournaments.approve')}</button>
-                  <button className="button-danger" onClick={() => handleTeamStatus(team.id, 'rejected')}>
+                  <Button variant="primary" onClick={() => handleTeamStatus(team.id, 'approved')}>{t('tournaments.approve')}</Button>
+                  <Button variant="danger" className="button-danger" onClick={() => handleTeamStatus(team.id, 'rejected')}>
                     {t('tournaments.reject')}
-                  </button>
+                  </Button>
                 </div>
               </li>
             ))}
@@ -391,13 +393,14 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
 
       {isAdmin && matches.length === 0 && (
         <section className="tournament-admin-generate admin-panel">
-          <button
+          <Button
+            variant="primary"
             className={`generate-bracket-button ${approvedTeams.length >= 2 ? 'ready' : ''}`}
             onClick={handleGenerateBracket}
             disabled={saving || approvedTeams.length < 2}
           >
             {saving ? t('tournaments.saving') : t('tournaments.bracket.generate')}
-          </button>
+          </Button>
           {approvedTeams.length < 2 && <p className="label">{t('tournaments.bracket.needApproved')}</p>}
         </section>
       )}
@@ -418,7 +421,8 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                   className={`tournament-team-card status-${team.status} ${expanded ? 'expanded' : ''}`}
                   style={{ '--i': index }}
                 >
-                  <button
+                  <Button
+                    variant="ghost"
                     type="button"
                     className={isAdmin ? 'clickable' : ''}
                     onClick={isAdmin ? () => setExpandedTeamId(expanded ? null : team.id) : undefined}
@@ -446,7 +450,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                         );
                       })}
                     </div>
-                  </button>
+                  </Button>
 
                   {isAdmin && expanded && (
                     <div className="tournament-team-expanded">
@@ -465,9 +469,9 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                         ))}
                       </ul>
                       {matches.length === 0 && (
-                        <button className="button-danger" disabled={saving} onClick={() => handleAdminRemoveTeam(team.id)}>
+                        <Button variant="danger" className="button-danger" disabled={saving} onClick={() => handleAdminRemoveTeam(team.id)}>
                           {t('tournaments.removeTeam')}
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -501,10 +505,10 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               </ul>
               {!registrationClosed && (
                 <div className="tournament-team-actions">
-                  <button onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</button>
-                  <button onClick={handleWithdraw} disabled={saving} className="button-danger">
+                  <Button variant="primary" onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</Button>
+                  <Button variant="danger" onClick={handleWithdraw} disabled={saving} className="button-danger">
                     {t('tournaments.withdraw')}
-                  </button>
+                  </Button>
                 </div>
               )}
             </>
@@ -528,7 +532,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                 onSubmit={handleUpdate}
                 submitLabel={t('tournaments.saveChanges')}
               />
-              <button onClick={() => setEditing(false)}>{t('tournaments.cancel')}</button>
+              <Button variant="ghost" onClick={() => setEditing(false)}>{t('tournaments.cancel')}</Button>
             </>
           ) : registrationClosed ? (
             <p className="warning">{t('tournaments.registrationClosed')}</p>

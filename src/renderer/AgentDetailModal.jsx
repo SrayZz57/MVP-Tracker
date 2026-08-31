@@ -10,6 +10,7 @@ import {
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { useWeaponIcons } from './weaponIcons.js';
 import { useMapMinimaps } from './mapImages.js';
+import Button from './ui/Button';
 
 function formatPlaytime(seconds) {
   const totalMinutes = Math.round(seconds / 60);
@@ -44,7 +45,7 @@ function AgentDetailModal({ character, matches, settings, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('detail.close')}</Button>
 
         <div className="agent-modal-header">
           {icon && <img src={icon} alt="" className="agent-modal-avatar" />}

@@ -1,11 +1,12 @@
 import { useTranslation } from 'react-i18next';
+import Button from './ui/Button';
 
 function SkinDetailModal({ skin, isWishlisted, isOwned, onToggleWishlist, onToggleCollection, onClose }) {
   const { t } = useTranslation();
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('skins.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('skins.close')}</Button>
 
         <div
           className="modal-banner"
@@ -36,12 +37,12 @@ function SkinDetailModal({ skin, isWishlisted, isOwned, onToggleWishlist, onTogg
             </div>
           </div>
           <div className="skin-detail-actions">
-            <button onClick={onToggleWishlist}>
+            <Button variant="ghost" onClick={onToggleWishlist}>
               {isWishlisted ? t('skins.removeFromWishlist') : t('skins.addToWishlist')}
-            </button>
-            <button onClick={onToggleCollection}>
+            </Button>
+            <Button variant="ghost" onClick={onToggleCollection}>
               {isOwned ? t('skins.removeOwned') : t('skins.addOwned')}
-            </button>
+            </Button>
           </div>
         </div>
 

@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { weaponDetailStats } from './valorantStats.js';
 import { useAgentIcons } from './agentIcons.js';
 import { useMapMinimaps } from './mapImages.js';
+import Button from './ui/Button';
 
 function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
   const { t } = useTranslation();
@@ -15,7 +16,7 @@ function WeaponDetailModal({ weapon, weaponIcon, matches, settings, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('detail.close')}</Button>
 
         <div className="agent-modal-header">
           {weaponIcon && <img src={weaponIcon} alt="" className="agent-modal-avatar weapon-modal-avatar" />}

@@ -10,6 +10,7 @@ import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
 import { supabase } from './supabaseClient.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
@@ -121,14 +122,14 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         style={{ backgroundImage: avatarArt.banner ? `url(${avatarArt.banner})` : undefined }}
       >
         <div className="profile-header-overlay">
-          <button className="account-avatar-button" onClick={() => setAvatarPickerOpen(true)} title={t('account.changePhoto')}>
+          <Button variant="ghost" className="account-avatar-button" onClick={() => setAvatarPickerOpen(true)} title={t('account.changePhoto')}>
             {avatarArt.icon ? (
               <img src={avatarArt.icon} alt="" className="profile-card-icon" />
             ) : (
               <span className="profile-card-icon account-avatar-fallback">{displayedName.charAt(0)}</span>
             )}
             <span className="account-avatar-edit"><Icon icon={Pencil} size={14} /></span>
-          </button>
+          </Button>
 
           <div className="profile-header-info">
             {editingName ? (
@@ -141,10 +142,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                 />
-                <button onClick={handleSaveName} disabled={saving}>
+                <Button variant="primary" onClick={handleSaveName} disabled={saving}>
                   {saving ? "..." : <Icon icon={Check} size={16} />}
-                </button>
-                <button
+                </Button>
+                <Button
+                  variant="icon"
                   className="account-name-cancel"
                   onClick={() => {
                     setNameDraft(profile.display_name ?? '');
@@ -152,7 +154,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   }}
                 >
                   <Icon icon={X} size={16} />
-                </button>
+                </Button>
               </div>
             ) : (
               <h2 className="account-name-display" onClick={() => setEditingName(true)} title={t('account.clickToEdit')}>
@@ -189,19 +191,20 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         <h4 className="account-subsection-title">{t('account.yourRole')}</h4>
         <div className="account-role-picker">
           {ROLES.map((role) => (
-            <button
+            <Button
+              variant="ghost"
               key={role}
               className={profile.main_role === role ? 'account-role-option active' : 'account-role-option'}
               onClick={() => onUpdate({ main_role: profile.main_role === role ? null : role })}
             >
               {roleIconByName.get(role) && <img src={roleIconByName.get(role)} alt="" />}
               <span>{role}</span>
-            </button>
+            </Button>
           ))}
         </div>
 
         <h4 className="account-subsection-title">{t('account.yourFavoriteAgent')}</h4>
-        <button className="account-agent-picker" onClick={() => setAgentPickerOpen(true)}>
+        <Button variant="ghost" className="account-agent-picker" onClick={() => setAgentPickerOpen(true)}>
           {profile.main_agent && agentIcons.get(profile.main_agent) ? (
             <>
               <img src={agentIcons.get(profile.main_agent)} alt="" />
@@ -211,7 +214,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             <span className="label">{t('account.chooseAgent')}</span>
           )}
           <span className="account-agent-picker-edit">{t('account.changeAgent')}</span>
-        </button>
+        </Button>
 
         {(suggestedRole || suggestedAgent) && (
           <p className="label account-suggestion">
@@ -259,10 +262,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
               />
-              <button onClick={handleSaveApiKey} disabled={savingApiKey}>
+              <Button variant="primary" onClick={handleSaveApiKey} disabled={savingApiKey}>
                 {savingApiKey ? "..." : <Icon icon={Check} size={16} />}
-              </button>
-              <button
+              </Button>
+              <Button
+                variant="icon"
                 className="account-name-cancel"
                 onClick={() => {
                   setApiKeyDraft(apiKey ?? '');
@@ -270,7 +274,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                 }}
               >
                 <Icon icon={X} size={16} />
-              </button>
+              </Button>
             </div>
           ) : (
             <span className="account-name-display" onClick={() => setEditingApiKey(true)} title={t('account.clickToEdit')}>
@@ -280,12 +284,12 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           )}
         </div>
         <div className="account-settings-actions">
-          <button className="sidebar-signout account-signout" onClick={onSignOut}>
+          <Button variant="ghost" className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}
-          </button>
-          <button className="account-forgot-password" onClick={handleForgotPassword} disabled={resetStatus === 'sending'}>
+          </Button>
+          <Button variant="ghost" className="account-forgot-password" onClick={handleForgotPassword} disabled={resetStatus === 'sending'}>
             {resetStatus === 'sending' ? t('account.forgotPasswordSending') : t('account.forgotPassword')}
-          </button>
+          </Button>
         </div>
         {resetStatus === 'sent' && <p className="label account-reset-status">{t('account.forgotPasswordSent')}</p>}
         {resetStatus === 'error' && <p className="warning account-reset-status">{t('account.forgotPasswordError')}</p>}
@@ -293,12 +297,13 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
 
       <CollapsibleCard id="account.contact" title={t('account.contactTitle')}>
         <p className="label">{t('account.contactHint')}</p>
-        <button
+        <Button
+          variant="ghost"
           className="account-contact-button"
           onClick={() => window.electronAPI.openExternal(`mailto:${CONTACT_EMAIL}`)}
         >
           <Icon icon={Mail} size={16} /> {CONTACT_EMAIL}
-        </button>
+        </Button>
       </CollapsibleCard>
 
       {avatarPickerOpen && (

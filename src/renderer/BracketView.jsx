@@ -2,6 +2,7 @@ import { useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { groupByRound } from './bracket.js';
+import Button from './ui/Button';
 
 function teamLabel(teamId, teamsById, t) {
   if (!teamId) return t('tournaments.bracket.tbd');
@@ -30,9 +31,9 @@ function MatchResultForm({ match, onSaved }) {
       <input type="number" min={0} value={score1} onChange={(e) => setScore1(e.target.value)} required />
       <span>–</span>
       <input type="number" min={0} value={score2} onChange={(e) => setScore2(e.target.value)} required />
-      <button type="submit" disabled={saving}>
+      <Button variant="primary" type="submit" disabled={saving}>
         {saving ? t('tournaments.saving') : t('tournaments.bracket.saveResult')}
-      </button>
+      </Button>
     </form>
   );
 }

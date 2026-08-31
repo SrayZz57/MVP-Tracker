@@ -4,6 +4,7 @@ import { Target, X, Check } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { excludeDeathmatch, overallHsPercent, overallWinrate, formStats, groupStats } from './valorantStats.js';
 import { loadGoals, addGoal as addGoalCloud, toggleGoalDone as toggleGoalDoneCloud, deleteGoal as deleteGoalCloud } from './personalData.js';
+import Button from './ui/Button';
 
 const MIN_GAMES_FOR_BREAKDOWN = 3;
 
@@ -144,15 +145,15 @@ function GoalsWidget({ matches, settings, myId }) {
 
   return (
     <>
-      <button className="goals-widget-button" onClick={() => setOpen(!open)} title={t('goals.widgetTitle')}>
+      <Button variant="icon" className="goals-widget-button" onClick={() => setOpen(!open)} title={t('goals.widgetTitle')}>
         <span key={open} className="goals-widget-icon"><Icon icon={Target} /></span>
-      </button>
+      </Button>
 
       {open && (
         <div className="goals-widget-panel">
           <div className="goals-widget-header">
             <h3>{t('goals.panelTitle')}</h3>
-            <button className="goals-widget-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></button>
+            <Button variant="icon" className="goals-widget-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></Button>
           </div>
 
           {activeGoals.length === 0 ? (
@@ -164,8 +165,8 @@ function GoalsWidget({ matches, settings, myId }) {
                   <div key={goal.id} className="goal-row">
                     <span className="goal-label">{goal.label}</span>
                     <div className="goal-actions">
-                      <button onClick={() => handleToggleDone(goal.id)}><Icon icon={Check} size={16} /></button>
-                      <button onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></button>
+                      <Button variant="icon" onClick={() => handleToggleDone(goal.id)}><Icon icon={Check} size={16} /></Button>
+                      <Button variant="icon" onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></Button>
                     </div>
                   </div>
                 );
@@ -188,8 +189,8 @@ function GoalsWidget({ matches, settings, myId }) {
                     />
                   </div>
                   <div className="goal-actions">
-                    {reached && <button onClick={() => handleToggleDone(goal.id)}>{t('goals.markReached')}</button>}
-                    <button onClick={() => handleDelete(goal.id)}>{t('goals.delete')}</button>
+                    {reached && <Button variant="primary" onClick={() => handleToggleDone(goal.id)}>{t('goals.markReached')}</Button>}
+                    <Button variant="danger" onClick={() => handleDelete(goal.id)}>{t('goals.delete')}</Button>
                   </div>
                 </div>
               );
@@ -202,7 +203,7 @@ function GoalsWidget({ matches, settings, myId }) {
               {doneGoals.map((goal) => (
                 <div key={goal.id} className="goal-row goal-row-done">
                   <span className="goal-label"><Icon icon={Check} size={14} /> {goal.label}</span>
-                  <button onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></button>
+                  <Button variant="icon" onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></Button>
                 </div>
               ))}
             </details>
@@ -219,7 +220,7 @@ function GoalsWidget({ matches, settings, myId }) {
                       {t('goals.suggestionDetail', { baseline: s.baseline.toFixed(1), target: s.target })}
                     </span>
                   </div>
-                  <button onClick={() => handleAddSuggestion(s)}>{t('goals.addSuggestion')}</button>
+                  <Button variant="primary" onClick={() => handleAddSuggestion(s)}>{t('goals.addSuggestion')}</Button>
                 </div>
               ))}
             </div>
@@ -234,14 +235,14 @@ function GoalsWidget({ matches, settings, myId }) {
                 required
               />
               <div className="goals-form-actions">
-                <button type="button" onClick={() => setShowCustomForm(false)}>{t('goals.cancel')}</button>
-                <button type="submit">{t('goals.add')}</button>
+                <Button variant="ghost" type="button" onClick={() => setShowCustomForm(false)}>{t('goals.cancel')}</Button>
+                <Button variant="primary" type="submit">{t('goals.add')}</Button>
               </div>
             </form>
           ) : (
-            <button className="goals-add-btn" onClick={() => setShowCustomForm(true)}>
+            <Button variant="primary" className="goals-add-btn" onClick={() => setShowCustomForm(true)}>
               {t('goals.addCustomGoal')}
-            </button>
+            </Button>
           )}
         </div>
       )}

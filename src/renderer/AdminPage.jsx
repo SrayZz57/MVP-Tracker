@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
+import Button from './ui/Button';
 
 // Écran d'administration — pour l'instant seulement la création de tournois
 // (étape validée avec l'utilisateur avant d'enchaîner sur l'inscription
@@ -99,9 +100,9 @@ function TournamentCreateForm({ myId, onCreated }) {
 
       {error && <p className="error-banner">{error}</p>}
 
-      <button type="submit" disabled={saving}>
+      <Button variant="primary" type="submit" disabled={saving}>
         {saving ? t('admin.tournaments.creating') : t('admin.tournaments.create')}
-      </button>
+      </Button>
     </form>
   );
 }

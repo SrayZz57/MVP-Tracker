@@ -5,6 +5,7 @@ import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS }
 import Skeleton from './Skeleton.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Icon from './Icon.jsx';
+import Button from './ui/Button';
 
 function todayKey() {
   const now = new Date();
@@ -122,10 +123,10 @@ function DailyPuzzle({ settings, matches }) {
                 <p style={{ marginTop: '1rem', fontWeight: 600 }}>{t('puzzle.question')}</p>
                 <div className="puzzle-options">
                   {PUZZLE_OPTIONS.map((option) => (
-                    <button key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
+                    <Button variant="ghost" key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
                       <span className="puzzle-option-icon"><Icon icon={option.icon} /></span>
                       {t(option.labelKey)}
-                    </button>
+                    </Button>
                   ))}
                 </div>
               </>

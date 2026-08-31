@@ -3,6 +3,7 @@ import { createPortal } from 'react-dom';
 import { useTranslation } from 'react-i18next';
 import { FriendAvatar, friendLabel } from './friendsShared.jsx';
 import { useRankTiers } from './rankData.js';
+import Button from './ui/Button';
 
 const CARD_WIDTH = 220;
 const CARD_MARGIN = 10;
@@ -92,7 +93,8 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
             {!loadingPreview && (
               <>
                 {friendStatus === 'none' && (
-                  <button
+                  <Button
+                    variant="primary"
                     className="strategy-tool aim-board-hover-add"
                     onClick={(e) => {
                       e.stopPropagation();
@@ -100,7 +102,7 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
                     }}
                   >
                     + {t('aimTrainer.addFriend')}
-                  </button>
+                  </Button>
                 )}
                 {friendStatus === 'pending-out' && <p className="label">{t('friends.requestSent')}</p>}
                 {friendStatus === 'pending-in' && <p className="label">{t('aimTrainer.pendingIncoming')}</p>}

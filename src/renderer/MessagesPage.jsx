@@ -4,6 +4,7 @@ import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryCard from './FriendSummaryCard.jsx';
 import { useE2EE } from './E2EEContext.jsx';
+import Button from './ui/Button';
 
 // Écran affiché tant que la clé de messagerie n'est pas en mémoire — arrive
 // après chaque redémarrage de l'app (session Supabase restaurée sans jamais
@@ -44,9 +45,9 @@ function UnlockMessagingForm({ myId }) {
             autoFocus
             required
           />
-          <button type="submit" disabled={loading}>
+          <Button variant="primary" type="submit" disabled={loading}>
             {loading ? t('auth.loading') : t('messages.unlockButton')}
-          </button>
+          </Button>
         </form>
         {error && <p className="warning">{error}</p>}
       </div>
@@ -229,7 +230,8 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
             {friendships.map((f) => {
               const p = otherProfile(f);
               return (
-                <button
+                <Button
+                  variant="ghost"
                   key={f.id}
                   className={p.id === selectedFriendId ? 'friend-list-item active' : 'friend-list-item'}
                   onClick={() => openConversation(p.id)}
@@ -237,7 +239,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
                   <FriendAvatar profile={p} online={onlineFriendIds.has(p.id)} />
                   <span>{friendLabel(p)}</span>
                   {unreadFrom.has(p.id) && <span className="friend-unread-dot" />}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -259,13 +261,14 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
                   {onlineFriendIds.has(selectedProfile.id) ? t('messages.online') : t('messages.offline')}
                 </span>
               </div>
-              <button
+              <Button
+                variant="danger"
                 className="messages-remove-friend"
                 onClick={() => removeFriend(selectedFriendship.id)}
                 title={t('friends.removeFriend')}
               >
                 {t('messages.remove')}
-              </button>
+              </Button>
             </div>
 
             <div className="messages-thread-body">
@@ -295,9 +298,9 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
                   onChange={(e) => setDraft(e.target.value)}
                   maxLength={2000}
                 />
-                <button type="submit" disabled={!draft.trim()}>
+                <Button variant="primary" type="submit" disabled={!draft.trim()}>
                   {t('messages.send')}
-                </button>
+                </Button>
               </form>
             ) : (
               <p className="label messages-no-key-hint">{t('messages.friendNoKeyYet')}</p>

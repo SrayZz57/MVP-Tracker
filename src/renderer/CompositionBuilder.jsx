@@ -11,6 +11,7 @@ import CountUp from './CountUp.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
@@ -120,7 +121,8 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
             <span className="stats-scope-label">{t('composition.mostPlayedAgents')}</span>
             <div className="comp-quickpick-list">
               {mostPlayedAgents.map((row) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={row.key}
                   className="comp-quickpick-chip"
                   disabled={slots.includes(row.key)}
@@ -133,7 +135,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
                   {agentIcons.get(row.key) && <img src={agentIcons.get(row.key)} alt="" />}
                   {row.key}
                   <span className="comp-quickpick-games">{row.games}</span>
-                </button>
+                </Button>
               ))}
             </div>
           </div>

@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import Button from './ui/Button';
 
 function SearchBar({ initialSettings, onSearch }) {
   const { t } = useTranslation();
@@ -32,7 +33,7 @@ function SearchBar({ initialSettings, onSearch }) {
           className="search-bar-tag"
         />
       </div>
-      <button type="submit">{t('linkRiot.search')}</button>
+      <Button variant="primary" type="submit">{t('linkRiot.search')}</Button>
     </form>
   );
 }

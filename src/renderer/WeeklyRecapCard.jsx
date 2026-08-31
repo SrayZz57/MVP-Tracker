@@ -7,6 +7,7 @@ import { matchesInCurrentWeek, lastCompletedWeekStart, weekStartKey } from './va
 import { buildWeekRecap, generateNarrative } from './weeklyNarrative.js';
 import { useAgentPortraits } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
+import Button from './ui/Button';
 
 function WeeklyRecapCard({ settings, matches, rank }) {
   const { t } = useTranslation();
@@ -79,15 +80,15 @@ function WeeklyRecapCard({ settings, matches, rank }) {
 
   return (
     <>
-      <button className="weekly-notch" onClick={() => setOpen(true)} title={t('weekly.widgetTitle')}>
+      <Button variant="ghost" className="weekly-notch" onClick={() => setOpen(true)} title={t('weekly.widgetTitle')}>
         <span className="weekly-notch-icon" aria-hidden="true"><Icon icon={Trophy} size={16} /></span>
         <span>{t('weekly.notchLabel')}</span>
-      </button>
+      </Button>
 
       {open && (
         <div className="weekly-drawer-backdrop" onClick={() => setOpen(false)}>
           <div className="weekly-drawer" onClick={(e) => e.stopPropagation()}>
-            <button className="weekly-drawer-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></button>
+            <Button variant="icon" className="weekly-drawer-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></Button>
 
             {!recap ? (
               <div className="weekly-recap-card weekly-recap-empty">
@@ -147,9 +148,9 @@ function WeeklyRecapCard({ settings, matches, rank }) {
                   </div>
                 </div>
 
-                <button className="show-more-btn" onClick={handleExport} disabled={exporting}>
+                <Button variant="ghost" className="show-more-btn" onClick={handleExport} disabled={exporting}>
                   {exporting ? t('weekly.exporting') : t('weekly.exportBtn')}
-                </button>
+                </Button>
 
                 {narrative && (
                   <div className="weekly-narrative">

@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Button from './ui/Button';
 
 function ApiKeyHelp() {
   const { t } = useTranslation();
@@ -11,13 +12,14 @@ function ApiKeyHelp() {
         <li>{t('welcome.apiKeyStep3')}</li>
         <li>{t('welcome.apiKeyStep4')}</li>
       </ol>
-      <button
+      <Button
+        variant="ghost"
         type="button"
         className="welcome-api-link"
         onClick={() => window.electronAPI.openExternal('https://api.henrikdev.xyz/dashboard/')}
       >
         {t('welcome.getApiKey')}
-      </button>
+      </Button>
     </div>
   );
 }

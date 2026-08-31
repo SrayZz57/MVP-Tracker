@@ -1,6 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { findMe, weaponKillsFor } from './valorantStats.js';
 import { useMapImages } from './mapImages.js';
+import Button from './ui/Button';
 
 function TeamColumn({ title, players, agentIcons, className }) {
   const { t } = useTranslation();
@@ -41,7 +42,7 @@ function MatchDetailModal({ match, settings, agentIcons, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <Button variant="ghost" className="modal-close" onClick={onClose}>{t('detail.close')}</Button>
 
         <div className="modal-banner" style={mapSplash ? { backgroundImage: `url(${mapSplash})` } : undefined}>
           <div className="modal-banner-text">

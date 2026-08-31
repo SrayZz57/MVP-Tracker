@@ -6,6 +6,7 @@ import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
 import { loadCollection, loadWishlist, toggleWishlist, toggleCollection, setCollectionPrice } from './personalData.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 // Page dédiée à la collection personnelle — auparavant un petit onglet noyé
 // dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
@@ -99,7 +100,7 @@ function MySkinsCollection({ myId }) {
                   />
                   <span className="label">VP</span>
                 </div>
-                <button onClick={() => handleToggleCollection(skin)}>{t('skins.removeFromCollection')}</button>
+                <Button variant="danger" onClick={() => handleToggleCollection(skin)}>{t('skins.removeFromCollection')}</Button>
               </div>
             ))}
           </div>

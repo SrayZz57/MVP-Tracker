@@ -4,6 +4,7 @@ import { ZoomIn, ZoomOut, RotateCcw, RotateCw, X } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { Canvas, Control, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
+import Button from './ui/Button';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
 import spikeIconUrl from '../assets/spike.png';
 
@@ -651,16 +652,16 @@ function StrategyBoard() {
               ))}
             </select>
             <div className="strategy-tool-group">
-              <button className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title={t('strategy.zoomOut')}>
+              <Button variant="icon" className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title={t('strategy.zoomOut')}>
                 <Icon icon={ZoomOut} size={16} />
-              </button>
-              <button className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title={t('strategy.zoomIn')}>
+              </Button>
+              <Button variant="icon" className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title={t('strategy.zoomIn')}>
                 <Icon icon={ZoomIn} size={16} />
-              </button>
+              </Button>
             </div>
-            <button className="strategy-tool" onClick={resetView}>
+            <Button variant="ghost" className="strategy-tool" onClick={resetView}>
               {t('strategy.resetView')}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -669,13 +670,14 @@ function StrategyBoard() {
           <div className="strategy-toolbar-row">
             <div className="strategy-tool-group">
               {SHAPE_TOOLS.map((st) => (
-                <button
+                <Button
+                  variant="ghost"
                   key={st.key}
                   className={st.key === tool ? 'strategy-tool active' : 'strategy-tool'}
                   onClick={() => setTool(st.key)}
                 >
                   {t(st.labelKey)}
-                </button>
+                </Button>
               ))}
             </div>
 
@@ -686,9 +688,9 @@ function StrategyBoard() {
               title={t('strategy.color')}
             />
 
-            <button className="strategy-tool danger" onClick={handleDeleteSelection}>
+            <Button variant="danger" className="strategy-tool danger" onClick={handleDeleteSelection}>
               {t('strategy.delete')}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -703,9 +705,9 @@ function StrategyBoard() {
                 </option>
               ))}
             </select>
-            <button className="strategy-tool" onClick={handleStampAgentPosition} disabled={!selectedAgent}>
+            <Button variant="ghost" className="strategy-tool" onClick={handleStampAgentPosition} disabled={!selectedAgent}>
               {t('strategy.placePosition')}
-            </button>
+            </Button>
 
             <select
               value={selectedAbility}
@@ -719,46 +721,47 @@ function StrategyBoard() {
                 </option>
               ))}
             </select>
-            <button className="strategy-tool" onClick={handleStampAbility} disabled={!selectedAbility}>
+            <Button variant="ghost" className="strategy-tool" onClick={handleStampAbility} disabled={!selectedAbility}>
               {t('strategy.placeAbility')}
-            </button>
+            </Button>
           </div>
         </div>
 
         <div className="strategy-toolbar-section">
           <div className="strategy-section-label">{t('strategy.iconsSection')}</div>
           <div className="strategy-toolbar-row">
-            <button className="strategy-tool" onClick={handleStampSpike}>
+            <Button variant="ghost" className="strategy-tool" onClick={handleStampSpike}>
               {t('strategy.spike')}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
               className="strategy-tool"
               title={t('strategy.sightlineTitle')}
               onClick={handlePlaceSightline}
             >
               {t('strategy.sightline')}
-            </button>
+            </Button>
             {selectedSightline && (
               <div className="strategy-sightline-controls">
                 <span className="strategy-inline-label">{t('strategy.orient')}</span>
-                <button className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title={t('strategy.rotateMinus')}>
+                <Button variant="icon" className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title={t('strategy.rotateMinus')}>
                   <Icon icon={RotateCcw} size={16} />
-                </button>
-                <button className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title={t('strategy.rotatePlus')}>
+                </Button>
+                <Button variant="icon" className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title={t('strategy.rotatePlus')}>
                   <Icon icon={RotateCw} size={16} />
-                </button>
+                </Button>
                 {sightlineAttached ? (
-                  <button className="strategy-tool" onClick={detachSightline}>
+                  <Button variant="ghost" className="strategy-tool" onClick={detachSightline}>
                     {t('strategy.detachFromPlayer')}
-                  </button>
+                  </Button>
                 ) : lockPicking ? (
-                  <button className="strategy-tool active" onClick={cancelLockToPlayer}>
+                  <Button variant="ghost" className="strategy-tool active" onClick={cancelLockToPlayer}>
                     {t('strategy.clickOnPlayer')}
-                  </button>
+                  </Button>
                 ) : (
-                  <button className="strategy-tool" onClick={armLockToPlayer}>
+                  <Button variant="ghost" className="strategy-tool" onClick={armLockToPlayer}>
                     {t('strategy.linkToPlayer')}
-                  </button>
+                  </Button>
                 )}
               </div>
             )}
@@ -774,13 +777,13 @@ function StrategyBoard() {
               value={strategyName}
               onChange={(e) => setStrategyName(e.target.value)}
             />
-            <button onClick={handleSave} disabled={!strategyName.trim()}>
+            <Button variant="primary" onClick={handleSave} disabled={!strategyName.trim()}>
               {t('strategy.saveBtn')}
-            </button>
+            </Button>
           </div>
-          <button className="strategy-export" onClick={handleExportPng}>
+          <Button variant="ghost" className="strategy-export" onClick={handleExportPng}>
             {t('strategy.exportPng')}
-          </button>
+          </Button>
 
           <h3>{t('strategy.savedStrategies', { map: selectedMap })}</h3>
           {strategies.length === 0 ? (
@@ -789,12 +792,12 @@ function StrategyBoard() {
             <ul className="strategy-list">
               {strategies.map((entry) => (
                 <li key={entry.id}>
-                  <button className="strategy-list-name" onClick={() => handleLoadStrategy(entry)}>
+                  <Button variant="ghost" className="strategy-list-name" onClick={() => handleLoadStrategy(entry)}>
                     {entry.name}
-                  </button>
-                  <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title={t('strategy.deleteTitle')}>
+                  </Button>
+                  <Button variant="icon" className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title={t('strategy.deleteTitle')}>
                     <Icon icon={X} size={14} />
-                  </button>
+                  </Button>
                 </li>
               ))}
             </ul>

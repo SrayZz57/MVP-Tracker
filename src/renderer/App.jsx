@@ -27,6 +27,7 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
+import Button from './ui/Button';
 import useValorantData from './useValorantData.js';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import { useE2EE } from './E2EEContext.jsx';
@@ -139,7 +140,7 @@ function SidebarProfile({ settings, rank, onClick }) {
   const currentTier = rank ? rankTiers.get(rank.tierId) : null;
 
   return (
-    <button className="sidebar-profile" onClick={onClick}>
+    <Button variant="ghost" className="sidebar-profile" onClick={onClick}>
       <div className="sidebar-profile-avatar">
         {playerCardArt.icon ? <img src={playerCardArt.icon} alt="" /> : <span>{settings.name.charAt(0)}</span>}
       </div>
@@ -157,7 +158,7 @@ function SidebarProfile({ settings, rank, onClick }) {
           <div className="sidebar-profile-rank label">{t('nav.rankUnavailable')}</div>
         )}
       </div>
-    </button>
+    </Button>
   );
 }
 
@@ -166,11 +167,11 @@ function SidebarProfile({ settings, rank, onClick }) {
 // est en ligne) — jamais rouge, pour ne pas le confondre avec une demande.
 function TopbarIconButton({ icon, badge, dot, active, onClick, title }) {
   return (
-    <button className={active ? 'topbar-icon-button active' : 'topbar-icon-button'} onClick={onClick} title={title}>
+    <Button variant="icon" className={active ? 'topbar-icon-button active' : 'topbar-icon-button'} onClick={onClick} title={title}>
       <span><Icon icon={icon} /></span>
       {badge > 0 && <span className="topbar-icon-badge">{badge}</span>}
       {!badge && dot && <span className="topbar-icon-dot" />}
-    </button>
+    </Button>
   );
 }
 
@@ -180,7 +181,8 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
   const avatarArt = usePlayerCardArt(avatarCardUuid);
 
   return (
-    <button
+    <Button
+      variant="icon"
       className={active ? 'topbar-account-button active' : 'topbar-account-button'}
       onClick={onClick}
       title={t('nav.myAccountTitle')}
@@ -190,7 +192,7 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
       ) : (
         <span>{(profile?.display_name || profile?.riot_name || '?').charAt(0)}</span>
       )}
-    </button>
+    </Button>
   );
 }
 
@@ -208,9 +210,9 @@ function LanguageToggle() {
   };
 
   return (
-    <button className="topbar-icon-button" onClick={switchLanguage} title={i18n.language === 'fr' ? 'English' : 'Français'}>
+    <Button variant="ghost" className="topbar-icon-button" onClick={switchLanguage} title={i18n.language === 'fr' ? 'English' : 'Français'}>
       <span className="topbar-lang-label">{currentLabel}</span>
-    </button>
+    </Button>
   );
 }
 
@@ -843,16 +845,18 @@ function App() {
             const collapsed = collapsedSections.has(section.sectionKey);
             return (
               <div key={section.sectionKey} className="sidebar-section">
-                <button
+                <Button
+                  variant="ghost"
                   className={collapsed ? 'sidebar-section-label collapsed' : 'sidebar-section-label'}
                   onClick={() => toggleSection(section.sectionKey)}
                 >
                   {t(section.sectionKey)}
                   <span className="sidebar-section-chevron"><Icon icon={ChevronDown} size={14} /></span>
-                </button>
+                </Button>
                 {!collapsed &&
                   section.tabs.map((tab) => (
-                    <button
+                    <Button
+                      variant="ghost"
                       key={tab.id}
                       className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
                       onClick={() => setActiveTab(tab.id)}
@@ -868,7 +872,7 @@ function App() {
                       {tab.id === 'tournaments' && activeTournamentsCount > 0 && (
                         <span className="sidebar-link-badge glow">{activeTournamentsCount}</span>
                       )}
-                    </button>
+                    </Button>
                   ))}
               </div>
             );
@@ -895,13 +899,14 @@ function App() {
               setActiveTab('stats');
             }}
           />
-          <button
+          <Button
+            variant="icon"
             className="sidebar-signout"
             title={t('nav.signOut')}
             onClick={() => supabase.auth.signOut().then(lockMessagingKey)}
           >
             <Icon icon={LogOut} size={16} />
-          </button>
+          </Button>
         </div>
       </nav>
 
@@ -915,18 +920,20 @@ function App() {
           {/* Raccourci toujours visible : l'Aim Trainer était perdu au fond du
               menu de gauche alors que c'est une fonctionnalité à lancer
               souvent, idéalement avant chaque session de jeu. */}
-          <button
+          <Button
+            variant="ghost"
             className={activeTab === 'aim-trainer' ? 'aim-topbar-button active' : 'aim-topbar-button'}
             title={t('aimTrainer.topbarTitle')}
             onClick={() => setActiveTab('aim-trainer')}
           >
             <span className="aim-topbar-icon"><Icon icon={Target} size={16} /></span>
             <span>{t('nav.tabs.aimTrainer')}</span>
-          </button>
-          <button onClick={data.refresh} disabled={data.loading} className="refresh">
+          </Button>
+          <Button variant="primary" onClick={data.refresh} disabled={data.loading} className="refresh">
             {data.loading ? t('nav.loading') : t('nav.refresh')}
-          </button>
-          <button
+          </Button>
+          <Button
+            variant="ghost"
             className="discord-button"
             title={t('nav.discordTitle')}
             onClick={() => window.electronAPI.openExternal('https://discord.gg/NyZbTsM7D2')}
@@ -938,7 +945,7 @@ function App() {
               />
             </svg>
             <span>Discord</span>
-          </button>
+          </Button>
           <LanguageToggle />
           <TopbarIconButton
             icon={MessageCircle}

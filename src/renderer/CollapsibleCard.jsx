@@ -2,6 +2,7 @@ import { useTranslation } from 'react-i18next';
 import { ChevronDown } from 'lucide-react';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import Icon from './Icon.jsx';
+import Button from './ui/Button';
 
 // Remplace `<div className="card">...<h3>Titre</h3>...</div>` : le titre
 // reste visible une fois le bloc réduit, avec un bouton "Réduire"/"Agrandir"
@@ -20,10 +21,10 @@ function CollapsibleCard({ id, title, className = '', headerExtra, children }) {
         <h3>{title}</h3>
         <div className="collapsible-card-header-actions">
           {headerExtra}
-          <button type="button" className="collapsible-card-toggle" onClick={() => toggle(id)}>
+          <Button variant="ghost" type="button" className="collapsible-card-toggle" onClick={() => toggle(id)}>
             <span className="collapsible-card-chevron"><Icon icon={ChevronDown} size={16} /></span>
             {isCollapsed ? t('collapsible.expand') : t('collapsible.collapse')}
-          </button>
+          </Button>
         </div>
       </div>
       {!isCollapsed && <div className="collapsible-card-body">{children}</div>}

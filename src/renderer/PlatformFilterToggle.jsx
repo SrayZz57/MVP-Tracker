@@ -1,4 +1,5 @@
 import { useTranslation } from 'react-i18next';
+import Button from './ui/Button';
 
 // N'affiche rien si `platforms` est vide (compte mono-plateforme) — voir
 // usePlatformFilter.js pour la détection.
@@ -8,27 +9,30 @@ function PlatformFilterToggle({ platforms, platform, onChange }) {
 
   return (
     <div className="strategy-tool-group platform-filter-toggle">
-      <button
+      <Button
+        variant="ghost"
         className={platform === 'all' ? 'strategy-tool active' : 'strategy-tool'}
         onClick={() => onChange('all')}
       >
         {t('platformFilter.all')}
-      </button>
+      </Button>
       {platforms.includes('pc') && (
-        <button
+        <Button
+          variant="ghost"
           className={platform === 'pc' ? 'strategy-tool active' : 'strategy-tool'}
           onClick={() => onChange('pc')}
         >
           {t('platformFilter.pc')}
-        </button>
+        </Button>
       )}
       {platforms.includes('console') && (
-        <button
+        <Button
+          variant="ghost"
           className={platform === 'console' ? 'strategy-tool active' : 'strategy-tool'}
           onClick={() => onChange('console')}
         >
           {t('platformFilter.console')}
-        </button>
+        </Button>
       )}
     </div>
   );

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
+import Button from './ui/Button';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -98,12 +99,12 @@ function CustomModeConfig({ onClose, onSaved }) {
         </label>
 
         <div className="custom-config-actions">
-          <button className="account-forgot-password" onClick={onClose}>
+          <Button variant="ghost" className="account-forgot-password" onClick={onClose}>
             {t('aimTrainer.customCancel')}
-          </button>
-          <button className="refresh" onClick={save}>
+          </Button>
+          <Button variant="primary" className="refresh" onClick={save}>
             {t('aimTrainer.customSave')}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

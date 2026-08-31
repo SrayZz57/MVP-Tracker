@@ -7,6 +7,7 @@ import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
 import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Button from './ui/Button';
 
 // 40 = multiple de 8 (colonnes observées à largeur de carte habituelle) —
 // réduit les lignes à moitié vides, même logique que pour les crosshairs.
@@ -123,13 +124,14 @@ function SkinsCatalog({ myId }) {
     <div>
       <nav className="tabs" style={{ marginBottom: '1rem' }}>
         {VIEWS.map((v) => (
-          <button
+          <Button
+            variant="ghost"
             key={v.id}
             className={v.id === view ? 'tab active' : 'tab'}
             onClick={() => setView(v.id)}
           >
             {t(v.labelKey)}
-          </button>
+          </Button>
         ))}
       </nav>
 
@@ -182,9 +184,9 @@ function SkinsCatalog({ myId }) {
             ))}
           </div>
           {filteredCatalog.length > PAGE_SIZE && (
-            <button className="show-more-btn" onClick={() => setShowAll(!showAll)}>
+            <Button variant="ghost" className="show-more-btn" onClick={() => setShowAll(!showAll)}>
               {showAll ? t('skins.showLess') : t('skins.showMore', { count: filteredCatalog.length - PAGE_SIZE })}
-            </button>
+            </Button>
           )}
         </CollapsibleCard>
       )}

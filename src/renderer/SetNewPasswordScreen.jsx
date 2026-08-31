@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { useE2EE } from './E2EEContext.jsx';
+import Button from './ui/Button';
 
 function SetNewPasswordScreen({ onDone }) {
   const { t } = useTranslation();
@@ -64,9 +65,9 @@ function SetNewPasswordScreen({ onDone }) {
           minLength={6}
           required
         />
-        <button type="submit" disabled={loading}>
+        <Button variant="primary" type="submit" disabled={loading}>
           {loading ? t('auth.validating') : t('setNewPassword.validate')}
-        </button>
+        </Button>
       </form>
 
       {error && <p className="warning">{error}</p>}
