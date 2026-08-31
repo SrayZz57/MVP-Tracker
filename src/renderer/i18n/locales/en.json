@@ -47,6 +47,8 @@
     "pending": "pending",
     "approve": "Approve",
     "reject": "Reject",
+    "adminAddTeam": "Add a team (admin)",
+    "adminAddSubmit": "Add team",
     "bracket": {
       "title": "Bracket",
       "generate": "Generate bracket",

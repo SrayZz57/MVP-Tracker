@@ -127,25 +127,43 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const pendingTeams = teams.filter((team) => team.status === 'pending');
   const approvedTeams = teams.filter((team) => team.status === 'approved');
 
-  async function handleRegister(name, players) {
-    setSaving(true);
-    setError(null);
+  async function insertTeam(name, players, extraFields = {}) {
     const { data: team, error: teamError } = await supabase
       .from('tournament_teams')
-      .insert({ tournament_id: tournamentId, name, captain_id: myId })
+      .insert({ tournament_id: tournamentId, name, captain_id: myId, ...extraFields })
       .select('id')
       .single();
-    if (teamError) {
-      setSaving(false);
-      setError(teamError.message);
-      return;
-    }
+    if (teamError) return { error: teamError };
     const { error: playersError } = await supabase
       .from('tournament_team_players')
       .insert(players.map((p) => ({ team_id: team.id, riot_name: p.riotName, riot_tag: p.riotTag })));
+    return { error: playersError };
+  }
+
+  // Réservé à l'admin : contrairement à l'inscription normale (une seule
+  // équipe par compte, la tienne), ceci permet d'ajouter autant d'équipes
+  // que nécessaire depuis un seul compte — utile pour peupler un tournoi de
+  // test sans avoir besoin de plusieurs comptes réels. Statut 'approved'
+  // directement : c'est l'admin qui les ajoute, pas de validation à refaire.
+  async function handleAdminAddTeam(name, players) {
+    setSaving(true);
+    setError(null);
+    const { error } = await insertTeam(name, players, { status: 'approved' });
     setSaving(false);
-    if (playersError) {
-      setError(playersError.message);
+    if (error) {
+      setError(error.message);
+      return;
+    }
+    await loadAll();
+  }
+
+  async function handleRegister(name, players) {
+    setSaving(true);
+    setError(null);
+    const { error } = await insertTeam(name, players);
+    setSaving(false);
+    if (error) {
+      setError(error.message);
       return;
     }
     await loadAll();
@@ -231,6 +249,20 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               </li>
             ))}
           </ul>
+        </section>
+      )}
+
+      {isAdmin && matches.length === 0 && (
+        <section className="tournament-admin-add-team">
+          <h2>{t('tournaments.adminAddTeam')}</h2>
+          <TeamRosterForm
+            initialName=""
+            initialPlayers={EMPTY_PLAYERS}
+            saving={saving}
+            error={error}
+            onSubmit={handleAdminAddTeam}
+            submitLabel={t('tournaments.adminAddSubmit')}
+          />
         </section>
       )}
 

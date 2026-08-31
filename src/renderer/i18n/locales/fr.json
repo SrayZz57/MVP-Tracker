@@ -47,6 +47,8 @@
     "pending": "en attente",
     "approve": "Valider",
     "reject": "Refuser",
+    "adminAddTeam": "Ajouter une équipe (admin)",
+    "adminAddSubmit": "Ajouter l'équipe",
     "bracket": {
       "title": "Bracket",
       "generate": "Générer le bracket",
