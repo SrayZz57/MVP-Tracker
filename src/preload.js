@@ -24,7 +24,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getCachedMatchesFor: (puuid) => ipcRenderer.invoke('valorant:get-cached-matches-for', puuid),
   getRankFor: (puuid) => ipcRenderer.invoke('valorant:get-rank-for', puuid),
   getNetworkStatus: () => ipcRenderer.invoke('network:get-status'),
-  getPingSamples: () => ipcRenderer.invoke('network:get-ping-samples'),
+  getPingSamples: (puuid) => ipcRenderer.invoke('network:get-ping-samples', puuid),
   getDeviceId: () => ipcRenderer.invoke('network:get-device-id'),
   openAimTrainer: (config) => ipcRenderer.invoke('aim-trainer:open', config),
   closeAimTrainer: () => ipcRenderer.invoke('aim-trainer:close'),
