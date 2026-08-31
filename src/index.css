@@ -7466,6 +7466,10 @@ input[type='color'] {
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+  /* Même hauteur que .tournaments-promo (calc(100vh - 140px)) : "Tes
+     tournois" s'étire pour que la colonne finisse exactement au même
+     endroit que le panneau Neon, sans toucher à la colonne des cartes. */
+  height: calc(100vh - 140px);
 }
 
 .tournaments-how,
@@ -7478,6 +7482,13 @@ input[type='color'] {
   animation-delay: 0.1s;
 }
 
+.tournaments-mine {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
 .tournaments-mine-list {
   list-style: none;
   margin: 0;
@@ -7485,7 +7496,8 @@ input[type='color'] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-height: 340px;
+  flex: 1;
+  min-height: 0;
   overflow-y: auto;
 }
 
