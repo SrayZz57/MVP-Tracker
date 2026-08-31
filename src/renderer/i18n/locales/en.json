@@ -32,7 +32,8 @@
     "promoTag": "Competition",
     "showMore": "Show {{count}} more",
     "mine": {
-      "title": "Your tournaments"
+      "title": "Your tournaments",
+      "empty": "You haven't joined a tournament yet."
     },
     "howItWorks": {
       "title": "How it works",

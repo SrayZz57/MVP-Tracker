@@ -106,23 +106,30 @@ function TournamentsMine({ myId, onSelect }) {
       });
   }, [myId]);
 
-  if (mine === null || mine.length === 0) return null;
+  // Toujours affichée — même vide, avec un message plutôt que de disparaître
+  // et casser la colonne (voir .tournaments-mine, dimensionnée pour occuper
+  // le reste de la colonne jusqu'au bas du panneau Neon).
+  const list = mine ?? [];
 
   return (
     <aside className="tournaments-mine">
       <h2 className="tournaments-how-title">{t('tournaments.mine.title')}</h2>
-      <ul className="tournaments-mine-list">
-        {mine.map((row) => (
-          <li key={row.tournaments.id}>
-            <button onClick={() => onSelect(row.tournaments.id)}>
-              <span className="tournaments-mine-name">{row.tournaments.name}</span>
-              <span className={`tournament-status-badge ${row.tournaments.status}`}>
-                {t(STATUS_LABELS[row.tournaments.status] ?? row.tournaments.status)}
-              </span>
-            </button>
-          </li>
-        ))}
-      </ul>
+      {list.length === 0 ? (
+        <p className="tournaments-mine-empty">{t('tournaments.mine.empty')}</p>
+      ) : (
+        <ul className="tournaments-mine-list">
+          {list.map((row) => (
+            <li key={row.tournaments.id}>
+              <button onClick={() => onSelect(row.tournaments.id)}>
+                <span className="tournaments-mine-name">{row.tournaments.name}</span>
+                <span className={`tournament-status-badge ${row.tournaments.status}`}>
+                  {t(STATUS_LABELS[row.tournaments.status] ?? row.tournaments.status)}
+                </span>
+              </button>
+            </li>
+          ))}
+        </ul>
+      )}
     </aside>
   );
 }

@@ -32,7 +32,8 @@
     "promoTag": "Compétition",
     "showMore": "Voir {{count}} de plus",
     "mine": {
-      "title": "Tes tournois"
+      "title": "Tes tournois",
+      "empty": "Tu n'as pas encore participé à un tournoi."
     },
     "howItWorks": {
       "title": "Comment ça marche",

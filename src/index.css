@@ -7525,6 +7525,17 @@ input[type='color'] {
   white-space: nowrap;
 }
 
+.tournaments-mine-empty {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  text-align: center;
+  color: var(--text-muted);
+  font-size: 0.85rem;
+}
+
 @media (max-width: 1380px) {
   .tournaments-middle-column {
     display: none;
@@ -7604,6 +7615,7 @@ input[type='color'] {
    lieu de le laisser collé en haut avec du vide en dessous. */
 .tournaments-list-block.empty {
   display: flex;
+  flex-direction: column;
   height: calc(100vh - 140px);
 }
 
