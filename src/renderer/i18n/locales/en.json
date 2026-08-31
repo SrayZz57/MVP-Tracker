@@ -35,6 +35,7 @@
     "teamName": "Team name",
     "playersHint": "The {{count}} team players (full Riot ID, e.g. Name#TAG)",
     "riotName": "Name",
+    "pickAgent": "Pick an agent",
     "riotTag": "Tag",
     "register": "Register team",
     "editTeam": "Edit team",

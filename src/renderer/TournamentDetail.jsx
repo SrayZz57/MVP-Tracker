@@ -3,9 +3,11 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { generateBracketRows } from './bracket.js';
 import BracketView from './BracketView.jsx';
+import { useAgentIcons, useAgentsData } from './agentIcons.js';
+import IconPickerModal from './IconPickerModal.jsx';
 
 const PLAYER_COUNT = 5;
-const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({ riotName: '', riotTag: '' }));
+const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({ riotName: '', riotTag: '', agent: null }));
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',
@@ -13,10 +15,17 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
+// Chaque emplacement joueur a un avatar cliquable (icône d'agent officielle,
+// via le même sélecteur que celui déjà utilisé pour l'agent principal du
+// profil) plutôt qu'une simple ligne de texte — purement cosmétique, `agent`
+// reste optionnel, jamais requis pour valider le formulaire.
 function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, submitLabel }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [players, setPlayers] = useState(initialPlayers);
+  const [pickerIndex, setPickerIndex] = useState(null);
+  const agentIcons = useAgentIcons();
+  const agentsData = useAgentsData();
 
   function updatePlayer(index, field, value) {
     setPlayers((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
@@ -39,6 +48,18 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 
       {players.map((player, index) => (
         <div key={index} className="team-roster-player-row">
+          <button
+            type="button"
+            className="team-roster-agent-avatar"
+            title={player.agent ?? t('tournaments.pickAgent')}
+            onClick={() => setPickerIndex(index)}
+          >
+            {player.agent && agentIcons.get(player.agent) ? (
+              <img src={agentIcons.get(player.agent)} alt="" />
+            ) : (
+              <span>?</span>
+            )}
+          </button>
           <input
             placeholder={t('tournaments.riotName')}
             value={player.riotName}
@@ -57,6 +78,18 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
         </div>
       ))}
 
+      {pickerIndex !== null && (
+        <IconPickerModal
+          title={t('tournaments.pickAgent')}
+          items={agentsData.map((agent) => ({ id: agent.displayName, label: agent.displayName, icon: agent.displayIcon }))}
+          onSelect={(agentName) => {
+            updatePlayer(pickerIndex, 'agent', agentName);
+            setPickerIndex(null);
+          }}
+          onClose={() => setPickerIndex(null)}
+        />
+      )}
+
       {error && <p className="error-banner">{error}</p>}
 
       <button type="submit" disabled={saving}>
@@ -73,6 +106,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 // en cas de requête forcée, Supabase refuse.
 function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const { t } = useTranslation();
+  const agentIcons = useAgentIcons();
   const [tournament, setTournament] = useState(null);
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -101,7 +135,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     if (myTeam) {
       const { data: players } = await supabase
         .from('tournament_team_players')
-        .select('id, riot_name, riot_tag')
+        .select('id, riot_name, riot_tag, agent')
         .eq('team_id', myTeam.id);
       setMyTeamPlayers(players ?? []);
     } else {
@@ -136,7 +170,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     if (teamError) return { error: teamError };
     const { error: playersError } = await supabase
       .from('tournament_team_players')
-      .insert(players.map((p) => ({ team_id: team.id, riot_name: p.riotName, riot_tag: p.riotTag })));
+      .insert(players.map((p) => ({ team_id: team.id, riot_name: p.riotName, riot_tag: p.riotTag, agent: p.agent })));
     return { error: playersError };
   }
 
@@ -184,7 +218,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await supabase.from('tournament_team_players').delete().eq('team_id', myTeam.id);
     const { error: playersError } = await supabase
       .from('tournament_team_players')
-      .insert(players.map((p) => ({ team_id: myTeam.id, riot_name: p.riotName, riot_tag: p.riotTag })));
+      .insert(players.map((p) => ({ team_id: myTeam.id, riot_name: p.riotName, riot_tag: p.riotTag, agent: p.agent })));
     setSaving(false);
     if (playersError) {
       setError(playersError.message);
@@ -303,9 +337,12 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
             <>
               <h2>{t('tournaments.yourTeam')}</h2>
               <p className="tournament-card-name">{myTeam.name}</p>
-              <ul>
+              <ul className="team-roster-display">
                 {myTeamPlayers.map((p) => (
                   <li key={p.id}>
+                    <span className="team-roster-agent-avatar small">
+                      {p.agent && agentIcons.get(p.agent) ? <img src={agentIcons.get(p.agent)} alt="" /> : <span>?</span>}
+                    </span>
                     {p.riot_name}#{p.riot_tag}
                   </li>
                 ))}
@@ -326,7 +363,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                 initialName={myTeam.name}
                 initialPlayers={
                   myTeamPlayers.length === PLAYER_COUNT
-                    ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag }))
+                    ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag, agent: p.agent }))
                     : EMPTY_PLAYERS
                 }
                 saving={saving}

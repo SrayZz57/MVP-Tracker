@@ -62,13 +62,13 @@ function TournamentsTab({ myId, isAdmin }) {
 
   return (
     <div className="tournaments-list">
-      {tournaments.map((tournament) => {
+      {tournaments.map((tournament, index) => {
         const splash = pickSplash(tournament.id, mapImages);
         return (
           <button
             key={tournament.id}
             className="tournament-card"
-            style={splash ? { backgroundImage: `url(${splash})` } : undefined}
+            style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
             onClick={() => setSelectedId(tournament.id)}
           >
             <span className={`tournament-status-badge ${tournament.status}`}>

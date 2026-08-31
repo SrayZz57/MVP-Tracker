@@ -7401,6 +7401,34 @@ input[type='color'] {
 .tournament-status-badge.ongoing {
   background: rgba(80, 200, 120, 0.15);
   color: #50c878;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tournament-status-badge.ongoing::before {
+  content: '';
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #50c878;
+  animation: tournamentStatusPulse 1.6s ease-in-out infinite;
+}
+
+@keyframes tournamentStatusPulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.3;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournament-status-badge.ongoing::before {
+    animation: none;
+  }
 }
 
 .tournament-status-badge.completed {
@@ -7435,7 +7463,26 @@ input[type='color'] {
   background-position: center;
   background-color: var(--surface, #17181f);
   border: 1px solid transparent;
-  transition: transform 0.2s var(--ease-out, ease), border-color 0.2s;
+  transition: transform 0.25s var(--ease-out, ease), border-color 0.25s, background-size 0.4s var(--ease-out, ease);
+  animation: tournamentCardIn 0.45s var(--ease-out, ease) both;
+  animation-delay: calc(var(--i, 0) * 0.07s);
+}
+
+@keyframes tournamentCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournament-card {
+    animation: none;
+  }
 }
 
 .tournament-card::before {
@@ -7464,7 +7511,8 @@ input[type='color'] {
 
 .tournament-card:hover {
   border-color: var(--accent, #ff4655);
-  transform: translateY(-2px);
+  transform: translateY(-3px);
+  background-size: 112%;
 }
 
 .tournament-card .tournament-status-badge {
@@ -7565,17 +7613,43 @@ input[type='color'] {
    paires convergent visuellement vers le tour suivant à mesure qu'il y a
    moins de matchs. */
 .bracket {
+  position: relative;
   display: flex;
   gap: 2.5rem;
   overflow-x: auto;
   padding-bottom: 1rem;
 }
 
+.bracket-lines {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.bracket-lines path {
+  fill: none;
+  stroke: var(--border-strong, rgba(255, 255, 255, 0.18));
+  stroke-width: 2;
+}
+
 .bracket-round {
+  position: relative;
+  z-index: 1;
   display: flex;
   flex-direction: column;
   min-width: 220px;
   flex-shrink: 0;
+  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
+  animation-delay: calc(var(--round, 0) * 0.15s);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bracket-round {
+    animation: none;
+  }
 }
 
 .bracket-round-title {
@@ -7607,6 +7681,27 @@ input[type='color'] {
   border-color: var(--accent, #ff4655);
 }
 
+.bracket-match.champion {
+  animation: bracketChampionGlow 2.2s ease-in-out infinite;
+}
+
+@keyframes bracketChampionGlow {
+  0%,
+  100% {
+    box-shadow: 0 0 0 rgba(255, 70, 85, 0);
+  }
+  50% {
+    box-shadow: 0 0 18px rgba(255, 70, 85, 0.55);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bracket-match.champion {
+    animation: none;
+    box-shadow: 0 0 18px rgba(255, 70, 85, 0.55);
+  }
+}
+
 .bracket-team {
   display: flex;
   justify-content: space-between;
@@ -7614,6 +7709,7 @@ input[type='color'] {
   padding: 0.5rem 0.75rem;
   font-size: 0.85rem;
   border-bottom: 1px solid var(--border, rgba(255, 255, 255, 0.06));
+  transition: background 0.3s, color 0.3s;
 }
 
 .bracket-team:last-child {
@@ -7663,6 +7759,53 @@ input[type='color'] {
 
 .team-roster-player-row input {
   width: 100%;
+}
+
+.team-roster-agent-avatar {
+  flex-shrink: 0;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  overflow: hidden;
+  padding: 0;
+  border: 2px solid var(--border, rgba(255, 255, 255, 0.12));
+  background: var(--bg-deep, #0c0d12);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--text-muted);
+  transition: border-color 0.2s, transform 0.2s;
+}
+
+.team-roster-agent-avatar:hover {
+  border-color: var(--accent, #ff4655);
+  transform: scale(1.08);
+}
+
+.team-roster-agent-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.team-roster-agent-avatar.small {
+  width: 26px;
+  height: 26px;
+  font-size: 0.7rem;
+}
+
+.team-roster-display {
+  list-style: none;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.team-roster-display li {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
 }
 
 .tournament-team-actions {
