@@ -111,6 +111,8 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
   const [myTeamPlayers, setMyTeamPlayers] = useState([]);
+  const [playersByTeam, setPlayersByTeam] = useState(new Map());
+  const [expandedTeamId, setExpandedTeamId] = useState(null);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -141,6 +143,26 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     } else {
       setMyTeamPlayers([]);
     }
+
+    // Chargés en une seule requête pour toutes les équipes plutôt qu'à la
+    // demande par clic — évite un aller-retour à chaque ouverture/fermeture,
+    // et le nombre d'équipes reste toujours modeste (borné par max_teams).
+    const teamIds = (t2 ?? []).map((team) => team.id);
+    if (teamIds.length > 0) {
+      const { data: allPlayers } = await supabase
+        .from('tournament_team_players')
+        .select('id, team_id, riot_name, riot_tag, agent')
+        .in('team_id', teamIds);
+      const grouped = new Map();
+      for (const player of allPlayers ?? []) {
+        if (!grouped.has(player.team_id)) grouped.set(player.team_id, []);
+        grouped.get(player.team_id).push(player);
+      }
+      setPlayersByTeam(grouped);
+    } else {
+      setPlayersByTeam(new Map());
+    }
+
     setLoading(false);
   }
 
@@ -240,6 +262,18 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
+  // Réservé à l'admin, et seulement avant que le bracket existe — retirer
+  // une équipe déjà placée dans l'arbre laisserait un match pointer vers une
+  // équipe qui n'existe plus. La suppression cascade sur ses joueurs
+  // (contrainte on delete cascade côté table).
+  async function handleAdminRemoveTeam(teamId) {
+    setSaving(true);
+    await supabase.from('tournament_teams').delete().eq('id', teamId);
+    setSaving(false);
+    setExpandedTeamId(null);
+    await loadAll();
+  }
+
   async function handleGenerateBracket() {
     setSaving(true);
     const rows = generateBracketRows(
@@ -318,14 +352,50 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
         {teams.length === 0 ? (
           <p className="label">{t('tournaments.noTeamsYet')}</p>
         ) : (
-          <ul>
-            {teams.map((team) => (
-              <li key={team.id}>
-                {team.name}
-                {team.status === 'pending' && ` (${t('tournaments.pending')})`}
-                {team.captain_id === myId && ` — ${t('tournaments.yourTeam')}`}
-              </li>
-            ))}
+          <ul className="tournament-admin-team-list">
+            {teams.map((team) => {
+              const expanded = expandedTeamId === team.id;
+              const players = playersByTeam.get(team.id) ?? [];
+              return (
+                <li key={team.id}>
+                  <button
+                    type="button"
+                    className={`tournament-team-row ${isAdmin ? 'clickable' : ''}`}
+                    onClick={isAdmin ? () => setExpandedTeamId(expanded ? null : team.id) : undefined}
+                    disabled={!isAdmin}
+                  >
+                    <span>{team.name}</span>
+                    {team.status === 'pending' && <span className="label"> ({t('tournaments.pending')})</span>}
+                    {team.captain_id === myId && <span className="label"> — {t('tournaments.yourTeam')}</span>}
+                    {isAdmin && <span className="tournament-team-row-chevron">{expanded ? '▾' : '▸'}</span>}
+                  </button>
+
+                  {isAdmin && expanded && (
+                    <div className="tournament-team-expanded">
+                      <ul className="team-roster-display">
+                        {players.map((p) => (
+                          <li key={p.id}>
+                            <span className="team-roster-agent-avatar small">
+                              {p.agent && agentIcons.get(p.agent) ? (
+                                <img src={agentIcons.get(p.agent)} alt="" />
+                              ) : (
+                                <span>?</span>
+                              )}
+                            </span>
+                            {p.riot_name}#{p.riot_tag}
+                          </li>
+                        ))}
+                      </ul>
+                      {matches.length === 0 && (
+                        <button className="button-danger" disabled={saving} onClick={() => handleAdminRemoveTeam(team.id)}>
+                          {t('tournaments.removeTeam')}
+                        </button>
+                      )}
+                    </div>
+                  )}
+                </li>
+              );
+            })}
           </ul>
         )}
       </section>

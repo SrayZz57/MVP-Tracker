@@ -42,6 +42,7 @@
     "saveChanges": "Save changes",
     "cancel": "Cancel",
     "withdraw": "Withdraw team",
+    "removeTeam": "Remove from tournament",
     "saving": "Saving…",
     "registrationClosed": "Registration closed.",
     "full": "The tournament is full.",
