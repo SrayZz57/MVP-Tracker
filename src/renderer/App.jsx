@@ -636,7 +636,7 @@ function App() {
       case 'reseau':
         return <NetworkTab settings={mySettings} matches={myMatches} pingSamples={data.pingSamples} myId={session.user.id} />;
       case 'tournaments':
-        return <TournamentsTab myId={session.user.id} />;
+        return <TournamentsTab myId={session.user.id} isAdmin={isAdmin} />;
       case 'tilt':
         return <TiltTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'crosshairs':

@@ -43,6 +43,20 @@
     "withdraw": "Retirer l'équipe",
     "saving": "Enregistrement…",
     "registrationClosed": "Inscriptions closes.",
+    "pendingTeams": "Équipes en attente de validation",
+    "pending": "en attente",
+    "approve": "Valider",
+    "reject": "Refuser",
+    "bracket": {
+      "title": "Bracket",
+      "generate": "Générer le bracket",
+      "needApproved": "Il faut au moins 2 équipes validées.",
+      "round": "Tour {{round}}",
+      "final": "Finale",
+      "tbd": "À déterminer",
+      "bye": "Qualifié automatiquement (bye)",
+      "saveResult": "Enregistrer le résultat"
+    },
     "status": {
       "registration": "Inscriptions ouvertes",
       "ongoing": "En cours",

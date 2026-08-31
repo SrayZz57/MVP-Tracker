@@ -43,6 +43,20 @@
     "withdraw": "Withdraw team",
     "saving": "Saving…",
     "registrationClosed": "Registration closed.",
+    "pendingTeams": "Teams awaiting approval",
+    "pending": "pending",
+    "approve": "Approve",
+    "reject": "Reject",
+    "bracket": {
+      "title": "Bracket",
+      "generate": "Generate bracket",
+      "needApproved": "At least 2 approved teams are needed.",
+      "round": "Round {{round}}",
+      "final": "Final",
+      "tbd": "TBD",
+      "bye": "Auto-qualified (bye)",
+      "saveResult": "Save result"
+    },
     "status": {
       "registration": "Registration open",
       "ongoing": "Ongoing",

@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
+import { generateBracketRows } from './bracket.js';
+import BracketView from './BracketView.jsx';
 
 const PLAYER_COUNT = 5;
 const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({ riotName: '', riotTag: '' }));
@@ -64,14 +66,16 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
   );
 }
 
-// Détail d'un tournoi + inscription d'équipe. Toute la sécurité réelle est
-// côté RLS (voir les policies sur tournament_teams/tournament_team_players) :
-// ce composant se contente de ne PAS proposer les actions interdites, pour
-// une interface cohérente — même en cas de requête forcée, Supabase refuse.
-function TournamentDetail({ tournamentId, myId, onBack }) {
+// Détail d'un tournoi : inscription d'équipe, validation admin des
+// inscriptions, génération et affichage du bracket. Toute la sécurité réelle
+// est côté RLS (voir les policies sur tournament_teams/tournament_matches) :
+// ce composant se contente de ne PAS proposer les actions interdites — même
+// en cas de requête forcée, Supabase refuse.
+function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const { t } = useTranslation();
   const [tournament, setTournament] = useState(null);
   const [teams, setTeams] = useState([]);
+  const [matches, setMatches] = useState([]);
   const [myTeamPlayers, setMyTeamPlayers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [editing, setEditing] = useState(false);
@@ -80,16 +84,18 @@ function TournamentDetail({ tournamentId, myId, onBack }) {
 
   async function loadAll() {
     setLoading(true);
-    const [{ data: t1 }, { data: t2 }] = await Promise.all([
+    const [{ data: t1 }, { data: t2 }, { data: t3 }] = await Promise.all([
       supabase.from('tournaments').select('*').eq('id', tournamentId).maybeSingle(),
       supabase
         .from('tournament_teams')
         .select('id, name, captain_id, status')
         .eq('tournament_id', tournamentId)
         .neq('status', 'rejected'),
+      supabase.from('tournament_matches').select('*').eq('tournament_id', tournamentId),
     ]);
     setTournament(t1 ?? null);
     setTeams(t2 ?? []);
+    setMatches(t3 ?? []);
 
     const myTeam = (t2 ?? []).find((team) => team.captain_id === myId);
     if (myTeam) {
@@ -116,7 +122,10 @@ function TournamentDetail({ tournamentId, myId, onBack }) {
   const isFull = teams.length >= tournament.max_teams;
   const deadlinePassed =
     tournament.registration_deadline && new Date(tournament.registration_deadline) < new Date();
-  const registrationClosed = tournament.status !== 'registration' || (isFull && !myTeam) || deadlinePassed;
+  const registrationClosed =
+    tournament.status !== 'registration' || (isFull && !myTeam) || deadlinePassed || matches.length > 0;
+  const pendingTeams = teams.filter((team) => team.status === 'pending');
+  const approvedTeams = teams.filter((team) => team.status === 'approved');
 
   async function handleRegister(name, players) {
     setSaving(true);
@@ -174,6 +183,25 @@ function TournamentDetail({ tournamentId, myId, onBack }) {
     await loadAll();
   }
 
+  async function handleTeamStatus(teamId, status) {
+    await supabase.from('tournament_teams').update({ status }).eq('id', teamId);
+    await loadAll();
+  }
+
+  async function handleGenerateBracket() {
+    setSaving(true);
+    const rows = generateBracketRows(
+      tournamentId,
+      approvedTeams.map((team) => team.id),
+    );
+    const { error: insertError } = await supabase.from('tournament_matches').insert(rows);
+    if (!insertError) {
+      await supabase.from('tournaments').update({ status: 'ongoing' }).eq('id', tournamentId);
+    }
+    setSaving(false);
+    await loadAll();
+  }
+
   return (
     <div className="tournament-detail">
       <button className="link-back" onClick={onBack}>
@@ -185,9 +213,35 @@ function TournamentDetail({ tournamentId, myId, onBack }) {
         {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
       </span>
       {tournament.description && <p>{tournament.description}</p>}
-      <p className="label">
-        {t('tournaments.teamsCount', { count: teams.length, max: tournament.max_teams })}
-      </p>
+      <p className="label">{t('tournaments.teamsCount', { count: teams.length, max: tournament.max_teams })}</p>
+
+      {isAdmin && pendingTeams.length > 0 && (
+        <section className="tournament-admin-approvals">
+          <h2>{t('tournaments.pendingTeams')}</h2>
+          <ul className="tournament-approval-list">
+            {pendingTeams.map((team) => (
+              <li key={team.id}>
+                <span>{team.name}</span>
+                <div className="tournament-team-actions">
+                  <button onClick={() => handleTeamStatus(team.id, 'approved')}>{t('tournaments.approve')}</button>
+                  <button className="button-danger" onClick={() => handleTeamStatus(team.id, 'rejected')}>
+                    {t('tournaments.reject')}
+                  </button>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
+      {isAdmin && matches.length === 0 && (
+        <section className="tournament-admin-generate">
+          <button onClick={handleGenerateBracket} disabled={saving || approvedTeams.length < 2}>
+            {saving ? t('tournaments.saving') : t('tournaments.bracket.generate')}
+          </button>
+          {approvedTeams.length < 2 && <p className="label">{t('tournaments.bracket.needApproved')}</p>}
+        </section>
+      )}
 
       <section className="tournament-teams-list">
         <h2>{t('tournaments.registeredTeams')}</h2>
@@ -198,67 +252,75 @@ function TournamentDetail({ tournamentId, myId, onBack }) {
             {teams.map((team) => (
               <li key={team.id}>
                 {team.name}
-                {team.captain_id === myId && ` (${t('tournaments.yourTeam')})`}
+                {team.status === 'pending' && ` (${t('tournaments.pending')})`}
+                {team.captain_id === myId && ` — ${t('tournaments.yourTeam')}`}
               </li>
             ))}
           </ul>
         )}
       </section>
 
-      <section className="tournament-registration">
-        {myTeam && !editing ? (
-          <>
-            <h2>{t('tournaments.yourTeam')}</h2>
-            <p className="tournament-card-name">{myTeam.name}</p>
-            <ul>
-              {myTeamPlayers.map((p) => (
-                <li key={p.id}>
-                  {p.riot_name}#{p.riot_tag}
-                </li>
-              ))}
-            </ul>
-            {!registrationClosed && (
-              <div className="tournament-team-actions">
-                <button onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</button>
-                <button onClick={handleWithdraw} disabled={saving} className="button-danger">
-                  {t('tournaments.withdraw')}
-                </button>
-              </div>
-            )}
-          </>
-        ) : myTeam && editing ? (
-          <>
-            <h2>{t('tournaments.editTeam')}</h2>
-            <TeamRosterForm
-              initialName={myTeam.name}
-              initialPlayers={
-                myTeamPlayers.length === PLAYER_COUNT
-                  ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag }))
-                  : EMPTY_PLAYERS
-              }
-              saving={saving}
-              error={error}
-              onSubmit={handleUpdate}
-              submitLabel={t('tournaments.saveChanges')}
-            />
-            <button onClick={() => setEditing(false)}>{t('tournaments.cancel')}</button>
-          </>
-        ) : registrationClosed ? (
-          <p className="warning">{t('tournaments.registrationClosed')}</p>
-        ) : (
-          <>
-            <h2>{t('tournaments.registerTeam')}</h2>
-            <TeamRosterForm
-              initialName=""
-              initialPlayers={EMPTY_PLAYERS}
-              saving={saving}
-              error={error}
-              onSubmit={handleRegister}
-              submitLabel={t('tournaments.register')}
-            />
-          </>
-        )}
-      </section>
+      {matches.length > 0 ? (
+        <section className="tournament-bracket-section">
+          <h2>{t('tournaments.bracket.title')}</h2>
+          <BracketView tournamentId={tournamentId} matches={matches} teams={teams} isAdmin={isAdmin} onUpdated={loadAll} />
+        </section>
+      ) : (
+        <section className="tournament-registration">
+          {myTeam && !editing ? (
+            <>
+              <h2>{t('tournaments.yourTeam')}</h2>
+              <p className="tournament-card-name">{myTeam.name}</p>
+              <ul>
+                {myTeamPlayers.map((p) => (
+                  <li key={p.id}>
+                    {p.riot_name}#{p.riot_tag}
+                  </li>
+                ))}
+              </ul>
+              {!registrationClosed && (
+                <div className="tournament-team-actions">
+                  <button onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</button>
+                  <button onClick={handleWithdraw} disabled={saving} className="button-danger">
+                    {t('tournaments.withdraw')}
+                  </button>
+                </div>
+              )}
+            </>
+          ) : myTeam && editing ? (
+            <>
+              <h2>{t('tournaments.editTeam')}</h2>
+              <TeamRosterForm
+                initialName={myTeam.name}
+                initialPlayers={
+                  myTeamPlayers.length === PLAYER_COUNT
+                    ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag }))
+                    : EMPTY_PLAYERS
+                }
+                saving={saving}
+                error={error}
+                onSubmit={handleUpdate}
+                submitLabel={t('tournaments.saveChanges')}
+              />
+              <button onClick={() => setEditing(false)}>{t('tournaments.cancel')}</button>
+            </>
+          ) : registrationClosed ? (
+            <p className="warning">{t('tournaments.registrationClosed')}</p>
+          ) : (
+            <>
+              <h2>{t('tournaments.registerTeam')}</h2>
+              <TeamRosterForm
+                initialName=""
+                initialPlayers={EMPTY_PLAYERS}
+                saving={saving}
+                error={error}
+                onSubmit={handleRegister}
+                submitLabel={t('tournaments.register')}
+              />
+            </>
+          )}
+        </section>
+      )}
     </div>
   );
 }

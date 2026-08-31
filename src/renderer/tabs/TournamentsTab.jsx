@@ -32,7 +32,7 @@ function pickSplash(tournamentId, mapImages) {
 // (pas encore une vraie page publique accessible sans compte, ça viendra
 // séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
 // l'affichage + l'inscription d'équipe.
-function TournamentsTab({ myId }) {
+function TournamentsTab({ myId, isAdmin }) {
   const { t } = useTranslation();
   const mapImages = useMapImages();
   const [tournaments, setTournaments] = useState([]);
@@ -51,7 +51,7 @@ function TournamentsTab({ myId }) {
   }, []);
 
   if (selectedId) {
-    return <TournamentDetail tournamentId={selectedId} myId={myId} onBack={() => setSelectedId(null)} />;
+    return <TournamentDetail tournamentId={selectedId} myId={myId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} />;
   }
 
   if (loading) return <p className="label">{t('tournaments.loading')}</p>;
