@@ -7632,7 +7632,12 @@ input[type='color'] {
 }
 
 .tournaments-empty-icon {
-  font-size: 4.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 72px;
+  height: 72px;
+  color: var(--accent, #ff4655);
   filter: drop-shadow(0 0 24px rgba(255, 70, 85, 0.35));
   animation: tournamentsPromoFloat 4s ease-in-out infinite;
 }
