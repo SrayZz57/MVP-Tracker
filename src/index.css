@@ -7440,7 +7440,21 @@ input[type='color'] {
   display: flex;
   flex-direction: column;
   gap: 1.75rem;
-  max-width: 900px;
+  max-width: 1100px;
+}
+
+.tournaments-show-more {
+  align-self: center;
+  padding: 0.6rem 1.5rem;
+  border-radius: 999px;
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.12));
+  color: var(--text-muted);
+}
+
+.tournaments-show-more:hover {
+  border-color: var(--accent, #ff4655);
+  color: var(--accent, #ff4655);
 }
 
 .tournaments-empty-state {
@@ -7616,10 +7630,14 @@ input[type='color'] {
 .tournaments-promo {
   position: sticky;
   top: 0;
-  flex: 1 1 380px;
-  min-width: 380px;
-  align-self: stretch;
-  min-height: calc(100vh - 140px);
+  flex: 0 0 260px;
+  width: 260px;
+  /* `height` fixe (pas `min-height` + `align-self: stretch`) : une liste
+     plus longue que la fenêtre ne doit jamais étirer ce panneau avec elle,
+     juste défiler à côté de lui — VISIBLE_COUNT + "Voir plus" (côté JS)
+     s'occupent de garder la liste courte de toute façon. */
+  align-self: flex-start;
+  height: calc(100vh - 140px);
   border-radius: 18px;
   overflow: hidden;
   isolation: isolate;
@@ -7640,7 +7658,7 @@ input[type='color'] {
   z-index: 0;
   font-family: var(--font-display, 'Chakra Petch', sans-serif);
   font-weight: 700;
-  font-size: 5.5rem;
+  font-size: 4rem;
   line-height: 0.9;
   letter-spacing: 0.02em;
   color: transparent;

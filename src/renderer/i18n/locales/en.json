@@ -29,6 +29,7 @@
     "winner": "Winner: {{name}}",
     "promoWatermark": "Tournament",
     "promoTag": "Competition",
+    "showMore": "Show {{count}} more",
     "back": "Back",
     "teamsCount": "{{count}}/{{max}} teams",
     "registeredTeams": "Registered teams",

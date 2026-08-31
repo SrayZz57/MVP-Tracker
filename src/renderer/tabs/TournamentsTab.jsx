@@ -12,6 +12,11 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
+// Nombre de cartes affichées avant "Voir plus" — le panneau promo à droite a
+// une hauteur fixe (calée sur la fenêtre) : sans cette limite, une longue
+// liste l'étirerait avec elle plutôt que de simplement défiler/se replier.
+const VISIBLE_COUNT = 4;
+
 // Panneau décoratif dans l'espace vide à droite de la liste — Neon en
 // vedette (thème électrique/néon, cohérent avec l'identité du module),
 // purement visuel, ne réagit à aucune donnée.
@@ -50,6 +55,7 @@ function TournamentsTab({ myId, isAdmin }) {
   const [winnerNames, setWinnerNames] = useState(new Map());
   const [loading, setLoading] = useState(true);
   const [selectedId, setSelectedId] = useState(null);
+  const [showAll, setShowAll] = useState(false);
 
   useEffect(() => {
     supabase
@@ -109,10 +115,12 @@ function TournamentsTab({ myId, isAdmin }) {
     );
   }
 
+  const visibleTournaments = showAll ? tournaments : tournaments.slice(0, VISIBLE_COUNT);
+
   return (
     <div className="tournaments-page">
       <div className="tournaments-list">
-        {tournaments.map((tournament, index) => {
+        {visibleTournaments.map((tournament, index) => {
           const splash = pickSplash(tournament.id, mapImages);
           const winner = winnerNames.get(tournament.id);
           return (
@@ -137,6 +145,11 @@ function TournamentsTab({ myId, isAdmin }) {
             </button>
           );
         })}
+        {!showAll && tournaments.length > VISIBLE_COUNT && (
+          <button className="tournaments-show-more" onClick={() => setShowAll(true)}>
+            {t('tournaments.showMore', { count: tournaments.length - VISIBLE_COUNT })}
+          </button>
+        )}
       </div>
       <TournamentsPromo />
     </div>
