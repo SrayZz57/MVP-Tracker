@@ -44,6 +44,36 @@ function TournamentsPromo() {
   );
 }
 
+const HOW_IT_WORKS_STEPS = [
+  { titleKey: 'tournaments.howItWorks.step1Title', textKey: 'tournaments.howItWorks.step1Text' },
+  { titleKey: 'tournaments.howItWorks.step2Title', textKey: 'tournaments.howItWorks.step2Text' },
+  { titleKey: 'tournaments.howItWorks.step3Title', textKey: 'tournaments.howItWorks.step3Text' },
+  { titleKey: 'tournaments.howItWorks.step4Title', textKey: 'tournaments.howItWorks.step4Text' },
+];
+
+// Petit panneau explicatif entre la liste et le panneau promo — purement
+// informatif, ne dépend d'aucune donnée.
+function TournamentsHowItWorks() {
+  const { t } = useTranslation();
+
+  return (
+    <aside className="tournaments-how">
+      <h2 className="tournaments-how-title">{t('tournaments.howItWorks.title')}</h2>
+      <ol className="tournaments-how-steps">
+        {HOW_IT_WORKS_STEPS.map((step, index) => (
+          <li key={step.titleKey} className="tournaments-how-step" style={{ '--i': index }}>
+            <span className="tournaments-how-step-number">{index + 1}</span>
+            <div>
+              <p className="tournaments-how-step-title">{t(step.titleKey)}</p>
+              <p className="tournaments-how-step-text">{t(step.textKey)}</p>
+            </div>
+          </li>
+        ))}
+      </ol>
+    </aside>
+  );
+}
+
 // Liste des tournois — sert de page d'entrée pour tous les comptes connectés
 // (pas encore une vraie page publique accessible sans compte, ça viendra
 // séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
@@ -151,6 +181,7 @@ function TournamentsTab({ myId, isAdmin }) {
           </button>
         )}
       </div>
+      <TournamentsHowItWorks />
       <TournamentsPromo />
     </div>
   );

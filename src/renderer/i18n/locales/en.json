@@ -30,6 +30,17 @@
     "promoWatermark": "Tournament",
     "promoTag": "Competition",
     "showMore": "Show {{count}} more",
+    "howItWorks": {
+      "title": "How it works",
+      "step1Title": "Register your team",
+      "step1Text": "Team name and 5 players, in a few seconds.",
+      "step2Title": "The admin approves it",
+      "step2Text": "Every registration is checked before the tournament starts.",
+      "step3Title": "The bracket is generated",
+      "step3Text": "Teams are placed automatically, byes handled if needed.",
+      "step4Title": "Follow matches live",
+      "step4Text": "Results and progress update as the tournament unfolds."
+    },
     "back": "Back",
     "teamsCount": "{{count}}/{{max}} teams",
     "registeredTeams": "Registered teams",

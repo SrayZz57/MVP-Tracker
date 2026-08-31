@@ -7457,6 +7457,93 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
+/* Panneau "Comment ça marche", entre la liste et le panneau promo — une
+   petite timeline verticale (numéros reliés par un trait) plutôt qu'une
+   simple liste à puces. */
+.tournaments-how {
+  flex: 0 0 260px;
+  padding: 1.5rem 1.35rem;
+  border-radius: 18px;
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  animation: tournamentCardIn 0.5s var(--ease-out, ease) both;
+  animation-delay: 0.1s;
+}
+
+@media (max-width: 1380px) {
+  .tournaments-how {
+    display: none;
+  }
+}
+
+.tournaments-how-title {
+  margin: 0 0 1.25rem;
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-size: 1.1rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.tournaments-how-steps {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.tournaments-how-step {
+  position: relative;
+  display: flex;
+  gap: 0.85rem;
+  padding-bottom: 1.35rem;
+  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
+  animation-delay: calc(0.15s + var(--i, 0) * 0.08s);
+}
+
+.tournaments-how-step:last-child {
+  padding-bottom: 0;
+}
+
+.tournaments-how-step:not(:last-child)::before {
+  content: '';
+  position: absolute;
+  left: 13px;
+  top: 28px;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(var(--accent, #ff4655), transparent);
+  opacity: 0.35;
+}
+
+.tournaments-how-step-number {
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 2px solid var(--accent, #ff4655);
+  color: var(--accent, #ff4655);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-weight: 700;
+  font-size: 0.85rem;
+  z-index: 1;
+  background: var(--bg-deep, #0c0d12);
+}
+
+.tournaments-how-step-title {
+  margin: 0.05rem 0 0.2rem;
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+.tournaments-how-step-text {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.8rem;
+  line-height: 1.4;
+}
+
 .tournaments-empty-state {
   display: flex;
   flex-direction: column;

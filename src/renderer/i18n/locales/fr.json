@@ -30,6 +30,17 @@
     "promoWatermark": "Tournoi",
     "promoTag": "Compétition",
     "showMore": "Voir {{count}} de plus",
+    "howItWorks": {
+      "title": "Comment ça marche",
+      "step1Title": "Inscris ton équipe",
+      "step1Text": "Nom d'équipe et 5 joueurs, en quelques secondes.",
+      "step2Title": "L'admin valide",
+      "step2Text": "Chaque inscription est vérifiée avant le début du tournoi.",
+      "step3Title": "Le bracket se génère",
+      "step3Text": "Répartition automatique des équipes, byes gérés si besoin.",
+      "step4Title": "Suis les matchs en direct",
+      "step4Text": "Résultats et progression mis à jour au fil du tournoi."
+    },
     "back": "Retour",
     "teamsCount": "{{count}}/{{max}} équipes",
     "registeredTeams": "Équipes inscrites",
