@@ -1,7 +1,18 @@
 import zlib from 'node:zlib';
+import { promisify } from 'node:util';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../supabaseConfig.js';
 import { findMe, resultLabel, matchScore } from '../renderer/valorantStats.js';
+
+// Version asynchrone (déléguée au thread pool libuv) plutôt que
+// brotliCompressSync : le process principal d'Electron est mono-thread pour
+// le JS, donc une compression Brotli qualité 11 synchrone (la plus lente) le
+// bloquait entièrement pendant son calcul — chaque clic dans l'app devait
+// alors attendre la fin de la compression en cours pour être traité, jusqu'à
+// ~2 minutes de délai perçu au premier lancement (jusqu'à 50 matchs à
+// compresser). Le résultat est identique, seul le thread qui fait le travail
+// change.
+const brotliCompress = promisify(zlib.brotliCompress);
 
 // =============================================================================
 // SYNCHRO DES MATCHS VERS SUPABASE
@@ -118,7 +129,7 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
       // complet n'est pas dispo pour ce match.
       if (wantsDetail && !alreadyHasDetail) {
         try {
-          const compressed = zlib.brotliCompressSync(Buffer.from(JSON.stringify(match)), {
+          const compressed = await brotliCompress(Buffer.from(JSON.stringify(match)), {
             params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 },
           });
           await uploadToStorage(accessToken, `${userId}/${matchId}.json.br`, compressed);
