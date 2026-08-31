@@ -1,4 +1,8 @@
 {
+  "admin": {
+    "title": "Administration",
+    "placeholder": "The Tournament module will plug in here."
+  },
   "collapsible": {
     "collapse": "Collapse",
     "expand": "Expand"
@@ -14,9 +18,11 @@
       "myAccount": "My account",
       "network": "Network",
       "training": "Training",
-      "tools": "Tools"
+      "tools": "Tools",
+      "admin": "Administration"
     },
     "tabs": {
+      "admin": "Administration",
       "stats": "Stats",
       "form": "Perf & Form",
       "tilt": "Tilt",

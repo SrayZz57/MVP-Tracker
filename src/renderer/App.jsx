@@ -33,6 +33,7 @@ import AccountGreeting from './AccountGreeting.jsx';
 import AccountAuth from './AccountAuth.jsx';
 import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
 import AccountPage from './AccountPage.jsx';
+import AdminPage from './AdminPage.jsx';
 import MessagesTab from './tabs/MessagesTab.jsx';
 import FriendsTab from './tabs/FriendsTab.jsx';
 import { supabase } from './supabaseClient.js';
@@ -89,6 +90,15 @@ const NAV_SECTIONS = [
     ],
   },
 ];
+
+// Section à part, ajoutée dynamiquement — jamais présente dans NAV_SECTIONS,
+// donc jamais dans le DOM ni dans ALL_TABS pour un compte non-admin. La vraie
+// sécurité vient des policies RLS côté Supabase (voir is_admin() en base) :
+// ceci n'est qu'un confort d'affichage, pas une barrière de sécurité.
+const ADMIN_SECTION = {
+  sectionKey: 'nav.sections.admin',
+  tabs: [{ id: 'admin', labelKey: 'nav.tabs.admin', icon: '🛡️' }],
+};
 
 const ALL_TABS = NAV_SECTIONS.flatMap((s) => s.tabs);
 
@@ -332,6 +342,8 @@ function App() {
   }, [profile?.riot_puuid, settings?.puuid, data.matches]);
   const isViewingSelf = !!profile && settings?.puuid === profile.riot_puuid;
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
+  // Confort d'affichage uniquement — voir le commentaire sur ADMIN_SECTION.
+  const isAdmin = profile?.role === 'admin';
 
   // Même principe que pour les matchs : le rang stocké localement ne l'était
   // que pour "le dernier profil consulté", pas par compte — on le relit
@@ -405,7 +417,7 @@ function App() {
     async function loadProfile(attempt = 0) {
       const { data, error } = await supabase
         .from('profiles')
-        .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at, henrikdev_api_key')
+        .select('riot_name, riot_tag, riot_puuid, display_name, avatar_card_uuid, main_role, main_agent, created_at, henrikdev_api_key, role')
         .eq('id', session.user.id)
         .maybeSingle();
       if (cancelled) return;
@@ -665,6 +677,12 @@ function App() {
         return <DailyPuzzleTab settings={mySettings} matches={myMatches} />;
       case 'wiki':
         return <WikiTab />;
+      case 'admin':
+        // Re-vérifié ici, pas seulement dans la nav : même si quelqu'un
+        // forçait activeTab à 'admin' sans passer par le bouton (jamais
+        // affiché pour un non-admin), rien de sensible ne s'affiche —
+        // et de toute façon, la vraie porte fermée est côté serveur (RLS).
+        return isAdmin ? <AdminPage /> : null;
       case 'messages':
         return (
           <MessagesTab
@@ -732,7 +750,7 @@ function App() {
               opacity: indicator.ready ? 1 : 0,
             }}
           />
-          {NAV_SECTIONS.map((section) => {
+          {(isAdmin ? [...NAV_SECTIONS, ADMIN_SECTION] : NAV_SECTIONS).map((section) => {
             const collapsed = collapsedSections.has(section.sectionKey);
             return (
               <div key={section.sectionKey} className="sidebar-section">

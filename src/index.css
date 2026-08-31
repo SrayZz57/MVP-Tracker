@@ -7343,3 +7343,7 @@ input[type='color'] {
   height: 100%;
   object-fit: cover;
 }
+
+.admin-page {
+  padding: 2rem;
+}

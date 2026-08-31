@@ -1,4 +1,8 @@
 {
+  "admin": {
+    "title": "Administration",
+    "placeholder": "Le module Tournoi viendra se brancher ici."
+  },
   "collapsible": {
     "collapse": "Réduire",
     "expand": "Agrandir"
@@ -14,9 +18,11 @@
       "myAccount": "Mon compte",
       "network": "Réseau",
       "training": "Entraînement",
-      "tools": "Outils"
+      "tools": "Outils",
+      "admin": "Administration"
     },
     "tabs": {
+      "admin": "Administration",
       "stats": "Stats",
       "form": "Perf & Forme",
       "tilt": "Tilt",
