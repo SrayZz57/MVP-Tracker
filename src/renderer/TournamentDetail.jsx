@@ -7,9 +7,15 @@ import { useAgentIcons, useAgentsData } from './agentIcons.js';
 import { useMapImages } from './mapImages.js';
 import { pickSplash } from './tournamentVisuals.js';
 import IconPickerModal from './IconPickerModal.jsx';
+import AccountPickerModal from './AccountPickerModal.jsx';
 
 const PLAYER_COUNT = 5;
-const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({ riotName: '', riotTag: '', agent: null }));
+const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({
+  riotName: '',
+  riotTag: '',
+  agent: null,
+  linkedProfileId: null,
+}));
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',
@@ -17,25 +23,27 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
-// Chaque emplacement joueur a un avatar cliquable (icône d'agent officielle,
-// via le même sélecteur que celui déjà utilisé pour l'agent principal du
-// profil) plutôt qu'une simple ligne de texte — purement cosmétique, `agent`
-// reste optionnel, jamais requis pour valider le formulaire.
+// Chaque emplacement joueur DOIT correspondre à un vrai compte MVP Tracker
+// (recherché et sélectionné via AccountPickerModal) — plus de Riot ID tapé
+// à la main. `linked_profile_id` passe de facultatif à obligatoire (voir la
+// contrainte NOT NULL posée en base) : impossible d'inscrire quelqu'un qui
+// n'a pas de compte. L'agent reste, lui, purement cosmétique et optionnel.
 function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, submitLabel }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [players, setPlayers] = useState(initialPlayers);
-  const [pickerIndex, setPickerIndex] = useState(null);
+  const [agentPickerIndex, setAgentPickerIndex] = useState(null);
+  const [accountPickerIndex, setAccountPickerIndex] = useState(null);
   const agentIcons = useAgentIcons();
   const agentsData = useAgentsData();
 
-  function updatePlayer(index, field, value) {
-    setPlayers((prev) => prev.map((p, i) => (i === index ? { ...p, [field]: value } : p)));
+  function updatePlayer(index, patch) {
+    setPlayers((prev) => prev.map((p, i) => (i === index ? { ...p, ...patch } : p)));
   }
 
   function handleSubmit(e) {
     e.preventDefault();
-    if (!name.trim() || players.some((p) => !p.riotName.trim() || !p.riotTag.trim())) return;
+    if (!name.trim() || players.some((p) => !p.linkedProfileId)) return;
     onSubmit(name.trim(), players);
   }
 
@@ -54,7 +62,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
             type="button"
             className="team-roster-agent-avatar"
             title={player.agent ?? t('tournaments.pickAgent')}
-            onClick={() => setPickerIndex(index)}
+            onClick={() => setAgentPickerIndex(index)}
           >
             {player.agent && agentIcons.get(player.agent) ? (
               <img src={agentIcons.get(player.agent)} alt="" />
@@ -62,39 +70,49 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
               <span>?</span>
             )}
           </button>
-          <input
-            placeholder={t('tournaments.riotName')}
-            value={player.riotName}
-            onChange={(e) => updatePlayer(index, 'riotName', e.target.value)}
-            required
-            maxLength={30}
-          />
-          <span>#</span>
-          <input
-            placeholder={t('tournaments.riotTag')}
-            value={player.riotTag}
-            onChange={(e) => updatePlayer(index, 'riotTag', e.target.value)}
-            required
-            maxLength={10}
-          />
+
+          {player.linkedProfileId ? (
+            <span className="team-roster-linked-account">
+              {player.riotName}#{player.riotTag}
+            </span>
+          ) : (
+            <span className="team-roster-linked-account placeholder">{t('tournaments.noAccountChosen')}</span>
+          )}
+          <button type="button" onClick={() => setAccountPickerIndex(index)}>
+            {player.linkedProfileId ? t('tournaments.change') : t('tournaments.pickAccount')}
+          </button>
         </div>
       ))}
 
-      {pickerIndex !== null && (
+      {agentPickerIndex !== null && (
         <IconPickerModal
           title={t('tournaments.pickAgent')}
           items={agentsData.map((agent) => ({ id: agent.displayName, label: agent.displayName, icon: agent.displayIcon }))}
           onSelect={(agentName) => {
-            updatePlayer(pickerIndex, 'agent', agentName);
-            setPickerIndex(null);
+            updatePlayer(agentPickerIndex, { agent: agentName });
+            setAgentPickerIndex(null);
           }}
-          onClose={() => setPickerIndex(null)}
+          onClose={() => setAgentPickerIndex(null)}
+        />
+      )}
+
+      {accountPickerIndex !== null && (
+        <AccountPickerModal
+          onSelect={(profile) => {
+            updatePlayer(accountPickerIndex, {
+              riotName: profile.riot_name,
+              riotTag: profile.riot_tag,
+              linkedProfileId: profile.id,
+            });
+            setAccountPickerIndex(null);
+          }}
+          onClose={() => setAccountPickerIndex(null)}
         />
       )}
 
       {error && <p className="error-banner">{error}</p>}
 
-      <button type="submit" disabled={saving}>
+      <button type="submit" disabled={saving || players.some((p) => !p.linkedProfileId)}>
         {saving ? t('tournaments.saving') : submitLabel}
       </button>
     </form>
@@ -140,7 +158,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     if (myTeam) {
       const { data: players } = await supabase
         .from('tournament_team_players')
-        .select('id, riot_name, riot_tag, agent')
+        .select('id, riot_name, riot_tag, agent, linked_profile_id')
         .eq('team_id', myTeam.id);
       setMyTeamPlayers(players ?? []);
     } else {
@@ -154,7 +172,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     if (teamIds.length > 0) {
       const { data: allPlayers } = await supabase
         .from('tournament_team_players')
-        .select('id, team_id, riot_name, riot_tag, agent')
+        .select('id, team_id, riot_name, riot_tag, agent, linked_profile_id')
         .in('team_id', teamIds);
       const grouped = new Map();
       for (const player of allPlayers ?? []) {
@@ -195,7 +213,15 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     if (teamError) return { error: teamError };
     const { error: playersError } = await supabase
       .from('tournament_team_players')
-      .insert(players.map((p) => ({ team_id: team.id, riot_name: p.riotName, riot_tag: p.riotTag, agent: p.agent })));
+      .insert(
+        players.map((p) => ({
+          team_id: team.id,
+          riot_name: p.riotName,
+          riot_tag: p.riotTag,
+          agent: p.agent,
+          linked_profile_id: p.linkedProfileId,
+        })),
+      );
     return { error: playersError };
   }
 
@@ -243,7 +269,15 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await supabase.from('tournament_team_players').delete().eq('team_id', myTeam.id);
     const { error: playersError } = await supabase
       .from('tournament_team_players')
-      .insert(players.map((p) => ({ team_id: myTeam.id, riot_name: p.riotName, riot_tag: p.riotTag, agent: p.agent })));
+      .insert(
+        players.map((p) => ({
+          team_id: myTeam.id,
+          riot_name: p.riotName,
+          riot_tag: p.riotTag,
+          agent: p.agent,
+          linked_profile_id: p.linkedProfileId,
+        })),
+      );
     setSaving(false);
     if (playersError) {
       setError(playersError.message);
@@ -479,7 +513,12 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                 initialName={myTeam.name}
                 initialPlayers={
                   myTeamPlayers.length === PLAYER_COUNT
-                    ? myTeamPlayers.map((p) => ({ riotName: p.riot_name, riotTag: p.riot_tag, agent: p.agent }))
+                    ? myTeamPlayers.map((p) => ({
+                        riotName: p.riot_name,
+                        riotTag: p.riot_tag,
+                        agent: p.agent,
+                        linkedProfileId: p.linked_profile_id,
+                      }))
                     : EMPTY_PLAYERS
                 }
                 saving={saving}
