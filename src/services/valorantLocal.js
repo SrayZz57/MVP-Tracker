@@ -165,10 +165,16 @@ async function fetchMmrTier(pdBase, headers, puuid) {
   }
 }
 
-// Ne rappelle l'endpoint MMR que pour les joueurs dont le rang embarqué est
-// vide (0) — en Compétitif, il est déjà correct et gratuit, pas besoin d'un
-// appel de plus par joueur.
-async function fillMissingRanks(pdBase, headers, players) {
+// Uniquement hors Compétitif : en vrai classé, le rang embarqué (pregame/
+// core-game) est déjà la bonne valeur en direct. Un rang à 0 y est un signe
+// fiable de "non classé cette saison", jamais un vide à combler — l'appeler
+// quand même y a déjà provoqué une régression réelle (rang d'ACTE affiché à
+// la place du rang courant en Compétitif) : QueueSkills.competitive côté MMR
+// s'indexe par LatestCompetitiveUpdate.SeasonID, qui pointe vers la saison du
+// DERNIER match classé joué — un ancien acte si le rang courant n'était pas
+// encore remonté côté embarqué au moment de l'appel.
+async function fillMissingRanks(pdBase, headers, players, mode) {
+  if (mode === 'competitive') return players;
   await Promise.all(
     players.map(async (p) => {
       if (p.competitiveTier > 0) return;
@@ -206,7 +212,7 @@ async function fetchPregame(glz, pdBase, headers, puuid) {
     team: 'ally',
   }));
 
-  if (pdBase) await fillMissingRanks(pdBase, headers, players);
+  if (pdBase) await fillMissingRanks(pdBase, headers, players, match.QueueID ?? null);
 
   return { state: 'ok', phase: 'select', matchId, mapId: match.MapID ?? null, mode: match.QueueID ?? null, players };
 }
@@ -241,7 +247,7 @@ async function fetchCoregame(glz, pdBase, headers, puuid) {
     team: myTeam && p.TeamID === myTeam ? 'ally' : 'enemy',
   }));
 
-  if (pdBase) await fillMissingRanks(pdBase, headers, players);
+  if (pdBase) await fillMissingRanks(pdBase, headers, players, match.ModeID ?? null);
 
   return { state: 'ok', phase: 'game', matchId, mapId: match.MapID ?? null, mode: match.ModeID ?? null, players };
 }
