@@ -8092,7 +8092,9 @@ input[type='color'] {
 /* Panneaux admin : bordure d'accent à gauche pour signaler "réservé à
    l'admin" d'un coup d'œil, cohérent sur les 3 sections (validations,
    ajout d'équipe, génération du bracket). */
-.admin-panel {
+.admin-panel,
+.tournament-registration,
+.tournament-teams-list {
   padding: 1.1rem 1.25rem;
   border-radius: 10px;
   background: var(--surface, rgba(255, 255, 255, 0.04));
