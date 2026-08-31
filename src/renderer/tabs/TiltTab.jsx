@@ -25,10 +25,12 @@ function TiltTab({ settings, matches, loading }) {
 
   const recentResults = useMemo(
     () =>
-      filteredMatches.slice(0, STREAK_DOTS_COUNT).map((match) => {
-        const me = findMe(match, settings.name, settings.tag);
-        return { id: match.metadata?.matchid, label: resultLabel(match, me), map: match.metadata?.map };
-      }),
+      excludeDeathmatch(filteredMatches)
+        .slice(0, STREAK_DOTS_COUNT)
+        .map((match) => {
+          const me = findMe(match, settings.name, settings.tag);
+          return { id: match.metadata?.matchid, label: resultLabel(match, me), map: match.metadata?.map };
+        }),
     [filteredMatches, settings.name, settings.tag],
   );
 
