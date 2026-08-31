@@ -127,9 +127,60 @@ function glzHeaders(auth, version) {
   };
 }
 
+// pregame/core-game vivent sur les serveurs "glz" (par région de partie),
+// mais le rang classé d'un joueur, lui, vit sur "pd" (par shard du compte,
+// peu importe la partie) — même hôte que glz, sans le préfixe régional.
+// ex. glz-eu-1.eu.a.pvp.net -> pd.eu.a.pvp.net
+function pdBaseFromGlz(glz) {
+  const match = glz.match(/^https:\/\/glz-[a-z0-9-]+\.([a-z0-9-]+)\.a\.pvp\.net$/i);
+  return match ? `https://pd.${match[1]}.a.pvp.net` : null;
+}
+
+// CompetitiveTier dans pregame/core-game ne reflète que le classement DE LA
+// PARTIE EN COURS — vide (0) hors file Compétitive. L'endpoint MMR, lui,
+// donne le rang classé du joueur indépendamment du mode actuellement joué
+// (c'est ce que font les trackers tiers pour afficher un rang même en Spike
+// Rush) — voir player-mmr sur valapidocs.techchrism.me. Un cache court évite
+// de le refaire à chaque poll (4s) pour les mêmes joueurs pendant un même
+// pregame/partie.
+const mmrCache = new Map(); // puuid -> { tier, expiresAt }
+const MMR_CACHE_MS = 5 * 60 * 1000;
+
+async function fetchMmrTier(pdBase, headers, puuid) {
+  const cached = mmrCache.get(puuid);
+  if (cached && cached.expiresAt > Date.now()) return cached.tier;
+
+  try {
+    const res = await fetch(`${pdBase}/mmr/v1/players/${puuid}`, { headers });
+    if (!res.ok) return 0;
+    const json = await res.json();
+    const seasonId = json.LatestCompetitiveUpdate?.SeasonID;
+    const tier = seasonId
+      ? json.QueueSkills?.competitive?.SeasonalInfoBySeasonID?.[seasonId]?.CompetitiveTier ?? 0
+      : 0;
+    mmrCache.set(puuid, { tier, expiresAt: Date.now() + MMR_CACHE_MS });
+    return tier;
+  } catch {
+    return 0;
+  }
+}
+
+// Ne rappelle l'endpoint MMR que pour les joueurs dont le rang embarqué est
+// vide (0) — en Compétitif, il est déjà correct et gratuit, pas besoin d'un
+// appel de plus par joueur.
+async function fillMissingRanks(pdBase, headers, players) {
+  await Promise.all(
+    players.map(async (p) => {
+      if (p.competitiveTier > 0) return;
+      p.competitiveTier = await fetchMmrTier(pdBase, headers, p.puuid);
+    }),
+  );
+  return players;
+}
+
 // Sélection d'agent ('pregame') : seule MON équipe est exposée par Riot à ce
 // stade en classé (`EnemyTeam` est null) — rien à faire côté adversaires ici.
-async function fetchPregame(glz, headers, puuid) {
+async function fetchPregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/pregame/v1/players/${puuid}`, { headers });
   if (playerRes.status === 404) return null;
   if (!playerRes.ok) throw new Error(`pregame-player ${playerRes.status}`);
@@ -155,13 +206,15 @@ async function fetchPregame(glz, headers, puuid) {
     team: 'ally',
   }));
 
+  if (pdBase) await fillMissingRanks(pdBase, headers, players);
+
   return { state: 'ok', phase: 'select', matchId, mapId: match.MapID ?? null, mode: match.QueueID ?? null, players };
 }
 
 // Partie en cours ('core-game'), à partir du chargement juste après la
 // sélection : contrairement au pregame, LES DEUX équipes sont exposées ici —
 // c'est ce qui permet d'afficher enfin les adversaires.
-async function fetchCoregame(glz, headers, puuid) {
+async function fetchCoregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/core-game/v1/players/${puuid}`, { headers });
   if (playerRes.status === 404) return null;
   if (!playerRes.ok) throw new Error(`coregame-player ${playerRes.status}`);
@@ -188,6 +241,8 @@ async function fetchCoregame(glz, headers, puuid) {
     team: myTeam && p.TeamID === myTeam ? 'ally' : 'enemy',
   }));
 
+  if (pdBase) await fillMissingRanks(pdBase, headers, players);
+
   return { state: 'ok', phase: 'game', matchId, mapId: match.MapID ?? null, mode: match.ModeID ?? null, players };
 }
 
@@ -213,14 +268,15 @@ export async function getAgentSelect() {
     const glz = readGlzBase();
     if (!glz) return { state: 'unavailable', reason: 'no-glz' };
 
+    const pdBase = pdBaseFromGlz(glz);
     const auth = await getLocalAuth(lock);
     const version = await getClientVersion();
     const headers = glzHeaders(auth, version);
 
-    const pregame = await fetchPregame(glz, headers, auth.puuid);
+    const pregame = await fetchPregame(glz, pdBase, headers, auth.puuid);
     if (pregame) return pregame;
 
-    const coregame = await fetchCoregame(glz, headers, auth.puuid);
+    const coregame = await fetchCoregame(glz, pdBase, headers, auth.puuid);
     if (coregame) return coregame;
 
     return { state: 'idle' };
