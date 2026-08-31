@@ -7512,6 +7512,14 @@ input[type='color'] {
   max-width: 640px;
 }
 
+/* Le bracket a besoin de bien plus de largeur qu'un formulaire dès qu'il y a
+   plusieurs tours (chaque tour ajoute ~250px) — il sort volontairement du
+   cadre étroit du reste de la page plutôt que de forcer un scroll horizontal
+   inutile pour seulement 2-3 colonnes. */
+.tournament-bracket-section {
+  max-width: none;
+}
+
 .link-back {
   background: none;
   border: none;
