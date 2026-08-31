@@ -341,12 +341,20 @@ function App() {
   // sans frais réels, juste un aller-retour de vérification.
   useEffect(() => {
     if (!session || myMatches.length === 0 || !mySettings?.name) return;
-    window.electronAPI.syncMatches({
-      matches: myMatches,
-      name: mySettings.name,
-      tag: mySettings.tag,
-      userId: session.user.id,
-      accessToken: session.access_token,
+    // `session.access_token` peut dater : le rafraîchissement en tâche de
+    // fond de Supabase se met en pause si la fenêtre reste longtemps non
+    // visible, et un token expiré fait échouer Storage silencieusement
+    // (RLS refuse tout, sans distinguer "expiré" de "vraiment pas autorisé").
+    // `getSession()` revérifie et rafraîchit au besoin avant qu'on l'utilise.
+    supabase.auth.getSession().then(({ data: { session: fresh } }) => {
+      if (!fresh) return;
+      window.electronAPI.syncMatches({
+        matches: myMatches,
+        name: mySettings.name,
+        tag: mySettings.tag,
+        userId: fresh.user.id,
+        accessToken: fresh.access_token,
+      });
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myMatches]);

@@ -21,6 +21,19 @@ import { findMe, resultLabel, matchScore } from '../renderer/valorantStats.js';
 // Toujours dans le dossier `{userId}/...` de l'utilisateur — c'est ce que
 // vérifient les policies RLS posées côté Supabase, aucun autre chemin ne
 // passerait de toute façon.
+//
+// ÉTAT CONNU (2026-08-31) : l'upload vers Storage échoue systématiquement en
+// ce moment ("row-level security policy", même avec une policy triviale ne
+// vérifiant que le rôle) alors que Postgrest, avec le MÊME jeton au même
+// instant, fonctionne normalement — vérifié en écartant toutes les causes
+// côté appli (policies correctes en SQL brut, identité JWT/userId identique,
+// jeton rafraîchi juste avant l'appel, reproductible en curl pur en dehors
+// de l'appli). Tout pointe vers un désalignement de config JWT côté projet
+// Supabase (Storage vs Postgrest), pas vers ce code — probablement réglé par
+// un redémarrage du projet, pas encore fait pour ne pas couper les testeurs
+// en pleine session. Le détail complet reste donc pour l'instant
+// indisponible ; l'échec est isolé (catch dans la boucle) pour ne PAS
+// empêcher la synchro des résumés, qui elle fonctionne bien.
 // =============================================================================
 
 const SUMMARY_COUNT = 100;
@@ -36,9 +49,31 @@ const RESULT_CODES = {
 
 function authedClient(accessToken) {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
-    global: { headers: { Authorization: `Bearer ${accessToken}` } },
+    global: { headers: { Authorization: `Bearer ${accessToken}`, apikey: SUPABASE_ANON_KEY } },
     auth: { persistSession: false },
   });
+}
+
+function storageHeaders(accessToken, extra = {}) {
+  return { Authorization: `Bearer ${accessToken}`, apikey: SUPABASE_ANON_KEY, ...extra };
+}
+
+async function uploadToStorage(accessToken, path, buffer) {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}/${path}`, {
+    method: 'POST',
+    headers: storageHeaders(accessToken, { 'Content-Type': 'application/octet-stream', 'x-upsert': 'true' }),
+    body: buffer,
+  });
+  if (!res.ok) throw new Error(`storage upload ${res.status}: ${await res.text()}`);
+}
+
+async function removeFromStorage(accessToken, paths) {
+  const res = await fetch(`${SUPABASE_URL}/storage/v1/object/${STORAGE_BUCKET}`, {
+    method: 'DELETE',
+    headers: storageHeaders(accessToken, { 'Content-Type': 'application/json' }),
+    body: JSON.stringify({ prefixes: paths }),
+  });
+  if (!res.ok) throw new Error(`storage remove ${res.status}: ${await res.text()}`);
 }
 
 /**
@@ -68,25 +103,29 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
     const existingWithDetail = new Set((existing ?? []).filter((r) => r.has_full_detail).map((r) => r.match_id));
 
     const rows = [];
+    let detailFailures = 0;
     for (const match of toSummarize) {
       const matchId = match.metadata.matchid;
       const me = findMe(match, name, tag);
       const wantsDetail = detailWanted.has(matchId);
       const alreadyHasDetail = existingWithDetail.has(matchId);
+      let uploadedDetail = alreadyHasDetail;
 
       // On ne recompresse/ré-uploade jamais un match déjà présent : un match
       // terminé ne change plus, inutile de repayer le travail à chaque sync.
+      // Un échec d'upload (voir note en tête de fichier) ne doit PAS priver
+      // le résumé léger, qui lui fonctionne — juste noter que le détail
+      // complet n'est pas dispo pour ce match.
       if (wantsDetail && !alreadyHasDetail) {
-        const compressed = zlib.brotliCompressSync(Buffer.from(JSON.stringify(match)), {
-          params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 },
-        });
-        const { error: uploadError } = await client.storage
-          .from(STORAGE_BUCKET)
-          .upload(`${userId}/${matchId}.json.br`, compressed, {
-            contentType: 'application/octet-stream',
-            upsert: true,
+        try {
+          const compressed = zlib.brotliCompressSync(Buffer.from(JSON.stringify(match)), {
+            params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 },
           });
-        if (uploadError) throw uploadError;
+          await uploadToStorage(accessToken, `${userId}/${matchId}.json.br`, compressed);
+          uploadedDetail = true;
+        } catch {
+          detailFailures += 1;
+        }
       }
 
       rows.push({
@@ -101,7 +140,7 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
         deaths: me?.stats?.deaths ?? null,
         assists: me?.stats?.assists ?? null,
         score: matchScore(match, me),
-        has_full_detail: wantsDetail || alreadyHasDetail,
+        has_full_detail: uploadedDetail,
       });
     }
 
@@ -121,12 +160,16 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
     if (toDelete.length > 0) {
       const toDeletePaths = toDelete.filter((id) => existingWithDetail.has(id)).map((id) => `${userId}/${id}.json.br`);
       if (toDeletePaths.length > 0) {
-        await client.storage.from(STORAGE_BUCKET).remove(toDeletePaths);
+        try {
+          await removeFromStorage(accessToken, toDeletePaths);
+        } catch {
+          // Même logique : un souci Storage ne doit pas bloquer la purge des résumés.
+        }
       }
       await client.from('match_summaries').delete().eq('user_id', userId).in('match_id', toDelete);
     }
 
-    return { synced: rows.length, deleted: toDelete.length };
+    return { synced: rows.length, deleted: toDelete.length, detailFailures };
   } catch (err) {
     return { error: err.message };
   }
