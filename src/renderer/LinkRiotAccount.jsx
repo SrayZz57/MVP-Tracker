@@ -1,5 +1,7 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle } from 'lucide-react';
+import Icon from './Icon.jsx';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import ApiKeyHelp from './ApiKeyHelp.jsx';
 import logo from '../assets/logo.png';
@@ -70,7 +72,7 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
           <p className="welcome-tagline">{t('linkRiot.tagline')}</p>
 
           <div className="link-riot-disclaimer">
-            <span className="link-riot-disclaimer-icon">⚠️</span>
+            <span className="link-riot-disclaimer-icon"><Icon icon={AlertTriangle} size={16} /></span>
             <div>
               <strong>{t('linkRiot.disclaimerWarning')}</strong>
               <p>

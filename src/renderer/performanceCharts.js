@@ -1,10 +1,11 @@
+import { Sunrise, Sun, Sunset, Moon } from 'lucide-react';
 import { excludeDeathmatch, findMe, resultLabel, groupStats, dayOfWeek, WEEK_ORDER } from './valorantStats.js';
 
 const PERIODS = [
-  { id: 'morning', label: 'Matin', icon: '🌅', startHour: 6, endHour: 12 },
-  { id: 'afternoon', label: 'Après-midi', icon: '☀️', startHour: 12, endHour: 18 },
-  { id: 'evening', label: 'Soir', icon: '🌆', startHour: 18, endHour: 24 },
-  { id: 'night', label: 'Nuit', icon: '🌙', startHour: 0, endHour: 6 },
+  { id: 'morning', label: 'Matin', icon: Sunrise, startHour: 6, endHour: 12 },
+  { id: 'afternoon', label: 'Après-midi', icon: Sun, startHour: 12, endHour: 18 },
+  { id: 'evening', label: 'Soir', icon: Sunset, startHour: 18, endHour: 24 },
+  { id: 'night', label: 'Nuit', icon: Moon, startHour: 0, endHour: 6 },
 ];
 
 function periodOf(match) {

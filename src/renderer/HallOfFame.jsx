@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Bomb, Flame, Target, Star, Lock } from 'lucide-react';
 import { computeHallOfFame } from './hallOfFame.js';
 import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
 import LoadingState from './LoadingState.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Icon from './Icon.jsx';
 
 function formatDate(locale, ms) {
   if (!ms) return '?';
   return new Date(ms).toLocaleDateString(locale, { day: 'numeric', month: 'short', year: 'numeric' });
 }
 
-function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty, t }) {
+function TrophyCard({ icon, color, title, value, valueLabel, context, portrait, empty, t }) {
   return (
     <div
       className={`trophy-card ${empty ? 'empty' : ''}`}
@@ -20,7 +22,7 @@ function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty, 
     >
       <div className="trophy-card-overlay">
         <div className="trophy-header">
-          <span className="trophy-icon">{icon}</span>
+          <span className="trophy-icon" style={{ color }}><Icon icon={icon} size={20} /></span>
           <span className="trophy-title">{title}</span>
         </div>
         {empty ? (
@@ -39,10 +41,12 @@ function TrophyCard({ icon, title, value, valueLabel, context, portrait, empty, 
   );
 }
 
-function AchievementBadge({ icon, title, description, unlocked, contextText, progressPercent }) {
+function AchievementBadge({ icon, color, title, description, unlocked, contextText, progressPercent }) {
   return (
     <div className={`achievement-badge ${unlocked ? 'unlocked' : 'locked'}`} title={description}>
-      <div className="achievement-badge-icon">{unlocked ? icon : '🔒'}</div>
+      <div className="achievement-badge-icon" style={unlocked ? { color } : undefined}>
+        {unlocked ? <Icon icon={icon} /> : <Icon icon={Lock} />}
+      </div>
       <div className="achievement-badge-title">{title}</div>
       {unlocked ? (
         <div className="achievement-badge-context">{contextText}</div>
@@ -102,7 +106,8 @@ function HallOfFame({ settings, matches, loading }) {
       <div className="trophy-grid">
         <TrophyCard
           t={t}
-          icon="💥"
+          icon={Bomb}
+          color="var(--hue-red)"
           title={t('hallOfFame.bestAce')}
           empty={!hof.bestAce}
           value={hof.bestAce?.kills}
@@ -112,7 +117,8 @@ function HallOfFame({ settings, matches, loading }) {
         />
         <TrophyCard
           t={t}
-          icon="🔥"
+          icon={Flame}
+          color="var(--hue-orange)"
           title={t('hallOfFame.longestWinStreak')}
           empty={!hof.longestWinStreak}
           value={hof.longestWinStreak?.streak}
@@ -124,7 +130,8 @@ function HallOfFame({ settings, matches, loading }) {
         />
         <TrophyCard
           t={t}
-          icon="🎯"
+          icon={Target}
+          color="var(--hue-gold)"
           title={t('hallOfFame.bestClutch')}
           empty={!hof.bestClutch}
           value={hof.bestClutch && `1v${hof.bestClutch.enemies}`}
@@ -134,7 +141,8 @@ function HallOfFame({ settings, matches, loading }) {
         />
         <TrophyCard
           t={t}
-          icon="⭐"
+          icon={Star}
+          color="var(--hue-purple)"
           title={t('hallOfFame.bestKdaMatch')}
           empty={!hof.bestKda}
           value={hof.bestKda?.kda.toFixed(2)}

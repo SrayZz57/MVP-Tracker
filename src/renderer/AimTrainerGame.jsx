@@ -1,4 +1,27 @@
 import { useEffect, useRef, useState } from 'react';
+import {
+  Target,
+  Grid3x3,
+  Waves,
+  Zap,
+  Microscope,
+  Orbit,
+  Package,
+  MoveHorizontal,
+  Shuffle,
+  Bomb,
+  Crosshair,
+  Popcorn,
+  Hourglass,
+  Trophy,
+  MousePointerClick,
+  Save,
+  CheckCircle2,
+  AlertTriangle,
+  RotateCcw,
+  Play,
+} from 'lucide-react';
+import Icon from './Icon.jsx';
 import * as THREE from 'three';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import fpsRifleHandsUrl from '../assets/models/fps-rifle-hands.glb';
@@ -80,7 +103,7 @@ function computePeekLayout(targetSize) {
 //   lifetime : durée de vie d'une cible en ms (null = illimitée)
 export const MODES = {
   flick: {
-    icon: '🎯',
+    icon: Target,
     accent: '#ff4655',
     labelKey: 'aimTrainer.modes.flick',
     descKey: 'aimTrainer.modes.flickDesc',
@@ -89,7 +112,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.28, spread: 28, duration: 60 },
   },
   gridshot: {
-    icon: '🔢',
+    icon: Grid3x3,
     accent: '#ffc857',
     labelKey: 'aimTrainer.modes.gridshot',
     descKey: 'aimTrainer.modes.gridshotDesc',
@@ -105,7 +128,7 @@ export const MODES = {
   // la clé historique (déjà utilisée par des scores enregistrés) — c'est
   // volontairement le palier "Pro", inchangé.
   trackingBeginner: {
-    icon: '🌊',
+    icon: Waves,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.trackingBeginner',
     descKey: 'aimTrainer.modes.trackingBeginnerDesc',
@@ -116,7 +139,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.42, spread: 26, duration: 60 },
   },
   trackingIntermediate: {
-    icon: '🌊',
+    icon: Waves,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.trackingIntermediate',
     descKey: 'aimTrainer.modes.trackingIntermediateDesc',
@@ -127,7 +150,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.36, spread: 28, duration: 60 },
   },
   tracking: {
-    icon: '🌊',
+    icon: Waves,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.tracking',
     descKey: 'aimTrainer.modes.trackingDesc',
@@ -145,7 +168,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.32, spread: 30, duration: 60 },
   },
   trackingMulti: {
-    icon: '🌊',
+    icon: Waves,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.trackingMulti',
     descKey: 'aimTrainer.modes.trackingMultiDesc',
@@ -157,7 +180,7 @@ export const MODES = {
     preset: { targetCount: 2, targetSize: 0.34, spread: 28, duration: 60 },
   },
   reflex: {
-    icon: '⚡',
+    icon: Zap,
     accent: '#9b7bff',
     labelKey: 'aimTrainer.modes.reflex',
     descKey: 'aimTrainer.modes.reflexDesc',
@@ -166,7 +189,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.3, spread: 34, duration: 60 },
   },
   micro: {
-    icon: '🔬',
+    icon: Microscope,
     accent: '#3ddc84',
     labelKey: 'aimTrainer.modes.micro',
     descKey: 'aimTrainer.modes.microDesc',
@@ -175,7 +198,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.12, spread: 12, duration: 60 },
   },
   orbit: {
-    icon: '🪐',
+    icon: Orbit,
     accent: '#ff8fab',
     labelKey: 'aimTrainer.modes.orbit',
     descKey: 'aimTrainer.modes.orbitDesc',
@@ -184,7 +207,7 @@ export const MODES = {
     preset: { targetCount: 2, targetSize: 0.26, spread: 30, duration: 60 },
   },
   peek: {
-    icon: '📦',
+    icon: Package,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.peek',
     descKey: 'aimTrainer.modes.peekDesc',
@@ -193,7 +216,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.16, spread: 20, duration: 60 },
   },
   strafe: {
-    icon: '↔️',
+    icon: MoveHorizontal,
     accent: '#4ec9f5',
     labelKey: 'aimTrainer.modes.strafe',
     descKey: 'aimTrainer.modes.strafeDesc',
@@ -208,7 +231,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.3, spread: 30, duration: 60 },
   },
   switch: {
-    icon: '🔀',
+    icon: Shuffle,
     accent: '#ffc857',
     labelKey: 'aimTrainer.modes.switchMode',
     descKey: 'aimTrainer.modes.switchModeDesc',
@@ -220,7 +243,7 @@ export const MODES = {
     preset: { targetCount: 4, targetSize: 0.26, spread: 26, duration: 60 },
   },
   strafeTap: {
-    icon: '🧨',
+    icon: Bomb,
     accent: '#ff8fab',
     labelKey: 'aimTrainer.modes.strafeTap',
     descKey: 'aimTrainer.modes.strafeTapDesc',
@@ -234,7 +257,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.3, spread: 26, duration: 60 },
   },
   precision: {
-    icon: '🪡',
+    icon: Crosshair,
     accent: '#3ddc84',
     labelKey: 'aimTrainer.modes.precision',
     descKey: 'aimTrainer.modes.precisionDesc',
@@ -243,7 +266,7 @@ export const MODES = {
     preset: { targetCount: 1, targetSize: 0.08, spread: 16, duration: 60 },
   },
   popcorn: {
-    icon: '🍿',
+    icon: Popcorn,
     accent: '#ffb84d',
     labelKey: 'aimTrainer.modes.popcorn',
     descKey: 'aimTrainer.modes.popcornDesc',
@@ -252,7 +275,7 @@ export const MODES = {
     preset: { targetCount: 3, targetSize: 0.22, spread: 32, duration: 60 },
   },
   snapHold: {
-    icon: '⏳',
+    icon: Hourglass,
     accent: '#9b7bff',
     labelKey: 'aimTrainer.modes.snapHold',
     descKey: 'aimTrainer.modes.snapHoldDesc',
@@ -1670,7 +1693,7 @@ function AimTrainerGame({ config: rawConfig }) {
             {phase === 'ready' && (
               <>
                 <h1>
-                  {MODES[config.mode]?.icon} Prêt ?
+                  <Icon icon={MODES[config.mode]?.icon} style={{ color: MODES[config.mode]?.accent }} /> Prêt ?
                   {playlist && (
                     <span className="aim-game-step">
                       {' '}
@@ -1681,15 +1704,15 @@ function AimTrainerGame({ config: rawConfig }) {
                 <p>
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
-                {config.challengeDate && <p className="aim-game-tip">🏆 Défi du jour — score comptabilisé au classement</p>}
+                {config.challengeDate && <p className="aim-game-tip"><Icon icon={Trophy} size={16} /> Défi du jour — score comptabilisé au classement</p>}
                 {MODES[config.mode]?.holdTracking && (
-                  <p className="aim-game-tip">🌊 Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
+                  <p className="aim-game-tip"><Icon icon={Waves} size={16} /> Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
                 )}
                 {MODES[config.mode]?.movement === 'switch' && (
-                  <p className="aim-game-tip">🔀 Touche les cibles dans l'ordre affiché — une erreur d'ordre compte comme un raté.</p>
+                  <p className="aim-game-tip"><Icon icon={Shuffle} size={16} /> Touche les cibles dans l'ordre affiché — une erreur d'ordre compte comme un raté.</p>
                 )}
                 {MODES[config.mode]?.movement === 'snap' && (
-                  <p className="aim-game-tip">⏳ Un flick ne suffit pas : reste stabilisé sur la cible un instant pour que le tir compte.</p>
+                  <p className="aim-game-tip"><Icon icon={Hourglass} size={16} /> Un flick ne suffit pas : reste stabilisé sur la cible un instant pour que le tir compte.</p>
                 )}
 
                 <div className="aim-game-controls">
@@ -1705,12 +1728,12 @@ function AimTrainerGame({ config: rawConfig }) {
                   </span>
                 </div>
                 <button className="refresh aim-game-cta" onClick={startSession}>
-                  ▶️ Démarrer
+                  <Icon icon={Play} size={16} /> Démarrer
                 </button>
                 <p className="aim-game-tip">Échap pour mettre en pause · la fenêtre se ferme avec le bouton ci-dessous</p>
                 {rawInputActive !== null && (
                   <p className="aim-game-tip">
-                    🖱️ Entrée souris brute : {rawInputActive ? 'active' : 'non disponible sur cette machine'}
+                    <Icon icon={MousePointerClick} size={16} /> Entrée souris brute : {rawInputActive ? 'active' : 'non disponible sur cette machine'}
                   </p>
                 )}
               </>
@@ -1721,7 +1744,7 @@ function AimTrainerGame({ config: rawConfig }) {
                 <h1>Pause</h1>
                 <p>Il te reste {timeLeft} secondes.</p>
                 <button className="refresh aim-game-cta" onClick={resumeSession}>
-                  ▶️ Reprendre
+                  <Icon icon={Play} size={16} /> Reprendre
                 </button>
               </>
             )}
@@ -1780,17 +1803,18 @@ function AimTrainerGame({ config: rawConfig }) {
                   Sensibilité {config.sens} · {config.dpi} DPI · cibles {config.targetSize.toFixed(2)}
                 </p>
 
-                {saveState === 'saving' && <p className="aim-game-tip">💾 Enregistrement du score…</p>}
-                {saveState === 'saved' && <p className="aim-game-tip">✅ Score enregistré sur ton compte</p>}
+                {saveState === 'saving' && <p className="aim-game-tip"><Icon icon={Save} size={16} /> Enregistrement du score…</p>}
+                {saveState === 'saved' && <p className="aim-game-tip"><Icon icon={CheckCircle2} size={16} /> Score enregistré sur ton compte</p>}
                 {saveState === 'error' && (
                   <p className="aim-game-tip aim-game-save-error">
-                    ⚠️ Score non enregistré — vérifie ta connexion, le détail est dans la console.
+                    <Icon icon={AlertTriangle} size={16} /> Score non enregistré — vérifie ta connexion, le détail est dans la console.
                   </p>
                 )}
 
                 {playlist && !isLastStep && (
                   <button className="refresh aim-game-cta" onClick={nextStep}>
-                    ▶️ Étape suivante — {MODES[playlist[step + 1]].icon}{' '}
+                    <Icon icon={Play} size={16} /> Étape suivante —{' '}
+                    <Icon icon={MODES[playlist[step + 1]].icon} style={{ color: MODES[playlist[step + 1]].accent }} />{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
                   </button>
@@ -1799,7 +1823,7 @@ function AimTrainerGame({ config: rawConfig }) {
                     bouton pour relancer et retenter sa chance. */}
                 {!config.challengeDate && (
                   <button className="refresh aim-game-cta" onClick={startSession}>
-                    🔄 Recommencer
+                    <Icon icon={RotateCcw} size={16} /> Recommencer
                   </button>
                 )}
               </>

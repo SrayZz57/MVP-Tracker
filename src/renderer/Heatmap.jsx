@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { RotateCw } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { useMapMinimaps, useMapCoordinates } from './mapImages.js';
 import { deathLocationsOnMap } from './valorantStats.js';
 import { useWeaponCosts } from './weaponIcons.js';
@@ -206,7 +208,7 @@ function Heatmap({ settings, matches }) {
             onClick={() => setRotation((r) => (r + 90) % 360)}
             title={t('heatmap.rotate')}
           >
-            ↻ {t('heatmap.rotate')}
+            <Icon icon={RotateCw} size={16} /> {t('heatmap.rotate')}
           </button>
           <div className="heatmap-legend">
             <span>{t('heatmap.legendLow')}</span>

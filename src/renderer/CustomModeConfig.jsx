@@ -57,7 +57,7 @@ function CustomModeConfig({ onClose, onSaved }) {
             </option>
             {Object.entries(MODES).map(([id, mode]) => (
               <option key={id} value={id}>
-                {mode.icon} {t(mode.labelKey)}
+                {t(mode.labelKey)}
               </option>
             ))}
           </select>

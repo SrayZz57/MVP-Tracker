@@ -1,3 +1,4 @@
+import { Swords, Zap, Shield, Wallet } from 'lucide-react';
 import { excludeDeathmatch, findMe, ECONOMY_TIERS, attackerTeamByRound } from './valorantStats.js';
 
 // Deux options poussent vers un engagement rapide, deux vers la prudence —
@@ -5,10 +6,10 @@ import { excludeDeathmatch, findMe, ECONOMY_TIERS, attackerTeamByRound } from '.
 // seule chose comparée à la réalité, pas un jugement de "bonne tactique"
 // dans l'absolu (impossible à établir avec les seules données de match).
 export const PUZZLE_OPTIONS = [
-  { id: 'duel_early', icon: '🔫', labelKey: 'puzzle.options.duelEarly', bucket: 'aggressive' },
-  { id: 'rush_site', icon: '⚡', labelKey: 'puzzle.options.rushSite', bucket: 'aggressive' },
-  { id: 'wait_info', icon: '🛡️', labelKey: 'puzzle.options.waitInfo', bucket: 'patient' },
-  { id: 'save', icon: '💰', labelKey: 'puzzle.options.save', bucket: 'patient' },
+  { id: 'duel_early', icon: Swords, labelKey: 'puzzle.options.duelEarly', bucket: 'aggressive' },
+  { id: 'rush_site', icon: Zap, labelKey: 'puzzle.options.rushSite', bucket: 'aggressive' },
+  { id: 'wait_info', icon: Shield, labelKey: 'puzzle.options.waitInfo', bucket: 'patient' },
+  { id: 'save', icon: Wallet, labelKey: 'puzzle.options.save', bucket: 'patient' },
 ];
 
 const EARLY_ENGAGEMENT_MS = 20000;

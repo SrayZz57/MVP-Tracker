@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Search, Check, X, MessageCircle } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { supabase } from './supabaseClient.js';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryModal from './FriendSummaryModal.jsx';
@@ -140,7 +142,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
             />
           </div>
           <button type="submit" className="friend-search-btn" disabled={searching}>
-            {searching ? '...' : `🔍 ${t('friends.searchBtn')}`}
+            {searching ? '...' : <><Icon icon={Search} size={16} /> {t('friends.searchBtn')}</>}
           </button>
         </form>
         {searchResult === null && <p className="label">{t('friends.noPlayerFound')}</p>}
@@ -165,8 +167,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
                 <div className="friend-request-actions">
-                  <button onClick={() => respondToRequest(f.id, true)} title={t('friends.accept')}>✓</button>
-                  <button onClick={() => respondToRequest(f.id, false)} title={t('friends.decline')}>✕</button>
+                  <button onClick={() => respondToRequest(f.id, true)} title={t('friends.accept')}><Icon icon={Check} size={16} /></button>
+                  <button onClick={() => respondToRequest(f.id, false)} title={t('friends.decline')}><Icon icon={X} size={16} /></button>
                 </div>
               </div>
             ))}
@@ -181,7 +183,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               <div key={f.id} className="friend-request-row">
                 <FriendAvatar profile={otherProfile(f)} size={36} />
                 <span>{friendLabel(otherProfile(f))}</span>
-                <button onClick={() => cancelRequest(f.id)} title={t('friends.cancel')}>✕</button>
+                <button onClick={() => cancelRequest(f.id)} title={t('friends.cancel')}><Icon icon={X} size={16} /></button>
               </div>
             ))}
           </div>
@@ -206,8 +208,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
                   </button>
                   <span>{friendLabel(p)}</span>
                   <div className="friend-request-actions friend-request-actions-lg">
-                    <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}>💬</button>
-                    <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}>✕</button>
+                    <button onClick={() => onOpenConversation(p.id)} title={t('friends.sendMessage')}><Icon icon={MessageCircle} size={16} /></button>
+                    <button onClick={() => removeFriend(f.id)} title={t('friends.removeFriend')}><Icon icon={X} size={16} /></button>
                   </div>
                 </div>
               );

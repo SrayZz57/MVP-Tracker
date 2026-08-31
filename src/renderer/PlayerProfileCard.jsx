@@ -1,13 +1,15 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Swords, Scale, RefreshCw, Target } from 'lucide-react';
 import { computePlayerProfile } from './playerProfile.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Icon from './Icon.jsx';
 
 const SCORE_ICONS = {
-  aggression: '⚔️',
-  stability: '🧘',
-  versatility: '🔄',
-  clutch: '🎯',
+  aggression: Swords,
+  stability: Scale,
+  versatility: RefreshCw,
+  clutch: Target,
 };
 
 function scoreColor(value) {
@@ -45,7 +47,7 @@ function PlayerProfileCard({ settings, matches }) {
           return (
             <div key={key} className="stat-bar-row">
               <span className="stat-bar-label">
-                {icon} {t(`profile.scores.${key}`)}
+                <Icon icon={icon} size={16} /> {t(`profile.scores.${key}`)}
               </span>
               <span className="stat-bar-track">
                 <span

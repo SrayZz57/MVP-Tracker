@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { X, Trophy } from 'lucide-react';
+import Icon from '../Icon.jsx';
 import { supabase } from '../supabaseClient.js';
 import { useMapImages } from '../mapImages.js';
 import { useAgentPortraits } from '../agentIcons.js';
@@ -274,7 +276,7 @@ function TournamentsTab({ myId, isAdmin }) {
                           title={t('tournaments.deleteTournament')}
                           onClick={() => setConfirmDeleteId(tournament.id)}
                         >
-                          ✕
+                          <Icon icon={X} size={14} />
                         </button>
                       )}
                     </div>
@@ -287,7 +289,7 @@ function TournamentsTab({ myId, isAdmin }) {
                     {tournament.description && <p className="tournament-card-description">{tournament.description}</p>}
                     {tournament.status === 'completed' && winner && (
                       <p className="tournament-card-winner">
-                        <span aria-hidden="true">🏆</span> {t('tournaments.winner', { name: winner })}
+                        <Icon icon={Trophy} size={16} aria-hidden="true" /> {t('tournaments.winner', { name: winner })}
                       </p>
                     )}
                   </div>

@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Star } from 'lucide-react';
+import Icon from '../Icon.jsx';
 import { PERIODS } from '../performanceCharts.js';
 import { dayLabelKey } from '../valorantStats.js';
 
@@ -39,7 +41,7 @@ function HeatmapGrid({ grid }) {
         <span className="heatmap-grid-row-label" />
         {PERIODS.map((p) => (
           <span key={p.id} className="heatmap-grid-col-label">
-            {p.icon} {t(`heatmap.periods.${p.id}`)}
+            <Icon icon={p.icon} size={14} /> {t(`heatmap.periods.${p.id}`)}
           </span>
         ))}
       </div>
@@ -67,7 +69,7 @@ function HeatmapGrid({ grid }) {
                 }}
                 title={tooltip}
               >
-                {isPeak && <span className="heatmap-grid-cell-star">★</span>}
+                {isPeak && <span className="heatmap-grid-cell-star"><Icon icon={Star} size={12} /></span>}
                 {cell.winrate !== null ? `${cell.winrate.toFixed(0)}%` : '–'}
               </div>
             );

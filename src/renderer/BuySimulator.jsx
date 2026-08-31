@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { CheckCircle2, XCircle } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { analyzeRoundBuys, summarizeRoundBuys, listMatchesWithRounds, recommendBuy } from './buySimulator.js';
 import { agentAbilityBudget, AGENT_ABILITY_COSTS, ABILITY_COSTS_SOURCE_DATE } from './abilityCosts.js';
 import { useShopWeapons, useShopArmors, useWeaponIcons } from './weaponIcons.js';
@@ -146,7 +148,7 @@ function BuyCalculatorSection() {
                     <img src={a.icon} alt="" className="wiki-ability-icon" />
                     <span className="buy-ability-name">{a.name}</span>
                     <span className="buy-ability-cost">{a.cost === 0 ? t('buySim.free') : t('buySim.creditsSuffix', { cost: a.cost })}</span>
-                    {recommendation && <span className="buy-ability-status">{affordable ? '✅' : '❌'}</span>}
+                    {recommendation && <span className="buy-ability-status"><Icon icon={affordable ? CheckCircle2 : XCircle} size={16} /></span>}
                   </div>
                 );
               })}

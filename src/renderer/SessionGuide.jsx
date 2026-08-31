@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Flame, Map, AlertTriangle, CheckCircle2, Target } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { buildSessionPlan } from './sessionPlan.js';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
@@ -10,7 +12,7 @@ function buildChecklist(t, plan, latestStrategy) {
   const items = [
     {
       id: 'warmup',
-      icon: '🔥',
+      icon: Flame,
       title: t('session.warmupTitle', { count: plan.warmup.minutes }),
       detail: plan.warmup.reason,
       level: 'info',
@@ -22,14 +24,14 @@ function buildChecklist(t, plan, latestStrategy) {
       latestStrategy
         ? {
             id: 'strategy',
-            icon: '🗺️',
+            icon: Map,
             title: t('session.strategyReviewTitle', { name: latestStrategy.name, map: plan.targetMap }),
             detail: t('session.strategyReviewDetail'),
             level: 'info',
           }
         : {
             id: 'strategy',
-            icon: '🗺️',
+            icon: Map,
             title: t('session.noStrategyTitle', { map: plan.targetMap }),
             detail: t('session.noStrategyDetail'),
             level: 'info',
@@ -41,14 +43,14 @@ function buildChecklist(t, plan, latestStrategy) {
     plan.tilt.isTilted
       ? {
           id: 'tilt',
-          icon: '⚠️',
+          icon: AlertTriangle,
           title: t('session.tiltedTitle'),
           detail: t('session.tiltedDetail', { count: plan.matchCount }),
           level: 'warning',
         }
       : {
           id: 'tilt',
-          icon: '✅',
+          icon: CheckCircle2,
           title: t('session.calmTitle'),
           detail: t('session.calmDetail'),
           level: 'good',
@@ -57,7 +59,7 @@ function buildChecklist(t, plan, latestStrategy) {
 
   items.push({
     id: 'objective',
-    icon: '🎯',
+    icon: Target,
     title: t('session.objectiveTitle'),
     detail: plan.objective,
     level: 'info',
@@ -130,7 +132,7 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
             {checklist.map((item) => (
               <label key={item.id} className={`session-check-item ${item.level} ${checked[item.id] ? 'done' : ''}`}>
                 <input type="checkbox" checked={!!checked[item.id]} onChange={() => toggleChecked(item.id)} />
-                <span className="session-check-icon-badge">{item.icon}</span>
+                <span className="session-check-icon-badge"><Icon icon={item.icon} size={16} /></span>
                 <span className="session-check-body">
                   <span className="session-check-title">{item.title}</span>
                   <span className="session-check-detail">{item.detail}</span>

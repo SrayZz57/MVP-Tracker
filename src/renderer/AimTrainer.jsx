@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Flame, Snowflake, Crown, Wrench } from 'lucide-react';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
+import Icon from './Icon.jsx';
 import {
   loadPersonalBests,
   loadGlobalBests,
@@ -209,7 +211,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         <div className="card aim-challenge-card">
           <span className="aim-challenge-badge">{t('aimTrainer.dailyChallenge')}</span>
           <h3>
-            {MODES[challenge.mode].icon} {t(MODES[challenge.mode].labelKey)}
+            <Icon icon={MODES[challenge.mode].icon} /> {t(MODES[challenge.mode].labelKey)}
           </h3>
           <p className="label">
             {t('aimTrainer.challengeSetup', {
@@ -255,7 +257,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </div>
 
         <div className="card aim-streak-card">
-          <span className="aim-streak-flame">{streak > 0 ? '🔥' : '💤'}</span>
+          <span className="aim-streak-flame"><Icon icon={streak > 0 ? Flame : Snowflake} /></span>
           <span className="aim-streak-value">{streak}</span>
           <span className="aim-streak-label">{t('aimTrainer.streakLabel', { count: streak })}</span>
           <p className="label aim-streak-hint">
@@ -287,8 +289,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               >
                 <span className="aim-mode-glow" aria-hidden="true" />
                 <span className="aim-mode-head">
-                  <span className="aim-mode-icon">{mode.icon}</span>
-                  {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}>👑</span>}
+                  <span className="aim-mode-icon"><Icon icon={mode.icon} /></span>
+                  {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}><Icon icon={Crown} size={14} /></span>}
                 </span>
                 <span className="aim-mode-name">{t(mode.labelKey)}</span>
                 <span className="aim-mode-desc">{t(mode.descKey)}</span>
@@ -316,7 +318,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           >
             <span className="aim-mode-glow" aria-hidden="true" />
             <span className="aim-mode-head">
-              <span className="aim-mode-icon">🛠️</span>
+              <span className="aim-mode-icon"><Icon icon={Wrench} /></span>
             </span>
             <span className="aim-mode-name">{t('aimTrainer.customTitle')}</span>
             <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>

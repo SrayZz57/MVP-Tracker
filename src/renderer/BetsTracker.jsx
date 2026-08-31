@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Hourglass } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
 import Skeleton from './Skeleton.jsx';
 import CountUp from './CountUp.jsx';
@@ -82,7 +84,7 @@ function BetsTracker({ settings, matches }) {
           <Skeleton lines={2} />
         ) : pending ? (
           <div className="tilt-card-header">
-            <span className="tilt-card-badge">⏳</span>
+            <span className="tilt-card-badge"><Icon icon={Hourglass} size={16} /></span>
             <div>
               <h3>{t('bets.currentBetTitle')}</h3>
               <p style={{ fontWeight: 600 }}>{describeBet(t, pending.type, pending.threshold)}</p>

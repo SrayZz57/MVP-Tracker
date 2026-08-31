@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Target, X, Check } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { excludeDeathmatch, overallHsPercent, overallWinrate, formStats, groupStats } from './valorantStats.js';
 import { loadGoals, addGoal as addGoalCloud, toggleGoalDone as toggleGoalDoneCloud, deleteGoal as deleteGoalCloud } from './personalData.js';
 
@@ -143,14 +145,14 @@ function GoalsWidget({ matches, settings, myId }) {
   return (
     <>
       <button className="goals-widget-button" onClick={() => setOpen(!open)} title={t('goals.widgetTitle')}>
-        <span key={open} className="goals-widget-icon">🎯</span>
+        <span key={open} className="goals-widget-icon"><Icon icon={Target} /></span>
       </button>
 
       {open && (
         <div className="goals-widget-panel">
           <div className="goals-widget-header">
             <h3>{t('goals.panelTitle')}</h3>
-            <button className="goals-widget-close" onClick={() => setOpen(false)}>✕</button>
+            <button className="goals-widget-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></button>
           </div>
 
           {activeGoals.length === 0 ? (
@@ -162,8 +164,8 @@ function GoalsWidget({ matches, settings, myId }) {
                   <div key={goal.id} className="goal-row">
                     <span className="goal-label">{goal.label}</span>
                     <div className="goal-actions">
-                      <button onClick={() => handleToggleDone(goal.id)}>✓</button>
-                      <button onClick={() => handleDelete(goal.id)}>✕</button>
+                      <button onClick={() => handleToggleDone(goal.id)}><Icon icon={Check} size={16} /></button>
+                      <button onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></button>
                     </div>
                   </div>
                 );
@@ -199,8 +201,8 @@ function GoalsWidget({ matches, settings, myId }) {
               <summary>{t('goals.doneCount', { count: doneGoals.length })}</summary>
               {doneGoals.map((goal) => (
                 <div key={goal.id} className="goal-row goal-row-done">
-                  <span className="goal-label">✓ {goal.label}</span>
-                  <button onClick={() => handleDelete(goal.id)}>✕</button>
+                  <span className="goal-label"><Icon icon={Check} size={14} /> {goal.label}</span>
+                  <button onClick={() => handleDelete(goal.id)}><Icon icon={X} size={16} /></button>
                 </div>
               ))}
             </details>

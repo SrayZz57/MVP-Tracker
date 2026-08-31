@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { supabase } from './supabaseClient.js';
 import { generateBracketRows } from './bracket.js';
 import BracketView from './BracketView.jsx';
@@ -331,7 +333,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   return (
     <div className="tournament-detail">
       <button className="link-back" onClick={onBack}>
-        ← {t('tournaments.back')}
+        <Icon icon={ArrowLeft} size={16} /> {t('tournaments.back')}
       </button>
 
       <div className="tournament-hero" style={splash ? { backgroundImage: `url(${splash})` } : undefined}>
@@ -424,7 +426,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                   >
                     <div className="tournament-team-card-head">
                       <span className="tournament-team-card-name">{team.name}</span>
-                      {isAdmin && <span className="tournament-team-row-chevron">{expanded ? '▾' : '▸'}</span>}
+                      {isAdmin && <span className="tournament-team-row-chevron"><Icon icon={expanded ? ChevronDown : ChevronRight} size={16} /></span>}
                     </div>
                     <div className="tournament-team-card-tags">
                       {team.status === 'pending' && <span className="label">{t('tournaments.pending')}</span>}

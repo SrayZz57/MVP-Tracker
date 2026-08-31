@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import Icon from '../Icon.jsx';
 
 function useCountUp(target, duration = 900) {
   const [value, setValue] = useState(0);
@@ -26,7 +27,7 @@ function KpiTile({ label, value, suffix = '', decimals = 0, icon }) {
 
   return (
     <div className="kpi-tile">
-      {icon && <div className="kpi-tile-icon">{icon}</div>}
+      {icon && <div className="kpi-tile-icon"><Icon icon={icon} /></div>}
       <div className="kpi-tile-value">{value === null ? '?' : `${animated.toFixed(decimals)}${suffix}`}</div>
       <div className="kpi-tile-label">{label}</div>
     </div>

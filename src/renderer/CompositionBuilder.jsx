@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
@@ -12,7 +14,7 @@ import CollapsibleCard from './CollapsibleCard.jsx';
 
 const SLOT_COUNT = 5;
 const TIER_LABELS = { S: 'S', A: 'A', B: 'B' };
-const NOTE_ICONS = { warning: '⚠️', info: 'ℹ️', good: '✅' };
+const NOTE_ICONS = { warning: AlertTriangle, info: Info, good: CheckCircle2 };
 
 function scoreColor(value) {
   if (value >= 75) return '#3ddc84';
@@ -187,7 +189,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
           <div className="comp-notes">
             {analysis.notes.map((note, i) => (
               <div key={i} className={`comp-note comp-note-${note.level}`}>
-                <span className="comp-note-icon">{NOTE_ICONS[note.level] ?? 'ℹ️'}</span>
+                <span className="comp-note-icon"><Icon icon={NOTE_ICONS[note.level] ?? Info} size={16} /></span>
                 {t(note.textKey)}
               </div>
             ))}

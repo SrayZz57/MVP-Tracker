@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Gamepad2, Trophy, Swords, Target } from 'lucide-react';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent } from './valorantStats.js';
 import { computeMapWinrates, computeDayPeriodGrid, computeRoleDistribution, computeTrend } from './performanceCharts.js';
 import { useAgentRoles } from './agentIcons.js';
@@ -61,10 +62,10 @@ function PerformanceCharts({ settings, matches, loading }) {
       <CollapsibleCard id="charts.kpis" title={t('charts.title')}>
         <p className="label">{t('charts.description')}</p>
         <div className="kpi-row">
-          <KpiTile icon="🎮" label={t('charts.rankedMatches')} value={kpis.games} />
-          <KpiTile icon="🏆" label={t('charts.globalWinrate')} value={kpis.winrate} suffix="%" />
-          <KpiTile icon="⚔️" label={t('charts.avgKd')} value={kpis.kd} decimals={2} />
-          <KpiTile icon="🎯" label={t('charts.hsAccuracy')} value={kpis.hsPercent} suffix="%" />
+          <KpiTile icon={Gamepad2} label={t('charts.rankedMatches')} value={kpis.games} />
+          <KpiTile icon={Trophy} label={t('charts.globalWinrate')} value={kpis.winrate} suffix="%" />
+          <KpiTile icon={Swords} label={t('charts.avgKd')} value={kpis.kd} decimals={2} />
+          <KpiTile icon={Target} label={t('charts.hsAccuracy')} value={kpis.hsPercent} suffix="%" />
         </div>
       </CollapsibleCard>
 

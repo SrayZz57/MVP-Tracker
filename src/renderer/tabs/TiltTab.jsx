@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AlertTriangle, CheckCircle2, Circle } from 'lucide-react';
+import Icon from '../Icon.jsx';
 import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
 import LoadingState from '../LoadingState.jsx';
@@ -52,7 +54,7 @@ function TiltTab({ settings, matches, loading }) {
 
       <div className={`card tilt-card ${tilt.isTilted ? '' : 'calm'}`}>
         <div className="tilt-card-header">
-          <span className="tilt-card-badge">{tilt.isTilted ? '⚠️' : '✅'}</span>
+          <span className="tilt-card-badge"><Icon icon={tilt.isTilted ? AlertTriangle : CheckCircle2} /></span>
           <div>
             <h3>{tilt.isTilted ? t('tilt.tiltedTitle') : t('tilt.calmTitle')}</h3>
             {tilt.isTilted ? (
@@ -136,11 +138,11 @@ function TiltTab({ settings, matches, loading }) {
         <p className="label">{t('tilt.howItWorksIntro')}</p>
         <div className="tilt-rule-list">
           <div className={`tilt-rule ${tilt.lossStreakTilt ? 'active' : ''}`}>
-            <span className="tilt-rule-icon">{tilt.lossStreakTilt ? '🔴' : '⚪'}</span>
+            <span className="tilt-rule-icon"><Icon icon={Circle} size={12} fill="currentColor" /></span>
             {t('tilt.rule1')}
           </div>
           <div className={`tilt-rule ${tilt.perfDegradation ? 'active' : ''}`}>
-            <span className="tilt-rule-icon">{tilt.perfDegradation ? '🔴' : '⚪'}</span>
+            <span className="tilt-rule-icon"><Icon icon={Circle} size={12} fill="currentColor" /></span>
             {t('tilt.rule2')}
           </div>
         </div>

@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { TrendingUp, TrendingDown } from 'lucide-react';
+import Icon from '../Icon.jsx';
 import {
   findMe,
   resultLabel,
@@ -467,7 +469,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             </div>
             <div className="stat-tile">
               <div className="value" style={{ color: kdStats.trend >= 0 ? '#3ddc84' : 'var(--accent)' }}>
-                {kdStats.trend >= 0 ? '▲' : '▼'} {Math.abs(kdStats.trend).toFixed(2)}
+                <Icon icon={kdStats.trend >= 0 ? TrendingUp : TrendingDown} size={16} /> {Math.abs(kdStats.trend).toFixed(2)}
               </div>
               <div className="label">{t('stats.trend')}</div>
             </div>

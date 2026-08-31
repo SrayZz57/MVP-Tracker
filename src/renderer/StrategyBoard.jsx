@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { ZoomIn, ZoomOut, RotateCcw, RotateCw, X } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { Canvas, Control, PencilBrush, Line, Rect, Ellipse, Polygon, IText, FabricImage, Point } from 'fabric';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentAbilities } from './agentIcons.js';
@@ -650,10 +652,10 @@ function StrategyBoard() {
             </select>
             <div className="strategy-tool-group">
               <button className="strategy-tool icon-only" onClick={() => zoomBy(1 / ZOOM_STEP)} title={t('strategy.zoomOut')}>
-                🔍－
+                <Icon icon={ZoomOut} size={16} />
               </button>
               <button className="strategy-tool icon-only" onClick={() => zoomBy(ZOOM_STEP)} title={t('strategy.zoomIn')}>
-                🔍＋
+                <Icon icon={ZoomIn} size={16} />
               </button>
             </div>
             <button className="strategy-tool" onClick={resetView}>
@@ -740,10 +742,10 @@ function StrategyBoard() {
               <div className="strategy-sightline-controls">
                 <span className="strategy-inline-label">{t('strategy.orient')}</span>
                 <button className="strategy-tool icon-only" onClick={() => rotateSightline(-15)} title={t('strategy.rotateMinus')}>
-                  ↺
+                  <Icon icon={RotateCcw} size={16} />
                 </button>
                 <button className="strategy-tool icon-only" onClick={() => rotateSightline(15)} title={t('strategy.rotatePlus')}>
-                  ↻
+                  <Icon icon={RotateCw} size={16} />
                 </button>
                 {sightlineAttached ? (
                   <button className="strategy-tool" onClick={detachSightline}>
@@ -791,7 +793,7 @@ function StrategyBoard() {
                     {entry.name}
                   </button>
                   <button className="strategy-list-delete" onClick={() => handleDeleteStrategy(entry.id)} title={t('strategy.deleteTitle')}>
-                    ✕
+                    <Icon icon={X} size={14} />
                   </button>
                 </li>
               ))}

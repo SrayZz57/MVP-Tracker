@@ -1,6 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Info, CheckCircle2, Minus, XCircle, ScanFace } from 'lucide-react';
 import { POST_MORTEM_QUESTIONS, ANSWER_LEVELS, computeActualAnswers, gradeAnswers, buildComparisonText } from './postMortem.js';
+import Icon from './Icon.jsx';
+
+const RESULT_ICONS = { unknown: Info, correct: CheckCircle2, close: Minus, incorrect: XCircle };
 
 function todayKey() {
   const now = new Date();
@@ -99,15 +103,14 @@ function PostMortemModal({ settings, matches }) {
           </>
         ) : (
           <>
-            <h3>{t('postmortem.resultTitle')}</h3>
+            <h3><Icon icon={ScanFace} size={18} /> {t('postmortem.resultTitle')}</h3>
             {graded.map((r) => {
               const state = r.correct === null ? 'unknown' : r.correct ? 'correct' : r.close ? 'close' : 'incorrect';
-              const icon = { unknown: 'ℹ️', correct: '✅', close: '〜', incorrect: '❌' }[state];
               return (
                 <div key={r.id} className={`postmortem-result ${state === 'unknown' ? '' : state}`}>
                   <div className="postmortem-result-title">
+                    <Icon icon={RESULT_ICONS[state]} size={16} />{' '}
                     {t('postmortem.resultHeading', {
-                      icon,
                       question: t(r.textKey),
                       answer: t(ANSWER_LEVELS.find((l) => l.id === r.userAnswer)?.labelKey),
                     })}

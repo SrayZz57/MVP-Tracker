@@ -1,5 +1,32 @@
 import { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import {
+  BarChart3,
+  AlarmClock,
+  Flame,
+  Brain,
+  Handshake,
+  TrendingUp,
+  Trophy,
+  Gem,
+  Angry,
+  Signal,
+  Clapperboard,
+  Target,
+  Dices,
+  Coins,
+  Map,
+  Puzzle as PuzzleIcon,
+  Wallet,
+  BookOpen,
+  Shield,
+  User,
+  MessageCircle,
+  Users,
+  LogOut,
+  ChevronDown,
+} from 'lucide-react';
+import Icon from './Icon.jsx';
 import useValorantData from './useValorantData.js';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import { useE2EE } from './E2EEContext.jsx';
@@ -49,46 +76,46 @@ const NAV_SECTIONS = [
   {
     sectionKey: 'nav.sections.performance',
     tabs: [
-      { id: 'stats', labelKey: 'nav.tabs.stats', icon: '📊' },
-      { id: 'forme', labelKey: 'nav.tabs.form', icon: '⏰' },
-      { id: 'heatmap', labelKey: 'nav.tabs.heatmap', icon: '🔥' },
-      { id: 'analyse', labelKey: 'nav.tabs.analyse', icon: '🧠' },
-      { id: 'social', labelKey: 'nav.tabs.social', icon: '🤝' },
-      { id: 'graphiques', labelKey: 'nav.tabs.graphiques', icon: '📈' },
+      { id: 'stats', labelKey: 'nav.tabs.stats', icon: BarChart3 },
+      { id: 'forme', labelKey: 'nav.tabs.form', icon: AlarmClock },
+      { id: 'heatmap', labelKey: 'nav.tabs.heatmap', icon: Flame },
+      { id: 'analyse', labelKey: 'nav.tabs.analyse', icon: Brain },
+      { id: 'social', labelKey: 'nav.tabs.social', icon: Handshake },
+      { id: 'graphiques', labelKey: 'nav.tabs.graphiques', icon: TrendingUp },
     ],
   },
   {
     sectionKey: 'nav.sections.myAccount',
     tabs: [
-      { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: '🏆' },
-      { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: '🤝' },
-      { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: '💎' },
-      { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: '😤' },
-      { id: 'reseau', labelKey: 'nav.tabs.network', icon: '📶' },
+      { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: Trophy },
+      { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: Handshake },
+      { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: Gem },
+      { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: Angry },
+      { id: 'reseau', labelKey: 'nav.tabs.network', icon: Signal },
     ],
   },
   {
     sectionKey: 'nav.sections.tournaments',
-    tabs: [{ id: 'tournaments', labelKey: 'nav.tabs.tournaments', icon: '🏆' }],
+    tabs: [{ id: 'tournaments', labelKey: 'nav.tabs.tournaments', icon: Trophy }],
   },
   {
     sectionKey: 'nav.sections.training',
     tabs: [
-      { id: 'session', labelKey: 'nav.tabs.session', icon: '🎬' },
-      { id: 'aim-trainer', labelKey: 'nav.tabs.aimTrainer', icon: '🎯' },
-      { id: 'puzzle', labelKey: 'nav.tabs.puzzle', icon: '🎲' },
-      { id: 'bets', labelKey: 'nav.tabs.bets', icon: '🎰' },
+      { id: 'session', labelKey: 'nav.tabs.session', icon: Clapperboard },
+      { id: 'aim-trainer', labelKey: 'nav.tabs.aimTrainer', icon: Target },
+      { id: 'puzzle', labelKey: 'nav.tabs.puzzle', icon: Dices },
+      { id: 'bets', labelKey: 'nav.tabs.bets', icon: Coins },
     ],
   },
   {
     sectionKey: 'nav.sections.tools',
     tabs: [
-      { id: 'crosshairs', labelKey: 'nav.tabs.crosshairs', icon: '🎯' },
-      { id: 'strategie', labelKey: 'nav.tabs.strategy', icon: '🗺️' },
-      { id: 'skins', labelKey: 'nav.tabs.skins', icon: '💎' },
-      { id: 'composition', labelKey: 'nav.tabs.composition', icon: '🧩' },
-      { id: 'buy-simulator', labelKey: 'nav.tabs.buySimulator', icon: '💰' },
-      { id: 'wiki', labelKey: 'nav.tabs.wiki', icon: '📖' },
+      { id: 'crosshairs', labelKey: 'nav.tabs.crosshairs', icon: Target },
+      { id: 'strategie', labelKey: 'nav.tabs.strategy', icon: Map },
+      { id: 'skins', labelKey: 'nav.tabs.skins', icon: Gem },
+      { id: 'composition', labelKey: 'nav.tabs.composition', icon: PuzzleIcon },
+      { id: 'buy-simulator', labelKey: 'nav.tabs.buySimulator', icon: Wallet },
+      { id: 'wiki', labelKey: 'nav.tabs.wiki', icon: BookOpen },
     ],
   },
 ];
@@ -99,7 +126,7 @@ const NAV_SECTIONS = [
 // ceci n'est qu'un confort d'affichage, pas une barrière de sécurité.
 const ADMIN_SECTION = {
   sectionKey: 'nav.sections.admin',
-  tabs: [{ id: 'admin', labelKey: 'nav.tabs.admin', icon: '🛡️' }],
+  tabs: [{ id: 'admin', labelKey: 'nav.tabs.admin', icon: Shield }],
 };
 
 const ALL_TABS = NAV_SECTIONS.flatMap((s) => s.tabs);
@@ -139,7 +166,7 @@ function SidebarProfile({ settings, rank, onClick }) {
 function TopbarIconButton({ icon, badge, dot, active, onClick, title }) {
   return (
     <button className={active ? 'topbar-icon-button active' : 'topbar-icon-button'} onClick={onClick} title={title}>
-      <span>{icon}</span>
+      <span><Icon icon={icon} /></span>
       {badge > 0 && <span className="topbar-icon-badge">{badge}</span>}
       {!badge && dot && <span className="topbar-icon-dot" />}
     </button>
@@ -172,7 +199,7 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
 function LanguageToggle() {
   const { i18n } = useTranslation();
   const next = i18n.language === 'fr' ? 'en' : 'fr';
-  const currentFlag = i18n.language === 'fr' ? '🇫🇷' : '🇬🇧';
+  const currentLabel = i18n.language === 'fr' ? 'FR' : 'EN';
 
   const switchLanguage = () => {
     i18n.changeLanguage(next);
@@ -181,7 +208,7 @@ function LanguageToggle() {
 
   return (
     <button className="topbar-icon-button" onClick={switchLanguage} title={i18n.language === 'fr' ? 'English' : 'Français'}>
-      <span style={{ fontSize: '1.1rem' }}>{currentFlag}</span>
+      <span className="topbar-lang-label">{currentLabel}</span>
     </button>
   );
 }
@@ -762,11 +789,11 @@ function App() {
 
   const currentTabMeta =
     activeTab === 'account'
-      ? { icon: '👤', labelKey: 'nav.tabs.account' }
+      ? { icon: User, labelKey: 'nav.tabs.account' }
       : activeTab === 'messages'
-        ? { icon: '💬', labelKey: 'nav.tabs.messages' }
+        ? { icon: MessageCircle, labelKey: 'nav.tabs.messages' }
         : activeTab === 'friends'
-          ? { icon: '👥', labelKey: 'nav.tabs.friends' }
+          ? { icon: Users, labelKey: 'nav.tabs.friends' }
           : ALL_TABS.find((tab) => tab.id === activeTab);
 
   return (
@@ -795,7 +822,7 @@ function App() {
                   onClick={() => toggleSection(section.sectionKey)}
                 >
                   {t(section.sectionKey)}
-                  <span className="sidebar-section-chevron">▾</span>
+                  <span className="sidebar-section-chevron"><Icon icon={ChevronDown} size={14} /></span>
                 </button>
                 {!collapsed &&
                   section.tabs.map((tab) => (
@@ -803,8 +830,11 @@ function App() {
                       key={tab.id}
                       className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
                       onClick={() => setActiveTab(tab.id)}
+                      style={{ '--tab-color': tab.color }}
                     >
-                      <span className="sidebar-link-icon">{tab.icon}</span>
+                      <span className="sidebar-link-icon">
+                        <Icon icon={tab.icon} />
+                      </span>
                       {t(tab.labelKey)}
                       {tab.id === 'messages' && socialNotificationCount > 0 && (
                         <span className="sidebar-link-badge">{socialNotificationCount}</span>
@@ -844,7 +874,7 @@ function App() {
             title={t('nav.signOut')}
             onClick={() => supabase.auth.signOut().then(lockMessagingKey)}
           >
-            🚪
+            <Icon icon={LogOut} size={16} />
           </button>
         </div>
       </nav>
@@ -852,7 +882,7 @@ function App() {
       <div className="main-area">
         <header className="topbar">
           <div className="topbar-title">
-            <span className="topbar-title-icon">{currentTabMeta?.icon}</span>
+            <span className="topbar-title-icon"><Icon icon={currentTabMeta?.icon} /></span>
             <h2>{currentTabMeta?.labelKey ? t(currentTabMeta.labelKey) : ''}</h2>
           </div>
           <SearchBar initialSettings={settings} onSearch={setSettings} />
@@ -864,7 +894,7 @@ function App() {
             title={t('aimTrainer.topbarTitle')}
             onClick={() => setActiveTab('aim-trainer')}
           >
-            <span className="aim-topbar-icon">🎯</span>
+            <span className="aim-topbar-icon"><Icon icon={Target} size={16} /></span>
             <span>{t('nav.tabs.aimTrainer')}</span>
           </button>
           <button onClick={data.refresh} disabled={data.loading} className="refresh">
@@ -885,14 +915,14 @@ function App() {
           </button>
           <LanguageToggle />
           <TopbarIconButton
-            icon="💬"
+            icon={MessageCircle}
             title={t('nav.unreadMessages')}
             badge={unreadFriendIds.size}
             active={activeTab === 'messages'}
             onClick={() => setActiveTab('messages')}
           />
           <TopbarIconButton
-            icon="👥"
+            icon={Users}
             title={t('nav.friendsTitle')}
             badge={pendingRequestCount}
             dot={onlineFriendIds.size > 0}

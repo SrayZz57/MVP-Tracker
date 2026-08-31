@@ -1,5 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Calendar, PartyPopper, Sunrise, Sun, Sunset, Moon, Flame, TrendingDown, Clock } from 'lucide-react';
+import Icon from '../Icon.jsx';
 import {
   groupStats,
   excludeDeathmatch,
@@ -17,29 +19,29 @@ import usePlatformFilter from '../usePlatformFilter.js';
 import CollapsibleCard from '../CollapsibleCard.jsx';
 
 const WEEKDAY_ICONS = {
-  Lundi: '📅', Mardi: '📅', Mercredi: '📅', Jeudi: '📅', Vendredi: '📅', Samedi: '🎉', Dimanche: '🎉',
+  Lundi: Calendar, Mardi: Calendar, Mercredi: Calendar, Jeudi: Calendar, Vendredi: Calendar, Samedi: PartyPopper, Dimanche: PartyPopper,
 };
 
 function timeSlotIcon(key) {
   const hour = parseInt(key, 10);
-  if (hour >= 6 && hour < 12) return '🌅';
-  if (hour >= 12 && hour < 18) return '☀️';
-  if (hour >= 18 && hour < 24) return '🌆';
-  return '🌙';
+  if (hour >= 6 && hour < 12) return Sunrise;
+  if (hour >= 12 && hour < 18) return Sun;
+  if (hour >= 18 && hour < 24) return Sunset;
+  return Moon;
 }
 
 // Fonction utilitaire (pas un composant) : reçoit `t` et une fonction de
 // traduction de la clé de ligne (les jours sont en français en interne).
 function renderStatBars(t, id, title, rows, icon, rowIcon, rowLabel) {
   return (
-    <CollapsibleCard id={id} title={<>{icon} {title}</>}>
+    <CollapsibleCard id={id} title={<><Icon icon={icon} size={16} /> {title}</>}>
       {rows.length === 0 ? (
         <p>{t('form.noDataYet')}</p>
       ) : (
         rows.map((row) => (
           <div key={row.key} className="stat-bar-row">
             <span className="stat-bar-label">
-              {rowIcon ? rowIcon(row.key) : ''} {rowLabel ? rowLabel(row.key) : row.key}
+              {rowIcon ? <Icon icon={rowIcon(row.key)} size={16} /> : ''} {rowLabel ? rowLabel(row.key) : row.key}
             </span>
             <span className="stat-bar-track">
               <span
@@ -111,7 +113,7 @@ function FormTab({ settings, matches, loading }) {
               <div className="value" style={{ fontSize: '1rem' }}>{t('form.notEnoughData')}</div>
             ) : (
               <div className={`streak-badge ${form.streakType === 'Victoire' ? 'win' : 'loss'}`}>
-                {form.streakCount} {form.streakType === 'Victoire' ? '🔥' : '📉'}
+                {form.streakCount} <Icon icon={form.streakType === 'Victoire' ? Flame : TrendingDown} size={16} />
               </div>
             )}
             <div className="label">{t('form.currentStreak', { type: streakTypeLabel })}</div>
@@ -133,7 +135,7 @@ function FormTab({ settings, matches, loading }) {
             {bestTimeSlot && (
               <div className="stat-tile">
                 <div className="value">
-                  <span className="value-icon">{timeSlotIcon(bestTimeSlot.key)}</span> {bestTimeSlot.key}
+                  <span className="value-icon"><Icon icon={timeSlotIcon(bestTimeSlot.key)} /></span> {bestTimeSlot.key}
                 </div>
                 <div className="label">
                   {t('form.winratePlays', { percent: bestTimeSlot.winrate.toFixed(0), count: bestTimeSlot.games })}
@@ -143,7 +145,7 @@ function FormTab({ settings, matches, loading }) {
             {bestDay && (
               <div className="stat-tile">
                 <div className="value">
-                  <span className="value-icon">{WEEKDAY_ICONS[bestDay.key]}</span> {dayLabel(bestDay.key)}
+                  <span className="value-icon"><Icon icon={WEEKDAY_ICONS[bestDay.key]} /></span> {dayLabel(bestDay.key)}
                 </div>
                 <div className="label">
                   {t('form.winratePlays', { percent: bestDay.winrate.toFixed(0), count: bestDay.games })}
@@ -157,8 +159,8 @@ function FormTab({ settings, matches, loading }) {
         </CollapsibleCard>
       )}
 
-      {renderStatBars(t, 'form.statsByTimeSlot', t('form.statsByTimeSlot'), timeSlotStats, '🕐', timeSlotIcon)}
-      {renderStatBars(t, 'form.statsByWeekday', t('form.statsByWeekday'), dayOfWeekStats, '📅', (key) => WEEKDAY_ICONS[key], dayLabel)}
+      {renderStatBars(t, 'form.statsByTimeSlot', t('form.statsByTimeSlot'), timeSlotStats, Clock, timeSlotIcon)}
+      {renderStatBars(t, 'form.statsByWeekday', t('form.statsByWeekday'), dayOfWeekStats, Calendar, (key) => WEEKDAY_ICONS[key], dayLabel)}
     </div>
   );
 }

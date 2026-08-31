@@ -4,6 +4,7 @@ import { ECONOMY_TIERS } from './valorantStats.js';
 import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS } from './dailyPuzzle.js';
 import Skeleton from './Skeleton.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Icon from './Icon.jsx';
 
 function todayKey() {
   const now = new Date();
@@ -122,7 +123,7 @@ function DailyPuzzle({ settings, matches }) {
                 <div className="puzzle-options">
                   {PUZZLE_OPTIONS.map((option) => (
                     <button key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
-                      <span className="puzzle-option-icon">{option.icon}</span>
+                      <span className="puzzle-option-icon"><Icon icon={option.icon} /></span>
                       {t(option.labelKey)}
                     </button>
                   ))}

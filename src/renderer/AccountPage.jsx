@@ -1,5 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Pencil, Check, X, Mail } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { usePlayerCardArt, useAllPlayerCards } from './rankData.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { computeRoleDistribution } from './performanceCharts.js';
@@ -125,7 +127,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             ) : (
               <span className="profile-card-icon account-avatar-fallback">{displayedName.charAt(0)}</span>
             )}
-            <span className="account-avatar-edit">✏️</span>
+            <span className="account-avatar-edit"><Icon icon={Pencil} size={14} /></span>
           </button>
 
           <div className="profile-header-info">
@@ -140,7 +142,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                 />
                 <button onClick={handleSaveName} disabled={saving}>
-                  {saving ? '...' : '✓'}
+                  {saving ? "..." : <Icon icon={Check} size={16} />}
                 </button>
                 <button
                   className="account-name-cancel"
@@ -149,13 +151,13 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                     setEditingName(false);
                   }}
                 >
-                  ✕
+                  <Icon icon={X} size={16} />
                 </button>
               </div>
             ) : (
               <h2 className="account-name-display" onClick={() => setEditingName(true)} title={t('account.clickToEdit')}>
                 {displayedName}
-                <span className="account-name-pencil">✏️</span>
+                <span className="account-name-pencil"><Icon icon={Pencil} size={14} /></span>
               </h2>
             )}
             <p className="label">
@@ -258,7 +260,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
               />
               <button onClick={handleSaveApiKey} disabled={savingApiKey}>
-                {savingApiKey ? '...' : '✓'}
+                {savingApiKey ? "..." : <Icon icon={Check} size={16} />}
               </button>
               <button
                 className="account-name-cancel"
@@ -267,13 +269,13 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   setEditingApiKey(false);
                 }}
               >
-                ✕
+                <Icon icon={X} size={16} />
               </button>
             </div>
           ) : (
             <span className="account-name-display" onClick={() => setEditingApiKey(true)} title={t('account.clickToEdit')}>
               {apiKey ? '••••••••••••' : t('account.apiKeyMissing')}
-              <span className="account-name-pencil">✏️</span>
+              <span className="account-name-pencil"><Icon icon={Pencil} size={14} /></span>
             </span>
           )}
         </div>
@@ -295,7 +297,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           className="account-contact-button"
           onClick={() => window.electronAPI.openExternal(`mailto:${CONTACT_EMAIL}`)}
         >
-          ✉️ {CONTACT_EMAIL}
+          <Icon icon={Mail} size={16} /> {CONTACT_EMAIL}
         </button>
       </CollapsibleCard>
 

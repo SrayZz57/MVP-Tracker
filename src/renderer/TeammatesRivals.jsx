@@ -1,5 +1,6 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { User, Medal } from 'lucide-react';
 import { computeTeammateSynergy, computeNemesis } from './socialStats.js';
 import { useAgentIcons } from './agentIcons.js';
 import LoadingState from './LoadingState.jsx';
@@ -69,9 +70,7 @@ function SynergyGraph({ teammates, myPuuid, centerLabel, t }) {
       })}
 
       <circle cx={CENTER} cy={CENTER} r={28} fill="url(#synergy-you-glow)" className="synergy-node-you" />
-      <text x={CENTER} y={CENTER + 5} textAnchor="middle" className="synergy-label synergy-label-you-emoji">
-        🫵
-      </text>
+      <User x={CENTER - 10} y={CENTER - 10} width={20} height={20} strokeWidth={1.75} className="synergy-label-you-emoji" />
       <text x={CENTER} y={CENTER + 48} textAnchor="middle" className="synergy-label synergy-label-you">
         {centerLabel}
       </text>
@@ -101,11 +100,13 @@ function SynergyGraph({ teammates, myPuuid, centerLabel, t }) {
   );
 }
 
+const RANK_TIERS = ['gold', 'silver', 'bronze'];
+
 function RankBadge({ rank }) {
-  const medal = rank === 0 ? '🥇' : rank === 1 ? '🥈' : rank === 2 ? '🥉' : null;
+  const tier = RANK_TIERS[rank] ?? null;
   return (
-    <span className={`rival-rank ${medal ? 'medal' : ''}`}>
-      {medal ?? `#${rank + 1}`}
+    <span className={`rival-rank ${tier ? `medal ${tier}` : ''}`}>
+      {tier ? <Medal size={16} strokeWidth={1.75} /> : `#${rank + 1}`}
     </span>
   );
 }

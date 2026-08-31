@@ -1,15 +1,17 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Footprints, Swords, Hourglass, Coins, Banknote, Wallet, Crosshair, Target, Radar, BowArrow } from 'lucide-react';
 import { deathTimingStats, clutchStats, economyImpactStats, duelDistanceStats } from './valorantStats.js';
 import PostMortemHistory from './PostMortemHistory.jsx';
 import LoadingState from './LoadingState.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
+import Icon from './Icon.jsx';
 
-const TIMING_ICONS = { early: '🏃', mid: '⚔️', late: '⏳' };
-const ECONOMY_ICONS = { eco: '🥖', semi: '💵', full: '💰' };
-const DISTANCE_ICONS = { close: '🔫', mid: '🎯', long: '🔭', verylong: '🏹' };
+const TIMING_ICONS = { early: Footprints, mid: Swords, late: Hourglass };
+const ECONOMY_ICONS = { eco: Coins, semi: Banknote, full: Wallet };
+const DISTANCE_ICONS = { close: Crosshair, mid: Target, long: Radar, verylong: BowArrow };
 
 function clutchColor(winrate) {
   if (winrate === null) return 'var(--text)';
@@ -41,7 +43,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         ) : (
           timing.buckets.map((b) => (
             <div key={b.id} className="stat-bar-row">
-              <span className="stat-bar-label">{TIMING_ICONS[b.id]} {t(`analyse.timingBuckets.${b.id}`)}</span>
+              <span className="stat-bar-label"><Icon icon={TIMING_ICONS[b.id]} size={16} /> {t(`analyse.timingBuckets.${b.id}`)}</span>
               <span className="stat-bar-track">
                 <span className="stat-bar-fill" style={{ width: `${b.percent ?? 4}%` }} />
               </span>
@@ -81,7 +83,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
 
             {distance.rows.map((r) => (
               <div key={r.id} className="stat-bar-row" style={{ marginTop: '0.75rem' }}>
-                <span className="stat-bar-label">{DISTANCE_ICONS[r.id]} {t(`analyse.distanceBuckets.${r.id}`)}</span>
+                <span className="stat-bar-label"><Icon icon={DISTANCE_ICONS[r.id]} size={16} /> {t(`analyse.distanceBuckets.${r.id}`)}</span>
                 <span className="stat-bar-track">
                   <span
                     className={`stat-bar-fill ${r.winrate === null ? '' : r.winrate >= 50 ? 'good' : 'bad'}`}
@@ -131,7 +133,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         ) : (
           economy.map((tier) => (
             <div key={tier.id} className="stat-bar-row">
-              <span className="stat-bar-label">{ECONOMY_ICONS[tier.id]} {t(`common.economyTiers.${tier.id}`)}</span>
+              <span className="stat-bar-label"><Icon icon={ECONOMY_ICONS[tier.id]} size={16} /> {t(`common.economyTiers.${tier.id}`)}</span>
               <span className="stat-bar-track">
                 <span
                   className={`stat-bar-fill ${tier.winrate === null ? '' : tier.winrate >= 50 ? 'good' : 'bad'}`}

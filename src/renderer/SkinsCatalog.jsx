@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Check, Heart } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
 import Skeleton from './Skeleton.jsx';
@@ -32,8 +34,8 @@ function SkinCard({ skin, onClick, isWishlisted, isOwned, t }) {
     >
       {(isWishlisted || isOwned) && (
         <div className="skin-card-badges">
-          {isOwned && <span className="skin-card-badge owned" title={t('skins.ownedTitle')}>✔</span>}
-          {isWishlisted && <span className="skin-card-badge wishlist" title={t('skins.wishlistedTitle')}>♥</span>}
+          {isOwned && <span className="skin-card-badge owned" title={t('skins.ownedTitle')}><Icon icon={Check} size={12} /></span>}
+          {isWishlisted && <span className="skin-card-badge wishlist" title={t('skins.wishlistedTitle')}><Icon icon={Heart} size={12} /></span>}
         </div>
       )}
       <div className="skin-card-img-wrap">

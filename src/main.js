@@ -595,7 +595,7 @@ function notifyTilt(tilt, form) {
     ? `Série de ${form.streakCount} défaites d'affilée. Une pause pourrait aider.`
     : `Ta perf a baissé sur tes 3 derniers matchs. Une pause pourrait aider.`;
   const notification = new Notification({
-    title: '⚠️ MVP Tracker — signe de tilt détecté',
+    title: 'MVP Tracker — signe de tilt détecté',
     body,
     silent: false,
   });

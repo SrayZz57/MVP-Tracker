@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Trophy, X } from 'lucide-react';
+import Icon from './Icon.jsx';
 import { toPng } from 'html-to-image';
 import { matchesInCurrentWeek, lastCompletedWeekStart, weekStartKey } from './valorantStats.js';
 import { buildWeekRecap, generateNarrative } from './weeklyNarrative.js';
@@ -78,14 +80,14 @@ function WeeklyRecapCard({ settings, matches, rank }) {
   return (
     <>
       <button className="weekly-notch" onClick={() => setOpen(true)} title={t('weekly.widgetTitle')}>
-        <span className="weekly-notch-icon" aria-hidden="true">🏆</span>
+        <span className="weekly-notch-icon" aria-hidden="true"><Icon icon={Trophy} size={16} /></span>
         <span>{t('weekly.notchLabel')}</span>
       </button>
 
       {open && (
         <div className="weekly-drawer-backdrop" onClick={() => setOpen(false)}>
           <div className="weekly-drawer" onClick={(e) => e.stopPropagation()}>
-            <button className="weekly-drawer-close" onClick={() => setOpen(false)}>✕</button>
+            <button className="weekly-drawer-close" onClick={() => setOpen(false)}><Icon icon={X} size={16} /></button>
 
             {!recap ? (
               <div className="weekly-recap-card weekly-recap-empty">
