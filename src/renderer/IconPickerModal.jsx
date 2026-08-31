@@ -14,7 +14,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card card-picker-modal" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>{t('detail.close')}</button>
+        <button type="button" className="modal-close" onClick={onClose}>{t('detail.close')}</button>
         <h3>{title}</h3>
         <input
           type="text"
@@ -30,6 +30,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
           <div className="card-picker-grid">
             {filtered.map((item) => (
               <button
+                type="button"
                 key={item.id}
                 className="card-picker-item"
                 title={item.label}

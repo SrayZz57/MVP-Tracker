@@ -15,8 +15,7 @@ function AccountPickerModal({ onSelect, onClose }) {
   const [searching, setSearching] = useState(false);
   const [result, setResult] = useState(undefined);
 
-  async function handleSearch(e) {
-    e.preventDefault();
+  async function handleSearch() {
     setSearching(true);
     setResult(undefined);
     const { data, error } = await supabase
@@ -32,20 +31,25 @@ function AccountPickerModal({ onSelect, onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-card" onClick={(e) => e.stopPropagation()}>
-        <button className="modal-close" onClick={onClose}>
+        <button type="button" className="modal-close" onClick={onClose}>
           {t('detail.close')}
         </button>
         <h3>{t('tournaments.pickAccount')}</h3>
         <p className="label">{t('tournaments.pickAccountHint')}</p>
 
-        <form className="account-picker-search" onSubmit={handleSearch}>
-          <input placeholder={t('tournaments.riotName')} value={name} onChange={(e) => setName(e.target.value)} required />
+        {/* Un <div>, pas un <form> : ce composant se retrouve rendu à
+            l'intérieur du <form> d'inscription d'équipe (TeamRosterForm) —
+            un <form> imbriqué est invalide en HTML et faisait déclencher la
+            soumission du formulaire PARENT (rechargement complet de la
+            fenêtre) au lieu de juste lancer la recherche. */}
+        <div className="account-picker-search">
+          <input placeholder={t('tournaments.riotName')} value={name} onChange={(e) => setName(e.target.value)} />
           <span>#</span>
-          <input placeholder={t('tournaments.riotTag')} value={tag} onChange={(e) => setTag(e.target.value)} required />
-          <button type="submit" disabled={searching}>
+          <input placeholder={t('tournaments.riotTag')} value={tag} onChange={(e) => setTag(e.target.value)} />
+          <button type="button" disabled={searching || !name.trim() || !tag.trim()} onClick={handleSearch}>
             {searching ? t('tournaments.saving') : t('tournaments.search')}
           </button>
-        </form>
+        </div>
 
         {result === null && <p className="warning">{t('tournaments.pickAccountNotFound')}</p>}
 
@@ -54,7 +58,9 @@ function AccountPickerModal({ onSelect, onClose }) {
             <span className="tournaments-mine-name">
               {result.riot_name}#{result.riot_tag}
             </span>
-            <button onClick={() => onSelect(result)}>{t('tournaments.select')}</button>
+            <button type="button" onClick={() => onSelect(result)}>
+              {t('tournaments.select')}
+            </button>
           </div>
         )}
       </div>
