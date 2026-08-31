@@ -87,7 +87,23 @@ function TournamentsMine({ myId, onSelect }) {
       .select('status, tournaments(id, name, status)')
       .eq('captain_id', myId)
       .neq('status', 'rejected')
-      .then(({ data, error }) => setMine(error ? [] : (data ?? []).filter((row) => row.tournaments)));
+      .then(({ data, error }) => {
+        if (error) {
+          setMine([]);
+          return;
+        }
+        // Un même compte peut avoir plusieurs équipes dans UN MÊME tournoi
+        // (le formulaire admin en ajoute autant que voulu) — un seul lien
+        // par tournoi suffit ici, pas un doublon par équipe.
+        const seen = new Set();
+        const unique = [];
+        for (const row of data ?? []) {
+          if (!row.tournaments || seen.has(row.tournaments.id)) continue;
+          seen.add(row.tournaments.id);
+          unique.push(row);
+        }
+        setMine(unique);
+      });
   }, [myId]);
 
   if (mine === null || mine.length === 0) return null;
