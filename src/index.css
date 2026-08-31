@@ -7816,8 +7816,12 @@ input[type='color'] {
 }
 
 .tournament-columns .tournament-teams-list {
-  flex: 0 0 420px;
-  max-width: 420px;
+  flex: 0 0 480px;
+  max-width: 480px;
+}
+
+.tournament-columns .tournament-teams-list .tournament-team-grid {
+  grid-template-columns: repeat(2, 1fr);
 }
 
 .tournament-columns .tournament-bracket-section {
