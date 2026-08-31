@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from '../supabaseClient.js';
 import { useMapImages } from '../mapImages.js';
+import { pickSplash } from '../tournamentVisuals.js';
 import TournamentDetail from '../TournamentDetail.jsx';
 
 const STATUS_LABELS = {
@@ -9,24 +10,6 @@ const STATUS_LABELS = {
   ongoing: 'tournaments.status.ongoing',
   completed: 'tournaments.status.completed',
 };
-
-// Hash simple et stable : le même tournoi affiche toujours la même map en
-// fond (pas un tirage aléatoire à chaque rendu), sans avoir besoin d'une
-// colonne "map" dédiée en base — juste une affectation déterministe à partir
-// de son id.
-function hashString(str) {
-  let hash = 0;
-  for (let i = 0; i < str.length; i++) {
-    hash = (hash * 31 + str.charCodeAt(i)) | 0;
-  }
-  return Math.abs(hash);
-}
-
-function pickSplash(tournamentId, mapImages) {
-  const names = [...mapImages.keys()];
-  if (names.length === 0) return null;
-  return mapImages.get(names[hashString(tournamentId) % names.length]);
-}
 
 // Liste des tournois — sert de page d'entrée pour tous les comptes connectés
 // (pas encore une vraie page publique accessible sans compte, ça viendra
@@ -57,7 +40,12 @@ function TournamentsTab({ myId, isAdmin }) {
   if (loading) return <p className="label">{t('tournaments.loading')}</p>;
 
   if (tournaments.length === 0) {
-    return <p className="label">{t('tournaments.empty')}</p>;
+    return (
+      <div className="tournaments-empty-state">
+        <span className="tournaments-empty-icon">🏆</span>
+        <p className="label">{t('tournaments.empty')}</p>
+      </div>
+    );
   }
 
   return (

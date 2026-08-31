@@ -7443,6 +7443,21 @@ input[type='color'] {
   max-width: 780px;
 }
 
+.tournaments-empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 4rem 1rem;
+  text-align: center;
+  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
+}
+
+.tournaments-empty-icon {
+  font-size: 2.5rem;
+  opacity: 0.5;
+}
+
 /* Bannière large façon affiche de tournoi esport : splash art d'une vraie
    map Valorant en fond (assignée par tournoi, voir pickSplash), dégradé pour
    la lisibilité, motif de lignes de bracket en filigrane — la signature
@@ -7582,41 +7597,207 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
-.tournament-teams-list,
-.tournament-registration,
-.tournament-admin-approvals,
-.tournament-admin-add-team,
-.tournament-admin-generate,
-.tournament-bracket-section {
-  margin-top: 1.5rem;
-}
-
-.tournament-admin-team-list {
-  list-style: none;
-  padding: 0;
+/* En-tête façon bannière — même langage visuel que les cartes de la liste
+   (splash art, dégradé, motif de bracket en filigrane) pour que la page
+   détail se sente comme la suite naturelle de la liste, pas un écran à part. */
+.tournament-hero {
+  position: relative;
+  isolation: isolate;
   display: flex;
   flex-direction: column;
-  gap: 0.4rem;
-  max-width: 480px;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  min-height: 240px;
+  padding: 1.75rem;
+  border-radius: 16px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--surface, #17181f);
+  margin-bottom: 1.5rem;
+  animation: tournamentCardIn 0.45s var(--ease-out, ease) both;
 }
 
-.tournament-team-row {
-  width: 100%;
+.tournament-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: linear-gradient(
+    180deg,
+    rgba(10, 10, 16, 0.2) 0%,
+    rgba(10, 10, 16, 0.55) 45%,
+    rgba(8, 8, 12, 0.94) 100%
+  );
+}
+
+.tournament-hero::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='64' height='64'%3E%3Cg fill='none' stroke='%23ffffff' stroke-opacity='0.14' stroke-width='2'%3E%3Cpath d='M4 16 H24 V48 H4 M24 32 H44'/%3E%3C/g%3E%3C/svg%3E");
+  background-size: 64px 64px;
+  mix-blend-mode: overlay;
+  opacity: 0.7;
+}
+
+.tournament-hero > .tournament-status-badge {
+  position: relative;
+  z-index: 1;
+  align-self: flex-start;
+  clip-path: polygon(0 0, 100% 0, 100% calc(100% - 8px), calc(100% - 8px) 100%, 0 100%);
+}
+
+.tournament-hero-content {
+  position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tournament-hero-content h1 {
+  margin: 0;
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-weight: 700;
+  font-size: 2.1rem;
+  text-transform: uppercase;
+  color: #fff;
+  text-shadow: 0 2px 14px rgba(0, 0, 0, 0.65);
+}
+
+.tournament-hero-description {
+  margin: 0;
+  max-width: 60ch;
+  color: rgba(255, 255, 255, 0.8);
+}
+
+.tournament-hero-progress {
   display: flex;
   align-items: center;
-  gap: 0.4rem;
-  text-align: left;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius, 8px);
+  gap: 0.75rem;
+  margin-top: 0.25rem;
+}
+
+.tournament-hero-progress-bar {
+  width: 160px;
+  height: 6px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.15);
+  overflow: hidden;
+}
+
+.tournament-hero-progress-fill {
+  height: 100%;
+  background: var(--accent, #ff4655);
+  border-radius: 999px;
+  transition: width 0.4s var(--ease-out, ease);
+}
+
+/* Panneaux admin : bordure d'accent à gauche pour signaler "réservé à
+   l'admin" d'un coup d'œil, cohérent sur les 3 sections (validations,
+   ajout d'équipe, génération du bracket). */
+.admin-panel {
+  padding: 1.1rem 1.25rem;
+  border-radius: 10px;
   background: var(--surface, rgba(255, 255, 255, 0.04));
+  border-left: 3px solid var(--accent, #ff4655);
+  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
 }
 
-.tournament-team-row:not(.clickable) {
-  cursor: default;
+.generate-bracket-button.ready {
+  position: relative;
 }
 
-.tournament-team-row.clickable:hover {
-  background: var(--surface-hi, rgba(255, 255, 255, 0.07));
+.generate-bracket-button.ready::after {
+  content: '';
+  position: absolute;
+  inset: -3px;
+  border-radius: inherit;
+  z-index: -1;
+  animation: bracketChampionGlow 2.2s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .generate-bracket-button.ready::after {
+    animation: none;
+  }
+}
+
+.tournament-team-grid {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+}
+
+.tournament-team-card {
+  border-radius: 10px;
+  background: var(--surface, rgba(255, 255, 255, 0.04));
+  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
+  border-top: 3px solid var(--text-dim, #5f6572);
+  overflow: hidden;
+  animation: tournamentCardIn 0.35s var(--ease-out, ease) both;
+  animation-delay: calc(var(--i, 0) * 0.04s);
+}
+
+.tournament-team-card.status-approved {
+  border-top-color: #50c878;
+}
+
+.tournament-team-card.status-pending {
+  border-top-color: #e0b34a;
+}
+
+.tournament-team-card > button {
+  width: 100%;
+  text-align: left;
+  padding: 0.85rem 1rem;
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.tournament-team-card > button.clickable:hover {
+  background: var(--surface-hi, rgba(255, 255, 255, 0.06));
+}
+
+.tournament-team-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.tournament-team-card-name {
+  font-weight: 700;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tournament-team-card-tags {
+  display: flex;
+  gap: 0.5rem;
+  font-size: 0.72rem;
+}
+
+.tournament-team-composition {
+  display: flex;
+  gap: 0.3rem;
+}
+
+.tournament-team-expanded {
+  padding: 0 1rem 1rem;
+}
+
+.tournament-team-expanded .button-danger {
+  margin-top: 0.5rem;
 }
 
 .tournament-team-row-chevron {
@@ -7624,16 +7805,13 @@ input[type='color'] {
   color: var(--text-muted);
 }
 
-.tournament-team-expanded {
-  padding: 0.75rem 1rem 1rem;
-  margin-top: -0.4rem;
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  border-top: none;
-  border-radius: 0 0 var(--radius, 8px) var(--radius, 8px);
-}
-
-.tournament-team-expanded .button-danger {
-  margin-top: 0.5rem;
+.tournament-teams-list,
+.tournament-registration,
+.tournament-admin-approvals,
+.tournament-admin-add-team,
+.tournament-admin-generate,
+.tournament-bracket-section {
+  margin-top: 1.5rem;
 }
 
 .tournament-approval-list {

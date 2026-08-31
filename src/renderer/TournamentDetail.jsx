@@ -4,6 +4,8 @@ import { supabase } from './supabaseClient.js';
 import { generateBracketRows } from './bracket.js';
 import BracketView from './BracketView.jsx';
 import { useAgentIcons, useAgentsData } from './agentIcons.js';
+import { useMapImages } from './mapImages.js';
+import { pickSplash } from './tournamentVisuals.js';
 import IconPickerModal from './IconPickerModal.jsx';
 
 const PLAYER_COUNT = 5;
@@ -107,6 +109,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
+  const mapImages = useMapImages();
   const [tournament, setTournament] = useState(null);
   const [teams, setTeams] = useState([]);
   const [matches, setMatches] = useState([]);
@@ -288,21 +291,33 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
+  const splash = pickSplash(tournamentId, mapImages);
+  const fillPercent = Math.min(100, Math.round((teams.length / tournament.max_teams) * 100));
+
   return (
     <div className="tournament-detail">
       <button className="link-back" onClick={onBack}>
         ← {t('tournaments.back')}
       </button>
 
-      <h1>{tournament.name}</h1>
-      <span className={`tournament-status-badge ${tournament.status}`}>
-        {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
-      </span>
-      {tournament.description && <p>{tournament.description}</p>}
-      <p className="label">{t('tournaments.teamsCount', { count: teams.length, max: tournament.max_teams })}</p>
+      <div className="tournament-hero" style={splash ? { backgroundImage: `url(${splash})` } : undefined}>
+        <span className={`tournament-status-badge ${tournament.status}`}>
+          {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
+        </span>
+        <div className="tournament-hero-content">
+          <h1>{tournament.name}</h1>
+          {tournament.description && <p className="tournament-hero-description">{tournament.description}</p>}
+          <div className="tournament-hero-progress">
+            <div className="tournament-hero-progress-bar">
+              <div className="tournament-hero-progress-fill" style={{ width: `${fillPercent}%` }} />
+            </div>
+            <span className="label">{t('tournaments.teamsCount', { count: teams.length, max: tournament.max_teams })}</span>
+          </div>
+        </div>
+      </div>
 
       {isAdmin && pendingTeams.length > 0 && (
-        <section className="tournament-admin-approvals">
+        <section className="tournament-admin-approvals admin-panel">
           <h2>{t('tournaments.pendingTeams')}</h2>
           <ul className="tournament-approval-list">
             {pendingTeams.map((team) => (
@@ -321,7 +336,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       )}
 
       {isAdmin && matches.length === 0 && (
-        <section className="tournament-admin-add-team">
+        <section className="tournament-admin-add-team admin-panel">
           <h2>{t('tournaments.adminAddTeam')}</h2>
           {isFull ? (
             <p className="label">{t('tournaments.full')}</p>
@@ -339,8 +354,12 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       )}
 
       {isAdmin && matches.length === 0 && (
-        <section className="tournament-admin-generate">
-          <button onClick={handleGenerateBracket} disabled={saving || approvedTeams.length < 2}>
+        <section className="tournament-admin-generate admin-panel">
+          <button
+            className={`generate-bracket-button ${approvedTeams.length >= 2 ? 'ready' : ''}`}
+            onClick={handleGenerateBracket}
+            disabled={saving || approvedTeams.length < 2}
+          >
             {saving ? t('tournaments.saving') : t('tournaments.bracket.generate')}
           </button>
           {approvedTeams.length < 2 && <p className="label">{t('tournaments.bracket.needApproved')}</p>}
@@ -352,22 +371,44 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
         {teams.length === 0 ? (
           <p className="label">{t('tournaments.noTeamsYet')}</p>
         ) : (
-          <ul className="tournament-admin-team-list">
-            {teams.map((team) => {
+          <ul className="tournament-team-grid">
+            {teams.map((team, index) => {
               const expanded = expandedTeamId === team.id;
               const players = playersByTeam.get(team.id) ?? [];
               return (
-                <li key={team.id}>
+                <li
+                  key={team.id}
+                  className={`tournament-team-card status-${team.status} ${expanded ? 'expanded' : ''}`}
+                  style={{ '--i': index }}
+                >
                   <button
                     type="button"
-                    className={`tournament-team-row ${isAdmin ? 'clickable' : ''}`}
+                    className={isAdmin ? 'clickable' : ''}
                     onClick={isAdmin ? () => setExpandedTeamId(expanded ? null : team.id) : undefined}
                     disabled={!isAdmin}
                   >
-                    <span>{team.name}</span>
-                    {team.status === 'pending' && <span className="label"> ({t('tournaments.pending')})</span>}
-                    {team.captain_id === myId && <span className="label"> — {t('tournaments.yourTeam')}</span>}
-                    {isAdmin && <span className="tournament-team-row-chevron">{expanded ? '▾' : '▸'}</span>}
+                    <div className="tournament-team-card-head">
+                      <span className="tournament-team-card-name">{team.name}</span>
+                      {isAdmin && <span className="tournament-team-row-chevron">{expanded ? '▾' : '▸'}</span>}
+                    </div>
+                    <div className="tournament-team-card-tags">
+                      {team.status === 'pending' && <span className="label">{t('tournaments.pending')}</span>}
+                      {team.captain_id === myId && <span className="label">{t('tournaments.yourTeam')}</span>}
+                    </div>
+                    {/* Aperçu de composition : les icônes d'agent choisies pour
+                        chaque joueur, visibles sans avoir à déplier — un
+                        emplacement vide (agent pas choisi) reste un "?". */}
+                    <div className="tournament-team-composition">
+                      {Array.from({ length: PLAYER_COUNT }).map((_, slot) => {
+                        const player = players[slot];
+                        const icon = player?.agent ? agentIcons.get(player.agent) : null;
+                        return (
+                          <span key={slot} className="team-roster-agent-avatar small">
+                            {icon ? <img src={icon} alt="" /> : <span>?</span>}
+                          </span>
+                        );
+                      })}
+                    </div>
                   </button>
 
                   {isAdmin && expanded && (
