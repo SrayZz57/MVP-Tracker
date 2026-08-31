@@ -51,7 +51,6 @@ const NAV_SECTIONS = [
     tabs: [
       { id: 'stats', labelKey: 'nav.tabs.stats', icon: '📊' },
       { id: 'forme', labelKey: 'nav.tabs.form', icon: '⏰' },
-      { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: '😤' },
       { id: 'heatmap', labelKey: 'nav.tabs.heatmap', icon: '🔥' },
       { id: 'analyse', labelKey: 'nav.tabs.analyse', icon: '🧠' },
       { id: 'social', labelKey: 'nav.tabs.social', icon: '🤝' },
@@ -64,11 +63,9 @@ const NAV_SECTIONS = [
       { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: '🏆' },
       { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: '🤝' },
       { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: '💎' },
+      { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: '😤' },
+      { id: 'reseau', labelKey: 'nav.tabs.network', icon: '📶' },
     ],
-  },
-  {
-    sectionKey: 'nav.sections.network',
-    tabs: [{ id: 'reseau', labelKey: 'nav.tabs.network', icon: '📶' }],
   },
   {
     sectionKey: 'nav.sections.tournaments',
@@ -301,6 +298,20 @@ function App() {
   }, [myUserId]);
 
   const socialNotificationCount = unreadFriendIds.size + pendingRequestCount;
+
+  // Badge sur l'onglet Tournois : nombre de tournois ouverts aux
+  // inscriptions ou en cours — la feature est facile à rater dans une
+  // sidebar où tout se ressemble sinon. Un simple comptage à l'ouverture
+  // suffit, pas besoin de temps réel pour un badge de découverte.
+  const [activeTournamentsCount, setActiveTournamentsCount] = useState(0);
+  useEffect(() => {
+    if (!session) return;
+    supabase
+      .from('tournaments')
+      .select('id', { count: 'exact', head: true })
+      .in('status', ['registration', 'ongoing'])
+      .then(({ count }) => setActiveTournamentsCount(count ?? 0));
+  }, [session]);
 
   // true uniquement après un vrai passage par l'écran de recherche Riot ID
   // *pendant cette session* — jamais déduit des réglages déjà en cache, pour
@@ -779,6 +790,9 @@ function App() {
                       {t(tab.labelKey)}
                       {tab.id === 'messages' && socialNotificationCount > 0 && (
                         <span className="sidebar-link-badge">{socialNotificationCount}</span>
+                      )}
+                      {tab.id === 'tournaments' && activeTournamentsCount > 0 && (
+                        <span className="sidebar-link-badge glow">{activeTournamentsCount}</span>
                       )}
                     </button>
                   ))}

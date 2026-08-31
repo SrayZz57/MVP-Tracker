@@ -459,6 +459,28 @@ h1 {
   box-shadow: 0 0 6px rgba(255, 70, 85, 0.5);
 }
 
+/* Pulse plus marqué que le badge de notification classique — sert à faire
+   découvrir la feature Tournois, pas juste signaler un compteur habituel. */
+.sidebar-link-badge.glow {
+  animation: sidebarBadgePulse 1.8s ease-in-out infinite;
+}
+
+@keyframes sidebarBadgePulse {
+  0%,
+  100% {
+    box-shadow: 0 0 6px rgba(255, 70, 85, 0.5);
+  }
+  50% {
+    box-shadow: 0 0 14px 4px rgba(255, 70, 85, 0.75);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sidebar-link-badge.glow {
+    animation: none;
+  }
+}
+
 .sidebar-link-icon {
   font-size: 1rem;
   width: 1.8rem;
