@@ -104,6 +104,16 @@ function AgentSelectLive({ matches = [], settings = null }) {
     window.electronAPI.setAgentSelectSuggestions(suggestions);
   }, [suggestions]);
 
+  // Fenêtre principale : toujours ouverte, donc source sûre pour déclencher
+  // la création/fermeture de la fenêtre overlay (coûteuse en GPU, créée à la
+  // demande côté main.js — voir agent-select-overlay:set-visible). L'overlay
+  // elle-même ne doit jamais piloter sa propre création : tant qu'elle
+  // n'existe pas encore, rien à l'intérieur ne peut tourner pour le demander.
+  const overlayVisible = data.state === 'ok' && data.players.length > 0;
+  useEffect(() => {
+    window.electronAPI.setAgentSelectOverlayVisible(overlayVisible);
+  }, [overlayVisible]);
+
   if (data.state !== 'ok' || data.players.length === 0) return null;
 
   const allies = inGame ? data.players.filter((p) => p.team !== 'enemy') : data.players;

@@ -158,8 +158,9 @@ if (started) {
   app.quit();
 }
 
-// Vérifie les GitHub Releases au démarrage puis toutes les heures ; ne fait
-// rien en dev (app pas empaquetée), donc sûr à laisser tel quel.
+// Vérifie les GitHub Releases au démarrage puis toutes les 10 minutes
+// (valeur par défaut de update-electron-app) ; ne fait rien en dev (app pas
+// empaquetée), donc sûr à laisser tel quel.
 updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
 
 // Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
@@ -723,14 +724,9 @@ function createAgentSelectOverlay() {
   agentSelectOverlayWindow.webContents.on('console-message', (_e, _level, message) => {
     console.log('[agent-select-overlay]', message);
   });
-}
 
-ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
-  if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
-
-  if (visible) {
-    agentSelectOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
-    agentSelectOverlayWindow.showInactive();
+  agentSelectOverlayWindow.once('did-finish-load', () => {
+    agentSelectOverlayWindow?.showInactive();
     if (!overlayTopmostInterval) {
       overlayTopmostInterval = setInterval(() => {
         if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
@@ -738,10 +734,26 @@ ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
         }
       }, 1000);
     }
+  });
+}
+
+// Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
+// qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
+// de l'app — une fenêtre transparente/always-on-top GPU-composée qui traîne
+// en continu entre en conflit avec le rendu plein écran exclusif de Valorant
+// et cause du lag système (souris qui rame), même en restant invisible.
+ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
+  if (visible) {
+    if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) {
+      createAgentSelectOverlay();
+    }
   } else {
-    agentSelectOverlayWindow.hide();
     clearInterval(overlayTopmostInterval);
     overlayTopmostInterval = null;
+    if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+      agentSelectOverlayWindow.close();
+    }
+    agentSelectOverlayWindow = null;
   }
 });
 
@@ -968,7 +980,6 @@ app.whenReady().then(() => {
   });
 
   createWindow();
-  createAgentSelectOverlay();
 
   // Premier lancement déclenché directement par le lien (l'app n'était pas
   // encore ouverte) — le lien arrive dans les arguments de démarrage.

@@ -53,11 +53,11 @@ function AgentSelectOverlay() {
 
   useEffect(() => window.electronAPI.onAgentSelectSuggestions(setSuggestions), []);
 
+  // La visibilité (et la création/fermeture de cette fenêtre) est pilotée
+  // depuis la fenêtre principale, qui tourne déjà en continu — voir
+  // AgentSelectLive.jsx. Ici on ne fait que décider quoi afficher une fois
+  // la fenêtre bien créée et ses propres données arrivées.
   const visible = data.state === 'ok' && data.players.length > 0;
-
-  useEffect(() => {
-    window.electronAPI.setAgentSelectOverlayVisible(visible);
-  }, [visible]);
 
   if (!visible) return null;
 
