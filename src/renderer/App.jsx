@@ -682,7 +682,7 @@ function App() {
         // forçait activeTab à 'admin' sans passer par le bouton (jamais
         // affiché pour un non-admin), rien de sensible ne s'affiche —
         // et de toute façon, la vraie porte fermée est côté serveur (RLS).
-        return isAdmin ? <AdminPage /> : null;
+        return isAdmin ? <AdminPage myId={session.user.id} /> : null;
       case 'messages':
         return (
           <MessagesTab

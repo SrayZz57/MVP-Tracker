@@ -1,7 +1,27 @@
 {
   "admin": {
     "title": "Administration",
-    "placeholder": "The Tournament module will plug in here."
+    "placeholder": "The Tournament module will plug in here.",
+    "tournaments": {
+      "createTitle": "Create a tournament",
+      "name": "Tournament name",
+      "description": "Description",
+      "maxTeams": "Number of teams",
+      "maxTeamsHint": "Any number from 2 up — byes are handled automatically for numbers that aren't powers of 2.",
+      "registrationDeadline": "Registration deadline",
+      "startDate": "Start date",
+      "create": "Create tournament",
+      "creating": "Creating…",
+      "listTitle": "Created tournaments",
+      "loading": "Loading…",
+      "empty": "No tournament created yet.",
+      "teamsUnit": "max teams",
+      "status": {
+        "registration": "Registration open",
+        "ongoing": "Ongoing",
+        "completed": "Completed"
+      }
+    }
   },
   "collapsible": {
     "collapse": "Collapse",

@@ -1,7 +1,27 @@
 {
   "admin": {
     "title": "Administration",
-    "placeholder": "Le module Tournoi viendra se brancher ici."
+    "placeholder": "Le module Tournoi viendra se brancher ici.",
+    "tournaments": {
+      "createTitle": "Créer un tournoi",
+      "name": "Nom du tournoi",
+      "description": "Description",
+      "maxTeams": "Nombre d'équipes",
+      "maxTeamsHint": "N'importe quel nombre à partir de 2 — les byes sont gérés automatiquement pour les nombres qui ne sont pas des puissances de 2.",
+      "registrationDeadline": "Date limite d'inscription",
+      "startDate": "Date de début",
+      "create": "Créer le tournoi",
+      "creating": "Création…",
+      "listTitle": "Tournois créés",
+      "loading": "Chargement…",
+      "empty": "Aucun tournoi créé pour l'instant.",
+      "teamsUnit": "équipes max",
+      "status": {
+        "registration": "Inscriptions ouvertes",
+        "ongoing": "En cours",
+        "completed": "Terminé"
+      }
+    }
   },
   "collapsible": {
     "collapse": "Réduire",
