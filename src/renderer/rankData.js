@@ -10,7 +10,10 @@ async function loadCompetitiveTiers() {
   tiersCache = new Map(
     latestEpisode.tiers.map((tier) => [
       tier.tier,
-      { icon: tier.largeIcon, color: `#${tier.color.slice(0, 6)}` },
+      // `name` s'ajoute aux champs existants (icône, couleur) : l'API locale
+      // du client ne renvoie qu'un NUMÉRO de palier pour les coéquipiers en
+      // sélection d'agent, il faut donc pouvoir le traduire en nom lisible.
+      { icon: tier.largeIcon, color: `#${tier.color.slice(0, 6)}`, name: tier.tierName },
     ]),
   );
   return tiersCache;

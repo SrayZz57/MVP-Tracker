@@ -54,6 +54,7 @@ import GoalsWidget from './GoalsWidget.jsx';
 import WeeklyRecapCard from './WeeklyRecapCard.jsx';
 import PostMortemModal from './PostMortemModal.jsx';
 import SearchBar from './SearchBar.jsx';
+import AgentSelectLive from './AgentSelectLive.jsx';
 import WelcomeScreen from './WelcomeScreen.jsx';
 import LinkRiotAccount from './LinkRiotAccount.jsx';
 import AccountGreeting from './AccountGreeting.jsx';
@@ -405,6 +406,31 @@ function App() {
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
   // Confort d'affichage uniquement — voir le commentaire sur ADMIN_SECTION.
   const isAdmin = profile?.role === 'admin';
+
+  // Synchro vers Supabase (résumés + détail des 50 plus récents) — voir
+  // matchSync.js. Se redéclenche à chaque nouveau chargement de myMatches
+  // (cache initial ou vrai rafraîchissement) ; le module lui-même ne
+  // ré-uploade jamais ce qui est déjà là, donc les appels redondants sont
+  // sans frais réels, juste un aller-retour de vérification.
+  useEffect(() => {
+    if (!session || myMatches.length === 0 || !mySettings?.name) return;
+    // `session.access_token` peut dater : le rafraîchissement en tâche de
+    // fond de Supabase se met en pause si la fenêtre reste longtemps non
+    // visible, et un token expiré fait échouer Storage silencieusement
+    // (RLS refuse tout, sans distinguer "expiré" de "vraiment pas autorisé").
+    // `getSession()` revérifie et rafraîchit au besoin avant qu'on l'utilise.
+    supabase.auth.getSession().then(({ data: { session: fresh } }) => {
+      if (!fresh) return;
+      window.electronAPI.syncMatches({
+        matches: myMatches,
+        name: mySettings.name,
+        tag: mySettings.tag,
+        userId: fresh.user.id,
+        accessToken: fresh.access_token,
+      });
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [myMatches]);
 
   // Même principe que pour les matchs : le rang stocké localement ne l'était
   // que pour "le dernier profil consulté", pas par compte — on le relit
@@ -945,6 +971,11 @@ function App() {
           ))}
 
         <main className="content" key={activeTab}>
+          {/* Bandeau de sélection d'agent : affiché quel que soit l'onglet
+              ouvert, puisqu'il ne dure que le temps de la sélection et qu'on
+              n'a pas le réflexe de changer d'onglet à ce moment-là. Se
+              masque tout seul en dehors de cette phase. */}
+          <AgentSelectLive matches={myMatches} settings={mySettings} />
           {renderValorantTab()}
         </main>
       </div>

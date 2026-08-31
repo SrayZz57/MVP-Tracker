@@ -1632,5 +1632,21 @@
       "long": "Long (20-35m)",
       "verylong": "Very long (35m+)"
     }
+  },
+  "agentSelect": {
+    "title": "Agent select in progress",
+    "titleGame": "Match loading",
+    "hint": "Your teammates' ranks, live from your client",
+    "hintGame": "Both teams, live from your client",
+    "choosing": "Choosing…",
+    "locked": "Locked",
+    "unranked": "Unranked",
+    "you": "You",
+    "allies": "Allies",
+    "enemies": "Enemies",
+    "suggestTitle": "Suggestion for this map",
+    "suggestPersonal": "{{winrate}}% win rate for you ({{games}} games)",
+    "suggestCommunity": "community pick",
+    "suggestFillsGap": "missing role"
   }
 }

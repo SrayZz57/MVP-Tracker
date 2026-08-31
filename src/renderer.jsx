@@ -11,6 +11,7 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App.jsx';
 import AimTrainerGame from './renderer/AimTrainerGame.jsx';
+import AgentSelectOverlay from './renderer/AgentSelectOverlay.jsx';
 import { CollapsedBlocksProvider } from './renderer/CollapsedBlocksContext.jsx';
 import { E2EEProvider } from './renderer/E2EEContext.jsx';
 
@@ -34,6 +35,7 @@ if (view === 'aim-trainer') {
 
 function Root() {
   if (view === 'aim-trainer') return <AimTrainerGame config={gameConfig} />;
+  if (view === 'agent-select-overlay') return <AgentSelectOverlay />;
   return (
     <E2EEProvider>
       <CollapsedBlocksProvider>
