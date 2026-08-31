@@ -24,7 +24,8 @@
   },
   "tournaments": {
     "loading": "Loading…",
-    "empty": "No tournaments yet.",
+    "empty": "No tournaments yet",
+    "emptySubtitle": "Check back soon — upcoming tournaments will show up here as soon as they're created.",
     "notFound": "Tournament not found.",
     "winner": "Winner: {{name}}",
     "promoWatermark": "Tournament",

@@ -7599,19 +7599,52 @@ input[type='color'] {
   line-height: 1.4;
 }
 
+/* "empty" : le bloc lui-même prend la même hauteur que les colonnes voisines
+   (Comment ça marche + Tes tournois, Neon) et centre le message dedans au
+   lieu de le laisser collé en haut avec du vide en dessous. */
+.tournaments-list-block.empty {
+  display: flex;
+  height: calc(100vh - 140px);
+}
+
 .tournaments-empty-state {
   display: flex;
+  flex: 1;
   flex-direction: column;
   align-items: center;
-  gap: 0.75rem;
-  padding: 4rem 1rem;
+  justify-content: center;
+  gap: 1rem;
+  padding: 2rem;
   text-align: center;
   animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
 }
 
 .tournaments-empty-icon {
-  font-size: 2.5rem;
-  opacity: 0.5;
+  font-size: 4.5rem;
+  filter: drop-shadow(0 0 24px rgba(255, 70, 85, 0.35));
+  animation: tournamentsPromoFloat 4s ease-in-out infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .tournaments-empty-icon {
+    animation: none;
+  }
+}
+
+.tournaments-empty-title {
+  margin: 0;
+  font-family: var(--font-display, 'Chakra Petch', sans-serif);
+  font-size: 1.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.tournaments-empty-subtitle {
+  margin: 0;
+  max-width: 34ch;
+  color: var(--text-muted);
+  font-size: 0.9rem;
+  line-height: 1.5;
 }
 
 /* Bannière large façon affiche de tournoi esport : splash art d'une vraie

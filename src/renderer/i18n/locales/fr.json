@@ -24,7 +24,8 @@
   },
   "tournaments": {
     "loading": "Chargement…",
-    "empty": "Aucun tournoi pour l'instant.",
+    "empty": "Aucun tournoi pour l'instant",
+    "emptySubtitle": "Reviens bientôt — les prochains tournois apparaîtront ici dès qu'ils seront créés.",
     "notFound": "Tournoi introuvable.",
     "winner": "Vainqueur : {{name}}",
     "promoWatermark": "Tournoi",

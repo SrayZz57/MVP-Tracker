@@ -212,11 +212,12 @@ function TournamentsTab({ myId, isAdmin }) {
 
   return (
     <div className="tournaments-page">
-      <div className="tournaments-list-block">
+      <div className={`tournaments-list-block ${tournaments.length === 0 ? 'empty' : ''}`}>
         {tournaments.length === 0 ? (
           <div className="tournaments-empty-state">
-            <span className="tournaments-empty-icon">🏆</span>
-            <p className="label">{t('tournaments.empty')}</p>
+            <span className="tournaments-empty-icon" aria-hidden="true">🏆</span>
+            <h2 className="tournaments-empty-title">{t('tournaments.empty')}</h2>
+            <p className="tournaments-empty-subtitle">{t('tournaments.emptySubtitle')}</p>
           </div>
         ) : (
           <div className="tournaments-list">
