@@ -289,14 +289,18 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       {isAdmin && matches.length === 0 && (
         <section className="tournament-admin-add-team">
           <h2>{t('tournaments.adminAddTeam')}</h2>
-          <TeamRosterForm
-            initialName=""
-            initialPlayers={EMPTY_PLAYERS}
-            saving={saving}
-            error={error}
-            onSubmit={handleAdminAddTeam}
-            submitLabel={t('tournaments.adminAddSubmit')}
-          />
+          {isFull ? (
+            <p className="label">{t('tournaments.full')}</p>
+          ) : (
+            <TeamRosterForm
+              initialName=""
+              initialPlayers={EMPTY_PLAYERS}
+              saving={saving}
+              error={error}
+              onSubmit={handleAdminAddTeam}
+              submitLabel={t('tournaments.adminAddSubmit')}
+            />
+          )}
         </section>
       )}
 
