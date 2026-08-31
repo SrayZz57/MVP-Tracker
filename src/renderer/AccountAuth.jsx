@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { useE2EE } from './E2EEContext.jsx';
 import Button from './ui/Button';
+import logoText from '../assets/logo-text.png';
 
 function AccountAuth() {
   const { t } = useTranslation();
@@ -46,7 +47,7 @@ function AccountAuth() {
     }
 
     if (mode === 'signup' && !data.session) {
-      // Confirmation par email requise avant toute session active — la clé
+      // Confirmation par email requise avant toute session active, la clé
       // de messagerie sera créée à la vraie première connexion (une fois la
       // session active, le mot de passe redevient disponible ici).
       setInfo(t('auth.signupSuccess'));
@@ -54,7 +55,7 @@ function AccountAuth() {
     }
 
     // Supabase vient de vérifier ce mot de passe lui-même (connexion ou
-    // inscription à confirmation immédiate) — sûr de régénérer la clé de
+    // inscription à confirmation immédiate), sûr de régénérer la clé de
     // messagerie si elle est orpheline (voir E2EEContext.jsx).
     if (data.user) unlockForUser(data.user.id, password);
     // En connexion, onAuthStateChange (écouté dans App.jsx) prend le relais automatiquement.
@@ -100,11 +101,11 @@ function AccountAuth() {
       setError(updateError.message);
       return;
     }
-    // Le nouveau mot de passe vient d'être posé côté Supabase à l'instant —
+    // Le nouveau mot de passe vient d'être posé côté Supabase à l'instant,
     // sûr de régénérer la clé de messagerie (l'ancienne, enveloppée avec
     // l'ancien mot de passe, est désormais irrécupérable).
     if (updateData.user) unlockForUser(updateData.user.id, newPassword);
-    // onAuthStateChange (App.jsx) prend le relais — la session est déjà active.
+    // onAuthStateChange (App.jsx) prend le relais, la session est déjà active.
   };
 
   const switchMode = (nextMode) => {
@@ -124,7 +125,7 @@ function AccountAuth() {
         <span className="welcome-orb welcome-orb-7" />
       </div>
 
-      <h1>MVP Tracker</h1>
+      <img src={logoText} alt="MVP Tracker" className="welcome-logo-text" />
       <p className="welcome-tagline">{TITLES[mode]}</p>
 
       {(mode === 'signin' || mode === 'signup') && (
@@ -144,8 +145,8 @@ function AccountAuth() {
             minLength={6}
             required
           />
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? t('auth.loading') : mode === 'signup' ? t('auth.createAccount') : t('auth.signIn')}
+          <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.loading')}>
+            {mode === 'signup' ? t('auth.createAccount') : t('auth.signIn')}
           </Button>
         </form>
       )}
@@ -159,8 +160,8 @@ function AccountAuth() {
             onChange={(e) => setEmail(e.target.value)}
             required
           />
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? t('auth.sending') : t('auth.sendCode')}
+          <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.sending')}>
+            {t('auth.sendCode')}
           </Button>
         </form>
       )}
@@ -191,8 +192,8 @@ function AccountAuth() {
             minLength={6}
             required
           />
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? t('auth.validating') : t('auth.resetPassword')}
+          <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.validating')}>
+            {t('auth.resetPassword')}
           </Button>
         </form>
       )}

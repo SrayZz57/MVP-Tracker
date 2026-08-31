@@ -7,7 +7,6 @@ import { deathLocationsOnMap } from './valorantStats.js';
 import { useWeaponCosts } from './weaponIcons.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
-import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
 const CANVAS_SIZE = 640;
@@ -36,7 +35,7 @@ const ROUND_TYPES = [
   { id: 'eco', labelKey: 'heatmap.roundTypes.eco' },
 ];
 
-// Un pistol round reste un pistol round peu importe le prix de l'arme —
+// Un pistol round reste un pistol round peu importe le prix de l'arme,
 // vérifié avant l'économie. Sinon classé par le coût de MON arme ce
 // round-là (voir myWeaponId dans deathLocationsOnMap) ; `null` si l'arme
 // n'est pas reconnue dans le référentiel valorant-api.com (couteau/arme
@@ -158,7 +157,9 @@ function Heatmap({ settings, matches }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="heatmap" title={t('heatmap.title')}>
+      {/* Ni collapse (la carte EST la page, la replier vide l'onglet) ni titre
+          (la topbar affiche deja "Heatmap" 40 px au-dessus). */}
+      <div className="card">
         <p className="label">{t('heatmap.description')}</p>
 
         <div className="filter-bar">
@@ -225,7 +226,7 @@ function Heatmap({ settings, matches }) {
         <div className="heatmap-canvas-wrap">
           <canvas ref={canvasRef} />
         </div>
-      </CollapsibleCard>
+      </div>
     </div>
   );
 }

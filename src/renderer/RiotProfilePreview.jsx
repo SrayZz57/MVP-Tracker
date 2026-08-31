@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import { usePlayerCardArt, useRankTiers } from './rankData.js';
 
-// Aperçu compact d'un profil Valorant (bannière, icône, pseudo, rang) —
+// Aperçu compact d'un profil Valorant (bannière, icône, pseudo, rang),
 // réutilisé sur l'écran de confirmation de liaison et sur l'écran d'accueil
 // une fois le compte lié.
 function RiotProfilePreview({ name, tag, cardUuid, rank }) {
@@ -26,7 +26,7 @@ function RiotProfilePreview({ name, tag, cardUuid, rank }) {
             <div className="riot-preview-rank">
               {tier?.icon && <img src={tier.icon} alt="" />}
               <span style={{ color: tier?.color }}>
-                {rank.tierName} — {rank.rr} RR
+                {rank.tierName} · {rank.rr} RR
               </span>
             </div>
           ) : (

@@ -3,8 +3,10 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { PROFILE_FIELDS } from './friendsShared.jsx';
 import Button from './ui/Button';
+import { AccountSearchSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
-// Recherche un compte MVP Tracker par Riot ID exact — même schéma que la
+// Recherche un compte MVP Tracker par Riot ID exact, même schéma que la
 // recherche d'ami déjà existante (nom + tag, résultat unique), pour rester
 // cohérent avec un flux déjà connu plutôt que d'inventer une nouvelle UX.
 // Sert à imposer qu'un joueur de tournoi ait réellement un compte, pas
@@ -39,7 +41,7 @@ function AccountPickerModal({ onSelect, onClose }) {
         <p className="label">{t('tournaments.pickAccountHint')}</p>
 
         {/* Un <div>, pas un <form> : ce composant se retrouve rendu à
-            l'intérieur du <form> d'inscription d'équipe (TeamRosterForm) —
+            l'intérieur du <form> d'inscription d'équipe (TeamRosterForm),
             un <form> imbriqué est invalide en HTML et faisait déclencher la
             soumission du formulaire PARENT (rechargement complet de la
             fenêtre) au lieu de juste lancer la recherche. */}
@@ -47,8 +49,15 @@ function AccountPickerModal({ onSelect, onClose }) {
           <input placeholder={t('tournaments.riotName')} value={name} onChange={(e) => setName(e.target.value)} />
           <span>#</span>
           <input placeholder={t('tournaments.riotTag')} value={tag} onChange={(e) => setTag(e.target.value)} />
-          <Button variant="primary" type="button" disabled={searching || !name.trim() || !tag.trim()} onClick={handleSearch}>
-            {searching ? t('tournaments.saving') : t('tournaments.search')}
+          <Button
+            variant="primary"
+            type="button"
+            loading={searching}
+            loadingLabel={t('tournaments.saving')}
+            disabled={searching || !name.trim() || !tag.trim()}
+            onClick={handleSearch}
+          >
+            {t('tournaments.search')}
           </Button>
         </div>
 

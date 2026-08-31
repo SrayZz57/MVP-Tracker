@@ -14,7 +14,7 @@ import Button from './ui/Button';
 
 const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
-// Noms de rôles issus de valorant-api.com (appelée en fr-FR) — hors périmètre
+// Noms de rôles issus de valorant-api.com (appelée en fr-FR), hors périmètre
 // de cette passe de traduction (voir CLAUDE.md / plan i18n), comparés tels
 // quels à profile.main_role et aux clés de roleIconByName.
 const ROLES = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
@@ -61,7 +61,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
     [allCards],
   );
 
-  // Suggestion indicative basée sur les vraies parties trackées — n'est
+  // Suggestion indicative basée sur les vraies parties trackées, n'est
   // jamais enregistrée automatiquement, c'est le joueur qui choisit son rôle
   // et son agent, pas un calcul qui décide à sa place.
   const rankedMatches = useMemo(() => excludeDeathmatch(myMatches ?? []), [myMatches]);
@@ -142,8 +142,8 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                 />
-                <Button variant="primary" onClick={handleSaveName} disabled={saving}>
-                  {saving ? "..." : <Icon icon={Check} size={16} />}
+                <Button variant="primary" onClick={handleSaveName} loading={saving} loadingLabel={null}>
+                  <Icon icon={Check} size={16} />
                 </Button>
                 <Button
                   variant="icon"
@@ -177,15 +177,15 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         </div>
         <div className="card account-tile">
           <span className="account-tile-label">{t('account.globalWinrate')}</span>
-          <span className="account-tile-value">{winrate !== null ? `${winrate.toFixed(0)}%` : '—'}</span>
+          <span className="account-tile-value">{winrate !== null ? `${winrate.toFixed(0)}%` : '–'}</span>
         </div>
         <div className="card account-tile">
           <span className="account-tile-label">{t('account.globalKd')}</span>
-          <span className="account-tile-value">{kd !== null ? kd.toFixed(2) : '—'}</span>
+          <span className="account-tile-value">{kd !== null ? kd.toFixed(2) : '–'}</span>
         </div>
       </div>
 
-      <CollapsibleCard id="account.playerProfile" title={t('account.playerProfileTitle')}>
+      <CollapsibleCard collapsible={false} id="account.playerProfile" title={t('account.playerProfileTitle')}>
         <p className="label">{t('account.playerProfileHint')}</p>
 
         <h4 className="account-subsection-title">{t('account.yourRole')}</h4>
@@ -242,7 +242,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard id="account.settings" title={t('account.settingsTitle')}>
+      <CollapsibleCard collapsible={false} id="account.settings" title={t('account.settingsTitle')}>
         <p className="label">{t('account.settingsHint')}</p>
         {email && (
           <p className="account-email-row">
@@ -262,8 +262,8 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
               />
-              <Button variant="primary" onClick={handleSaveApiKey} disabled={savingApiKey}>
-                {savingApiKey ? "..." : <Icon icon={Check} size={16} />}
+              <Button variant="primary" onClick={handleSaveApiKey} loading={savingApiKey} loadingLabel={null}>
+                <Icon icon={Check} size={16} />
               </Button>
               <Button
                 variant="icon"
@@ -295,7 +295,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         {resetStatus === 'error' && <p className="warning account-reset-status">{t('account.forgotPasswordError')}</p>}
       </CollapsibleCard>
 
-      <CollapsibleCard id="account.contact" title={t('account.contactTitle')}>
+      <CollapsibleCard collapsible={false} id="account.contact" title={t('account.contactTitle')}>
         <p className="label">{t('account.contactHint')}</p>
         <Button
           variant="ghost"

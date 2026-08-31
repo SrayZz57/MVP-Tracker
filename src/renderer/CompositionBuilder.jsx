@@ -58,7 +58,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
     setSlots((prev) => prev.map((v, i) => (i === index ? value : v)));
   };
 
-  // Tes agents les plus joués, en accès rapide — toujours ceux du compte
+  // Tes agents les plus joués, en accès rapide, toujours ceux du compte
   // lié (même en composant pour la map/l'historique de quelqu'un d'autre),
   // pas ceux du joueur actuellement affiché.
   const myRankedMatches = useMemo(() => excludeDeathmatch(myMatches ?? matches), [myMatches, matches]);
@@ -80,7 +80,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="composition.builder" title={t('composition.title')}>
+      <CollapsibleCard collapsible={false} id="composition.builder" title={t('composition.title')}>
         <p className="label">{t('composition.description')}</p>
 
         <div className="filter-bar">
@@ -174,7 +174,7 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
         </div>
       )}
 
-      <CollapsibleCard id="composition.balance" title={t('composition.compoBalanceTitle')}>
+      <CollapsibleCard collapsible={false} id="composition.balance" title={t('composition.compoBalanceTitle')}>
         <div className="stat-tiles">
           {Object.entries(analysis.counts).map(([role, count]) => (
             <div key={role} className="stat-tile">

@@ -4,12 +4,14 @@ import { useTranslation } from 'react-i18next';
 import { FriendAvatar, friendLabel } from './friendsShared.jsx';
 import { useRankTiers } from './rankData.js';
 import Button from './ui/Button';
+import { HoverPreviewSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
 const CARD_WIDTH = 220;
 const CARD_MARGIN = 10;
 
 // Une ligne de classement Aim Trainer (défi du jour ou amis), avec une carte
-// au survol montrant rang + réglages souris pour CE score — chargée à la
+// au survol montrant rang + réglages souris pour CE score, chargée à la
 // demande (pas pour toutes les lignes d'un coup, pour ne pas saturer le
 // quota API sur un classement de 20 joueurs) et mise en cache pour ne pas
 // rappeler l'API à chaque survol du même joueur.
@@ -30,7 +32,7 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
 
   const handleEnter = () => {
     // Ancrée sur le pseudo lui-même (pas sur toute la largeur de la ligne,
-    // qui s'étend jusqu'au score tout à droite) — juste à côté du nom, à
+    // qui s'étend jusqu'au score tout à droite), juste à côté du nom, à
     // droite par défaut, bascule à gauche si ça déborderait de la fenêtre.
     // Hauteur clampée pour ne jamais sortir en bas de l'écran.
     const rect = nameRef.current?.getBoundingClientRect();
@@ -78,10 +80,12 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
             </div>
 
             <div className="aim-board-hover-stats">
-              <div className="aim-board-hover-stat">
-                {tier?.icon && <img src={tier.icon} alt="" />}
-                <span>{preview === undefined ? '…' : (tier?.tierName ?? t('friends.unranked'))}</span>
-              </div>
+              <LoadingGate active={loadingPreview} fallback={<HoverPreviewSkeleton />}>
+                <div className="aim-board-hover-stat">
+                  {tier?.icon && <img src={tier.icon} alt="" />}
+                  <span>{tier?.tierName ?? t('friends.unranked')}</span>
+                </div>
+              </LoadingGate>
               {row.dpi && row.sens && (
                 <div className="aim-board-hover-stat">
                   <span className="label">{t('aimTrainer.hoverSettings')}</span>

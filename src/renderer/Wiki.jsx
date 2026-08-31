@@ -128,7 +128,7 @@ function WeaponModal({ weapon, onClose }) {
         <div className="modal-banner" style={{ backgroundImage: `url(${weapon.displayIcon})`, backgroundSize: 'contain' }}>
           <div className="modal-banner-text">
             <h2>{weapon.displayName}</h2>
-            <p>{t(`wiki.weaponCategories.${weapon.shopData.category}`, { defaultValue: weapon.shopData.category })} — {t('wiki.credits', { cost: weapon.shopData.cost })}</p>
+            <p>{t(`wiki.weaponCategories.${weapon.shopData.category}`, { defaultValue: weapon.shopData.category })} · {t('wiki.credits', { cost: weapon.shopData.cost })}</p>
           </div>
         </div>
 
@@ -237,7 +237,7 @@ function MapModal({ map, minimapUrl, onClose }) {
 }
 
 // Regroupe les paliers par division (Fer/Bronze/.../Immortel, 3 sous-paliers
-// chacun) — Non classé et Radiant n'en ont qu'un seul. Ordre conservé tel que
+// chacun), Non classé et Radiant n'en ont qu'un seul. Ordre conservé tel que
 // renvoyé par l'API (croissant), inversé à l'affichage pour aller du plus
 // haut rang au plus bas.
 function groupRankLadder(ladder) {

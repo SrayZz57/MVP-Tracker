@@ -4,10 +4,10 @@ function easeOutCubic(t) {
   return 1 - (1 - t) ** 3;
 }
 
-const DURATION_MS = 700;
+const DURATION_MS = 600;
 
 // Anime un nombre de sa valeur précédente vers sa nouvelle valeur au lieu de
-// juste l'afficher directement — utilisé sur les chiffres "vitrine" (scores,
+// juste l'afficher directement, utilisé sur les chiffres "vitrine" (scores,
 // points, moyennes) plutôt que partout, pour ne pas surcharger l'app de
 // chiffres qui grouillent en permanence.
 function CountUp({ value, decimals = 0, suffix = '' }) {
@@ -18,6 +18,12 @@ function CountUp({ value, decimals = 0, suffix = '' }) {
     const from = fromRef.current;
     const to = typeof value === 'number' ? value : 0;
     if (from === to) return undefined;
+
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+      fromRef.current = to;
+      setDisplay(to);
+      return undefined;
+    }
 
     const start = performance.now();
     let raf = requestAnimationFrame(function tick(now) {

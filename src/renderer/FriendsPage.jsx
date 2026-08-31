@@ -7,12 +7,14 @@ import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryModal from './FriendSummaryModal.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
+import { FriendsPageSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 
 function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, apiKey }) {
   const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Aperçu (rang, niveau) de chaque ami — chargé à part des `friendships` :
+  // Aperçu (rang, niveau) de chaque ami, chargé à part des `friendships` :
   // c'est un appel HenrikDev en direct (comme rechercher n'importe quel Riot
   // ID public), pas une donnée stockée, donc on la garde en cache local plutôt
   // que de la refaire à chaque re-render.
@@ -62,7 +64,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
   const otherProfile = (f) => (f.requester_id === myId ? f.addressee : f.requester);
 
   // Chargé à la demande (au clic sur un ami, pas pour toute la liste au
-  // montage) — c'est un appel HenrikDev par ami, et le seul endroit qui lit
+  // montage), c'est un appel HenrikDev par ami, et le seul endroit qui lit
   // `friendPreviews` est la modale ouverte par ce clic (voir plus bas) : pas
   // besoin de payer le quota pour des amis dont la fiche n'est jamais ouverte.
   useEffect(() => {
@@ -125,11 +127,12 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
     loadFriendships();
   };
 
-  if (loading) return <p className="label">{t('friends.loading')}</p>;
+  const loadingGate = useLoadingGate(loading);
+  if (loadingGate.busy) return loadingGate.show ? <FriendsPageSkeleton /> : null;
 
   return (
     <div className="friends-page">
-      <CollapsibleCard id="friends.addFriend" title={t('friends.addFriendTitle')}>
+      <CollapsibleCard collapsible={false} id="friends.addFriend" title={t('friends.addFriendTitle')}>
         <form onSubmit={handleSearch} className="friend-search-form">
           <div className="search-bar-riotid">
             <input placeholder={t('friends.usernamePlaceholder')} value={searchName} onChange={(e) => setSearchName(e.target.value)} required />
@@ -142,8 +145,8 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
               className="search-bar-tag"
             />
           </div>
-          <Button variant="primary" type="submit" className="friend-search-btn" disabled={searching}>
-            {searching ? '...' : <><Icon icon={Search} size={16} /> {t('friends.searchBtn')}</>}
+          <Button variant="primary" type="submit" className="friend-search-btn" loading={searching}>
+            <Icon icon={Search} size={16} /> {t('friends.searchBtn')}
           </Button>
         </form>
         {searchResult === null && <p className="label">{t('friends.noPlayerFound')}</p>}
@@ -161,7 +164,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
       </CollapsibleCard>
 
       {incomingPending.length > 0 && (
-        <CollapsibleCard id="friends.incoming" title={t('friends.incomingRequests')}>
+        <CollapsibleCard collapsible={false} id="friends.incoming" title={t('friends.incomingRequests')}>
           <div className="friend-list">
             {incomingPending.map((f) => (
               <div key={f.id} className="friend-request-row">
@@ -178,7 +181,7 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
       )}
 
       {outgoingPending.length > 0 && (
-        <CollapsibleCard id="friends.outgoing" title={t('friends.outgoingRequests')}>
+        <CollapsibleCard collapsible={false} id="friends.outgoing" title={t('friends.outgoingRequests')}>
           <div className="friend-list">
             {outgoingPending.map((f) => (
               <div key={f.id} className="friend-request-row">

@@ -22,6 +22,9 @@ import CollapsibleCard from './CollapsibleCard.jsx';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import { supabase } from './supabaseClient.js';
 import Button from './ui/Button';
+import Skeleton from './Skeleton.jsx';
+import { LeaderboardShape } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
 const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
@@ -31,7 +34,7 @@ const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#
 // auto-fill) : une pagination à taille fixe laissait une dernière ligne
 // très clairsemée en plein écran large (ex. 3 cartes + bouton sur une ligne
 // qui en contient 9). Tous les modes tiennent sans problème en une ou deux
-// lignes complètes selon la largeur — plus besoin de les cacher.
+// lignes complètes selon la largeur, plus besoin de les cacher.
 
 // Routine d'échauffement : trois modes complémentaires enchaînés, à lancer
 // avant une session de jeu (visée sèche, suivi, puis précision fine).
@@ -60,11 +63,11 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [personalBests, setPersonalBests] = useState({});
   const [globalBests, setGlobalBests] = useState({});
   const [history, setHistory] = useState([]);
-  const [dailyBoard, setDailyBoard] = useState([]);
-  const [friendsBoard, setFriendsBoard] = useState([]);
+  const [dailyBoard, setDailyBoard] = useState(undefined);
+  const [friendsBoard, setFriendsBoard] = useState(undefined);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
   const [crosshairs, setCrosshairs] = useState([]);
-  // Statut d'amitié envers chaque joueur croisé dans les classements —
+  // Statut d'amitié envers chaque joueur croisé dans les classements,
   // chargé une fois (pas par ligne survolée) pour savoir quel bouton
   // proposer dans la carte au survol (voir AimLeaderboardRow.jsx).
   const [friendStatusByUser, setFriendStatusByUser] = useState({});
@@ -142,7 +145,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
   // Choisir un mode applique ses valeurs recommandées (nombre/taille des
-  // cibles, dispersion) — elles restent modifiables ensuite à la main.
+  // cibles, dispersion), elles restent modifiables ensuite à la main.
   const selectMode = (id) => setConfig((prev) => ({ ...prev, mode: id, ...MODES[id].preset }));
 
   const launch = (extra = {}) => window.electronAPI.openAimTrainer({ ...config, ...extra, userId: myId });
@@ -150,9 +153,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const distance = cm360(config.dpi, config.sens);
   const edpi = config.dpi * config.sens;
   const streak = useMemo(() => computeStreak(history), [history]);
-  const challengeDone = dailyBoard.some((row) => row.user_id === myId);
+  const challengeDone = (dailyBoard ?? []).some((row) => row.user_id === myId);
 
-  // L'Aim Trainer ne se joue que sur PC (mini-jeu 3D dans l'app) — corréler
+  // L'Aim Trainer ne se joue que sur PC (mini-jeu 3D dans l'app), corréler
   // ses sessions à des matchs Valorant joués sur console n'aurait aucun sens.
   // Filtre par défaut sur "pc" quand les deux plateformes sont détectées.
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches, 'pc');
@@ -168,7 +171,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
     return rows.map((row) => row.score);
   }, [history, config.mode]);
 
-  // Le mode Personnalisé n'existe pas dans MODES (volontairement — jamais
+  // Le mode Personnalisé n'existe pas dans MODES (volontairement, jamais
   // proposé en défi du jour ni comparé dans les records), donc pas d'icône
   // ni de nom à y récupérer.
   const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
@@ -239,23 +242,33 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             {challengeDone ? t('aimTrainer.retryChallenge') : t('aimTrainer.playChallenge')}
           </Button>
 
-          {dailyBoard.length > 0 && (
-            <div className="aim-board">
-              <h4 className="account-subsection-title">{t('aimTrainer.todayRanking')}</h4>
-              {dailyBoard.slice(0, 5).map((row, i) => (
-                <AimLeaderboardRow
-                  key={row.user_id}
-                  row={row}
-                  rank={i + 1}
-                  myId={myId}
-                  apiKey={apiKey}
-                  friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
-                  onAddFriend={addFriendFromLeaderboard}
-                  highlight={row.user_id === myId}
-                />
-              ))}
-            </div>
-          )}
+          <LoadingGate
+            active={dailyBoard === undefined}
+            fallback={
+              <Skeleton className="aim-board">
+                <h4 className="account-subsection-title">{t('aimTrainer.todayRanking')}</h4>
+                <LeaderboardShape rows={5} />
+              </Skeleton>
+            }
+          >
+            {dailyBoard?.length > 0 && (
+              <div className="aim-board">
+                <h4 className="account-subsection-title">{t('aimTrainer.todayRanking')}</h4>
+                {dailyBoard.slice(0, 5).map((row, i) => (
+                  <AimLeaderboardRow
+                    key={row.user_id}
+                    row={row}
+                    rank={i + 1}
+                    myId={myId}
+                    apiKey={apiKey}
+                    friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
+                    onAddFriend={addFriendFromLeaderboard}
+                    highlight={row.user_id === myId}
+                  />
+                ))}
+              </div>
+            )}
+          </LoadingGate>
         </div>
 
         <div className="card aim-streak-card">
@@ -299,11 +312,11 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
                 <span className="aim-mode-desc">{t(mode.descKey)}</span>
                 <span className="aim-mode-records">
                   <span className="aim-mode-record">
-                    <span className="aim-mode-record-value">{personal ?? '—'}</span>
+                    <span className="aim-mode-record-value">{personal ?? '–'}</span>
                     <span className="aim-mode-record-label">{t('aimTrainer.yourBest')}</span>
                   </span>
                   <span className="aim-mode-record">
-                    <span className="aim-mode-record-value aim-mode-record-global">{global ?? '—'}</span>
+                    <span className="aim-mode-record-value aim-mode-record-global">{global ?? '–'}</span>
                     <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
                   </span>
                 </span>
@@ -311,7 +324,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             );
           })}
 
-          {/* Seul mode aux réglages libres — volontairement à part des 6
+          {/* Seul mode aux réglages libres · volontairement à part des 6
               autres : ceux-là doivent rester identiques pour tout le monde,
               sinon comparer les records n'a aucun sens. */}
           <Button
@@ -367,7 +380,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             <p className="label aim-config-readout">
               {t('aimTrainer.edpiReadout', {
                 edpi: edpi.toFixed(0),
-                cm: distance === null ? '—' : distance.toFixed(1),
+                cm: distance === null ? '–' : distance.toFixed(1),
               })}
             </p>
           </div>
@@ -458,7 +471,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
       {/* --- Impact sur les vraies parties ---------------------------------- */}
       {impact && (
-        <CollapsibleCard id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
+        <CollapsibleCard collapsible={false} id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
           <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
           {!impact.ready ? (
             <p className="label">
@@ -489,8 +502,8 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
                       </span>
                       <span className="aim-impact-label">{label}</span>
                       <span className="aim-impact-detail">
-                        {impact.trained[key] === null ? '—' : impact.trained[key].toFixed(decimals)}
-                        {suffix} vs {impact.untrained[key] === null ? '—' : impact.untrained[key].toFixed(decimals)}
+                        {impact.trained[key] === null ? '–' : impact.trained[key].toFixed(decimals)}
+                        {suffix} vs {impact.untrained[key] === null ? '–' : impact.untrained[key].toFixed(decimals)}
                         {suffix}
                       </span>
                     </div>
@@ -528,24 +541,26 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </CollapsibleCard>
 
         <CollapsibleCard id="aimTrainer.friendsBoard" title={t('aimTrainer.friendsTitle')}>
-          {friendsBoard.length === 0 ? (
-            <p className="label">{t('aimTrainer.friendsEmpty')}</p>
-          ) : (
-            <div className="aim-board">
-              {friendsBoard.map((row, i) => (
-                <AimLeaderboardRow
-                  key={row.user_id}
-                  row={row}
-                  rank={i + 1}
-                  myId={myId}
-                  apiKey={apiKey}
-                  friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
-                  onAddFriend={addFriendFromLeaderboard}
-                  highlight={row.user_id === myId}
-                />
-              ))}
-            </div>
-          )}
+          <LoadingGate active={friendsBoard === undefined} fallback={<Skeleton><LeaderboardShape rows={5} /></Skeleton>}>
+            {friendsBoard?.length === 0 ? (
+              <p className="label">{t('aimTrainer.friendsEmpty')}</p>
+            ) : (
+              <div className="aim-board">
+                {friendsBoard.map((row, i) => (
+                  <AimLeaderboardRow
+                    key={row.user_id}
+                    row={row}
+                    rank={i + 1}
+                    myId={myId}
+                    apiKey={apiKey}
+                    friendStatus={friendStatusByUser[row.user_id] ?? 'none'}
+                    onAddFriend={addFriendFromLeaderboard}
+                    highlight={row.user_id === myId}
+                  />
+                ))}
+              </div>
+            )}
+          </LoadingGate>
         </CollapsibleCard>
       </div>
 

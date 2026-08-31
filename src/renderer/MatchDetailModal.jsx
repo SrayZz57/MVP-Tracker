@@ -13,7 +13,7 @@ function TeamColumn({ title, players, agentIcons, className }) {
           {agentIcons.get(p.character) && <img src={agentIcons.get(p.character)} alt="" className="agent-icon" />}
           <span className="team-player-name">{p.name}#{p.tag}</span>
           <span className="team-player-stats">
-            {p.stats?.kills ?? '?'}/{p.stats?.deaths ?? '?'}/{p.stats?.assists ?? '?'} — {p.stats?.score ?? '?'} {t('detail.pointsAbbr')}
+            {p.stats?.kills ?? '?'}/{p.stats?.deaths ?? '?'}/{p.stats?.assists ?? '?'} · {p.stats?.score ?? '?'} {t('detail.pointsAbbr')}
           </span>
         </div>
       ))}
@@ -67,7 +67,7 @@ function MatchDetailModal({ match, settings, agentIcons, onClose }) {
             [...weaponCounts.entries()]
               .sort((a, b) => b[1] - a[1])
               .map(([weapon, count]) => (
-                <p key={weapon}>{weapon} — {t('detail.killsCount', { count })}</p>
+                <p key={weapon}>{weapon} · {t('detail.killsCount', { count })}</p>
               ))
           )}
         </div>

@@ -2,13 +2,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
-import Skeleton from './Skeleton.jsx';
+import { MySkinsSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import CountUp from './CountUp.jsx';
 import { loadCollection, loadWishlist, toggleWishlist, toggleCollection, setCollectionPrice } from './personalData.js';
-import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
-// Page dédiée à la collection personnelle — auparavant un petit onglet noyé
+// Page dédiée à la collection personnelle, auparavant un petit onglet noyé
 // dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
 // donnée intrinsèquement personnelle (pas liée au joueur qu'on suit).
 function MySkinsCollection({ myId }) {
@@ -52,13 +52,8 @@ function MySkinsCollection({ myId }) {
     setCollectionPrice(myId, uuid, priceVp).then(setCollection);
   };
 
-  if (!catalog) {
-    return (
-      <div className="card">
-        <Skeleton lines={5} />
-      </div>
-    );
-  }
+  const loadingGate = useLoadingGate(!catalog);
+  if (loadingGate.busy) return loadingGate.show ? <MySkinsSkeleton /> : null;
 
   return (
     <div>
@@ -75,7 +70,7 @@ function MySkinsCollection({ myId }) {
         </div>
       </div>
 
-      <CollapsibleCard id="skins.myCollection" title={t('skins.myCollectionTitle')}>
+      <div className="card">
         {collectionSkins.length === 0 ? (
           <p>{t('skins.emptyCollection')}</p>
         ) : (
@@ -90,7 +85,7 @@ function MySkinsCollection({ myId }) {
                   <img src={skin.displayIcon} alt={skin.name} />
                 </div>
                 <p className="skin-card-name">{skin.name}</p>
-                <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} — {skin.weaponName}</p>
+                <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} · {skin.weaponName}</p>
                 <div className="skin-price-row">
                   <input
                     type="number"
@@ -105,7 +100,7 @@ function MySkinsCollection({ myId }) {
             ))}
           </div>
         )}
-      </CollapsibleCard>
+      </div>
 
       {selectedSkin && (
         <SkinDetailModal

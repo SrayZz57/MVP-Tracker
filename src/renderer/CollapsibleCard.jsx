@@ -6,26 +6,35 @@ import Button from './ui/Button';
 
 // Remplace `<div className="card">...<h3>Titre</h3>...</div>` : le titre
 // reste visible une fois le bloc réduit, avec un bouton "Réduire"/"Agrandir"
-// bien visible (pas juste un petit chevron discret — demande explicite après
-// un premier essai jugé pas assez repérable). État mémorisé par compte lié —
+// bien visible (pas juste un petit chevron discret, demande explicite après
+// un premier essai jugé pas assez repérable). État mémorisé par compte lié,
 // voir CollapsedBlocksContext.jsx. `id` doit être stable et unique dans toute
 // l'app (ex. "stats.profileHeader"), pas dérivé d'un index de liste.
-function CollapsibleCard({ id, title, className = '', headerExtra, children }) {
+//
+// `collapsible={false}` pour les blocs courts (une rangée de tuiles, un
+// formulaire, un intro) : replier trois tuiles ne fait gagner aucune place et
+// un bouton dans chaque en-tête finit par se voir plus que les titres. Le
+// repli est réservé à ce qui est haut ou peut grandir sans limite.
+function CollapsibleCard({ id, title, className = '', headerExtra, collapsible = true, children }) {
   const { t } = useTranslation();
   const { collapsed, toggle } = useCollapsedBlocks();
-  const isCollapsed = collapsed.has(id);
+  const isCollapsed = collapsible && collapsed.has(id);
 
   return (
     <div className={`card collapsible-card ${isCollapsed ? 'collapsed' : ''} ${className}`.trim()}>
       <div className="collapsible-card-header">
         <h3>{title}</h3>
-        <div className="collapsible-card-header-actions">
-          {headerExtra}
-          <Button variant="ghost" type="button" className="collapsible-card-toggle" onClick={() => toggle(id)}>
-            <span className="collapsible-card-chevron"><Icon icon={ChevronDown} size={16} /></span>
-            {isCollapsed ? t('collapsible.expand') : t('collapsible.collapse')}
-          </Button>
-        </div>
+        {(headerExtra || collapsible) && (
+          <div className="collapsible-card-header-actions">
+            {headerExtra}
+            {collapsible && (
+              <Button variant="ghost" type="button" className="collapsible-card-toggle" onClick={() => toggle(id)}>
+                <span className="collapsible-card-chevron"><Icon icon={ChevronDown} size={16} /></span>
+                {isCollapsed ? t('collapsible.expand') : t('collapsible.collapse')}
+              </Button>
+            )}
+          </div>
+        )}
       </div>
       {!isCollapsed && <div className="collapsible-card-body">{children}</div>}
     </div>

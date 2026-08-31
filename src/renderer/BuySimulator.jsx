@@ -6,7 +6,8 @@ import { analyzeRoundBuys, summarizeRoundBuys, listMatchesWithRounds, recommendB
 import { agentAbilityBudget, AGENT_ABILITY_COSTS, ABILITY_COSTS_SOURCE_DATE } from './abilityCosts.js';
 import { useShopWeapons, useShopArmors, useWeaponIcons } from './weaponIcons.js';
 import { useAgentIcons, useAgentRoles, useAgentAbilities } from './agentIcons.js';
-import LoadingState from './LoadingState.jsx';
+import { BuySimulatorSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -38,13 +39,13 @@ function BuyAnalysisSection({ settings, matches }) {
         <select value={selectedMatch?.metadata.matchid ?? ''} onChange={(e) => setSelectedMatchId(e.target.value)}>
           {eligibleMatches.map((m) => (
             <option key={m.metadata.matchid} value={m.metadata.matchid}>
-              {m.metadata.map} — {new Date(m.metadata.game_start * 1000).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
+              {m.metadata.map} · {new Date(m.metadata.game_start * 1000).toLocaleDateString(i18n.language === 'en' ? 'en-US' : 'fr-FR')}
             </option>
           ))}
         </select>
         {summary.percent !== null && (
           <span className="heatmap-point-count">
-            {t('buySim.coherentRounds', { coherent: summary.coherent, total: summary.total, percent: summary.percent.toFixed(0) })}
+            {t('buySim.coherentRounds', { count: summary.total, coherent: summary.coherent, total: summary.total, percent: summary.percent.toFixed(0) })}
           </span>
         )}
       </div>
@@ -176,10 +177,9 @@ function BuySimulator({ settings, matches, loading }) {
   const { t } = useTranslation();
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('buySim.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <BuySimulatorSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('buySim.noMatchesYet')}</p>;
 
   return (
     <div>
@@ -190,7 +190,7 @@ function BuySimulator({ settings, matches, loading }) {
         <BuyAnalysisSection settings={settings} matches={filteredMatches} />
       </CollapsibleCard>
 
-      <CollapsibleCard id="buySim.calculator" title={t('buySim.calculatorTitle')}>
+      <CollapsibleCard collapsible={false} id="buySim.calculator" title={t('buySim.calculatorTitle')}>
         <p className="label">{t('buySim.calculatorHint')}</p>
         <BuyCalculatorSection />
       </CollapsibleCard>

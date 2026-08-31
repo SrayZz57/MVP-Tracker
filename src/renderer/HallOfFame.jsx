@@ -5,7 +5,8 @@ import { computeHallOfFame } from './hallOfFame.js';
 import { deriveAchievements } from './achievements.js';
 import { useAgentPortraits } from './agentIcons.js';
 import ConfettiBurst from './ConfettiBurst.jsx';
-import LoadingState from './LoadingState.jsx';
+import { HallOfFameSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Icon from './Icon.jsx';
 
@@ -91,15 +92,14 @@ function HallOfFame({ settings, matches, loading }) {
     return undefined;
   }, [achievementGroups, settings.name, settings.tag]);
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('hallOfFame.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <HallOfFameSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('hallOfFame.noMatchesYet')}</p>;
 
   return (
     <div>
       {celebrate && <ConfettiBurst />}
-      <CollapsibleCard id="hallOfFame.intro" title={t('hallOfFame.title')}>
+      <CollapsibleCard collapsible={false} id="hallOfFame.intro" title={t('hallOfFame.title')}>
         <p className="label">{t('hallOfFame.description')}</p>
       </CollapsibleCard>
 
@@ -113,7 +113,7 @@ function HallOfFame({ settings, matches, loading }) {
           value={hof.bestAce?.kills}
           valueLabel={t('hallOfFame.killsInRound')}
           portrait={hof.bestAce && agentPortraits.get(hof.bestAce.agent)}
-          context={hof.bestAce && `${hof.bestAce.agent} — ${hof.bestAce.map}, ${t('hallOfFame.roundLabel', { n: hof.bestAce.roundNumber })} — ${formatDate(locale, hof.bestAce.date)}`}
+          context={hof.bestAce && `${hof.bestAce.agent} · ${hof.bestAce.map}, ${t('hallOfFame.roundLabel', { n: hof.bestAce.roundNumber })} · ${formatDate(locale, hof.bestAce.date)}`}
         />
         <TrophyCard
           t={t}
@@ -137,7 +137,7 @@ function HallOfFame({ settings, matches, loading }) {
           value={hof.bestClutch && `1v${hof.bestClutch.enemies}`}
           valueLabel={t('hallOfFame.won')}
           portrait={hof.bestClutch && agentPortraits.get(hof.bestClutch.agent)}
-          context={hof.bestClutch && `${hof.bestClutch.agent} — ${hof.bestClutch.map}, ${t('hallOfFame.roundLabel', { n: hof.bestClutch.roundNumber })} — ${formatDate(locale, hof.bestClutch.date)}`}
+          context={hof.bestClutch && `${hof.bestClutch.agent} · ${hof.bestClutch.map}, ${t('hallOfFame.roundLabel', { n: hof.bestClutch.roundNumber })} · ${formatDate(locale, hof.bestClutch.date)}`}
         />
         <TrophyCard
           t={t}
@@ -148,11 +148,12 @@ function HallOfFame({ settings, matches, loading }) {
           value={hof.bestKda?.kda.toFixed(2)}
           valueLabel={hof.bestKda && `${hof.bestKda.kills}/${hof.bestKda.deaths}/${hof.bestKda.assists}`}
           portrait={hof.bestKda && agentPortraits.get(hof.bestKda.agent)}
-          context={hof.bestKda && `${hof.bestKda.agent} — ${hof.bestKda.map} — ${formatDate(locale, hof.bestKda.date)}`}
+          context={hof.bestKda && `${hof.bestKda.agent} · ${hof.bestKda.map} · ${formatDate(locale, hof.bestKda.date)}`}
         />
       </div>
 
       <CollapsibleCard
+        collapsible={false}
         id="hallOfFame.achievements"
         title={t('hallOfFame.achievementsTitle', { unlocked: unlockedCount, total: totalCount })}
       >

@@ -2,13 +2,15 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import Button from './ui/Button';
+import { AdminTournamentsSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
-// Écran d'administration — pour l'instant seulement la création de tournois
+// Écran d'administration, pour l'instant seulement la création de tournois
 // (étape validée avec l'utilisateur avant d'enchaîner sur l'inscription
 // d'équipes et l'affichage du bracket). Toute la vraie sécurité vient des
 // policies RLS côté Supabase (public.is_admin()) : ce composant n'est
 // accessible que si `isAdmin` est vrai côté App.jsx, mais même un accès
-// direct forcé ne permettrait aucune écriture — la porte fermée est serveur.
+// direct forcé ne permettrait aucune écriture, la porte fermée est serveur.
 
 const STATUS_LABELS = {
   registration: 'admin.tournaments.status.registration',
@@ -100,8 +102,8 @@ function TournamentCreateForm({ myId, onCreated }) {
 
       {error && <p className="error-banner">{error}</p>}
 
-      <Button variant="primary" type="submit" disabled={saving}>
-        {saving ? t('admin.tournaments.creating') : t('admin.tournaments.create')}
+      <Button variant="primary" type="submit" loading={saving} loadingLabel={t('admin.tournaments.creating')}>
+        {t('admin.tournaments.create')}
       </Button>
     </form>
   );
@@ -157,7 +159,9 @@ function AdminPage({ myId }) {
 
       <section className="admin-section">
         <h2>{t('admin.tournaments.listTitle')}</h2>
-        {loading ? <p className="label">{t('admin.tournaments.loading')}</p> : <TournamentList tournaments={tournaments} />}
+        <LoadingGate active={loading} fallback={<AdminTournamentsSkeleton />}>
+          <TournamentList tournaments={tournaments} />
+        </LoadingGate>
       </section>
     </div>
   );

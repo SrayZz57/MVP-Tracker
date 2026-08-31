@@ -52,7 +52,7 @@ const TARGET_MIN_CLEARANCE = 0.6; // marge minimale entre une cible et le sol
 
 // --- Mode Peek -------------------------------------------------------------
 // Vitesse de course avec une arme principale sortie dans Valorant : 6.75 m/s
-// (sprint) — le déplacement le plus proche d'un vrai peek en duel, plutôt
+// (sprint), le déplacement le plus proche d'un vrai peek en duel, plutôt
 // qu'une valeur choisie au hasard. Source : documentation communautaire du
 // modèle de mouvement de Valorant (accuracy vs vitesse de déplacement).
 // L'arène utilise déjà 1 unité Three.js = 1 mètre (SPAWN_DISTANCE = 13
@@ -65,17 +65,17 @@ const PEEK_HIDDEN_MIN_MS = 500;
 const PEEK_HIDDEN_MAX_MS = 1200; // délai aléatoire caché derrière la box, pour rester imprévisible
 
 // Tous les agents Valorant partagent la même taille de hitbox en jeu, 1,96 m
-// — volontairement standardisé par Riot pour que le placement de viseur soit
+//, volontairement standardisé par Riot pour que le placement de viseur soit
 // identique quel que soit l'agent en face. On s'en sert comme la vraie
 // échelle de la cible, plutôt qu'un corps choisi au hasard.
 const PEEK_CHARACTER_HEIGHT = 1.96;
-// La caméra (Y=0) représente les yeux DU JOUEUR — pour que la cible soit
+// La caméra (Y=0) représente les yeux DU JOUEUR, pour que la cible soit
 // "à la même hauteur", sa tête doit être au même niveau, pas plus bas.
 const PEEK_HEAD_Y = 0;
 const PEEK_BOX_WIDTH = 2.4;
 // Doit dépasser PEEK_CHARACTER_HEIGHT (1,96) : la tête (sphère de rayon
 // targetSize centrée sur PEEK_HEAD_Y) dépasse du sommet de la box dès que
-// PEEK_BOX_HEIGHT < 1,96, QUELLE QUE SOIT la taille de cible — donnait un
+// PEEK_BOX_HEIGHT < 1,96, QUELLE QUE SOIT la taille de cible, donnait un
 // repère vertical (bout de tête visible) avant même que la cible sorte
 // latéralement, trahissant le côté du peek à l'avance. 2.15 laisse une vraie
 // marge de sécurité.
@@ -85,7 +85,7 @@ const PEEK_OFFSET = PEEK_BOX_WIDTH / 2 + 0.7; // de quoi dégager franchement le
 
 // Aligne verticalement box/corps/tête d'une cible Peek sur PEEK_HEAD_Y (les
 // yeux du joueur) et sur la vraie taille de hitbox Valorant, plutôt que sur
-// le sol stylisé du reste de l'arène (FLOOR_Y — jamais pensé pour représenter
+// le sol stylisé du reste de l'arène (FLOOR_Y, jamais pensé pour représenter
 // une échelle humaine réelle, les autres modes n'étant que des sphères
 // flottantes). `targetSize` vient du réglage de taille de cible existant :
 // une tête plus grosse laisse mécaniquement moins de hauteur au corps.
@@ -126,7 +126,7 @@ export const MODES = {
   // les deux leviers qui rendent une cible en mouvement plus ou moins dure à
   // suivre (voir `driftSpeed`/`driftChangeInterval`, lus par randomDrift()
   // et le rebranchement de cap dans la boucle d'animation). "tracking" reste
-  // la clé historique (déjà utilisée par des scores enregistrés) — c'est
+  // la clé historique (déjà utilisée par des scores enregistrés), c'est
   // volontairement le palier "Pro", inchangé.
   trackingBeginner: {
     icon: Waves,
@@ -157,7 +157,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.trackingDesc',
     movement: 'drift',
     // Clic maintenu + précision échantillonnée en continu, plutôt que des
-    // tirs discrets — voir le bloc dédié dans la boucle d'animation et
+    // tirs discrets, voir le bloc dédié dans la boucle d'animation et
     // handleClick. Réservé à "Pro" et à Multi (ci-dessous) : Débutant et
     // Intermédiaire restent en tir classique sur cible mobile, et le
     // resteraient même si on l'ajoutait plus tard (des scores existants sont
@@ -224,7 +224,7 @@ export const MODES = {
     movement: 'drift',
     // Cap verrouillé + intervalle de changement quasi infini : la cible
     // traverse tout droit à vitesse constante, ne rebondissant que sur les
-    // bords — un vrai strafe, pas un Tracking un peu plus rapide.
+    // bords, un vrai strafe, pas un Tracking un peu plus rapide.
     driftLockY: true,
     driftSpeed: [3, 5],
     driftChangeInterval: [999999, 999999],
@@ -236,7 +236,7 @@ export const MODES = {
     accent: '#ffc857',
     labelKey: 'aimTrainer.modes.switchMode',
     descKey: 'aimTrainer.modes.switchModeDesc',
-    // Cibles statiques numérotées à toucher dans l'ordre affiché — voir
+    // Cibles statiques numérotées à toucher dans l'ordre affiché, voir
     // state.reshuffleSwitch/state.switchNext (créés dans l'effet principal)
     // et la branche dédiée de handleClick.
     movement: 'switch',
@@ -250,7 +250,7 @@ export const MODES = {
     descKey: 'aimTrainer.modes.strafeTapDesc',
     movement: 'drift',
     // Plusieurs touches nécessaires avant que la cible ne se replace pour de
-    // bon — voir `entry.hitsRemaining` dans handleClick.
+    // bon, voir `entry.hitsRemaining` dans handleClick.
     hitsRequired: 3,
     driftSpeed: [1.5, 2.5],
     driftChangeInterval: [600, 1200],
@@ -280,7 +280,7 @@ export const MODES = {
     accent: '#9b7bff',
     labelKey: 'aimTrainer.modes.snapHold',
     descKey: 'aimTrainer.modes.snapHoldDesc',
-    // Un clic arme la cible mais ne suffit pas : il faut y rester `holdMs` —
+    // Un clic arme la cible mais ne suffit pas : il faut y rester `holdMs`,
     // voir la branche dédiée de handleClick et le bloc de maintien dans la
     // boucle d'animation.
     movement: 'snap',
@@ -317,7 +317,7 @@ function horizontalToVerticalFov(hFovDeg, aspect) {
 }
 
 function randomTargetPosition(spreadDeg, targetSize = 0.45) {
-  // Cible tirée dans un cône devant la caméra, pas juste sur un plan plat —
+  // Cible tirée dans un cône devant la caméra, pas juste sur un plan plat,
   // donne une vraie sensation "sphère de tir" plutôt qu'une grille figée.
   const yaw = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD;
   const pitch = (Math.random() * 2 - 1) * spreadDeg * DEG_TO_RAD * 0.55;
@@ -334,7 +334,7 @@ function randomTargetPosition(spreadDeg, targetSize = 0.45) {
 const OVERLAP_REPOSITION_ATTEMPTS = 8;
 
 // Comme randomTargetPosition, mais évite (autant que possible en quelques
-// essais) de faire spawn une cible sur une autre déjà active — sans ça,
+// essais) de faire spawn une cible sur une autre déjà active, sans ça,
 // les modes multi-cibles (Gridshot, Popcorn, Switch...) peuvent faire
 // apparaître deux sphères confondues, ce qui fausse la précision perçue.
 function pickNonOverlappingPosition(spreadDeg, targetSize, siblings, excludeEntry) {
@@ -354,7 +354,7 @@ function pickNonOverlappingPosition(spreadDeg, targetSize, siblings, excludeEntr
   return candidate;
 }
 
-// Repositionne une cible pour un mode donné — logique commune au départ
+// Repositionne une cible pour un mode donné, logique commune au départ
 // d'une session et au passage à l'étape suivante d'une routine enchaînée.
 // Centralisée ici pour que le mode Peek (box + corps visibles, tête en
 // cycle caché/exposé) et tous les autres modes (simple sphère repositionnée
@@ -382,16 +382,16 @@ function resetTargetForMode(entry, mode, cfg, now, state) {
     Object.assign(entry, state.makeMotion(mode));
     entry.peek = null;
   }
-  // Switch : la pastille n'est utile que dans ce mode — masquée ailleurs,
+  // Switch : la pastille n'est utile que dans ce mode, masquée ailleurs,
   // le vrai ordre est réassigné juste après par state.reshuffleSwitch (appelé
   // une fois pour TOUTES les cibles, pas ici cible par cible).
   if (entry.numberLabel) entry.numberLabel.visible = mode.movement === 'switch';
   entry.order = null;
   // Rafale (Strafe-tap) : nombre de touches encore nécessaires avant que la
-  // cible ne se replace vraiment — voir handleClick.
+  // cible ne se replace vraiment, voir handleClick.
   entry.hitsRemaining = mode.hitsRequired ?? null;
   // Maintien (Snap-hold) : instant où le viseur s'est posé sur la cible,
-  // remis à zéro à chaque réinitialisation — voir handleClick et la boucle
+  // remis à zéro à chaque réinitialisation, voir handleClick et la boucle
   // d'animation.
   entry.snapArmedAt = null;
   entry.spawnedAt = now;
@@ -428,7 +428,7 @@ function valueNoise(width, height, cellSize, seed = 1) {
   };
 }
 
-// Textures PBR photographiques (couleur + normales + rugosité), CC0 —
+// Textures PBR photographiques (couleur + normales + rugosité), CC0,
 // provenance dans src/assets/textures/CREDITS.md. Bien plus crédibles que
 // des motifs dessinés au canvas : le relief des normales réagit vraiment à
 // l'éclairage de la scène.
@@ -515,7 +515,7 @@ function makeSkyTexture() {
   return texture;
 }
 
-// Texture radiale générée en canvas — sert pour le flash de tir et l'impact
+// Texture radiale générée en canvas, sert pour le flash de tir et l'impact
 // de balle, sans dépendre d'une image externe.
 function makeGlowTexture(color) {
   const size = 64;
@@ -531,7 +531,7 @@ function makeGlowTexture(color) {
   return new THREE.CanvasTexture(canvas);
 }
 
-// Pastille numérotée pour le mode Switch — même logique "canvas plutôt
+// Pastille numérotée pour le mode Switch, même logique "canvas plutôt
 // qu'asset externe" que makeGlowTexture ci-dessus.
 function makeNumberTexture(n) {
   const size = 128;
@@ -557,7 +557,7 @@ function makeNumberTexture(n) {
 }
 
 // --- Audio -------------------------------------------------------------
-// Synthétisés via Web Audio plutôt que des fichiers audio — même logique
+// Synthétisés via Web Audio plutôt que des fichiers audio, même logique
 // que les textures générées en canvas plus haut : rien à charger ni à
 // créditer pour un simple bruit de tir/impact.
 function createNoiseBuffer(ctx, seconds) {
@@ -597,7 +597,7 @@ function playGunshot(ctx) {
   thump.stop(now + 0.09);
 }
 
-// Cible touchée : petit "pop" mélodique et bref, distinct du tir — confirme
+// Cible touchée : petit "pop" mélodique et bref, distinct du tir, confirme
 // à l'oreille qu'une cible vient de tomber, pas juste qu'un coup est parti.
 function playTargetPop(ctx) {
   const now = ctx.currentTime;
@@ -635,7 +635,7 @@ function AimTrainerGame({ config: rawConfig }) {
   const [locked, setLocked] = useState(false);
   // Diagnostic visible directement dans l'app (pas besoin d'ouvrir la
   // console) : certains testeurs sur Discord ont signalé une sensation de
-  // lissage de la souris — utile pour confirmer d'un coup d'œil si l'entrée
+  // lissage de la souris, utile pour confirmer d'un coup d'œil si l'entrée
   // brute (unadjustedMovement) a vraiment pu s'activer sur leur machine.
   // null = pas encore tenté, true/false = résultat du dernier essai.
   const [rawInputActive, setRawInputActive] = useState(null);
@@ -646,7 +646,7 @@ function AimTrainerGame({ config: rawConfig }) {
   const phaseRef = useRef(phase);
   phaseRef.current = phase;
 
-  // Scène Three.js — montée une seule fois, pilotée ensuite via des refs pour
+  // Scène Three.js, montée une seule fois, pilotée ensuite via des refs pour
   // ne jamais avoir à la reconstruire (couteux) au fil des re-renders React.
   useEffect(() => {
     const mount = mountRef.current;
@@ -792,15 +792,15 @@ function AimTrainerGame({ config: rawConfig }) {
 
     // Mode Peek : chaque cible a en plus une box de couverture (fixe) et un
     // "corps" (visuel seulement, jamais dans la liste des meshes testés au
-    // tir — voir handleClick) qui accompagne la tête (= `mesh`, la seule
+    // tir, voir handleClick) qui accompagne la tête (= `mesh`, la seule
     // partie qui compte comme touche) quand elle sort de la box. Ces deux
     // meshes existent pour TOUTES les cibles, pas seulement en mode Peek,
     // pour que les mêmes objets 3D persistants puissent être réutilisés d'un
     // mode à l'autre dans une routine enchaînée (voir nextStep) sans jamais
-    // reconstruire la scène — ils restent juste invisibles hors de ce mode.
+    // reconstruire la scène, ils restent juste invisibles hors de ce mode.
     const peekBoxGeo = new THREE.BoxGeometry(PEEK_BOX_WIDTH, PEEK_BOX_HEIGHT, PEEK_BOX_DEPTH);
     // Même texture que les murs, mais avec sa propre répétition (une instance
-    // dédiée plutôt que `wallMat` directement — celui-ci est calé pour de
+    // dédiée plutôt que `wallMat` directement, celui-ci est calé pour de
     // grands pans de mur ; réutilisé tel quel sur une petite box, le motif
     // se répéterait beaucoup trop de fois).
     const peekBoxMat = loadPbrMaterial(
@@ -808,7 +808,7 @@ function AimTrainerGame({ config: rawConfig }) {
       [1.4, 1.2],
       { metalness: 0.45 },
     );
-    // Hauteur unitaire (1), mise à l'échelle par cible via `body.scale.y` —
+    // Hauteur unitaire (1), mise à l'échelle par cible via `body.scale.y`,
     // la hauteur réelle dépend de `targetSize` (voir computePeekLayout), qui
     // peut différer d'un préréglage à l'autre ou d'une étape de routine à
     // l'autre, exactement comme `mesh.scale` pour la tête.
@@ -819,16 +819,16 @@ function AimTrainerGame({ config: rawConfig }) {
     const peekBodyMat = new THREE.MeshStandardMaterial({ color: 0x2b3040, roughness: 0.7, metalness: 0.1 });
 
     // Nouvelle direction de dérive aléatoire (utilisée à la création d'une
-    // cible ET à chaque changement de cap en cours de vol) — un tirage
+    // cible ET à chaque changement de cap en cours de vol), un tirage
     // indépendant du précédent, pas juste une inversion, pour une trajectoire
     // qui ne se contente pas de rebondir sur les bords comme une balle de
     // billard. `speedRange` vient du mode actif (voir trackingBeginner /
-    // trackingIntermediate / tracking) — c'est le principal levier de
+    // trackingIntermediate / tracking), c'est le principal levier de
     // difficulté du Tracking, une cible plus lente est mécaniquement plus
     // facile à suivre.
     const DEFAULT_DRIFT_SPEED = [2, 4];
     // `lockY` (mode Strafe) : dérive purement horizontale, aucune composante
-    // verticale — sinon Strafe ne serait qu'un Tracking plus rapide au lieu
+    // verticale, sinon Strafe ne serait qu'un Tracking plus rapide au lieu
     // d'une vraie traversée latérale à la Valorant.
     const randomDrift = (speedRange = DEFAULT_DRIFT_SPEED, lockY = false) =>
       new THREE.Vector3(Math.random() * 2 - 1, lockY ? 0 : (Math.random() * 2 - 1) * 0.5, 0)
@@ -843,7 +843,7 @@ function AimTrainerGame({ config: rawConfig }) {
       return {
         drift: randomDrift(mode?.driftSpeed, mode?.driftLockY),
         // Prochain changement de cap en vol, indépendant des rebonds sur les
-        // bords — c'est ce qui rend la trajectoire imprévisible en Tracking.
+        // bords, c'est ce qui rend la trajectoire imprévisible en Tracking.
         // Un intervalle plus long (paliers faciles) laisse plus de temps
         // pour rattraper la cible avant qu'elle ne reparte ailleurs.
         driftChangeAt: performance.now() + changeMin + Math.random() * (changeMax - changeMin),
@@ -854,7 +854,7 @@ function AimTrainerGame({ config: rawConfig }) {
     };
 
     // (Ré)initialise le cycle caché → expose → replié d'une cible en mode
-    // Peek — utilisé à la création, à chaque nouvelle session/étape, et
+    // Peek, utilisé à la création, à chaque nouvelle session/étape, et
     // après une touche réussie (la cible se replie aussitôt plutôt que
     // d'attendre la fin naturelle du délai d'exposition).
     const initPeekState = (entry, now) => ({
@@ -886,7 +886,7 @@ function AimTrainerGame({ config: rawConfig }) {
       body.visible = false;
       scene.add(body);
 
-      // Pastille numérotée du mode Switch — existe pour toutes les cibles
+      // Pastille numérotée du mode Switch, existe pour toutes les cibles
       // (même logique que box/body ci-dessus) mais invisible hors de ce mode.
       const numberLabel = new THREE.Sprite(
         new THREE.SpriteMaterial({ transparent: true, depthTest: false }),
@@ -914,7 +914,7 @@ function AimTrainerGame({ config: rawConfig }) {
     }
 
     // Assigne un ordre 1..N mélangé aux cibles du mode Switch, et fait
-    // pointer chaque pastille vers la texture correspondante — appelé à la
+    // pointer chaque pastille vers la texture correspondante, appelé à la
     // création ET à chaque nouveau cycle complet (voir handleClick). Les
     // textures sont créées une seule fois par session (pas à chaque mélange)
     // pour éviter d'accumuler des CanvasTexture jetables.
@@ -947,7 +947,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const flashTexture = makeGlowTexture('rgba(255, 210, 130, 0.95)');
     const impactTexture = makeGlowTexture('rgba(255, 245, 220, 0.95)');
 
-    // Origine du canon pour le flash/la traînée — accrochée à la caméra (pas
+    // Origine du canon pour le flash/la traînée, accrochée à la caméra (pas
     // au modèle) pour rester fiable quelle que soit l'échelle du modèle chargé.
     const muzzleTip = new THREE.Object3D();
     muzzleTip.position.set(0.22, -0.14, -0.55);
@@ -995,7 +995,7 @@ function AimTrainerGame({ config: rawConfig }) {
       tracers: [],
       sparks: [],
       flashUntil: 0,
-      // Mode Tracking : suivi en maintien appuyé, pas en tirs discrets — voir
+      // Mode Tracking : suivi en maintien appuyé, pas en tirs discrets, voir
       // handleClick/handleRelease et l'échantillonnage dans la boucle
       // d'animation plus bas.
       isTrackingHeld: false,
@@ -1026,7 +1026,7 @@ function AimTrainerGame({ config: rawConfig }) {
 
         // Le modèle est déjà orienté canon vers -Z (sa dimension dominante va
         // de Z=-6.5 à Z=+2.7), c'est-à-dire dans la direction où regarde la
-        // caméra en Three.js — aucune rotation de retournement à appliquer.
+        // caméra en Three.js, aucune rotation de retournement à appliquer.
         // Un léger lacet/tangage suffit pour l'angle "viewmodel" classique.
         const holder = new THREE.Group();
         holder.add(model);
@@ -1060,7 +1060,7 @@ function AimTrainerGame({ config: rawConfig }) {
       const cfg = configRef.current;
 
       state.targets.forEach((entry) => {
-        // Pulsation à l'apparition — rend le spawn lisible.
+        // Pulsation à l'apparition, rend le spawn lisible.
         const age = now - entry.poppedAt;
         const scale = age < POP_DURATION_MS ? cfg.targetSize * (0.4 + 0.6 * (age / POP_DURATION_MS)) : cfg.targetSize;
         entry.mesh.scale.setScalar(scale);
@@ -1069,7 +1069,7 @@ function AimTrainerGame({ config: rawConfig }) {
 
         if (mode.movement === 'drift') {
           // Changement de cap aléatoire en cours de vol, indépendant des
-          // rebonds sur les bords — sans ça la cible ne fait que suivre une
+          // rebonds sur les bords, sans ça la cible ne fait que suivre une
           // ligne droite qui ricoche, prévisible dès le deuxième aller-retour.
           if (now >= entry.driftChangeAt) {
             const [changeMin, changeMax] = mode.driftChangeInterval ?? [350, 850];
@@ -1097,7 +1097,7 @@ function AimTrainerGame({ config: rawConfig }) {
             entry.anchor.z,
           );
         } else if (mode.movement === 'peek') {
-          // Cycle caché → sort latéralement de la box → tenu bref → rentre —
+          // Cycle caché → sort latéralement de la box → tenu bref → rentre,
           // la tête (`entry.mesh`) n'est visible (et donc tirable, voir
           // handleClick) que pendant les phases 'exposing'/'held'. Vitesse de
           // déplacement latéral calée sur la vraie vitesse de course de
@@ -1149,7 +1149,7 @@ function AimTrainerGame({ config: rawConfig }) {
 
         // Maintien (Snap-hold) : un clic arme la cible (voir handleClick),
         // mais il faut GARDER le viseur dessus pendant `holdMs` pour que ça
-        // compte — un flick "au pif" qui retombe dessus par hasard, sans
+        // compte, un flick "au pif" qui retombe dessus par hasard, sans
         // vraiment s'y stabiliser, ne suffit plus. Quitter la cible avant la
         // fin annule juste l'armement (pas de raté immédiat, on peut
         // recliquer) ; le timeout de mode.lifetime ci-dessous sanctionne un
@@ -1182,7 +1182,7 @@ function AimTrainerGame({ config: rawConfig }) {
         }
       });
 
-      // Mode Tracking : le viseur reste maintenu, pas cliqué à chaque tir —
+      // Mode Tracking : le viseur reste maintenu, pas cliqué à chaque tir,
       // échantillonné à intervalle régulier (pas à chaque frame, sinon le
       // nombre de "tirs" gonflerait artificiellement avec le framerate), et
       // un faisceau continu remplace les traînées ponctuelles des autres
@@ -1192,7 +1192,7 @@ function AimTrainerGame({ config: rawConfig }) {
       // pendant que le bouton est maintenu : sinon, cliquer une fois pile sur
       // la cible puis relâcher (plus aucun échantillon pris ensuite) donnait
       // 100% de précision en ne comptant jamais les ratés du reste du temps
-      // — exploit remonté par des joueurs sur le classement. Ne pas tenir le
+      //, exploit remonté par des joueurs sur le classement. Ne pas tenir le
       // viseur = raté, comme dans les autres modes.
       if (MODES[cfg.mode]?.holdTracking && phaseRef.current === 'running') {
         const TRACK_SAMPLE_INTERVAL_MS = 100;
@@ -1300,7 +1300,7 @@ function AimTrainerGame({ config: rawConfig }) {
   }, []);
 
   // Rotation de la caméra à la vraie sensibilité Valorant, pendant que le
-  // pointeur est capturé — degrés = mouvement souris × sens × yaw, exactement
+  // pointeur est capturé, degrés = mouvement souris × sens × yaw, exactement
   // la formule officielle du jeu.
   useEffect(() => {
     const handleMouseMove = (e) => {
@@ -1321,7 +1321,7 @@ function AimTrainerGame({ config: rawConfig }) {
       if (!camera) return;
 
       // Tracking : pas de tir discret, il faut rester appuyé sur la cible en
-      // mouvement — le pourcentage se calcule en continu dans la boucle
+      // mouvement, le pourcentage se calcule en continu dans la boucle
       // d'animation (voir plus bas), pas ici.
       if (MODES[configRef.current.mode]?.holdTracking) {
         state.isTrackingHeld = true;
@@ -1332,7 +1332,7 @@ function AimTrainerGame({ config: rawConfig }) {
       const { targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
       raycaster.setFromCamera(center, camera);
       // Mode Peek : la tête n'est testable que quand elle est visible (sortie
-      // de la box) — sinon un clic pendant qu'elle est cachée toucherait une
+      // de la box), sinon un clic pendant qu'elle est cachée toucherait une
       // cible qu'on ne voit pas à l'écran.
       const meshes = targets.filter((entry) => entry.mesh.visible).map((entry) => entry.mesh);
       const intersections = raycaster.intersectObjects(meshes);
@@ -1378,11 +1378,11 @@ function AimTrainerGame({ config: rawConfig }) {
         const mode = MODES[configRef.current.mode] ?? MODES.flick;
         if (mode.movement === 'peek') {
           // Temps de réaction mesuré depuis le début de CETTE exposition (pas
-          // depuis le début de la session) — c'est la vraie donnée d'un peek.
+          // depuis le début de la session), c'est la vraie donnée d'un peek.
           const reactionMs = performance.now() - (entry.peek.exposedAt ?? entry.spawnedAt);
           entry.peek.hitThisExposure = true;
           // Repli immédiat plutôt que d'attendre la fin naturelle du délai
-          // d'exposition — même logique que les autres modes qui font
+          // d'exposition, même logique que les autres modes qui font
           // réapparaître la cible aussitôt touchée.
           entry.peek = state.initPeekState(entry, performance.now());
           entry.mesh.visible = false;
@@ -1391,7 +1391,7 @@ function AimTrainerGame({ config: rawConfig }) {
           entry.poppedAt = performance.now();
           setStats((prev) => ({ ...prev, hits: prev.hits + 1, times: [...prev.times, reactionMs] }));
         } else if (mode.movement === 'switch') {
-          // Il faut toucher les cibles dans l'ORDRE affiché — une cible
+          // Il faut toucher les cibles dans l'ORDRE affiché, une cible
           // touchée hors de son tour ne compte pas comme une réussite (elle
           // reste en place, toujours avec son numéro), un vrai raté.
           if (entry.order === state.switchNext) {
@@ -1406,12 +1406,12 @@ function AimTrainerGame({ config: rawConfig }) {
           }
         } else if (mode.movement === 'snap') {
           // N'arme pas tout de suite un hit/raté : il faut GARDER le viseur
-          // dessus le temps du maintien requis — voir la boucle d'animation,
+          // dessus le temps du maintien requis, voir la boucle d'animation,
           // qui valide (ou annule si le viseur part trop tôt) ce maintien.
           if (entry.snapArmedAt === null) entry.snapArmedAt = performance.now();
         } else {
           // Rafale (Strafe-tap) : `hitsRequired` > 1 impose plusieurs touches
-          // avant que la cible ne se replace vraiment — chaque tap intermédiaire
+          // avant que la cible ne se replace vraiment, chaque tap intermédiaire
           // compte pour la précision mais ne relance ni position ni temps de
           // réaction, seul le tap final le fait.
           const remaining = mode.hitsRequired ? (entry.hitsRemaining ?? mode.hitsRequired) - 1 : 0;
@@ -1478,16 +1478,16 @@ function AimTrainerGame({ config: rawConfig }) {
 
   // Sans `unadjustedMovement`, Chromium applique la courbe d'accélération de
   // pointeur de Windows aux mouvements de la souris avant qu'ils n'arrivent
-  // au jeu — exactement ce que Valorant évite en lisant l'entrée souris
+  // au jeu, exactement ce que Valorant évite en lisant l'entrée souris
   // brute. Résultat : à sensibilité identique affichée, le ressenti diffère
-  // (un utilisateur l'a signalé sur Discord — plus lent que sur Valorant).
+  // (un utilisateur l'a signalé sur Discord, plus lent que sur Valorant).
   // L'appel doit rester synchrone dans le geste utilisateur ; seul le
   // traitement du résultat est asynchrone, ce qui ne casse pas cette règle.
-  // `onLocked` n'est appelé qu'une fois le verrouillage RÉELLEMENT acquis —
+  // `onLocked` n'est appelé qu'une fois le verrouillage RÉELLEMENT acquis,
   // pas juste demandé. Important juste après un Échap : Chromium refuse
   // brièvement tout nouveau verrouillage du pointeur pendant une fraction de
   // seconde (protection anti-piégeage du curseur). Sans ça, resumeSession()
-  // passait en phase "running" même quand le verrouillage échouait — le
+  // passait en phase "running" même quand le verrouillage échouait, le
   // crosshair restait caché (conditionné à `locked`) et la souris système
   // ne se capturait jamais, la partie semblait "cassée" après une pause.
   const lockPointer = (onLocked) => {
@@ -1504,21 +1504,21 @@ function AimTrainerGame({ config: rawConfig }) {
         setRawInputActive(true);
         onLocked?.();
       })
-      // Sur une plateforme qui ne supporte pas l'option (rare — surtout hors
+      // Sur une plateforme qui ne supporte pas l'option (rare, surtout hors
       // Windows/Chromium), la promesse rejette : on retente sans l'option
       // plutôt que de laisser le verrouillage échouer complètement.
       .catch((err) => {
-        console.log('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans —', err?.message ?? err);
+        console.log('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans :', err?.message ?? err);
         setRawInputActive(false);
         const fallback = canvas.requestPointerLock();
         fallback
           ?.then(() => onLocked?.())
           .catch((fallbackErr) => {
-            // Les deux tentatives ont échoué — le plus souvent le cooldown
+            // Les deux tentatives ont échoué, le plus souvent le cooldown
             // Chromium juste après un Échap. On ne force rien ici : c'est à
             // l'appelant de décider (ex. rester en pause pour laisser un
             // nouveau clic, un vrai geste utilisateur, retenter).
-            console.log('[aim-trainer] pointer lock : repli aussi refusé —', fallbackErr?.message ?? fallbackErr);
+            console.log('[aim-trainer] pointer lock : repli aussi refusé :', fallbackErr?.message ?? fallbackErr);
           });
       });
   };
@@ -1572,9 +1572,9 @@ function AimTrainerGame({ config: rawConfig }) {
       stateRef.current.switchNext = 1;
     }
     // Le verrouillage du pointeur doit être demandé de façon synchrone dans la
-    // foulée du clic (exigence de sécurité de Chromium) — pas d'await avant.
+    // foulée du clic (exigence de sécurité de Chromium), pas d'await avant.
     // La phase ne passe en "running" qu'une fois le verrouillage confirmé
-    // (voir lockPointer) — sinon le crosshair resterait caché et la souris
+    // (voir lockPointer), sinon le crosshair resterait caché et la souris
     // système visible si jamais la demande échouait.
     lockPointer(() => setPhase('running'));
   };
@@ -1603,7 +1603,7 @@ function AimTrainerGame({ config: rawConfig }) {
   const resumeSession = () => {
     // C'est le cas le plus exposé au cooldown Chromium : reprendre juste
     // après avoir quitté via Échap, l'action même qui déclenche ce cooldown.
-    // Reste en "paused" si le verrouillage échoue — le bouton "Reprendre"
+    // Reste en "paused" si le verrouillage échoue, le bouton "Reprendre"
     // reste affiché, un nouveau clic (geste utilisateur frais) repasse
     // généralement une fois le cooldown écoulé (une fraction de seconde).
     lockPointer(() => setPhase('running'));
@@ -1616,13 +1616,13 @@ function AimTrainerGame({ config: rawConfig }) {
   const hitsPerSecond = config.duration > 0 ? stats.hits / config.duration : 0;
 
   // Le classement se base sur le nombre de cibles touchées, pas sur un score
-  // pondéré par la précision — sinon quelqu'un qui ne tire que sur des
+  // pondéré par la précision, sinon quelqu'un qui ne tire que sur des
   // cibles sûres (ex. 7 tirs, 7 touchées, 0 raté = 100% précision) obtient
   // un meilleur score qu'un joueur qui en touche 50 avec 80% de précision,
   // alors qu'il a objectivement fait beaucoup moins. Repéré via un score de
   // classement anormalement haut avec seulement 7 touchées.
   // Exception : le mode Tracking (holdTracking) n'a pas de "cible touchée"
-  // discrète — le viseur reste maintenu en continu sur une cible en
+  // discrète, le viseur reste maintenu en continu sur une cible en
   // mouvement, seul le pourcentage de précision a un sens pour lui.
   const score = MODES[config.mode]?.holdTracking
     ? (accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3))
@@ -1681,7 +1681,7 @@ function AimTrainerGame({ config: rawConfig }) {
               <span className="aim-game-hud-label">touchées</span>
             </div>
             <div className="aim-game-hud-item">
-              <span className="aim-game-hud-value">{accuracy === null ? '—' : `${accuracy.toFixed(0)}%`}</span>
+              <span className="aim-game-hud-value">{accuracy === null ? '–' : `${accuracy.toFixed(0)}%`}</span>
               <span className="aim-game-hud-label">précision</span>
             </div>
           </div>
@@ -1705,12 +1705,12 @@ function AimTrainerGame({ config: rawConfig }) {
                 <p>
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
                 </p>
-                {config.challengeDate && <p className="aim-game-tip"><Icon icon={Trophy} size={16} /> Défi du jour — score comptabilisé au classement</p>}
+                {config.challengeDate && <p className="aim-game-tip"><Icon icon={Trophy} size={16} /> Défi du jour : score comptabilisé au classement</p>}
                 {MODES[config.mode]?.holdTracking && (
                   <p className="aim-game-tip"><Icon icon={Waves} size={16} /> Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
                 )}
                 {MODES[config.mode]?.movement === 'switch' && (
-                  <p className="aim-game-tip"><Icon icon={Shuffle} size={16} /> Touche les cibles dans l'ordre affiché — une erreur d'ordre compte comme un raté.</p>
+                  <p className="aim-game-tip"><Icon icon={Shuffle} size={16} /> Touche les cibles dans l'ordre affiché. Une erreur d'ordre compte comme un raté.</p>
                 )}
                 {MODES[config.mode]?.movement === 'snap' && (
                   <p className="aim-game-tip"><Icon icon={Hourglass} size={16} /> Un flick ne suffit pas : reste stabilisé sur la cible un instant pour que le tir compte.</p>
@@ -1763,7 +1763,7 @@ function AimTrainerGame({ config: rawConfig }) {
 
                 <div className="aim-game-results">
                   <div className="aim-game-result">
-                    <span className="aim-game-result-value">{accuracy === null ? '—' : `${accuracy.toFixed(1)}%`}</span>
+                    <span className="aim-game-result-value">{accuracy === null ? '–' : `${accuracy.toFixed(1)}%`}</span>
                     <span className="aim-game-result-label">Précision</span>
                   </div>
                   <div className="aim-game-result">
@@ -1780,13 +1780,13 @@ function AimTrainerGame({ config: rawConfig }) {
                   </div>
                   <div className="aim-game-result">
                     <span className="aim-game-result-value">
-                      {avgReaction === null ? '—' : `${avgReaction.toFixed(0)} ms`}
+                      {avgReaction === null ? '–' : `${avgReaction.toFixed(0)} ms`}
                     </span>
                     <span className="aim-game-result-label">Réaction moyenne</span>
                   </div>
                   <div className="aim-game-result">
                     <span className="aim-game-result-value">
-                      {bestReaction === null ? '—' : `${bestReaction.toFixed(0)} ms`}
+                      {bestReaction === null ? '–' : `${bestReaction.toFixed(0)} ms`}
                     </span>
                     <span className="aim-game-result-label">Meilleure réaction</span>
                   </div>
@@ -1808,19 +1808,19 @@ function AimTrainerGame({ config: rawConfig }) {
                 {saveState === 'saved' && <p className="aim-game-tip"><Icon icon={CheckCircle2} size={16} /> Score enregistré sur ton compte</p>}
                 {saveState === 'error' && (
                   <p className="aim-game-tip aim-game-save-error">
-                    <Icon icon={AlertTriangle} size={16} /> Score non enregistré — vérifie ta connexion, le détail est dans la console.
+                    <Icon icon={AlertTriangle} size={16} /> Score non enregistré · vérifie ta connexion, le détail est dans la console.
                   </p>
                 )}
 
                 {playlist && !isLastStep && (
                   <Button variant="primary" className="refresh aim-game-cta" onClick={nextStep}>
-                    <Icon icon={Play} size={16} /> Étape suivante —{' '}
+                    <Icon icon={Play} size={16} /> Étape suivante :{' '}
                     <Icon icon={MODES[playlist[step + 1]].icon} style={{ color: MODES[playlist[step + 1]].accent }} />{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
                   </Button>
                 )}
-                {/* Défi du jour : un seul essai compte au classement — pas de
+                {/* Défi du jour : un seul essai compte au classement · pas de
                     bouton pour relancer et retenter sa chance. */}
                 {!config.challengeDate && (
                   <Button variant="primary" className="refresh aim-game-cta" onClick={startSession}>

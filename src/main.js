@@ -43,7 +43,7 @@ import { updateElectronApp } from 'update-electron-app';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
 // move the cache: Accès refusé" au démarrage, cache disque probablement
-// verrouillé/corrompu par un antivirus ou des instances précédentes) — chaque
+// verrouillé/corrompu par un antivirus ou des instances précédentes), chaque
 // requête réseau (dont tous les appels aux API d'assets) échouait tant que le
 // service redémarrait. Désactiver le cache disque HTTP contourne le problème.
 app.commandLine.appendSwitch('disable-http-cache');
@@ -51,14 +51,14 @@ app.commandLine.appendSwitch('disable-http-cache');
 const store = new Store();
 
 // Toutes les données "personnelles" (crosshairs, stratégies, paris,
-// évaluations, puzzles, wrapped, objectifs, skins) sont scopées par puuid —
+// évaluations, puzzles, wrapped, objectifs, skins) sont scopées par puuid,
 // mais celui du compte MVP Tracker réellement LIÉ (Supabase), jamais celui
 // de "qui est actuellement affiché à l'écran" (valorantSettings.puuid change
-// à chaque recherche d'un autre joueur — utiliser ce champ ici recréait
+// à chaque recherche d'un autre joueur, utiliser ce champ ici recréait
 // exactement le bug qu'on scope pour éviter). Le renderer tient cette valeur
 // à jour via account:set-linked-puuid dès qu'il connaît le profil Supabase.
 // L'API distingue "pc" et "console" pour la MMR (v3/mmr) et les matchs
-// (v4/matches) — interroger la mauvaise plateforme renvoie soit 0 résultat,
+// (v4/matches), interroger la mauvaise plateforme renvoie soit 0 résultat,
 // soit une erreur 500. `account.platforms` (v2/account) liste les
 // plateformes déjà VUES sur le compte, mais un compte crossplay peut lister
 // les deux ("PC" et "CONSOLE") même si l'essentiel de l'historique récent
@@ -68,7 +68,7 @@ const store = new Store();
 // ces comptes-là. platformCandidates() renvoie un ordre d'essai plutôt qu'un
 // choix unique ; les appelants essaient chaque candidat jusqu'à un succès.
 // Cache partagé et persistant (survit aux redémarrages) pour les "aperçus"
-// d'AUTRES joueurs (rang, K/D récent) — classement Aim Trainer, amis, écran
+// d'AUTRES joueurs (rang, K/D récent), classement Aim Trainer, amis, écran
 // de liaison. Sans lui, chaque survol/ouverture repayait une requête même
 // pour un joueur déjà consulté il y a 30 secondes. 5 minutes de fraîcheur :
 // assez pour ne pas répéter les mêmes requêtes en rafale, assez court pour
@@ -138,7 +138,7 @@ function currentPuuid() {
 backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
 
 // Même chose côté electron-store : `personalGoals`/`skinsWishlist`/
-// `skinsCollection` existaient en clés globales avant ce scoping — on les
+// `skinsCollection` existaient en clés globales avant ce scoping, on les
 // rattache au compte actuellement configuré si ce n'est pas déjà fait.
 (function migrateLegacyStoreKeys() {
   const puuid = store.get('valorantSettings')?.puuid ?? null;
@@ -165,18 +165,18 @@ updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
 
 // Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
 // version dans son propre dossier `app-<version>` et supprime normalement
-// les anciennes une fois la mise à jour appliquée — mais seulement s'il a pu
+// les anciennes une fois la mise à jour appliquée, mais seulement s'il a pu
 // le faire (dossier pas verrouillé par une instance encore ouverte, app
 // fermée proprement). Ça peut laisser d'anciennes versions traîner dans
 // %LocalAppData%\MVP Tracker\ indéfiniment. Ce nettoyage ne touche QUE ce
-// dossier d'installation (le code de l'app) — jamais `app.getPath('userData')`
+// dossier d'installation (le code de l'app), jamais `app.getPath('userData')`
 // (%AppData%\MVP Tracker\, où vivent matches.db, les réglages, etc.), qui est
 // un chemin totalement différent.
 function cleanupOldSquirrelVersions() {
   if (!app.isPackaged || process.platform !== 'win32') return;
   try {
     // En Squirrel.Windows, l'exécutable qui tourne est toujours
-    // <racine>\app-<version courante>\<ProductName>.exe — on en déduit la
+    // <racine>\app-<version courante>\<ProductName>.exe, on en déduit la
     // racine d'installation et le nom du dossier à préserver.
     const currentVersionDir = path.dirname(process.execPath);
     const installRoot = path.dirname(currentVersionDir);
@@ -199,12 +199,12 @@ function cleanupOldSquirrelVersions() {
   }
 }
 
-// Enlève le bandeau de menu natif (File/Edit/View/Window) — l'app a sa propre
+// Enlève le bandeau de menu natif (File/Edit/View/Window), l'app a sa propre
 // navigation, ce menu par défaut d'Electron n'a aucune utilité ici.
 Menu.setApplicationMenu(null);
 
 // Schéma personnalisé utilisé pour le lien de réinitialisation de mot de
-// passe envoyé par Supabase — l'app n'a pas de site web pour héberger la
+// passe envoyé par Supabase, l'app n'a pas de site web pour héberger la
 // page de redirection, donc le lien rouvre directement l'app à la place.
 const DEEP_LINK_SCHEME = 'mvptracker';
 
@@ -241,7 +241,7 @@ function handleDeepLink(url) {
   mainWindow?.webContents.send('deep-link:recovery', { accessToken, refreshToken });
 }
 
-// Windows lance une deuxième instance quand on clique le lien — le verrou
+// Windows lance une deuxième instance quand on clique le lien, le verrou
 // redirige cet appel vers l'instance déjà ouverte au lieu d'en ouvrir une
 // deuxième qui écrirait dans les mêmes fichiers locaux.
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
@@ -289,7 +289,7 @@ const createWindow = () => {
   });
 
   // `Menu.setApplicationMenu(null)` ci-dessous supprime aussi le raccourci
-  // DevTools par défaut (Ctrl+Maj+I) — celui-ci le restitue via F12, pour
+  // DevTools par défaut (Ctrl+Maj+I), celui-ci le restitue via F12, pour
   // pouvoir profiler l'app (utile pour investiguer un souci de perf signalé
   // par un utilisateur avancé) sans avoir à relancer en mode dev.
   mainWindow.webContents.on('before-input-event', (_event, input) => {
@@ -416,7 +416,7 @@ ipcMain.handle('settings:set', (_event, settings) => {
   setValorantSettings(settings);
 });
 
-// Identifiant stable de cette installation — sert uniquement à distinguer les
+// Identifiant stable de cette installation, sert uniquement à distinguer les
 // lignes de stats réseau de chaque appareil dans Supabase (un identifiant par
 // PC, pas par personne), pour additionner les totaux sans qu'un appareil
 // n'écrase les chiffres d'un autre.
@@ -429,7 +429,7 @@ ipcMain.handle('network:get-device-id', () => {
   return id;
 });
 
-// Préférence de langue de l'interface — globale à l'app, indépendante du
+// Préférence de langue de l'interface, globale à l'app, indépendante du
 // profil consulté ou du compte lié.
 ipcMain.handle('language:get', () => store.get('appLanguage') || 'fr');
 
@@ -438,7 +438,7 @@ ipcMain.handle('language:set', (_event, language) => {
 });
 
 // Le renderer appelle ceci dès qu'il connaît (ou perd) le compte MVP Tracker
-// lié — c'est cette valeur, pas valorantSettings.puuid, qui scope toutes les
+// lié, c'est cette valeur, pas valorantSettings.puuid, qui scope toutes les
 // données personnelles (voir currentPuuid() plus haut).
 ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
   if (puuid) {
@@ -449,13 +449,13 @@ ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
 });
 
 // Cache local (par compte MVP Tracker, pas par compte Riot) de la clé de
-// messagerie déjà déchiffrée — chiffré par le coffre-fort du système
+// messagerie déjà déchiffrée, chiffré par le coffre-fort du système
 // (DPAPI sous Windows, Trousseau sous macOS) via safeStorage, PAS par
 // electron-store lui-même (qui écrit du JSON en clair sur disque). Le mot
 // de passe du compte ne sert donc qu'une fois par appareil : une fois cette
 // clé mise en cache ici, les lancements suivants n'ont plus besoin de le
 // redemander. Un nouvel appareil (ou ce cache vidé) redemande le mot de
-// passe une fois — voir wrapped_private_key côté Supabase pour cette
+// passe une fois, voir wrapped_private_key côté Supabase pour cette
 // récupération, jamais la clé elle-même en clair côté serveur.
 ipcMain.handle('messaging:cache-key', (_event, { userId, publicKey, secretKeyBase64 }) => {
   if (!safeStorage.isEncryptionAvailable()) return false;
@@ -473,7 +473,7 @@ ipcMain.handle('messaging:get-cached-key', (_event, userId) => {
     const decrypted = safeStorage.decryptString(Buffer.from(cached, 'base64'));
     return JSON.parse(decrypted);
   } catch {
-    // Coffre-fort système inaccessible/déplacé (ex. profil Windows recréé) —
+    // Coffre-fort système inaccessible/déplacé (ex. profil Windows recréé),
     // pas grave, ça retombe sur la demande de mot de passe habituelle.
     return null;
   }
@@ -483,7 +483,7 @@ ipcMain.handle('messaging:clear-cached-key', (_event, userId) => {
   store.delete(`messagingKeyCache.${userId}`);
 });
 
-// Cherche un compte Riot sans rien enregistrer — sert à afficher un aperçu
+// Cherche un compte Riot sans rien enregistrer, sert à afficher un aperçu
 // (bannière/rang/pseudo) avant que l'utilisateur confirme que c'est bien le
 // sien, sur l'écran de liaison de compte.
 ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey }) => {
@@ -518,7 +518,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
 
   // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
   // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup
-  // (jusqu'à 50, un par match manquant) sur la même minute — sur la clé
+  // (jusqu'à 50, un par match manquant) sur la même minute, sur la clé
   // Basic (30 req/min), le rang passait après coup et pouvait se retrouver
   // sans quota restant, faisant échouer silencieusement rien que lui. Là, il
   // profite du quota complet dès le début du rafraîchissement.
@@ -536,36 +536,36 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     };
     store.set(`valorantRank:${account.puuid}`, rankInfo);
   } catch {
-    // Rang indisponible pour CE compte (non classé, erreur API, rate limit) —
+    // Rang indisponible pour CE compte (non classé, erreur API, rate limit),
     // on ne touche pas au cache d'un autre compte (voir le retour ci-dessous,
     // toujours scopé au puuid réellement recherché, jamais un "dernier connu"
     // global qui pouvait laisser transparaître le rang d'un autre joueur).
   }
 
   // v4/matches renvoie déjà le détail complet de chaque match (round par
-  // round, kills avec position) — plus besoin d'un aller-retour "liste
+  // round, kills avec position), plus besoin d'un aller-retour "liste
   // d'IDs" puis "détail par ID" comme avant. Le nombre de résultats par
   // requête reste plafonné à 10 quel que soit `size` (même limite silencieuse
   // que l'ancien point d'accès, confirmée en test réel), mais `start` permet
-  // de paginer au-delà — vérifié aussi. On tourne tant qu'une page est
+  // de paginer au-delà, vérifié aussi. On tourne tant qu'une page est
   // pleine (encore de l'historique derrière), jusqu'à 40 matchs par sync
   // (marge de quota, comme avant) ou jusqu'à une limite de requêtes atteinte.
   const HISTORY_CAP = 40;
   const PAGE_SIZE = 10;
 
   // Un compte crossplay (account.platforms liste "PC" ET "CONSOLE") peut
-  // avoir de vrais matchs sur LES DEUX — pas juste une seule "bonne"
+  // avoir de vrais matchs sur LES DEUX, pas juste une seule "bonne"
   // plateforme à deviner. On récupère donc l'historique de chaque
   // plateforme listée plutôt que de s'arrêter à la première qui répond, et
   // chaque match garde sa plateforme d'origine (metadata.platform, déjà
-  // conservée par le normaliseur) — ça permet à l'interface de proposer un
+  // conservée par le normaliseur), ça permet à l'interface de proposer un
   // filtre PC/Console dans chaque onglet, uniquement quand les deux sont
   // réellement présentes en cache pour ce joueur (voir usePlatformFilter.js
   // côté renderer). Si une plateforme listée n'a en réalité aucun historique
   // exploitable (ex. erreur 500 constatée sur "console" pour un compte qui
   // ne joue que sur PC malgré le crossplay activé), elle est simplement
   // ignorée sans bloquer l'autre.
-  // Les matchs les plus récents arrivent en premier (start=0) — dès qu'une
+  // Les matchs les plus récents arrivent en premier (start=0), dès qu'une
   // page entière est déjà en cache, tout ce qui suit l'est forcément aussi
   // (pas de trou possible dans l'historique). Une resynchro "à vide" (rien
   // de nouveau) coûte donc 1 requête par plateforme au lieu des 4 qu'il
@@ -585,7 +585,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
       } catch (err) {
         if (err.status === 429) {
           // Limite de requêtes atteinte : inutile d'insister, y compris sur
-          // l'autre plateforme (même quota) — reprise à la prochaine
+          // l'autre plateforme (même quota), reprise à la prochaine
           // synchronisation (chaque match déjà en cache n'est jamais redemandé).
           console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
           rateLimited = true;
@@ -616,7 +616,7 @@ ipcMain.handle('valorant:get-cached-matches', () => {
   return getCachedMatches(settings.puuid);
 });
 
-// Variante par puuid explicite — sert aux widgets "personnels" (wrapped
+// Variante par puuid explicite, sert aux widgets "personnels" (wrapped
 // hebdo, etc.) qui doivent toujours parler du compte lié, pas de celui
 // éventuellement affiché à l'écran si l'utilisateur consulte quelqu'un d'autre.
 ipcMain.handle('valorant:get-cached-matches-for', (_event, puuid) => {
@@ -639,7 +639,7 @@ ipcMain.handle('network:get-status', () => networkStatus);
 
 // Détection de tilt en direct : tant que Valorant tourne, on revérifie
 // régulièrement si un nouveau match vient de se terminer et, si oui, on
-// recalcule le statut de tilt pour prévenir par notification Windows —
+// recalcule le statut de tilt pour prévenir par notification Windows,
 // sans attendre que l'utilisateur ouvre l'app et clique sur l'onglet Tilt.
 const tiltPollState = { lastMatchId: null, notified: false };
 
@@ -649,7 +649,7 @@ function notifyTilt(tilt, form) {
     ? `Série de ${form.streakCount} défaites d'affilée. Une pause pourrait aider.`
     : `Ta perf a baissé sur tes 3 derniers matchs. Une pause pourrait aider.`;
   const notification = new Notification({
-    title: 'MVP Tracker — signe de tilt détecté',
+    title: 'MVP Tracker · signe de tilt détecté',
     body,
     silent: false,
   });
@@ -703,7 +703,7 @@ setInterval(() => {
 // Accepte un puuid explicite plutôt que de compter uniquement sur
 // currentPuuid() (lu depuis le disque) : au tout premier appel d'une
 // session, cet appel et celui qui enregistre linkedAccountPuuid partent en
-// parallèle depuis le renderer — currentPuuid() peut donc encore être vide
+// parallèle depuis le renderer, currentPuuid() peut donc encore être vide
 // au moment où celui-ci s'exécute, même si le puuid demandé est le bon.
 ipcMain.handle('network:get-ping-samples', (_event, puuid) => {
   const target = puuid ?? currentPuuid();
@@ -712,12 +712,12 @@ ipcMain.handle('network:get-ping-samples', (_event, puuid) => {
 
 // Sélection d'agent en direct, via l'API locale du client Valorant. Passe
 // obligatoirement par le process principal : lecture du lockfile et du log du
-// jeu, plus un certificat auto-signé à accepter — trois choses impossibles
+// jeu, plus un certificat auto-signé à accepter, trois choses impossibles
 // depuis le renderer, que la CSP bloquerait de toute façon.
 ipcMain.handle('valorant-local:agent-select', () => getAgentSelect());
 
 // Overlay de sélection d'agent : une fenêtre séparée, transparente et
-// toujours au premier plan — PAS une injection dans le jeu. Elle reste
+// toujours au premier plan, PAS une injection dans le jeu. Elle reste
 // invisible aux anti-triches (Vanguard) parce qu'elle ne touche jamais au
 // processus de Valorant : c'est juste une fenêtre de plus gérée par Windows,
 // comme n'importe quelle autre appli flottante. Ne fonctionne qu'en Sans
@@ -728,7 +728,7 @@ let agentSelectOverlayWindow = null;
 // Réaffirme le premier plan pendant que l'overlay est visible : Windows lui
 // fait perdre son rang "always on top" dès qu'on reclique sur le jeu (qui
 // redevient l'appli active), donc un seul setAlwaysOnTop() à la création ne
-// suffit pas — il faut regagner ce combat de z-order en continu.
+// suffit pas, il faut regagner ce combat de z-order en continu.
 let overlayTopmostInterval = null;
 
 function createAgentSelectOverlay() {
@@ -746,7 +746,7 @@ function createAgentSelectOverlay() {
     skipTaskbar: true,
     alwaysOnTop: true,
     // `focusable: false` empêchait la fenêtre de repasser devant d'autres
-    // fenêtres "always on top" (dont le jeu) de façon fiable sous Windows —
+    // fenêtres "always on top" (dont le jeu) de façon fiable sous Windows,
     // le clic-traversant ci-dessous protège déjà des clics volés, donc rien
     // à perdre à la laisser focusable.
     autoHideMenuBar: true,
@@ -791,7 +791,7 @@ function createAgentSelectOverlay() {
 
 // Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
 // qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
-// de l'app — une fenêtre transparente/always-on-top GPU-composée qui traîne
+// de l'app, une fenêtre transparente/always-on-top GPU-composée qui traîne
 // en continu entre en conflit avec le rendu plein écran exclusif de Valorant
 // et cause du lag système (souris qui rame), même en restant invisible.
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
@@ -810,7 +810,7 @@ ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
 });
 
 // Les suggestions d'agent sont calculées dans la fenêtre PRINCIPALE (seule à
-// connaître le compte MVP Tracker lié et son historique de matchs — la
+// connaître le compte MVP Tracker lié et son historique de matchs, la
 // fenêtre overlay, elle, n'a aucune session Supabase). On les relaie donc
 // simplement à l'overlay au lieu de dupliquer cette logique côté overlay.
 ipcMain.handle('agent-select-overlay:set-suggestions', (_event, suggestions) => {
@@ -836,14 +836,14 @@ ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
 
 ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(currentPuuid(), id));
 
-// Clé `electron-store` scopée par compte — `skinsWishlist` / `skinsCollection`
+// Clé `electron-store` scopée par compte, `skinsWishlist` / `skinsCollection`
 // / `personalGoals` suivent maintenant le compte plutôt que la machine.
 function scopedKey(base) {
   const puuid = currentPuuid();
   return puuid ? `${base}:${puuid}` : null;
 }
 
-// Blocs réduits (chaque carte de chaque onglet, voir CollapsibleCard.jsx) —
+// Blocs réduits (chaque carte de chaque onglet, voir CollapsibleCard.jsx),
 // liste d'identifiants stables (ex. "stats.profileHeader"), scopée au compte
 // LIÉ comme le reste des préférences personnelles (jamais au profil
 // actuellement affiché, qui change à chaque recherche).
@@ -995,7 +995,7 @@ ipcMain.handle('goals:delete', (_event, id) => {
 app.whenReady().then(() => {
   cleanupOldSquirrelVersions();
 
-  // Content-Security-Policy — uniquement en production packagée : le serveur
+  // Content-Security-Policy, uniquement en production packagée : le serveur
   // de dev Vite a besoin d'unsafe-eval pour le rechargement à chaud, inutile
   // (et contre-productif) de le restreindre en dev. Les seules origines
   // distantes réellement contactées par l'app : HenrikDev (matchs/rang),
@@ -1019,7 +1019,7 @@ app.whenReady().then(() => {
   }
 
   // Empêche toute fenêtre de l'app de naviguer ailleurs que vers son propre
-  // contenu — les liens externes (Discord, mailto...) passent déjà par
+  // contenu, les liens externes (Discord, mailto...) passent déjà par
   // shell.openExternal, jamais par une navigation dans la fenêtre. Défense
   // en profondeur si du contenu inattendu tentait de rediriger la fenêtre.
   app.on('web-contents-created', (_event, contents) => {
@@ -1034,7 +1034,7 @@ app.whenReady().then(() => {
   createWindow();
 
   // Premier lancement déclenché directement par le lien (l'app n'était pas
-  // encore ouverte) — le lien arrive dans les arguments de démarrage.
+  // encore ouverte), le lien arrive dans les arguments de démarrage.
   const startupDeepLink = process.argv.find((arg) => arg.startsWith(`${DEEP_LINK_SCHEME}://`));
   if (startupDeepLink) {
     mainWindow.webContents.once('did-finish-load', () => handleDeepLink(startupDeepLink));

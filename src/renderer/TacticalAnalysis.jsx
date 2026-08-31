@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Footprints, Swords, Hourglass, Coins, Banknote, Wallet, Crosshair, Target, Radar, BowArrow } from 'lucide-react';
 import { deathTimingStats, clutchStats, economyImpactStats, duelDistanceStats } from './valorantStats.js';
 import PostMortemHistory from './PostMortemHistory.jsx';
-import LoadingState from './LoadingState.jsx';
+import { AnalyseTabSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -28,16 +29,15 @@ function TacticalAnalysis({ settings, matches, loading }) {
   const economy = useMemo(() => economyImpactStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
   const distance = useMemo(() => duelDistanceStats(filteredMatches, settings.name, settings.tag), [filteredMatches, settings.name, settings.tag]);
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('analyse.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <AnalyseTabSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('analyse.noMatchesYet')}</p>;
 
   return (
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="analyse.timing" title={t('analyse.timingTitle', { count: timing.total })}>
+      <CollapsibleCard collapsible={false} id="analyse.timing" title={t('analyse.timingTitle', { count: timing.total })}>
         {timing.total === 0 ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (
@@ -100,7 +100,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard id="analyse.clutch" title={t('analyse.clutchTitle')} className="comp-score-card">
+      <CollapsibleCard collapsible={false} id="analyse.clutch" title={t('analyse.clutchTitle')} className="comp-score-card">
         {clutch.attempts === 0 ? (
           <p>{t('analyse.noClutch')}</p>
         ) : (
@@ -127,7 +127,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         <p className="label" style={{ marginTop: '0.5rem' }}>{t('analyse.clutchHint')}</p>
       </CollapsibleCard>
 
-      <CollapsibleCard id="analyse.economy" title={t('analyse.economyTitle')}>
+      <CollapsibleCard collapsible={false} id="analyse.economy" title={t('analyse.economyTitle')}>
         {economy.every((t2) => t2.rounds === 0) ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (

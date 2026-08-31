@@ -20,7 +20,7 @@ function WelcomeOrbs() {
 }
 
 // Écran affiché une seule fois, uniquement quand le compte MVP Tracker n'a
-// encore aucun Riot ID lié (profile === null dans App.jsx) — distinct de la
+// encore aucun Riot ID lié (profile === null dans App.jsx), distinct de la
 // recherche libre depuis la barre du haut, qui elle ne lie jamais de compte.
 // En deux temps : recherche (rien n'est encore enregistré) puis confirmation
 // avec aperçu du vrai profil avant la liaison définitive.
@@ -97,8 +97,8 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
               onChange={(e) => setApiKey(e.target.value)}
               required
             />
-            <Button variant="primary" type="submit" disabled={loading}>
-              {loading ? t('linkRiot.searching') : t('linkRiot.search')}
+            <Button variant="primary" type="submit" loading={loading} loadingLabel={t('linkRiot.searching')}>
+              {t('linkRiot.search')}
             </Button>
           </form>
 

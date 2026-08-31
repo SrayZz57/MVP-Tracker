@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { User, Medal } from 'lucide-react';
 import { computeTeammateSynergy, computeNemesis } from './socialStats.js';
 import { useAgentIcons } from './agentIcons.js';
-import LoadingState from './LoadingState.jsx';
+import { TeammatesRivalsSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -128,14 +129,13 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
     () => computeNemesis(filteredMatches, settings.name, settings.tag),
     [filteredMatches, settings.name, settings.tag],
   );
-  // Le centre du graphe représente le tracker actuellement consulté — "Toi"
+  // Le centre du graphe représente le tracker actuellement consulté, "Toi"
   // seulement quand c'est vraiment le cas, sinon le pseudo de l'autre joueur.
   const centerLabel = settings.puuid === myPuuid ? t('social.you') : settings.name;
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('social.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <TeammatesRivalsSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('social.noMatchesYet')}</p>;
 
   return (
     <div>

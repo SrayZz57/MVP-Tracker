@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 
-// Prix VP estimés par rareté — pas exposés par l'API (voir CLAUDE.md/plan),
+// Prix VP estimés par rareté, pas exposés par l'API (voir CLAUDE.md/plan),
 // valeurs communautaires connues mais non officielles, modifiables par skin.
 // Ultra est au-dessus d'Exclusive en jeu (confirmé via le champ "rank" de
 // /v1/contenttiers : Exclusive=3, Ultra=4), donc plus cher.
@@ -15,19 +15,19 @@ export const TIER_PRICES = {
 // Les couteaux coûtent environ le double d'une arme à feu de la même rareté
 // (quasi tous les couteaux sont en tier "Exclusive" dans les données du jeu,
 // mais un skin d'arme Exclusive et un couteau Exclusive n'ont pas le même prix
-// en jeu — vérifié par recherche, le ratio ~2x est constant sur tous les tiers
+// en jeu, vérifié par recherche, le ratio ~2x est constant sur tous les tiers
 // pour la grande majorité des couteaux "standard").
 const MELEE_CATEGORY = 'EEquippableCategory::Melee';
 const MELEE_PRICE_MULTIPLIER = 2;
 
 // Quelques couteaux "hors norme" (éditions spéciales/bundles/collab) ne
-// suivent pas le ×2 standard — recherché le 2026-08-17. Liste volontairement
+// suivent pas le ×2 standard, recherché le 2026-08-17. Liste volontairement
 // courte : plusieurs autres couteaux repérés comme "hors norme" pendant la
 // recherche (ex. Magepunk Electroblade, VCT LOCK//IN Misericórdia) avaient des
 // sources contradictoires sur leur tier réel, donc pas assez fiables pour être
 // inclus ici plutôt que de risquer un chiffre faux.
 const MELEE_PRICE_OVERRIDES = {
-  'Power Fist': 5950, // RDS — le couteau le plus cher jamais sorti par Riot, confirmé par plusieurs sources
+  'Power Fist': 5950, // RDS · le couteau le plus cher jamais sorti par Riot, confirmé par plusieurs sources
 };
 
 let cache = null;

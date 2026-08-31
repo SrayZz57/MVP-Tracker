@@ -55,7 +55,7 @@ function MapDetailModal({ mapName, matches, settings, agentIcons, onClose }) {
             agentUsage.map(({ character, count, percent }) => (
               <p key={character}>
                 {agentIcons.get(character) && <img src={agentIcons.get(character)} alt="" className="agent-icon" />}
-                {character} — {t('detail.agentUsageLine', { percent: percent.toFixed(0), count })}
+                {character} · {t('detail.agentUsageLine', { percent: percent.toFixed(0), count })}
               </p>
             ))
           )}

@@ -11,6 +11,8 @@ import { pickSplash } from './tournamentVisuals.js';
 import IconPickerModal from './IconPickerModal.jsx';
 import AccountPickerModal from './AccountPickerModal.jsx';
 import Button from './ui/Button';
+import { TournamentDetailSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 
 const PLAYER_COUNT = 5;
 const EMPTY_PLAYERS = Array.from({ length: PLAYER_COUNT }, () => ({
@@ -27,7 +29,7 @@ const STATUS_LABELS = {
 };
 
 // Chaque emplacement joueur DOIT correspondre à un vrai compte MVP Tracker
-// (recherché et sélectionné via AccountPickerModal) — plus de Riot ID tapé
+// (recherché et sélectionné via AccountPickerModal), plus de Riot ID tapé
 // à la main. `linked_profile_id` passe de facultatif à obligatoire (voir la
 // contrainte NOT NULL posée en base) : impossible d'inscrire quelqu'un qui
 // n'a pas de compte. L'agent reste, lui, purement cosmétique et optionnel.
@@ -116,8 +118,14 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 
       {error && <p className="error-banner">{error}</p>}
 
-      <Button variant="primary" type="submit" disabled={saving || players.some((p) => !p.linkedProfileId)}>
-        {saving ? t('tournaments.saving') : submitLabel}
+      <Button
+        variant="primary"
+        type="submit"
+        loading={saving}
+        loadingLabel={t('tournaments.saving')}
+        disabled={saving || players.some((p) => !p.linkedProfileId)}
+      >
+        {submitLabel}
       </Button>
     </form>
   );
@@ -126,7 +134,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
 // Détail d'un tournoi : inscription d'équipe, validation admin des
 // inscriptions, génération et affichage du bracket. Toute la sécurité réelle
 // est côté RLS (voir les policies sur tournament_teams/tournament_matches) :
-// ce composant se contente de ne PAS proposer les actions interdites — même
+// ce composant se contente de ne PAS proposer les actions interdites, même
 // en cas de requête forcée, Supabase refuse.
 function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const { t } = useTranslation();
@@ -170,7 +178,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     }
 
     // Chargés en une seule requête pour toutes les équipes plutôt qu'à la
-    // demande par clic — évite un aller-retour à chaque ouverture/fermeture,
+    // demande par clic, évite un aller-retour à chaque ouverture/fermeture,
     // et le nombre d'équipes reste toujours modeste (borné par max_teams).
     const teamIds = (t2 ?? []).map((team) => team.id);
     if (teamIds.length > 0) {
@@ -196,7 +204,9 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tournamentId]);
 
-  if (loading) return <p className="label">{t('tournaments.loading')}</p>;
+  const loadingGate = useLoadingGate(loading);
+
+  if (loadingGate.busy) return loadingGate.show ? <TournamentDetailSkeleton /> : null;
   if (!tournament) return <p className="label">{t('tournaments.notFound')}</p>;
 
   const myTeam = teams.find((team) => team.captain_id === myId);
@@ -231,7 +241,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
 
   // Réservé à l'admin : contrairement à l'inscription normale (une seule
   // équipe par compte, la tienne), ceci permet d'ajouter autant d'équipes
-  // que nécessaire depuis un seul compte — utile pour peupler un tournoi de
+  // que nécessaire depuis un seul compte, utile pour peupler un tournoi de
   // test sans avoir besoin de plusieurs comptes réels. Statut 'approved'
   // directement : c'est l'admin qui les ajoute, pas de validation à refaire.
   async function handleAdminAddTeam(name, players) {
@@ -267,7 +277,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       setError(updateError.message);
       return;
     }
-    // Roster remplacé en entier plutôt que fusionné : plus simple et sûr —
+    // Roster remplacé en entier plutôt que fusionné : plus simple et sûr,
     // pas de risque de mélanger d'anciens et de nouveaux joueurs sur les
     // mêmes lignes si l'ordre a changé.
     await supabase.from('tournament_team_players').delete().eq('team_id', myTeam.id);
@@ -303,7 +313,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
-  // Réservé à l'admin, et seulement avant que le bracket existe — retirer
+  // Réservé à l'admin, et seulement avant que le bracket existe, retirer
   // une équipe déjà placée dans l'arbre laisserait un match pointer vers une
   // équipe qui n'existe plus. La suppression cascade sur ses joueurs
   // (contrainte on delete cascade côté table).
@@ -397,9 +407,11 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
             variant="primary"
             className={`generate-bracket-button ${approvedTeams.length >= 2 ? 'ready' : ''}`}
             onClick={handleGenerateBracket}
+            loading={saving}
+            loadingLabel={t('tournaments.saving')}
             disabled={saving || approvedTeams.length < 2}
           >
-            {saving ? t('tournaments.saving') : t('tournaments.bracket.generate')}
+            {t('tournaments.bracket.generate')}
           </Button>
           {approvedTeams.length < 2 && <p className="label">{t('tournaments.bracket.needApproved')}</p>}
         </section>
@@ -437,7 +449,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                       {team.captain_id === myId && <span className="label">{t('tournaments.yourTeam')}</span>}
                     </div>
                     {/* Aperçu de composition : les icônes d'agent choisies pour
-                        chaque joueur, visibles sans avoir à déplier — un
+                        chaque joueur, visibles sans avoir à déplier · un
                         emplacement vide (agent pas choisi) reste un "?". */}
                     <div className="tournament-team-composition">
                       {Array.from({ length: PLAYER_COUNT }).map((_, slot) => {
@@ -469,7 +481,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                         ))}
                       </ul>
                       {matches.length === 0 && (
-                        <Button variant="danger" className="button-danger" disabled={saving} onClick={() => handleAdminRemoveTeam(team.id)}>
+                        <Button variant="danger" className="button-danger" loading={saving} onClick={() => handleAdminRemoveTeam(team.id)}>
                           {t('tournaments.removeTeam')}
                         </Button>
                       )}
@@ -506,7 +518,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               {!registrationClosed && (
                 <div className="tournament-team-actions">
                   <Button variant="primary" onClick={() => setEditing(true)}>{t('tournaments.editTeam')}</Button>
-                  <Button variant="danger" onClick={handleWithdraw} disabled={saving} className="button-danger">
+                  <Button variant="danger" onClick={handleWithdraw} loading={saving} className="button-danger">
                     {t('tournaments.withdraw')}
                   </Button>
                 </div>

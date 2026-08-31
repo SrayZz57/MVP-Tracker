@@ -6,7 +6,7 @@ import Button from './ui/Button';
 
 function teamLabel(teamId, teamsById, t) {
   if (!teamId) return t('tournaments.bracket.tbd');
-  return teamsById.get(teamId)?.name ?? '—';
+  return teamsById.get(teamId)?.name ?? '–';
 }
 
 function MatchResultForm({ match, onSaved }) {
@@ -31,8 +31,8 @@ function MatchResultForm({ match, onSaved }) {
       <input type="number" min={0} value={score1} onChange={(e) => setScore1(e.target.value)} required />
       <span>–</span>
       <input type="number" min={0} value={score2} onChange={(e) => setScore2(e.target.value)} required />
-      <Button variant="primary" type="submit" disabled={saving}>
-        {saving ? t('tournaments.saving') : t('tournaments.bracket.saveResult')}
+      <Button variant="primary" type="submit" loading={saving} loadingLabel={t('tournaments.saving')}>
+        {t('tournaments.bracket.saveResult')}
       </Button>
     </form>
   );
@@ -40,7 +40,7 @@ function MatchResultForm({ match, onSaved }) {
 
 // Bracket en colonnes (un tour = une colonne) avec de vraies lignes de
 // connexion entre les matchs, dessinées en SVG et mesurées en direct
-// (getBoundingClientRect) plutôt qu'approximées en CSS pur — fiable quelle
+// (getBoundingClientRect) plutôt qu'approximées en CSS pur, fiable quelle
 // que soit la hauteur réelle des cartes (score affiché ou non, bye ou pas).
 function BracketView({ tournamentId, matches, teams, isAdmin, onUpdated }) {
   const { t } = useTranslation();

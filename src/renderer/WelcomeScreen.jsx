@@ -1,7 +1,7 @@
 import { useTranslation } from 'react-i18next';
 import SearchBar from './SearchBar.jsx';
 import ApiKeyHelp from './ApiKeyHelp.jsx';
-import logo from '../assets/logo.png';
+import logoText from '../assets/logo-text.png';
 
 function WelcomeScreen({ onSaved, apiKey }) {
   const { t } = useTranslation();
@@ -16,8 +16,7 @@ function WelcomeScreen({ onSaved, apiKey }) {
         <span className="welcome-orb welcome-orb-6" />
         <span className="welcome-orb welcome-orb-7" />
       </div>
-      <img src={logo} alt="MVP Tracker" className="welcome-logo" />
-      <h1>MVP Tracker</h1>
+      <img src={logoText} alt="MVP Tracker" className="welcome-logo-text" />
       <p className="welcome-tagline">{t('welcome.tagline')}</p>
       <SearchBar initialSettings={{ apiKey }} onSearch={onSaved} />
       <ApiKeyHelp />

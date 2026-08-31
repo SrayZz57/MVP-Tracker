@@ -3,6 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { friendLabel } from './friendsShared.jsx';
 import { usePlayerCardArt, useRankTiers } from './rankData.js';
 import { useAgentPortraits, useAgentRoles } from './agentIcons.js';
+import { FriendPreviewSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
 function FriendSummaryCard({ profile, preview, online }) {
   const { t } = useTranslation();
@@ -53,25 +55,26 @@ function FriendSummaryCard({ profile, preview, online }) {
         </div>
       </div>
 
-      {preview === undefined && <p className="label friend-summary-loading">{t('friends.loadingPreview')}</p>}
-      {preview === null && <p className="label friend-summary-loading">{t('friends.previewUnavailable')}</p>}
-      {preview && (
-        <div className="friend-summary-stats">
-          <div className="friend-summary-stat friend-summary-stat-rank">
-            {tier?.icon && <img src={tier.icon} alt="" />}
-            <div className="friend-summary-stat-text">
-              <span className="value">{tier?.tierName ?? t('friends.unranked')}</span>
-              {preview.rank && <span className="label">{preview.rank.rr} RR</span>}
+      <LoadingGate active={preview === undefined} fallback={<FriendPreviewSkeleton />}>
+        {preview === null && <p className="label friend-summary-loading">{t('friends.previewUnavailable')}</p>}
+        {preview && (
+          <div className="friend-summary-stats">
+            <div className="friend-summary-stat friend-summary-stat-rank">
+              {tier?.icon && <img src={tier.icon} alt="" />}
+              <div className="friend-summary-stat-text">
+                <span className="value">{tier?.tierName ?? t('friends.unranked')}</span>
+                {preview.rank && <span className="label">{preview.rank.rr} RR</span>}
+              </div>
+            </div>
+            <div className="friend-summary-stat">
+              <div className="friend-summary-stat-text">
+                <span className="value">{preview.accountLevel}</span>
+                <span className="label">{t('friends.level')}</span>
+              </div>
             </div>
           </div>
-          <div className="friend-summary-stat">
-            <div className="friend-summary-stat-text">
-              <span className="value">{preview.accountLevel}</span>
-              <span className="label">{t('friends.level')}</span>
-            </div>
-          </div>
-        </div>
-      )}
+        )}
+      </LoadingGate>
 
       {profile.main_agent && (
         <div className="friend-summary-agent-card">

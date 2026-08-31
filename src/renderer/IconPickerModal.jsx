@@ -1,6 +1,8 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import Button from './ui/Button';
+import { IconPickerSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 
 function IconPickerModal({ title, items, onSelect, onClose }) {
   const { t } = useTranslation();
@@ -25,9 +27,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
           className="card-picker-search"
           autoFocus
         />
-        {items.length === 0 ? (
-          <p className="label">{t('auth.loading')}</p>
-        ) : (
+        <LoadingGate active={items.length === 0} fallback={<IconPickerSkeleton />}>
           <div className="card-picker-grid">
             {filtered.map((item) => (
               <Button
@@ -42,7 +42,7 @@ function IconPickerModal({ title, items, onSelect, onClose }) {
               </Button>
             ))}
           </div>
-        )}
+        </LoadingGate>
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ function RankMomentumCard({ settings, matches }) {
 
   if (!momentum.ready) {
     return (
-      <CollapsibleCard id="rankMomentum" title={t('rankMomentum.title')}>
+      <CollapsibleCard collapsible={false} id="rankMomentum" title={t('rankMomentum.title')}>
         <p className="label">
           {t('rankMomentum.notReady', { count: momentum.minGames - momentum.gamesAnalyzed })}
         </p>
@@ -26,6 +26,7 @@ function RankMomentumCard({ settings, matches }) {
 
   return (
     <CollapsibleCard
+      collapsible={false}
       id="rankMomentum"
       title={t('rankMomentum.title')}
       className={momentum.trending ? 'highlight-card' : ''}

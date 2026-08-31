@@ -1,16 +1,22 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Lock } from 'lucide-react';
 import { supabase } from './supabaseClient.js';
+import Icon from './Icon.jsx';
 import { FriendAvatar, friendLabel, PROFILE_FIELDS } from './friendsShared.jsx';
 import FriendSummaryCard from './FriendSummaryCard.jsx';
 import { useE2EE } from './E2EEContext.jsx';
 import Button from './ui/Button';
+import { MessagesPageSkeleton, MessageThreadShape } from './skeletons.jsx';
+import Skeleton from './Skeleton.jsx';
+import useLoadingGate from './useLoadingGate.js';
+import LoadingGate from './LoadingGate.jsx';
 
-// Écran affiché tant que la clé de messagerie n'est pas en mémoire — arrive
+// Écran affiché tant que la clé de messagerie n'est pas en mémoire, arrive
 // après chaque redémarrage de l'app (session Supabase restaurée sans jamais
 // redemander le mot de passe, donc sans repasser par l'endroit qui débloque
-// normalement la clé — voir AccountAuth.jsx). Ce mot de passe ne sert qu'à
-// déchiffrer localement la clé déjà stockée (chiffrée) côté serveur — il
+// normalement la clé, voir AccountAuth.jsx). Ce mot de passe ne sert qu'à
+// déchiffrer localement la clé déjà stockée (chiffrée) côté serveur, il
 // n'est jamais renvoyé ni conservé au-delà de cet instant.
 function UnlockMessagingForm({ myId }) {
   const { t } = useTranslation();
@@ -32,24 +38,34 @@ function UnlockMessagingForm({ myId }) {
   };
 
   return (
-    <div className="messages-page">
-      <div className="messages-thread card messages-unlock">
+    <div className="messages-unlock">
+      <div className="messages-unlock-card card">
+        <span className="messages-unlock-icon"><Icon icon={Lock} size={22} /></span>
         <h3>{t('messages.unlockTitle')}</h3>
-        <p className="label">{t('messages.unlockHint')}</p>
-        <form onSubmit={handleSubmit} className="account-auth-form">
+        <p className="messages-unlock-hint">{t('messages.unlockHint')}</p>
+        <form onSubmit={handleSubmit} className="messages-unlock-form">
+          <label htmlFor="messaging-password">{t('messages.unlockPasswordLabel')}</label>
           <input
+            id="messaging-password"
             type="password"
-            placeholder={t('auth.passwordPlaceholder')}
             value={password}
             onChange={(e) => setPassword(e.target.value)}
+            aria-invalid={error ? true : undefined}
+            aria-describedby={error ? 'messaging-password-error' : undefined}
             autoFocus
             required
           />
-          <Button variant="primary" type="submit" disabled={loading}>
-            {loading ? t('auth.loading') : t('messages.unlockButton')}
+          {/* L'erreur est collée au champ fautif, avant l'action : lue avant
+              de recliquer sur « Déverrouiller ». */}
+          {error && (
+            <p className="messages-unlock-error" id="messaging-password-error" role="alert">
+              {error}
+            </p>
+          )}
+          <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.loading')}>
+            {t('messages.unlockButton')}
           </Button>
         </form>
-        {error && <p className="warning">{error}</p>}
       </div>
     </div>
   );
@@ -99,7 +115,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myId]);
 
-  // Écoute en temps réel les messages qui m'arrivent — ajoute au fil ouvert
+  // Écoute en temps réel les messages qui m'arrivent, ajoute au fil ouvert
   // s'il vient de la conversation affichée, sinon marque juste un point non lu.
   useEffect(() => {
     const channel = supabase
@@ -155,7 +171,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
   };
 
   // N'ouvre la conversation demandée depuis la page Amis qu'une seule fois,
-  // au premier montage — sans quoi revenir sur une conversation déjà changée
+  // au premier montage, sans quoi revenir sur une conversation déjà changée
   // manuellement se ferait réécraser à chaque re-render.
   const initialFriendIdHandled = useRef(false);
   useEffect(() => {
@@ -199,7 +215,7 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
   };
 
   // Les messages "legacy" (envoyés avant le chiffrement de bout en bout,
-  // reconnaissables à l'absence de `nonce`) restent affichés tels quels —
+  // reconnaissables à l'absence de `nonce`) restent affichés tels quels,
   // ils étaient déjà en clair dans la base avant ce changement, les masquer
   // n'y changerait rien. Les nouveaux sont déchiffrés à la volée ici plutôt
   // qu'au chargement, pour que les messages arrivant en temps réel (voir
@@ -216,7 +232,8 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     }));
   }, [messages, selectedProfile, keysReady, decryptFrom, t]);
 
-  if (loading) return <p className="label">{t('messages.loading')}</p>;
+  const loadingGate = useLoadingGate(loading);
+  if (loadingGate.busy) return loadingGate.show ? <MessagesPageSkeleton /> : null;
   if (!keysReady) return <UnlockMessagingForm myId={myId} />;
 
   return (
@@ -272,20 +289,23 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
             </div>
 
             <div className="messages-thread-body">
-              {messagesLoading ? (
-                <p className="label">{t('messages.loading')}</p>
-              ) : messages.length === 0 ? (
-                <p className="label">{t('messages.noMessagesYet')}</p>
-              ) : (
-                decryptedMessages.map((msg) => (
-                  <div
-                    key={msg.id}
-                    className={msg.sender_id === myId ? 'message-bubble mine' : 'message-bubble'}
-                  >
-                    {msg.text}
-                  </div>
-                ))
-              )}
+              <LoadingGate
+                active={messagesLoading}
+                fallback={<Skeleton><MessageThreadShape rows={5} /></Skeleton>}
+              >
+                {messages.length === 0 ? (
+                  <p className="label">{t('messages.noMessagesYet')}</p>
+                ) : (
+                  decryptedMessages.map((msg) => (
+                    <div
+                      key={msg.id}
+                      className={msg.sender_id === myId ? 'message-bubble mine' : 'message-bubble'}
+                    >
+                      {msg.text}
+                    </div>
+                  ))
+                )}
+              </LoadingGate>
               <div ref={messagesEndRef} />
             </div>
 

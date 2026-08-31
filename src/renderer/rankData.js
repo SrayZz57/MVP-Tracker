@@ -31,7 +31,7 @@ export function useRankTiers() {
 
 let rankLadderPromise = null;
 
-// Échelle ordonnée des rangs (nom + division + icône) pour le wiki — tier 0
+// Échelle ordonnée des rangs (nom + division + icône) pour le wiki, tier 0
 // ("Sans grade") gardé, tiers < 3 (placeholders sans vraie icône) filtrés.
 function loadRankLadder() {
   if (!rankLadderPromise) {
@@ -77,7 +77,7 @@ async function loadSeasonNames() {
         const episode = byUuid.get(act.parentUuid);
         const episodeName = episode ? capitalize(episode.displayName) : '';
         // "ACTE III" reste tel quel (chiffre romain), seule "ÉPISODE 6" est mise en forme.
-        return [act.uuid, episodeName ? `${episodeName} — ${act.displayName}` : act.displayName];
+        return [act.uuid, episodeName ? `${episodeName} · ${act.displayName}` : act.displayName];
       }),
   );
   return seasonsCache;
@@ -102,7 +102,7 @@ const EMPTY_CARD_ART = { icon: null, banner: null };
 
 let allPlayerCardsPromise = null;
 
-// Catalogue complet des cartes de joueur du jeu — sert de sélecteur de photo
+// Catalogue complet des cartes de joueur du jeu, sert de sélecteur de photo
 // de profil pour le compte MVP Tracker (pas de notion d'inventaire possédé
 // exposée par l'API publique, donc on propose tout le catalogue).
 function loadAllPlayerCards() {

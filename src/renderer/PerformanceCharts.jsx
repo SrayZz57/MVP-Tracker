@@ -9,7 +9,8 @@ import AnimatedBarList from './charts/AnimatedBarList.jsx';
 import HeatmapGrid from './charts/HeatmapGrid.jsx';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
 import LineChart from './charts/LineChart.jsx';
-import LoadingState from './LoadingState.jsx';
+import { ChartsTabSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -50,16 +51,15 @@ function PerformanceCharts({ settings, matches, loading }) {
     [t, filteredMatches, settings.name, settings.tag],
   );
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('charts.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <ChartsTabSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('charts.noMatchesYet')}</p>;
 
   return (
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="charts.kpis" title={t('charts.title')}>
+      <CollapsibleCard collapsible={false} id="charts.kpis" title={t('charts.title')}>
         <p className="label">{t('charts.description')}</p>
         <div className="kpi-row">
           <KpiTile icon={Gamepad2} label={t('charts.rankedMatches')} value={kpis.games} />
@@ -87,7 +87,7 @@ function PerformanceCharts({ settings, matches, loading }) {
         <AnimatedBarList rows={mapWinrates} />
       </CollapsibleCard>
 
-      <CollapsibleCard id="charts.roleDistribution" title={t('charts.roleDistributionTitle')}>
+      <CollapsibleCard collapsible={false} id="charts.roleDistribution" title={t('charts.roleDistributionTitle')}>
         <RoleStackedBar rows={roleDistribution} />
       </CollapsibleCard>
     </div>

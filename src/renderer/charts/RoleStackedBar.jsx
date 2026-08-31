@@ -1,7 +1,6 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 
-// Ordre fixe (jamais recyclé) — 4 premiers slots de la palette catégorielle
+// Ordre fixe (jamais recyclé), 4 premiers slots de la palette catégorielle
 // validée CVD (voir dataviz skill) contre la surface sombre de l'appli.
 export const ROLE_COLORS = {
   Duelliste: '#3987e5',
@@ -12,13 +11,6 @@ export const ROLE_COLORS = {
 
 function RoleStackedBar({ rows }) {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   if (!rows || rows.length === 0) {
     return <p>{t('charts.notEnoughData')}</p>;
   }
@@ -30,8 +22,8 @@ function RoleStackedBar({ rows }) {
           <span
             key={r.role}
             className="stacked-bar-segment"
-            style={{ width: mounted ? `${r.percent}%` : '0%', background: ROLE_COLORS[r.role] }}
-            title={`${r.role} — ${r.percent.toFixed(0)}% (${t('charts.gamesCount', { count: r.games })})`}
+            style={{ width: `${r.percent}%`, background: ROLE_COLORS[r.role] }}
+            title={`${r.role} · ${r.percent.toFixed(0)}% (${t('charts.gamesCount', { count: r.games })})`}
           />
         ))}
       </div>
@@ -39,7 +31,7 @@ function RoleStackedBar({ rows }) {
         {rows.map((r) => (
           <span key={r.role} className="stacked-bar-legend-item">
             <span className="stacked-bar-swatch" style={{ background: ROLE_COLORS[r.role] }} />
-            {r.role} — {r.percent.toFixed(0)}% ({r.games})
+            {r.role} · {r.percent.toFixed(0)}% ({r.games})
           </span>
         ))}
       </div>

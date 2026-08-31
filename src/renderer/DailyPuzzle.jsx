@@ -2,7 +2,8 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { ECONOMY_TIERS } from './valorantStats.js';
 import { generatePuzzleSituation, gradeChoice, buildRevealText, PUZZLE_OPTIONS } from './dailyPuzzle.js';
-import Skeleton from './Skeleton.jsx';
+import { PuzzleSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Icon from './Icon.jsx';
 import Button from './ui/Button';
@@ -76,77 +77,78 @@ function DailyPuzzle({ settings, matches }) {
 
   return (
     <div>
-      <CollapsibleCard id="puzzle.today" title={t('puzzle.title')}>
+      <CollapsibleCard collapsible={false} id="puzzle.today" title={t('puzzle.title')}>
         <p className="label">{t('puzzle.description')}</p>
 
-        {puzzle === undefined && <Skeleton lines={4} />}
+        <LoadingGate active={puzzle === undefined} fallback={<PuzzleSkeleton />}>
 
-        {puzzle === null && <p>{t('puzzle.notEnoughMatches')}</p>}
+          {puzzle === null && <p>{t('puzzle.notEnoughMatches')}</p>}
 
-        {puzzle && (
-          <>
-            <div className="stat-tiles">
-              <div className="stat-tile">
-                <div className="value">{puzzle.situation.map}</div>
-                <div className="label">{t('puzzle.roundLabel', { n: puzzle.situation.roundNumber })}</div>
-              </div>
-              <div className="stat-tile">
-                <div className="value">
-                  {puzzle.situation.scoreBefore.mine} - {puzzle.situation.scoreBefore.theirs}
+          {puzzle && (
+            <>
+              <div className="stat-tiles">
+                <div className="stat-tile">
+                  <div className="value">{puzzle.situation.map}</div>
+                  <div className="label">{t('puzzle.roundLabel', { n: puzzle.situation.roundNumber })}</div>
                 </div>
-                <div className="label">{t('puzzle.scoreBefore')}</div>
-              </div>
-              <div className="stat-tile">
-                <div className="value">
-                  <span className="value-icon">
-                    {puzzle.situation.side === 'attack'
-                      ? t('puzzle.sideAttack')
-                      : puzzle.situation.side === 'defense'
-                        ? t('puzzle.sideDefense')
-                        : t('puzzle.sideUnknown')}
-                  </span>
+                <div className="stat-tile">
+                  <div className="value">
+                    {puzzle.situation.scoreBefore.mine} - {puzzle.situation.scoreBefore.theirs}
+                  </div>
+                  <div className="label">{t('puzzle.scoreBefore')}</div>
                 </div>
-                <div className="label">{t('puzzle.sideLabel')}</div>
+                <div className="stat-tile">
+                  <div className="value">
+                    <span className="value-icon">
+                      {puzzle.situation.side === 'attack'
+                        ? t('puzzle.sideAttack')
+                        : puzzle.situation.side === 'defense'
+                          ? t('puzzle.sideDefense')
+                          : t('puzzle.sideUnknown')}
+                    </span>
+                  </div>
+                  <div className="label">{t('puzzle.sideLabel')}</div>
+                </div>
+                <div className="stat-tile">
+                  <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.myEconomyTier)}`)}</div>
+                  <div className="label">{t('puzzle.myEconomy')}</div>
+                </div>
+                <div className="stat-tile">
+                  <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.enemyEconomyTier)}`)}</div>
+                  <div className="label">{t('puzzle.enemyEconomy')}</div>
+                </div>
               </div>
-              <div className="stat-tile">
-                <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.myEconomyTier)}`)}</div>
-                <div className="label">{t('puzzle.myEconomy')}</div>
-              </div>
-              <div className="stat-tile">
-                <div className="value">{t(`common.economyTiers.${economyTierId(puzzle.situation.enemyEconomyTier)}`)}</div>
-                <div className="label">{t('puzzle.enemyEconomy')}</div>
-              </div>
-            </div>
 
-            {!puzzle.answered ? (
-              <>
-                <p style={{ marginTop: '1rem', fontWeight: 600 }}>{t('puzzle.question')}</p>
-                <div className="puzzle-options">
-                  {PUZZLE_OPTIONS.map((option) => (
-                    <Button variant="ghost" key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
-                      <span className="puzzle-option-icon"><Icon icon={option.icon} /></span>
-                      {t(option.labelKey)}
-                    </Button>
-                  ))}
+              {!puzzle.answered ? (
+                <>
+                  <p style={{ marginTop: '1rem', fontWeight: 600 }}>{t('puzzle.question')}</p>
+                  <div className="puzzle-options">
+                    {PUZZLE_OPTIONS.map((option) => (
+                      <Button variant="ghost" key={option.id} className="puzzle-option" onClick={() => handleChoice(option.id)}>
+                        <span className="puzzle-option-icon"><Icon icon={option.icon} /></span>
+                        {t(option.labelKey)}
+                      </Button>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className={`puzzle-reveal ${puzzle.correct ? 'correct' : 'incorrect'}`}>
+                  <div className="puzzle-reveal-title">
+                    {puzzle.correct ? t('puzzle.matchesReveal') : t('puzzle.notMatchReveal')}
+                  </div>
+                  <p>{buildRevealText(t, puzzle.situation)}</p>
+                  <p className="label">
+                    {t('puzzle.choiceWas', {
+                      choice: chosenOption ? t(chosenOption.labelKey) : '',
+                      bucket: chosenOption?.bucket === 'aggressive' ? t('puzzle.bucketAggressive') : t('puzzle.bucketPatient'),
+                      actual: puzzle.situation.actualBucket === 'aggressive' ? t('puzzle.bucketAggressiveFem') : t('puzzle.bucketPatientFem'),
+                    })}
+                  </p>
                 </div>
-              </>
-            ) : (
-              <div className={`puzzle-reveal ${puzzle.correct ? 'correct' : 'incorrect'}`}>
-                <div className="puzzle-reveal-title">
-                  {puzzle.correct ? t('puzzle.matchesReveal') : t('puzzle.notMatchReveal')}
-                </div>
-                <p>{buildRevealText(t, puzzle.situation)}</p>
-                <p className="label">
-                  {t('puzzle.choiceWas', {
-                    choice: chosenOption ? t(chosenOption.labelKey) : '',
-                    bucket: chosenOption?.bucket === 'aggressive' ? t('puzzle.bucketAggressive') : t('puzzle.bucketPatient'),
-                    actual: puzzle.situation.actualBucket === 'aggressive' ? t('puzzle.bucketAggressiveFem') : t('puzzle.bucketPatientFem'),
-                  })}
-                </p>
-              </div>
-            )}
-          </>
-        )}
+              )}
+            </>
+          )}
+        </LoadingGate>
       </CollapsibleCard>
 
       <CollapsibleCard id="puzzle.history" title={t('puzzle.historyTitle')}>

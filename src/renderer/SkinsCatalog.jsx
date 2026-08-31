@@ -4,12 +4,13 @@ import { Check, Heart } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { useSkinsCatalog } from './skinsData.js';
 import SkinDetailModal from './SkinDetailModal.jsx';
-import Skeleton from './Skeleton.jsx';
+import { SkinsCatalogSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from './personalData.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
-// 40 = multiple de 8 (colonnes observées à largeur de carte habituelle) —
+// 40 = multiple de 8 (colonnes observées à largeur de carte habituelle),
 // réduit les lignes à moitié vides, même logique que pour les crosshairs.
 const PAGE_SIZE = 40;
 
@@ -43,7 +44,7 @@ function SkinCard({ skin, onClick, isWishlisted, isOwned, t }) {
         <img src={skin.displayIcon} alt={skin.name} />
       </div>
       <p className="skin-card-name">{skin.name}</p>
-      <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} — {skin.weaponName}</p>
+      <p className="label" style={{ color: skin.tierColor }}>{skin.tierName} · {skin.weaponName}</p>
       <p className="skin-card-price">{skin.estimatedPriceVp} VP</p>
     </div>
   );
@@ -110,13 +111,8 @@ function SkinsCatalog({ myId }) {
     toggleCollection(myId, skin.uuid, skin.estimatedPriceVp).then(setCollection);
   };
 
-  if (!catalog) {
-    return (
-      <div className="card">
-        <Skeleton lines={5} />
-      </div>
-    );
-  }
+  const loadingGate = useLoadingGate(!catalog);
+  if (loadingGate.busy) return loadingGate.show ? <SkinsCatalogSkeleton /> : null;
 
   const visibleCatalog = showAll ? filteredCatalog : filteredCatalog.slice(0, PAGE_SIZE);
 

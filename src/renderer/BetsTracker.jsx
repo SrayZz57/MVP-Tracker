@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Hourglass } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { BET_TYPES, describeBet, evaluateBet } from './bets.js';
-import Skeleton from './Skeleton.jsx';
+import { BetSkeleton } from './skeletons.jsx';
+import LoadingGate from './LoadingGate.jsx';
 import CountUp from './CountUp.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
@@ -28,7 +29,7 @@ function BetsTracker({ settings, matches }) {
 
   // Dès qu'un nouveau match apparaît après la pose du pari, on le résout
   // automatiquement contre ce match-là. Certains matchs en cache n'ont pas le
-  // joueur suivi dans leur roster (mode annexe, aléa de l'API) — on essaie
+  // joueur suivi dans leur roster (mode annexe, aléa de l'API), on essaie
   // alors le suivant plutôt que de rester bloqué en attente indéfiniment.
   useEffect(() => {
     if (!pending || matches.length === 0) return;
@@ -64,7 +65,7 @@ function BetsTracker({ settings, matches }) {
 
   return (
     <div>
-      <CollapsibleCard id="bets.summary" title={t('bets.title')} className="comp-score-card">
+      <CollapsibleCard collapsible={false} id="bets.summary" title={t('bets.title')} className="comp-score-card">
         <div className="comp-score-main">
           <div
             className="comp-score-ring"
@@ -81,44 +82,44 @@ function BetsTracker({ settings, matches }) {
       </CollapsibleCard>
 
       <div className={pending ? 'card tilt-card calm' : 'card'}>
-        {pending === undefined ? (
-          <Skeleton lines={2} />
-        ) : pending ? (
-          <div className="tilt-card-header">
-            <span className="tilt-card-badge"><Icon icon={Hourglass} size={16} /></span>
-            <div>
-              <h3>{t('bets.currentBetTitle')}</h3>
-              <p style={{ fontWeight: 600 }}>{describeBet(t, pending.type, pending.threshold)}</p>
-              <p className="label">{t('bets.waitingNextMatch')}</p>
-              <Button variant="ghost" onClick={handleCancelBet}>{t('bets.cancelBet')}</Button>
+        <LoadingGate active={pending === undefined} fallback={<BetSkeleton />}>
+          {pending ? (
+            <div className="tilt-card-header">
+              <span className="tilt-card-badge"><Icon icon={Hourglass} size={16} /></span>
+              <div>
+                <h3>{t('bets.currentBetTitle')}</h3>
+                <p style={{ fontWeight: 600 }}>{describeBet(t, pending.type, pending.threshold)}</p>
+                <p className="label">{t('bets.waitingNextMatch')}</p>
+                <Button variant="ghost" onClick={handleCancelBet}>{t('bets.cancelBet')}</Button>
+              </div>
             </div>
-          </div>
-        ) : (
-          <>
-            <h3>{t('bets.placeBetTitle')}</h3>
-            <div className="buy-calc-panel">
-              <select value={type} onChange={(e) => setType(e.target.value)}>
-                {BET_TYPES.map((bt) => (
-                  <option key={bt.id} value={bt.id}>
-                    {t(bt.labelKey)}
-                  </option>
-                ))}
-              </select>
-              {selectedDef?.needsThreshold && (
-                <input
-                  type="number"
-                  min="0"
-                  value={threshold}
-                  onChange={(e) => setThreshold(Number(e.target.value))}
-                  style={{ width: '80px' }}
-                />
-              )}
-              <Button variant="primary" className="refresh" onClick={handlePlaceBet}>
-                {t('bets.placeBetBtn')}
-              </Button>
-            </div>
-          </>
-        )}
+          ) : (
+            <>
+              <h3>{t('bets.placeBetTitle')}</h3>
+              <div className="buy-calc-panel">
+                <select value={type} onChange={(e) => setType(e.target.value)}>
+                  {BET_TYPES.map((bt) => (
+                    <option key={bt.id} value={bt.id}>
+                      {t(bt.labelKey)}
+                    </option>
+                  ))}
+                </select>
+                {selectedDef?.needsThreshold && (
+                  <input
+                    type="number"
+                    min="0"
+                    value={threshold}
+                    onChange={(e) => setThreshold(Number(e.target.value))}
+                    style={{ width: '80px' }}
+                  />
+                )}
+                <Button variant="primary" className="refresh" onClick={handlePlaceBet}>
+                  {t('bets.placeBetBtn')}
+                </Button>
+              </div>
+            </>
+          )}
+        </LoadingGate>
       </div>
 
       <CollapsibleCard id="bets.history" title={t('bets.historyTitle')}>

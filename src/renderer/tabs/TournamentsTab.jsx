@@ -8,6 +8,8 @@ import { useAgentPortraits } from '../agentIcons.js';
 import { pickSplash } from '../tournamentVisuals.js';
 import TournamentDetail from '../TournamentDetail.jsx';
 import Button from '../ui/Button';
+import { TournamentListSkeleton } from '../skeletons.jsx';
+import useLoadingGate from '../useLoadingGate.js';
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',
@@ -15,12 +17,12 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
-// Nombre de cartes affichées avant "Voir plus" — le panneau promo à droite a
+// Nombre de cartes affichées avant "Voir plus", le panneau promo à droite a
 // une hauteur fixe (calée sur la fenêtre) : sans cette limite, une longue
 // liste l'étirerait avec elle plutôt que de simplement défiler/se replier.
 const VISIBLE_COUNT = 4;
 
-// Panneau décoratif dans l'espace vide à droite de la liste — Neon en
+// Panneau décoratif dans l'espace vide à droite de la liste, Neon en
 // vedette (thème électrique/néon, cohérent avec l'identité du module),
 // purement visuel, ne réagit à aucune donnée.
 function TournamentsPromo() {
@@ -54,7 +56,7 @@ const HOW_IT_WORKS_STEPS = [
   { titleKey: 'tournaments.howItWorks.step4Title', textKey: 'tournaments.howItWorks.step4Text' },
 ];
 
-// Petit panneau explicatif entre la liste et le panneau promo — purement
+// Petit panneau explicatif entre la liste et le panneau promo, purement
 // informatif, ne dépend d'aucune donnée.
 function TournamentsHowItWorks() {
   const { t } = useTranslation();
@@ -78,7 +80,7 @@ function TournamentsHowItWorks() {
 }
 
 // Sous "Comment ça marche" : accès rapide aux tournois où ce compte a une
-// équipe inscrite (n'importe quel statut sauf refusée) — évite d'avoir à
+// équipe inscrite (n'importe quel statut sauf refusée), évite d'avoir à
 // rechercher son propre tournoi dans la liste générale.
 function TournamentsMine({ myId, onSelect }) {
   const { t } = useTranslation();
@@ -96,7 +98,7 @@ function TournamentsMine({ myId, onSelect }) {
           return;
         }
         // Un même compte peut avoir plusieurs équipes dans UN MÊME tournoi
-        // (le formulaire admin en ajoute autant que voulu) — un seul lien
+        // (le formulaire admin en ajoute autant que voulu), un seul lien
         // par tournoi suffit ici, pas un doublon par équipe.
         const seen = new Set();
         const unique = [];
@@ -109,7 +111,7 @@ function TournamentsMine({ myId, onSelect }) {
       });
   }, [myId]);
 
-  // Toujours affichée — même vide, avec un message plutôt que de disparaître
+  // Toujours affichée, même vide, avec un message plutôt que de disparaître
   // et casser la colonne (voir .tournaments-mine, dimensionnée pour occuper
   // le reste de la colonne jusqu'au bas du panneau Neon).
   const list = mine ?? [];
@@ -137,7 +139,7 @@ function TournamentsMine({ myId, onSelect }) {
   );
 }
 
-// Liste des tournois — sert de page d'entrée pour tous les comptes connectés
+// Liste des tournois, sert de page d'entrée pour tous les comptes connectés
 // (pas encore une vraie page publique accessible sans compte, ça viendra
 // séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
 // l'affichage + l'inscription d'équipe.
@@ -200,14 +202,16 @@ function TournamentsTab({ myId, isAdmin }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadingGate = useLoadingGate(loading);
+
   if (selectedId) {
     return <TournamentDetail tournamentId={selectedId} myId={myId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} />;
   }
 
-  if (loading) return <p className="label">{t('tournaments.loading')}</p>;
+  if (loadingGate.busy) return loadingGate.show ? <TournamentListSkeleton /> : null;
 
   // Suppression réservée à l'admin : côté serveur (RLS), la même barrière
-  // que pour créer/modifier un tournoi (public.is_admin()) — celle-ci
+  // que pour créer/modifier un tournoi (public.is_admin()), celle-ci
   // existe déjà, aucune nouvelle policy à poser. La suppression cascade sur
   // les équipes/matchs de ce tournoi (contrainte déjà posée sur ces tables).
   async function handleDelete(tournamentId) {
@@ -228,7 +232,7 @@ function TournamentsTab({ myId, isAdmin }) {
             <span className="tournaments-empty-icon" aria-hidden="true">
               {/* Même dessin que le logo du panneau promo, mais recadré : le
                   trophée n'occupe que le haut d'un cadre 24x24 (y de 3 à
-                  17) — laissé tel quel là où l'icône est à côté d'un texte,
+                  17) · laissé tel quel là où l'icône est à côté d'un texte,
                   mais visiblement pas centré une fois seule dans son cadre. */}
               <svg viewBox="4 2 16 16" width="48" height="48">
                 <path
@@ -263,10 +267,11 @@ function TournamentsTab({ myId, isAdmin }) {
                           <Button
                             variant="danger"
                             className="tournament-card-delete-confirm"
-                            disabled={deleting}
+                            loading={deleting}
+                            loadingLabel={t('tournaments.saving')}
                             onClick={() => handleDelete(tournament.id)}
                           >
-                            {deleting ? t('tournaments.saving') : t('tournaments.confirmDelete')}
+                            {t('tournaments.confirmDelete')}
                           </Button>
                           <Button variant="ghost" className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
                             {t('tournaments.cancel')}

@@ -4,6 +4,8 @@ import NetworkMonitor from '../NetworkMonitor.jsx';
 import { pingCorrelation } from '../valorantStats.js';
 import CountUp from '../CountUp.jsx';
 import { supabase } from '../supabaseClient.js';
+import Skeleton, { SkeletonText } from '../Skeleton.jsx';
+import LoadingGate from '../LoadingGate.jsx';
 import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
 import usePlatformFilter from '../usePlatformFilter.js';
 import CollapsibleCard from '../CollapsibleCard.jsx';
@@ -86,7 +88,7 @@ function PingSparkline({ samples }) {
 
 function NetworkTab({ settings, matches, pingSamples, myId }) {
   const { t } = useTranslation();
-  // Le ping mesuré ici vient du réseau de CET appareil — corréler des morts
+  // Le ping mesuré ici vient du réseau de CET appareil, corréler des morts
   // survenues sur une partie console jouée ailleurs n'aurait aucun sens.
   // Filtre par défaut sur "pc" quand les deux plateformes sont détectées
   // (l'utilisateur peut quand même changer s'il veut comparer).
@@ -100,7 +102,7 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
 
   // Chaque appareil envoie son propre total (pas l'historique brut du ping,
   // qui n'a de sens que sur ce réseau précis) vers le compte, sous sa propre
-  // ligne — pour additionner les totaux de tous les PCs sans qu'un appareil
+  // ligne, pour additionner les totaux de tous les PCs sans qu'un appareil
   // n'écrase les chiffres d'un autre.
   const [accountTotals, setAccountTotals] = useState(null);
 
@@ -154,7 +156,7 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
         <PingSparkline samples={pingSamples} />
       </CollapsibleCard>
 
-      <CollapsibleCard id="network.deathCorrelation" title={t('network.deathCorrelation')}>
+      <CollapsibleCard collapsible={false} id="network.deathCorrelation" title={t('network.deathCorrelation')}>
         {pingStats.deathsAnalyzed === 0 ? (
           <p>{t('network.notEnoughNetworkData')}</p>
         ) : (
@@ -174,14 +176,25 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
               <p className="label" style={{ marginTop: '0.75rem' }}>
                 {t('network.correlationSummary', { percent: percent.toFixed(0) })}
               </p>
-              {accountTotals && (
-                <p className="label" style={{ marginTop: '0.5rem' }}>
-                  {t('network.accountTotal', {
-                    analyzed: accountTotals.deathsAnalyzed,
-                    nearSpike: accountTotals.deathsNearSpike,
-                  })}
-                </p>
-              )}
+              <LoadingGate
+                active={accountTotals === null}
+                fallback={
+                  <Skeleton>
+                    <p className="label" style={{ marginTop: '0.5rem' }}>
+                      <SkeletonText style={{ width: '42%' }}>&nbsp;</SkeletonText>
+                    </p>
+                  </Skeleton>
+                }
+              >
+                {accountTotals && (
+                  <p className="label" style={{ marginTop: '0.5rem' }}>
+                    {t('network.accountTotal', {
+                      analyzed: accountTotals.deathsAnalyzed,
+                      nearSpike: accountTotals.deathsNearSpike,
+                    })}
+                  </p>
+                )}
+              </LoadingGate>
             </div>
           </div>
         )}

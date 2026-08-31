@@ -6,7 +6,7 @@ import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
 // 24 = 2 lignes complètes à la largeur de carte habituelle sur un écran
-// large (12 colonnes) — 15 tombait souvent en plein milieu d'une ligne,
+// large (12 colonnes), 15 tombait souvent en plein milieu d'une ligne,
 // laissant la suivante à moitié vide.
 const PRO_PAGE_SIZE = 24;
 const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
@@ -107,7 +107,7 @@ function CrosshairLibrary() {
           )}
         </CollapsibleCard>
 
-        <CollapsibleCard id="crosshairs.addCustom" title={t('crosshairs.addCustomTitle')}>
+        <CollapsibleCard collapsible={false} id="crosshairs.addCustom" title={t('crosshairs.addCustomTitle')}>
           <form onSubmit={handleSave} className="crosshair-form">
             <div className="crosshair-form-fields">
               <input placeholder={t('crosshairs.namePlaceholder')} value={name} onChange={(e) => setName(e.target.value)} required />

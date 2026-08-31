@@ -1,4 +1,3 @@
-import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Star } from 'lucide-react';
 import Icon from '../Icon.jsx';
@@ -14,15 +13,8 @@ const MIN_GAMES_FOR_PEAK = 3;
 
 function HeatmapGrid({ grid }) {
   const { t } = useTranslation();
-  const [mounted, setMounted] = useState(false);
-
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setMounted(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   // Met en avant le créneau avec le meilleur winrate, à condition d'avoir un
-  // minimum d'échantillon — sinon un 100% sur 1 seule partie ressortirait
+  // minimum d'échantillon, sinon un 100% sur 1 seule partie ressortirait
   // comme "meilleur créneau" de façon trompeuse.
   let peakId = null;
   let peakWinrate = -1;
@@ -45,11 +37,10 @@ function HeatmapGrid({ grid }) {
           </span>
         ))}
       </div>
-      {grid.map((row, rowIndex) => (
+      {grid.map((row) => (
         <div key={row.day} className="heatmap-grid-row">
           <span className="heatmap-grid-row-label">{t(dayLabelKey(row.day))}</span>
-          {row.periods.map((cell, colIndex) => {
-            const delay = (rowIndex * PERIODS.length + colIndex) * 22;
+          {row.periods.map((cell) => {
             const isPeak = `${row.day}-${cell.id}` === peakId;
             const tooltip =
               cell.games > 0
@@ -61,12 +52,7 @@ function HeatmapGrid({ grid }) {
               <div
                 key={cell.id}
                 className={`heatmap-grid-cell ${cell.games === 0 ? 'empty' : ''} ${isPeak ? 'peak' : ''}`}
-                style={{
-                  background: cell.winrate === null ? undefined : sequentialColor(cell.winrate),
-                  opacity: mounted ? 1 : 0,
-                  transform: mounted ? 'scale(1)' : 'scale(0.8)',
-                  transitionDelay: `${delay}ms`,
-                }}
+                style={{ background: cell.winrate === null ? undefined : sequentialColor(cell.winrate) }}
                 title={tooltip}
               >
                 {isPeak && <span className="heatmap-grid-cell-star"><Icon icon={Star} size={12} /></span>}

@@ -7,7 +7,7 @@ import https from 'node:https';
 //
 // Contrairement à HenrikDev (service tiers, quota de requêtes, données à
 // quelques minutes de décalage), cette API est celle du client Valorant qui
-// tourne sur la machine. Elle donne l'état EN DIRECT — notamment la sélection
+// tourne sur la machine. Elle donne l'état EN DIRECT, notamment la sélection
 // d'agent, que rien d'autre ne permet de voir.
 //
 // Contraintes qui en découlent :
@@ -43,7 +43,7 @@ const CLIENT_PLATFORM =
   'ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9';
 
 // Le client local présente un certificat auto-signé : sans exception, la
-// requête échoue. L'exception est limitée à CE module et à 127.0.0.1 — on ne
+// requête échoue. L'exception est limitée à CE module et à 127.0.0.1, on ne
 // touche jamais à NODE_TLS_REJECT_UNAUTHORIZED, qui désactiverait la
 // vérification pour toutes les requêtes de l'app (Supabase, HenrikDev...).
 //
@@ -79,7 +79,7 @@ export function readLockfile() {
 
 /**
  * Jetons d'accès, obtenus auprès du client local.
- * `subject` est le puuid du joueur connecté — pas besoin de le demander
+ * `subject` est le puuid du joueur connecté, pas besoin de le demander
  * ailleurs ni de le faire saisir.
  */
 async function getLocalAuth(lock) {
@@ -129,7 +129,7 @@ function glzHeaders(auth, version) {
 
 // pregame/core-game vivent sur les serveurs "glz" (par région de partie),
 // mais le rang classé d'un joueur, lui, vit sur "pd" (par shard du compte,
-// peu importe la partie) — même hôte que glz, sans le préfixe régional.
+// peu importe la partie), même hôte que glz, sans le préfixe régional.
 // ex. glz-eu-1.eu.a.pvp.net -> pd.eu.a.pvp.net
 function pdBaseFromGlz(glz) {
   const match = glz.match(/^https:\/\/glz-[a-z0-9-]+\.([a-z0-9-]+)\.a\.pvp\.net$/i);
@@ -137,10 +137,10 @@ function pdBaseFromGlz(glz) {
 }
 
 // CompetitiveTier dans pregame/core-game ne reflète que le classement DE LA
-// PARTIE EN COURS — vide (0) hors file Compétitive. L'endpoint MMR, lui,
+// PARTIE EN COURS, vide (0) hors file Compétitive. L'endpoint MMR, lui,
 // donne le rang classé du joueur indépendamment du mode actuellement joué
 // (c'est ce que font les trackers tiers pour afficher un rang même en Spike
-// Rush) — voir player-mmr sur valapidocs.techchrism.me. Un cache court évite
+// Rush), voir player-mmr sur valapidocs.techchrism.me. Un cache court évite
 // de le refaire à chaque poll (4s) pour les mêmes joueurs pendant un même
 // pregame/partie.
 const mmrCache = new Map(); // puuid -> { tier, expiresAt }
@@ -166,7 +166,7 @@ async function fetchMmrTier(pdBase, headers, puuid) {
 }
 
 // Ne rappelle l'endpoint MMR que pour les joueurs dont le rang embarqué est
-// vide (0) — en Compétitif, il est déjà correct et gratuit, pas besoin d'un
+// vide (0), en Compétitif, il est déjà correct et gratuit, pas besoin d'un
 // appel de plus par joueur.
 async function fillMissingRanks(pdBase, headers, players) {
   await Promise.all(
@@ -179,7 +179,7 @@ async function fillMissingRanks(pdBase, headers, players) {
 }
 
 // Sélection d'agent ('pregame') : seule MON équipe est exposée par Riot à ce
-// stade en classé (`EnemyTeam` est null) — rien à faire côté adversaires ici.
+// stade en classé (`EnemyTeam` est null), rien à faire côté adversaires ici.
 async function fetchPregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/pregame/v1/players/${puuid}`, { headers });
   if (playerRes.status === 404) return null;
@@ -212,7 +212,7 @@ async function fetchPregame(glz, pdBase, headers, puuid) {
 }
 
 // Partie en cours ('core-game'), à partir du chargement juste après la
-// sélection : contrairement au pregame, LES DEUX équipes sont exposées ici —
+// sélection : contrairement au pregame, LES DEUX équipes sont exposées ici,
 // c'est ce qui permet d'afficher enfin les adversaires.
 async function fetchCoregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/core-game/v1/players/${puuid}`, { headers });
@@ -254,9 +254,9 @@ async function fetchCoregame(glz, pdBase, headers, puuid) {
  * fonction est appelée en boucle par l'interface, et « le joueur n'est ni en
  * sélection ni en partie » est le cas NORMAL, pas une erreur.
  *
- *   'idle'        — ni en sélection ni en partie (cas courant)
- *   'unavailable' — client fermé, log absent, ou API injoignable
- *   'ok'          — `players` renseigné, `phase` distingue 'select' (agents
+ *   'idle'       , ni en sélection ni en partie (cas courant)
+ *   'unavailable', client fermé, log absent, ou API injoignable
+ *   'ok'         , `players` renseigné, `phase` distingue 'select' (agents
  *                    alliés uniquement) de 'game' (alliés + adversaires,
  *                    `team` sur chaque joueur)
  */

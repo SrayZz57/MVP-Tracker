@@ -122,7 +122,7 @@ function PostMortemModal({ settings, matches }) {
               );
             })}
             <div className="postmortem-actions">
-              <Button variant="ghost" className="refresh" onClick={handleDismiss}>
+              <Button variant="primary" className="refresh" onClick={handleDismiss}>
                 {t('postmortem.close')}
               </Button>
             </div>

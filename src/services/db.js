@@ -5,7 +5,7 @@ import { ABILITY_WEAPON_NAMES } from './matchNormalizer.js';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
-// PRIMARY KEY composite (match_id, puuid) — pas juste match_id : deux joueurs
+// PRIMARY KEY composite (match_id, puuid), pas juste match_id : deux joueurs
 // suivis qui jouent ENSEMBLE partagent le même match_id (Riot en assigne un
 // seul par partie), donc une clé sur match_id seul ne permettait d'enregistrer
 // ce match que pour le premier des deux consulté, le second se le voyait
@@ -20,7 +20,7 @@ db.exec(`
   )
 `);
 
-// Migration pour les bases créées avant ce correctif — même schéma visé,
+// Migration pour les bases créées avant ce correctif, même schéma visé,
 // juste appliqué a posteriori sans perdre les matchs déjà en cache.
 (function migrateMatchesPrimaryKey() {
   const existingSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'matches'`).get()?.sql;
@@ -46,7 +46,7 @@ db.exec(`
 // les kills au pistolet Headhunter et à l'ult Tour De Force de Chamber
 // étaient stockés avec un nom d'arme vide (HenrikDev ne renvoie pas leur nom,
 // seulement leur id) et donc invisibles dans les stats par arme. L'id, lui,
-// était bien conservé — on répare les matchs déjà en cache directement,
+// était bien conservé, on répare les matchs déjà en cache directement,
 // sans devoir tout re-télécharger depuis HenrikDev.
 (function backfillAbilityWeaponNames() {
   const userVersion = db.prepare('PRAGMA user_version').get().user_version;
@@ -129,7 +129,7 @@ db.exec(`
   )
 `);
 
-// UNIQUE(match_id, puuid) — pas match_id seul : un match partagé entre deux
+// UNIQUE(match_id, puuid), pas match_id seul : un match partagé entre deux
 // comptes suivis (ou une simple re-tentative) faisait échouer silencieusement
 // l'enregistrement dès qu'une ligne existait déjà pour ce match_id, peu importe
 // le compte (même bug de fond que celui corrigé sur la table matches).
@@ -215,7 +215,7 @@ try {
 // pas encore, pour que consulter le tracker d'un autre joueur sur la même
 // machine ne mélange plus ses données avec les tiennes. `puzzles` et
 // `weekly_narratives` avaient une contrainte UNIQUE sur une seule colonne
-// (date / week_start) — SQLite ne permet pas de la transformer en UNIQUE
+// (date / week_start), SQLite ne permet pas de la transformer en UNIQUE
 // composite via ALTER TABLE, donc ces deux tables sont recréées avec le bon
 // schéma si elles existent encore sous l'ancienne forme (détecté via absence
 // de la colonne puuid), en conservant les lignes existantes.
@@ -241,7 +241,7 @@ addPuuidColumn('ping_samples');
 function recreateWithCompositeUnique(table, columns, uniqueCols) {
   if (tableHasColumn(table, 'puuid')) {
     // Colonne déjà là : soit table neuve (CREATE TABLE ci-dessus l'a posée),
-    // soit déjà migrée lors d'un lancement précédent — rien à faire.
+    // soit déjà migrée lors d'un lancement précédent, rien à faire.
     const hadUniqueAlready = db
       .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?`)
       .get(table)?.sql;
@@ -305,10 +305,10 @@ export function saveMatches(puuid, matches) {
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
   );
   // HenrikDev renvoie parfois une entrée null/incomplète dans la liste (match
-  // corrompu de leur côté) — on l'ignore plutôt que de planter dessus. Logué
+  // corrompu de leur côté), on l'ignore plutôt que de planter dessus. Logué
   // (pas juste silencieusement ignoré) pour pouvoir diagnostiquer un compte
   // dont AUCUN match n'arrive jamais en cache malgré une requête HenrikDev
-  // réussie — sinon ce cas précis est indiscernable d'un simple 0 match.
+  // réussie, sinon ce cas précis est indiscernable d'un simple 0 match.
   let skipped = 0;
   for (const match of matches) {
     if (!match?.metadata?.matchid) {
@@ -318,7 +318,7 @@ export function saveMatches(puuid, matches) {
     insert.run(match.metadata.matchid, puuid, match.metadata.game_start, JSON.stringify(match));
   }
   if (skipped > 0) {
-    console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) — metadata.matchid manquant`);
+    console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) · metadata.matchid manquant`);
   }
 }
 

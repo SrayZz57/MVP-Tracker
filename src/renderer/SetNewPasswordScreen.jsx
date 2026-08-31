@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { supabase } from './supabaseClient.js';
 import { useE2EE } from './E2EEContext.jsx';
 import Button from './ui/Button';
+import logoText from '../assets/logo-text.png';
 
 function SetNewPasswordScreen({ onDone }) {
   const { t } = useTranslation();
@@ -26,7 +27,7 @@ function SetNewPasswordScreen({ onDone }) {
       setError(updateError.message);
       return;
     }
-    // Le nouveau mot de passe vient d'être posé à l'instant — sûr de
+    // Le nouveau mot de passe vient d'être posé à l'instant, sûr de
     // régénérer la clé de messagerie si l'ancienne est devenue orpheline.
     if (data.user) unlockForUser(data.user.id, password);
     onDone();
@@ -44,7 +45,7 @@ function SetNewPasswordScreen({ onDone }) {
         <span className="welcome-orb welcome-orb-7" />
       </div>
 
-      <h1>MVP Tracker</h1>
+      <img src={logoText} alt="MVP Tracker" className="welcome-logo-text" />
       <p className="welcome-tagline">{t('setNewPassword.tagline')}</p>
 
       <form className="account-auth-form" onSubmit={handleSubmit}>
@@ -65,8 +66,8 @@ function SetNewPasswordScreen({ onDone }) {
           minLength={6}
           required
         />
-        <Button variant="primary" type="submit" disabled={loading}>
-          {loading ? t('auth.validating') : t('setNewPassword.validate')}
+        <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.validating')}>
+          {t('setNewPassword.validate')}
         </Button>
       </form>
 

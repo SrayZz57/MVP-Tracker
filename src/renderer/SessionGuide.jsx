@@ -3,7 +3,8 @@ import { useTranslation } from 'react-i18next';
 import { Flame, Map, AlertTriangle, CheckCircle2, Target } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { buildSessionPlan } from './sessionPlan.js';
-import LoadingState from './LoadingState.jsx';
+import { SessionGuideSkeleton } from './skeletons.jsx';
+import useLoadingGate from './useLoadingGate.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -97,18 +98,17 @@ function SessionGuide({ settings, matches, loading: matchesLoading }) {
     setChecked((prev) => ({ ...prev, [id]: !prev[id] }));
   }
 
-  if (matches.length === 0) {
-    if (matchesLoading) return <LoadingState />;
-    return <p>{t('session.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(matchesLoading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <SessionGuideSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('session.noMatchesYet')}</p>;
 
   return (
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="session.intro" title={t('session.title')}>
+      <CollapsibleCard collapsible={false} id="session.intro" title={t('session.title')}>
         <p className="label">{t('session.description')}</p>
-        <Button variant="primary" className="refresh" onClick={handleLaunch} disabled={loading}>
+        <Button variant="primary" className="refresh" onClick={handleLaunch} loading={loading}>
           {plan ? t('session.newSession') : t('session.launch')}
         </Button>
       </CollapsibleCard>

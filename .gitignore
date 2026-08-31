@@ -90,3 +90,10 @@ typings/
 
 # Electron-Forge
 out/
+
+# Vite renderer build output
+dist/
+
+# Bacs à sable de vérification visuelle (captures, pages de test)
+.motion-check/
+__skeleton_lab__/

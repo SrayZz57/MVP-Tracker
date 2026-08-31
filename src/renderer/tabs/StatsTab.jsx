@@ -14,7 +14,7 @@ import {
   weaponKillsForAgent,
   agentTotalKills,
 } from '../valorantStats.js';
-import { useAgentIcons, useAgentPortraits, useAgentRoles } from '../agentIcons.js';
+import { useAgentIcons, useAgentRoles } from '../agentIcons.js';
 import { useMapImages } from '../mapImages.js';
 import { useWeaponIcons } from '../weaponIcons.js';
 import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
@@ -29,7 +29,8 @@ import AgentDetailModal from '../AgentDetailModal.jsx';
 import WeaponDetailModal from '../WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
 import CountUp from '../CountUp.jsx';
-import LoadingState from '../LoadingState.jsx';
+import { StatsTabSkeleton } from '../skeletons.jsx';
+import useLoadingGate from '../useLoadingGate.js';
 import Button from '../ui/Button';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
@@ -64,7 +65,7 @@ function renderModeStats(t, id, title, rows, icons) {
             </span>
             <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
             <span className="stat-bar-meta">
-              {t('stats.gamesCount', { count: row.games })} — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+              {t('stats.gamesCount', { count: row.games })} · K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
             </span>
           </div>
         ))
@@ -75,49 +76,50 @@ function renderModeStats(t, id, title, rows, icons) {
 
 const AGENT_CARDS_PAGE_SIZE = 5;
 
-function AgentCards({ rows, portraits, icons, matches, settings, onRowClick }) {
+function AgentCards({ rows, icons, matches, settings, onRowClick }) {
   const { t } = useTranslation();
   const [showAll, setShowAll] = useState(false);
   const visibleRows = showAll ? rows : rows.slice(0, AGENT_CARDS_PAGE_SIZE);
 
   return (
     <CollapsibleCard id="stats.statsByAgent" title={t('stats.statsByAgent')}>
-      <div className="map-card-list">
+      <div className="agent-table">
+        <div className="agent-table-head">
+          <span>{t('stats.colAgent')}</span>
+          <span>{t('stats.colWinrate')}</span>
+          <span>{t('stats.colGames')}</span>
+          <span>{t('stats.colKda')}</span>
+          <span>{t('stats.colKills')}</span>
+          <span>{t('stats.colWeapon')}</span>
+        </div>
         {visibleRows.map((row) => {
-          const image = portraits.get(row.key);
           const icon = icons.get(row.key);
           const topWeapon = weaponKillsForAgent(matches, settings.name, settings.tag, row.key)[0];
           const kills = agentTotalKills(matches, settings.name, settings.tag, row.key);
           const isGood = row.winrate !== null && row.winrate >= 50;
           return (
-            <div
+            <button
+              type="button"
               key={row.key}
-              className={`agent-card ${row.winrate === null ? '' : isGood ? 'win' : 'loss'}`}
+              className="agent-table-row"
               onClick={() => onRowClick(row.key)}
             >
-              <div className={`agent-card-badge ${row.winrate === null ? '' : isGood ? 'win' : 'loss'}`}>
-                <div className="agent-card-badge-value">
-                  {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}
-                </div>
-                <div className="agent-card-badge-label">{t('stats.winrateLabel')}</div>
-              </div>
-              <div className="agent-card-info">
-                <div className="agent-card-title-row">
-                  {icon && <img src={icon} alt="" className="agent-card-icon" />}
-                  <span className="agent-card-title">{row.key}</span>
-                </div>
-                <div className="agent-card-stats">
-                  <span className="label">{t('stats.gamesCount', { count: row.games })}</span>
-                  <span className="label">K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}</span>
-                  <span className="label">{t('stats.killsCount', { count: kills })}</span>
-                  {topWeapon && <span className="label">{t('stats.favoriteWeapon', { weapon: topWeapon[0] })}</span>}
-                </div>
-              </div>
-              <div
-                className="agent-card-portrait"
-                style={image ? { backgroundImage: `url(${image})` } : undefined}
-              />
-            </div>
+              <span className="agent-table-agent">
+                {icon && <img src={icon} alt="" className="agent-table-icon" />}
+                {row.key}
+              </span>
+              <span
+                className={`agent-table-winrate ${row.winrate === null ? '' : isGood ? 'win' : 'loss'}`}
+              >
+                {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}
+              </span>
+              <span>{row.games}</span>
+              <span>
+                {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+              </span>
+              <span>{kills}</span>
+              <span className="agent-table-weapon">{topWeapon ? topWeapon[0] : '–'}</span>
+            </button>
           );
         })}
       </div>
@@ -152,7 +154,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
               <div className="map-card-overlay">
                 <div className="map-card-title">{row.key}</div>
                 <div className="map-card-stats">
-                  {t('stats.gamesCount', { count: row.games })} — {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`} {t('stats.winrateLabel')} — K/D/A{' '}
+                  {t('stats.gamesCount', { count: row.games })} · {row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`} {t('stats.winrateLabel')} · K/D/A{' '}
                   {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
                 </div>
               </div>
@@ -172,7 +174,6 @@ function MapCards({ rows, mapImages, onRowClick }) {
 function StatsTab({ settings, matches, rank, loading }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
-  const agentPortraits = useAgentPortraits();
   const agentRoles = useAgentRoles();
   const mapImages = useMapImages();
   const weaponIcons = useWeaponIcons();
@@ -190,12 +191,12 @@ function StatsTab({ settings, matches, rank, loading }) {
   const [scope, setScope] = useState('');
   const [actFilter, setActFilter] = useState('');
 
-  // Filtre PC/Console local à cet onglet — n'affiche un choix que si le
+  // Filtre PC/Console local à cet onglet, n'affiche un choix que si le
   // compte a réellement de l'historique sur les deux (voir usePlatformFilter.js).
   const { platforms, platform, setPlatform, filteredMatches: platformMatches } = usePlatformFilter(matches);
 
   // Actes réellement présents dans l'historique en cache, du plus récent au
-  // plus ancien (basé sur la dernière game jouée dans chacun) — jamais une
+  // plus ancien (basé sur la dernière game jouée dans chacun), jamais une
   // liste figée qui proposerait un acte jamais joué.
   const availableActs = useMemo(() => {
     const latestByAct = new Map(); // season_id -> game_start le plus récent
@@ -214,7 +215,7 @@ function StatsTab({ settings, matches, rank, loading }) {
 
   // Filtre global de la page : "Tout" (comme avant), "Classé" (competitive
   // uniquement) ou "Non classé" (unrated uniquement), croisé avec un acte
-  // précis si choisi — s'applique à toutes les stats de l'onglet, pas juste
+  // précis si choisi, s'applique à toutes les stats de l'onglet, pas juste
   // à la liste de matchs en bas.
   const scopedMatches = useMemo(() => {
     let result = platformMatches;
@@ -329,7 +330,7 @@ function StatsTab({ settings, matches, rank, loading }) {
     return { results, wins, losses, draws, winrate };
   }, [scopedMatches, settings.name, settings.tag]);
 
-  // Modes réellement présents dans le scope actuel — pas de liste figée, pour
+  // Modes réellement présents dans le scope actuel, pas de liste figée, pour
   // ne jamais proposer un mode que le joueur n'a pas joué (ou hors du scope).
   const availableModes = useMemo(() => {
     const modes = new Map();
@@ -344,10 +345,9 @@ function StatsTab({ settings, matches, rank, loading }) {
     [scopedMatches, modeFilter],
   );
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('stats.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <StatsTabSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('stats.noMatchesYet')}</p>;
 
   return (
     <div>
@@ -392,7 +392,7 @@ function StatsTab({ settings, matches, rank, loading }) {
           <span className="label">
             {t('stats.matchesCount', { count: scopedMatches.length })}
             {scope ? ` ${t(SCOPE_OPTIONS.find((o) => o.id === scope)?.labelKey).toLowerCase()}` : ''}
-            {actFilter ? ` — ${availableActs.find((a) => a.id === actFilter)?.label}` : ''}
+            {actFilter ? ` · ${availableActs.find((a) => a.id === actFilter)?.label}` : ''}
           </span>
         )}
       </div>
@@ -439,7 +439,7 @@ function StatsTab({ settings, matches, rank, loading }) {
                     {peakTier?.icon && <img src={peakTier.icon} alt={rank.peakTierName} />}
                     <span>
                       {t('stats.peak', { tier: rank.peakTierName })}
-                      {seasonNames.get(rank.peakSeasonUuid) ? ` — ${seasonNames.get(rank.peakSeasonUuid)}` : ''}
+                      {seasonNames.get(rank.peakSeasonUuid) ? ` · ${seasonNames.get(rank.peakSeasonUuid)}` : ''}
                     </span>
                   </div>
                 )}
@@ -485,7 +485,7 @@ function StatsTab({ settings, matches, rank, loading }) {
             <h4>{t('stats.periodRecap')}</h4>
             <div className="kd-period-score">
               <span className="kd-period-wins">{periodResults.wins}V</span>
-              <span className="kd-period-sep">—</span>
+              <span className="kd-period-sep">–</span>
               <span className="kd-period-losses">{periodResults.losses}D</span>
               {periodResults.draws > 0 && (
                 <span className="label">{t('stats.draws', { count: periodResults.draws })}</span>
@@ -501,7 +501,7 @@ function StatsTab({ settings, matches, rank, loading }) {
                 <span
                   key={r.id}
                   className={`streak-dot ${r.label === 'Victoire' ? 'win' : r.label === 'Défaite' ? 'loss' : 'neutral'}`}
-                  title={`${r.map ?? '?'} — ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
+                  title={`${r.map ?? '?'} · ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
                 />
               ))}
             </div>
@@ -510,7 +510,7 @@ function StatsTab({ settings, matches, rank, loading }) {
         </div>
       </CollapsibleCard>
 
-      <CollapsibleCard id="stats.globalStats" title={t('stats.globalStatsTitle', { count: scopedMatches.length })}>
+      <CollapsibleCard collapsible={false} id="stats.globalStats" title={t('stats.globalStatsTitle', { count: scopedMatches.length })}>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value">{globalStats.hsPercent === null ? '?' : `${globalStats.hsPercent.toFixed(1)}%`}</div>
@@ -550,7 +550,6 @@ function StatsTab({ settings, matches, rank, loading }) {
 
       <AgentCards
         rows={agentStats}
-        portraits={agentPortraits}
         icons={agentIcons}
         matches={scopedMatches}
         settings={settings}
@@ -590,11 +589,11 @@ function StatsTab({ settings, matches, rank, loading }) {
                 onClick={() => setSelectedMatch(match)}
               >
                 <span className="match-info">
-                  {match.metadata?.mode ?? '?'} — {match.metadata?.map ?? '?'} — {' '}
+                  {match.metadata?.mode ?? '?'} · {match.metadata?.map ?? '?'} · {' '}
                   {me?.character && agentIcons.get(me.character) && (
                     <img src={agentIcons.get(me.character)} alt="" className="agent-icon" />
                   )}
-                  {me?.character ?? '?'} — {' '}
+                  {me?.character ?? '?'} · {' '}
                   {me?.stats?.kills ?? '?'}/{me?.stats?.deaths ?? '?'}/{me?.stats?.assists ?? '?'}
                   {hsPercent !== null &&
                     t('stats.hitBreakdown', { hs: hsPercent.toFixed(0), bs: bsPercent.toFixed(0), ls: lsPercent.toFixed(0) })}

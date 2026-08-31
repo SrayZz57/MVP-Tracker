@@ -42,7 +42,7 @@ function recordContext(t, i18nLang, record, extra) {
     extra,
   ].filter(Boolean);
   parts.push(formatDate(t, i18nLang, record.date));
-  return parts.join(' — ');
+  return parts.join(' · ');
 }
 
 function streakContext(t, i18nLang, streak) {
@@ -57,7 +57,7 @@ function formatHours(seconds) {
   return (seconds / 3600).toFixed(0);
 }
 
-// Tous dérivés de computeHallOfFame() — pas de seuil inventé sur des données
+// Tous dérivés de computeHallOfFame(), pas de seuil inventé sur des données
 // qu'on n'a pas (pas de "précision globale" par ex., puisque Riot n'expose
 // pas les tirs manqués ailleurs dans l'appli non plus). Les groupes "carrière"
 // (volume, temps de jeu, maîtrise...) s'ajoutent aux records ponctuels pour
@@ -281,7 +281,7 @@ function buildGroups(t, i18nLang) {
 }
 
 // Trie chaque groupe : débloqués d'abord (dans leur ordre de définition),
-// puis verrouillés du plus proche du déblocage au plus loin — pour que la
+// puis verrouillés du plus proche du déblocage au plus loin, pour que la
 // prochaine étape logique saute aux yeux plutôt que de scroller 75 succès
 // dans un ordre figé.
 export function deriveAchievements(t, i18nLang, hof) {

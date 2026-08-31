@@ -111,7 +111,7 @@ function WeeklyRecapCard({ settings, matches, rank }) {
                       {rank && (
                         <div className="weekly-recap-rank">
                           {currentTier?.icon && <img src={currentTier.icon} alt="" />}
-                          <span>{rank.tierName} — {rank.rr} RR</span>
+                          <span>{rank.tierName} · {rank.rr} RR</span>
                         </div>
                       )}
                     </div>
