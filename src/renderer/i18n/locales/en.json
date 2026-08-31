@@ -1549,6 +1549,8 @@
     "emailLabel": "Email address",
     "apiKeyLabel": "HenrikDev API key",
     "apiKeyMissing": "Not set",
+    "agentSelectOverlayLabel": "Agent select window over the game",
+    "agentSelectOverlayHint": "Shows a small window over Valorant during agent select and the start of a match (ranks, suggestions). Turn it off if you never want an extra window on top of the game.",
     "signOut": "Sign out",
     "forgotPassword": "Forgot your password?",
     "forgotPasswordSending": "Sending...",

@@ -738,6 +738,22 @@ function createAgentSelectOverlay() {
   }
 }
 
+// Activable/désactivable depuis Mon compte — certains joueurs préfèrent ne
+// jamais avoir de fenêtre supplémentaire par-dessus le jeu, même créée à la
+// demande. Activé par défaut.
+ipcMain.handle('agent-select-overlay:get-enabled', () => store.get('agentSelectOverlayEnabled') ?? true);
+
+ipcMain.handle('agent-select-overlay:set-enabled', (_event, enabled) => {
+  store.set('agentSelectOverlayEnabled', enabled);
+  // Coupure immédiate si désactivé en plein milieu d'une sélection/partie.
+  if (!enabled && agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+    clearInterval(overlayTopmostInterval);
+    overlayTopmostInterval = null;
+    agentSelectOverlayWindow.close();
+    agentSelectOverlayWindow = null;
+  }
+});
+
 // Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
 // qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
 // de l'app — une fenêtre transparente/always-on-top GPU-composée qui traîne
@@ -745,7 +761,8 @@ function createAgentSelectOverlay() {
 // et cause du lag système (souris qui rame), même en restant invisible.
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
   if (visible) {
-    if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) {
+    const enabled = store.get('agentSelectOverlayEnabled') ?? true;
+    if (enabled && (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed())) {
       createAgentSelectOverlay();
     }
   } else {

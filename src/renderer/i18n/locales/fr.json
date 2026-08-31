@@ -1549,6 +1549,8 @@
     "emailLabel": "Adresse mail",
     "apiKeyLabel": "Clé API HenrikDev",
     "apiKeyMissing": "Non renseignée",
+    "agentSelectOverlayLabel": "Fenêtre de sélection d'agent par-dessus le jeu",
+    "agentSelectOverlayHint": "Affiche une petite fenêtre par-dessus Valorant pendant la sélection d'agent et le début de partie (rangs, suggestions). Désactive-la si tu ne veux jamais de fenêtre supplémentaire par-dessus le jeu.",
     "signOut": "Se déconnecter",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordSending": "Envoi en cours...",

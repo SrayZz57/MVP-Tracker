@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Pencil, Check, X, Mail } from 'lucide-react';
 import Icon from './Icon.jsx';
@@ -34,6 +34,17 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
+  const [overlayEnabled, setOverlayEnabled] = useState(true);
+
+  useEffect(() => {
+    window.electronAPI.getAgentSelectOverlayEnabled().then(setOverlayEnabled);
+  }, []);
+
+  const handleToggleOverlay = () => {
+    const next = !overlayEnabled;
+    setOverlayEnabled(next);
+    window.electronAPI.setAgentSelectOverlayEnabled(next);
+  };
 
   const avatarCardUuid = profile.avatar_card_uuid ?? myRank?.cardUuid;
   const avatarArt = usePlayerCardArt(avatarCardUuid);
@@ -279,6 +290,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             </span>
           )}
         </div>
+        <label className="account-email-row account-toggle-row">
+          <span className="account-tile-label">{t('account.agentSelectOverlayLabel')}</span>
+          <input type="checkbox" checked={overlayEnabled} onChange={handleToggleOverlay} />
+        </label>
+        <p className="label account-toggle-hint">{t('account.agentSelectOverlayHint')}</p>
         <div className="account-settings-actions">
           <button className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}
