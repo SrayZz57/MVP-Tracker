@@ -7805,6 +7805,26 @@ input[type='color'] {
   color: var(--text-muted);
 }
 
+/* Une fois le bracket généré, équipes et bracket côte à côte plutôt
+   qu'empilés — le bracket est large, autant profiter de l'espace libre à
+   droite au lieu de le laisser vide en dessous de la liste d'équipes. */
+.tournament-columns {
+  display: flex;
+  gap: 2rem;
+  align-items: flex-start;
+  flex-wrap: wrap;
+}
+
+.tournament-columns .tournament-teams-list {
+  flex: 0 0 420px;
+  max-width: 420px;
+}
+
+.tournament-columns .tournament-bracket-section {
+  flex: 1 1 480px;
+  min-width: 0;
+}
+
 .tournament-teams-list,
 .tournament-registration,
 .tournament-admin-approvals,

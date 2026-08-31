@@ -366,6 +366,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
         </section>
       )}
 
+      <div className={matches.length > 0 ? 'tournament-columns' : undefined}>
       <section className="tournament-teams-list">
         <h2>{t('tournaments.registeredTeams')}</h2>
         {teams.length === 0 ? (
@@ -505,6 +506,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
           )}
         </section>
       )}
+      </div>
     </div>
   );
 }
