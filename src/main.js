@@ -269,8 +269,15 @@ const createWindow = () => {
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
     },
   });
+
+  // L'app ouvre les liens externes via shell.openExternal (IPC), jamais par
+  // window.open : on refuse toute nouvelle fenêtre native par défaut.
+  mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
@@ -319,8 +326,13 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
     backgroundColor: '#0a0c10',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
     },
   });
+
+  aimTrainerWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   // Les réglages passent par l'URL : la fenêtre de jeu est un rendu autonome
   // du même bundle, elle ne partage aucun état React avec la fenêtre principale.
@@ -359,10 +371,45 @@ ipcMain.handle('aim-trainer:close', (event) => {
 });
 
 
-ipcMain.handle('settings:get', () => store.get('valorantSettings') || null);
+// La clé API HenrikDev est chiffrée au repos par le coffre-fort système
+// (safeStorage/DPAPI), comme la clé de messagerie, plutôt qu'écrite en clair
+// dans le JSON d'electron-store. Compat ascendante : une valeur déjà en clair
+// (ancienne version) est relue telle quelle, puis re-chiffrée à la prochaine
+// écriture. Si le coffre-fort est indisponible, on retombe sur du clair.
+const API_KEY_ENC_PREFIX = 'enc:v1:';
+
+function encryptApiKey(key) {
+  if (!key || !safeStorage.isEncryptionAvailable()) return key || '';
+  return API_KEY_ENC_PREFIX + safeStorage.encryptString(key).toString('base64');
+}
+
+function decryptApiKey(stored) {
+  if (!stored || typeof stored !== 'string' || !stored.startsWith(API_KEY_ENC_PREFIX)) return stored || '';
+  try {
+    return safeStorage.decryptString(Buffer.from(stored.slice(API_KEY_ENC_PREFIX.length), 'base64'));
+  } catch {
+    return '';
+  }
+}
+
+function getValorantSettings() {
+  const s = store.get('valorantSettings');
+  if (!s) return null;
+  return { ...s, apiKey: decryptApiKey(s.apiKey) };
+}
+
+function setValorantSettings(settings) {
+  if (!settings) {
+    store.set('valorantSettings', settings);
+    return;
+  }
+  store.set('valorantSettings', { ...settings, apiKey: encryptApiKey(settings.apiKey) });
+}
+
+ipcMain.handle('settings:get', () => getValorantSettings());
 
 ipcMain.handle('settings:set', (_event, settings) => {
-  store.set('valorantSettings', settings);
+  setValorantSettings(settings);
 });
 
 // Identifiant stable de cette installation — sert uniquement à distinguer les
@@ -463,7 +510,7 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
 
 ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => {
   const account = await getAccount(name, tag, apiKey);
-  store.set('valorantSettings', { name, tag, apiKey, puuid: account.puuid });
+  setValorantSettings({ name, tag, apiKey, puuid: account.puuid });
 
   // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
   // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup
@@ -560,7 +607,7 @@ ipcMain.handle('valorant:get-rank-for', (_event, puuid) => {
 });
 
 ipcMain.handle('valorant:get-cached-matches', () => {
-  const settings = store.get('valorantSettings');
+  const settings = getValorantSettings();
   if (!settings?.puuid) return [];
   return getCachedMatches(settings.puuid);
 });
@@ -612,7 +659,7 @@ function notifyTilt(tilt, form) {
 }
 
 async function checkTiltAndNotify() {
-  const settings = store.get('valorantSettings');
+  const settings = getValorantSettings();
   if (!settings?.name || !settings?.tag || !settings?.apiKey) return;
   try {
     const account = await getAccount(settings.name, settings.tag, settings.apiKey);
