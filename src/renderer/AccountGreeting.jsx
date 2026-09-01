@@ -6,15 +6,12 @@ import Icon from './Icon.jsx';
 import { usePlayerCardArt } from './rankData.js';
 import { supabase } from './supabaseClient.js';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent, resultLabelKey, resultLabel, findMe } from './valorantStats.js';
-import logo from '../assets/logo.png';
 import Button from './ui/Button';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
 
-// Auteur affiché en dur comme "Fondateur" : un seul admin publie ces
-// annonces pour l'instant. Le nom/l'avatar, eux, restent dynamiques (tirés
-// du vrai profil MVP Tracker de l'auteur) plutôt qu'en dur, pour rester
-// à jour si SrayZz change sa photo/son pseudo affiché.
+// Rôle affiché en dur : un seul admin publie ces annonces pour l'instant.
+// Nom et avatar viennent du profil réel, pour suivre les changements de pseudo.
 function AnnouncementAuthor({ author, t }) {
   const avatarArt = usePlayerCardArt(author?.avatar_card_uuid);
   if (!author) return null;
@@ -28,7 +25,8 @@ function AnnouncementAuthor({ author, t }) {
       ) : (
         <span className="announcement-card-author-avatar announcement-card-author-fallback">{name.charAt(0)}</span>
       )}
-      <span className="announcement-card-author-name">{t('accountGreeting.announcementFounder', { name })}</span>
+      <span className="announcement-card-author-name">{name}</span>
+      <span className="announcement-card-author-role">{t('accountGreeting.announcementRole')}</span>
     </div>
   );
 }
@@ -42,7 +40,7 @@ function AnnouncementCard({ announcement, t }) {
       <div className="announcement-card-overlay">
         <div className="announcement-card-head">
           <span className="announcement-card-icon">
-            <Icon icon={Megaphone} size={16} />
+            <Icon icon={Megaphone} size={15} />
           </span>
           <h3 className="announcement-card-title">{announcement.title}</h3>
         </div>
@@ -106,7 +104,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
         ))}
       </div>
 
-      <img src={logo} alt="MVP Tracker" className="welcome-logo" />
       <h1>{t('accountGreeting.title')}</h1>
       <p className="welcome-tagline">{t('accountGreeting.tagline')}</p>
 
@@ -124,7 +121,7 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
           <RiotProfilePreview name={settings.name} tag={settings.tag} cardUuid={rank?.cardUuid} rank={rank} />
 
           {summary ? (
-            <>
+            <div className="greeting-summary">
               <div className="greeting-stats">
                 <div className="greeting-stat">
                   <span className="greeting-stat-value">{summary.games}</span>
@@ -161,7 +158,7 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
                   </div>
                 </div>
               )}
-            </>
+            </div>
           ) : (
             <p className="label greeting-empty">{t('accountGreeting.noMatches')}</p>
           )}
@@ -198,7 +195,7 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
           <h2 className="greeting-aim-title">{t('accountGreeting.aimTitle')}</h2>
           <p className="label greeting-aim-text">{t('accountGreeting.aimText')}</p>
 
-          <Button variant="primary" className="refresh greeting-aim-btn" onClick={onOpenAimTrainer}>
+          <Button variant="accent" className="greeting-aim-btn" onClick={onOpenAimTrainer}>
             {t('accountGreeting.aimCta')}
           </Button>
         </section>

@@ -121,7 +121,7 @@ function BracketView({ tournamentId, matches, teams, isAdmin, onUpdated }) {
       </svg>
 
       {rounds.map(({ round, matches: roundMatches }) => (
-        <div key={round} className="bracket-round" style={{ '--round': round - 1 }}>
+        <div key={round} className="bracket-round">
           <p className="bracket-round-title">
             {round === maxRound ? t('tournaments.bracket.final') : t('tournaments.bracket.round', { round })}
           </p>

@@ -424,14 +424,13 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
           <p className="label">{t('tournaments.noTeamsYet')}</p>
         ) : (
           <ul className="tournament-team-grid">
-            {teams.map((team, index) => {
+            {teams.map((team) => {
               const expanded = expandedTeamId === team.id;
               const players = playersByTeam.get(team.id) ?? [];
               return (
                 <li
                   key={team.id}
                   className={`tournament-team-card status-${team.status} ${expanded ? 'expanded' : ''}`}
-                  style={{ '--i': index }}
                 >
                   <Button
                     variant="ghost"

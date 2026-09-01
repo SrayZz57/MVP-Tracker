@@ -1000,7 +1000,7 @@ function App() {
           <div className="topbar-group topbar-group-actions">
             <Button
               variant="primary"
-              onClick={data.refresh}
+              onClick={() => data.refresh({ force: true })}
               loading={data.loading}
               loadingLabel={t('nav.loading')}
               className="refresh"
@@ -1011,7 +1011,7 @@ function App() {
                 menu de gauche alors que c'est une fonctionnalité à lancer
                 souvent, idéalement avant chaque session de jeu. */}
             <Button
-              variant="ghost"
+              variant="accent"
               className={activeTab === 'aim-trainer' ? 'aim-topbar-button active' : 'aim-topbar-button'}
               title={t('aimTrainer.topbarTitle')}
               onClick={() => setActiveTab('aim-trainer')}

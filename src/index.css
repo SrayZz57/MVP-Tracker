@@ -19,6 +19,15 @@
   --accent: #ff4655;
   --accent-hover: #ff6472;
   --accent-deep: #d81f31;
+
+  /* Accent chaud, reserve a l'Aim Trainer (barre du haut + ecran d'accueil).
+     Etait duplique en litteral aux deux endroits ; c'est la seule couleur de
+     bouton de l'app en dehors de l'accent rouge, elle merite un token plutot
+     qu'un copier-coller. */
+  --accent-warm: #ff8f4d;
+  --accent-warm-mid: #ff5a3c;
+  --accent-warm-deep: #e0342f;
+  --accent-warm-border: rgba(255, 160, 90, 0.55);
   --accent-soft: rgba(255, 70, 85, 0.13);
   --accent-glow: rgba(255, 70, 85, 0.45);
 
@@ -849,7 +858,7 @@ h1 {
 }
 
 .refresh {
-  margin-left: auto;
+  margin-inline-start: auto;
 }
 
 .discord-button {
@@ -1076,6 +1085,316 @@ h1 {
 .account-auth-switch:hover {
   color: var(--accent);
   transform: none;
+}
+
+/* ============================================================
+   Connexion / inscription (AccountAuth, SetNewPasswordScreen)
+   ============================================================ */
+
+.auth-screen {
+  position: relative;
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2.5rem 1.5rem;
+  overflow: hidden;
+}
+
+.auth-bg {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+.auth-glow {
+  position: absolute;
+  left: 50%;
+  border-radius: 50%;
+  transform: translateX(-50%);
+}
+
+.auth-glow-warm {
+  /* Taille liée au viewport, sinon le halo se réduit à une tache au centre
+     des grands écrans. */
+  width: clamp(700px, 78vw, 1700px);
+  height: clamp(700px, 78vw, 1700px);
+  top: -40%;
+  background: radial-gradient(circle, rgba(255, 70, 85, 0.16), transparent 62%);
+}
+
+.auth-glow-cool {
+  width: clamp(600px, 66vw, 1400px);
+  height: clamp(600px, 66vw, 1400px);
+  bottom: -36%;
+  background: radial-gradient(circle, rgba(90, 120, 255, 0.11), transparent 64%);
+}
+
+.auth-shell {
+  position: relative;
+  z-index: 1;
+  width: 100%;
+  max-width: 390px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.auth-logo {
+  width: min(130px, 45%);
+  height: auto;
+  object-fit: contain;
+  margin-bottom: 1.25rem;
+}
+
+.auth-card {
+  width: 100%;
+  padding: 1.9rem 1.7rem 1.5rem;
+  border-radius: var(--r-xl);
+  border: 1px solid var(--border);
+  background: linear-gradient(180deg, rgba(32, 36, 47, 0.9), rgba(17, 20, 27, 0.94));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.06),
+    0 2px 6px rgba(0, 0, 0, 0.35),
+    0 30px 64px -26px rgba(0, 0, 0, 0.85);
+  text-align: left;
+  animation: auth-card-in var(--t-view) var(--ease-out) both;
+}
+
+@keyframes auth-card-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+.auth-card-head {
+  margin-bottom: 1.5rem;
+}
+
+.auth-card-head h1 {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+}
+
+.auth-subtitle {
+  margin: 0.45rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.86rem;
+  line-height: 1.5;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.auth-field-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.auth-label {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 0.72rem;
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.auth-hint {
+  margin: 0;
+  font-size: 0.76rem;
+  line-height: 1.4;
+  color: var(--text-dim);
+}
+
+.auth-input {
+  width: 100%;
+  height: var(--control-h);
+  padding: 0 0.85rem;
+  border-radius: var(--r-md);
+  font-size: 0.9rem;
+}
+
+.auth-input-wrap {
+  position: relative;
+}
+
+/* Corps agrandi : le glyphe `*` est dessiné en exposant, au corps du champ la
+   rangée d'astérisques flotte contre le haut. */
+.auth-input-password::placeholder {
+  font-size: 1.25rem;
+  letter-spacing: 0.16em;
+}
+
+.auth-input-wrap .auth-input {
+  padding-right: 2.6rem;
+}
+
+.auth-reveal {
+  position: absolute;
+  top: 50%;
+  right: 0.35rem;
+  transform: translateY(-50%);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 30px;
+  height: 30px;
+  padding: 0;
+  border: none;
+  border-radius: var(--r-sm);
+  background: transparent;
+  color: var(--text-dim);
+}
+
+.auth-reveal:hover:not(:disabled) {
+  background: var(--hover-veil);
+  border-color: transparent;
+  color: var(--text);
+}
+
+.auth-code {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  letter-spacing: 0.45em;
+  text-indent: 0.45em;
+  text-align: center;
+}
+
+.auth-submit {
+  width: 100%;
+  height: var(--control-h);
+  margin-top: 0.4rem;
+}
+
+.auth-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.55rem;
+  margin: 1.1rem 0 0;
+  padding: 0.7rem 0.85rem;
+  border-radius: var(--r-md);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.auth-alert svg {
+  flex-shrink: 0;
+  margin-top: 0.12rem;
+}
+
+.auth-alert-error {
+  background: var(--accent-soft);
+  border: 1px solid rgba(255, 70, 85, 0.32);
+  color: #ffb0b8;
+}
+
+.auth-alert-info {
+  background: rgba(61, 220, 132, 0.1);
+  border: 1px solid rgba(61, 220, 132, 0.28);
+  color: #9ee7c1;
+}
+
+.auth-card-foot {
+  margin-top: 1.4rem;
+  padding-top: 1.1rem;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  font-size: 0.84rem;
+  color: var(--text-muted);
+}
+
+/* Neutralise le fond et la bordure que `button` pose par défaut. */
+.auth-link {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  font-weight: 600;
+  color: var(--accent);
+  cursor: pointer;
+}
+
+.auth-link:hover:not(:disabled) {
+  background: none;
+  border-color: transparent;
+  color: var(--accent-hover);
+  text-decoration: underline;
+}
+
+.auth-link:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 3px;
+  border-radius: 4px;
+}
+
+.auth-link-sm {
+  font-size: 0.76rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.auth-link-sm:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+.auth-back {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  font-weight: 500;
+  color: var(--text-muted);
+}
+
+.auth-back:hover:not(:disabled) {
+  color: var(--accent);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .auth-card {
+    animation: none;
+  }
+}
+
+/* Au-delà de 1800px la carte paraissait minuscule au centre de l'écran. */
+@media (min-width: 1800px) and (min-height: 1000px) {
+  .auth-shell {
+    max-width: 460px;
+  }
+
+  .auth-logo {
+    width: min(150px, 45%);
+  }
+
+  .auth-card {
+    padding: 2.3rem 2.1rem 1.8rem;
+  }
+
+  .auth-card-head h1 {
+    font-size: 1.6rem;
+  }
+
+  .auth-input,
+  .auth-submit {
+    height: 48px;
+  }
 }
 
 .riot-preview-card {
@@ -2032,27 +2351,43 @@ tr.clickable:hover {
 
 /* En couche `base` : perd toujours face aux classes de composant. */
 @layer base {
+  /* Repli pour les <button> ecrits a la main, sans le composant Button : ils
+     prennent exactement l'aspect de la variante ghost, pour qu'un bouton
+     rende pareil qu'il passe ou non par le composant. Le composant, lui, est
+     entierement pilote par .btn et ses variantes plus bas. */
   button {
-    background: linear-gradient(180deg, var(--surface-hi), var(--surface-alt));
+    background: var(--surface-alt);
     color: var(--text);
     border: 1px solid var(--border);
     border-radius: var(--r-sm);
-    padding: 0.5rem 1rem;
+    padding: 0.6rem 1rem;
     cursor: pointer;
     font-family: inherit;
-    font-size: 0.88rem;
-    font-weight: 500;
-    transition: border-color var(--t-state), background var(--t-state), box-shadow var(--t-state), color var(--t-state);
+    font-size: 0.9rem;
+    font-weight: 600;
+    /* Sans ca un <button> ecrit a la main faisait 41px de haut contre 36px
+       pour le composant, a padding et police pourtant identiques. */
+    line-height: 1;
+    /* `scale: 1` explicite : la valeur initiale de `scale` est `none`, qui ne
+       s'interpole pas vers un nombre — sans ca la transition part de `none`
+       et n'atteint jamais le 0.96 de l'appui (verifie au rendu). */
+    scale: 1;
+    transition: background-color var(--t-state), border-color var(--t-state), box-shadow var(--t-state),
+      color var(--t-state), scale var(--t-state);
   }
 
-  button:hover:not(:disabled):not(.weekly-notch) {
-    border-color: rgba(255, 70, 85, 0.55);
-    background: linear-gradient(180deg, #2c3240, var(--surface-hi));
+  /* `:not(.btn)` est ce qui rend le design system operant. Sans lui, cette
+     regle pese (0,2,1) contre (0,2,0) pour `.btn-primary:hover:not(:disabled)`
+     dans la meme couche : l'element gagnait et TOUTES les variantes viraient
+     au meme degrade gris au survol, y compris le primary rouge. */
+  button:hover:not(:disabled):not(.weekly-notch):not(.btn) {
+    border-color: var(--border-strong);
+    background: var(--surface-hi);
   }
 
-  button:active:not(:disabled):not(.weekly-notch) {
+  button:active:not(:disabled):not(.weekly-notch):not(.btn) {
     box-shadow: var(--press-veil);
-    transition-duration: 0s;
+    scale: 0.96;
   }
 
   button:focus-visible {
@@ -2072,16 +2407,16 @@ tr.clickable:hover {
    suggérer qu'il flotte au-dessus de la surface. */
 .refresh,
 form button[type='submit'] {
-  background: linear-gradient(180deg, var(--accent-hover), var(--accent) 55%, var(--accent-deep));
-  border-color: rgba(255, 120, 130, 0.5);
+  background: var(--accent);
+  border-color: var(--accent);
   color: #fff;
   font-weight: 600;
 }
 
 .refresh:hover:not(:disabled),
 form button[type='submit']:hover:not(:disabled) {
-  background: linear-gradient(180deg, #ff7a86, var(--accent-hover) 55%, var(--accent));
-  border-color: rgba(255, 150, 160, 0.65);
+  background: var(--accent-hover);
+  border-color: var(--accent-hover);
 }
 
 input,
@@ -2202,8 +2537,63 @@ li {
   color: var(--text-dim);
 }
 
+/* Pas de `margin-top: auto` ici : les actions sont deja poussees en bas par
+   la marge automatique du bloc qui les precede (.greeting-summary ou
+   .greeting-empty, l'un des deux est toujours rendu). En cumuler une
+   troisieme faisait partager le mou vertical en trois parts egales, ce qui
+   collait le resume trop haut (44px au-dessus, 88px en dessous). */
 .greeting-panel .riot-confirm-actions {
-  margin-top: auto;
+  margin-top: 0;
+}
+
+/* La carte de profil est calibree pour l'ecran de liaison de compte, ou elle
+   vit dans une colonne plus etroite : max-width 420px et marge verticale
+   propre. Dans ce panneau elle creait deux defauts — une largeur de 18px
+   inferieure a la grille de stats juste en dessous (donc une arete
+   d'alignement parasite face au panneau de droite, lui a fond perdu), et une
+   marge de 1rem qui s'ajoutait au gap du panneau, decalant tout le contenu
+   de gauche de 16px par rapport a celui de droite. */
+.greeting-panel .riot-preview-card {
+  max-width: none;
+  margin-block: 0;
+}
+
+/* Un seul gabarit de bouton sur cet ecran. Les deux actions du bas etaient a
+   trois tailles differentes (37,2px a gauche, 41,2px a droite) : c'est la
+   hauteur commune et la taille de texte qui sont unifiees, pas le padding
+   horizontal, pour que les libelles longs ne poussent pas la rangee de
+   gauche jusqu'au retour a la ligne. */
+
+/* Les actions restent collees en bas des deux panneaux (memes cotes, deja
+   le cas), mais le mou vertical se repartit autour du resume au lieu de
+   s'accumuler entierement au-dessus des boutons. */
+.greeting-summary {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+  margin-block: auto;
+}
+
+/* Actions a fond perdu dans les DEUX panneaux : elles partagent alors la meme
+   arete que la carte de profil, la grille de stats et l'apercu de l'arene,
+   et les deux colonnes se repondent au lieu d'opposer une rangee de pastilles
+   a un bouton centre.
+   C'est aussi ce qui supprime le seul point de rupture de l'ecran : cote a
+   cote, les deux libelles ne tenaient plus sur une ligne des que le panneau
+   passait sous ~400px de contenu (la fenetre s'ouvre a 800px par defaut, ou
+   chaque panneau n'a que 299px de contenu) et la rangee se repliait en deux
+   pastilles de largeurs differentes. Un bouton pleine largeur ne se replie
+   jamais, quelle que soit la langue. */
+.greeting-panel .riot-confirm-actions {
+  flex-direction: column;
+  align-items: stretch;
+  width: 100%;
+}
+
+.greeting-panel .greeting-aim-btn {
+  width: 100%;
 }
 
 .greeting-stats {
@@ -2294,10 +2684,6 @@ li {
      sans le neutraliser, le bouton se colle à droite du panneau au lieu
      d'être centré. */
   margin: auto auto 0;
-  font-size: 0.95rem;
-  padding: 0.75rem 1.6rem;
-  background: linear-gradient(180deg, #ff8f4d, #ff5a3c 55%, #e0342f);
-  border-color: rgba(255, 160, 90, 0.55);
 }
 
 /* Illustration de l'arène de tir, entièrement en CSS. */
@@ -2407,51 +2793,7 @@ li {
   height: var(--control-h);
   padding: 0 1.1rem;
   border-radius: var(--r-md);
-  overflow: hidden;
-  isolation: isolate;
-  border: 1px solid rgba(255, 160, 90, 0.55);
-  background: linear-gradient(180deg, #ff8f4d, #ff5a3c 55%, #e0342f);
-  color: #fff;
-  font-family: var(--font-display);
-  font-weight: 700;
-  font-size: 0.88rem;
   letter-spacing: 0.01em;
-  transition: filter var(--t-state), box-shadow var(--t-state);
-}
-
-/* Reflet diagonal qui traverse le bouton en boucle lente : attire l'œil sans
-   animer la couleur de fond (moins agressif qu'un clignotement). */
-.aim-topbar-button::after {
-  content: '';
-  position: absolute;
-  z-index: -1;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 40%;
-  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
-  transform: translateX(-150%) skewX(-20deg);
-  /* Long temps mort entre deux passages (4,9 s pour 0,9 s de balayage) pour
-     rester une respiration, pas un clignotant. */
-  animation: aim-topbar-shine var(--t-ambient) 1.5s infinite;
-}
-
-@keyframes aim-topbar-shine {
-  0% {
-    transform: translateX(-150%) skewX(-20deg);
-  }
-  18%,
-  100% {
-    transform: translateX(400%) skewX(-20deg);
-  }
-}
-
-.aim-topbar-button:hover {
-  filter: brightness(1.08);
-}
-
-.aim-topbar-button:active {
-  box-shadow: var(--press-veil);
 }
 
 .aim-topbar-icon {
@@ -7546,8 +7888,7 @@ input[type='color'] {
   border-radius: 18px;
   background: var(--surface, rgba(255, 255, 255, 0.04));
   border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  animation: tournamentCardIn 0.5s var(--ease-out, ease) both;
-  animation-delay: 0.1s;
+  animation: tournamentCardIn var(--t-view) both;
 }
 
 .tournaments-mine {
@@ -7629,8 +7970,7 @@ input[type='color'] {
   display: flex;
   gap: 0.85rem;
   padding-bottom: 1.35rem;
-  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
-  animation-delay: calc(0.15s + var(--i, 0) * 0.08s);
+  animation: tournamentCardIn var(--t-enter) both;
 }
 
 .tournaments-how-step:last-child {
@@ -7696,7 +8036,7 @@ input[type='color'] {
   gap: 1rem;
   padding: 2rem;
   text-align: center;
-  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
+  animation: tournamentCardIn var(--t-view) both;
 }
 
 .tournaments-empty-icon {
@@ -7715,7 +8055,11 @@ input[type='color'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tournaments-empty-icon {
+  .tournaments-empty-icon,
+  .tournaments-how,
+  .tournaments-mine,
+  .tournaments-how-step,
+  .tournaments-empty-state {
     animation: none;
   }
 }
@@ -7757,9 +8101,8 @@ input[type='color'] {
   background-position: center;
   background-color: var(--surface, #17181f);
   border: 1px solid transparent;
-  transition: transform 0.25s var(--ease-out, ease), border-color 0.25s;
-  animation: tournamentCardIn 0.45s var(--ease-out, ease) both;
-  animation-delay: calc(var(--i, 0) * 0.07s);
+  transition: transform var(--t-state), border-color var(--t-state);
+  animation: tournamentCardIn var(--t-enter) both;
 }
 
 @keyframes tournamentCardIn {
@@ -7963,7 +8306,7 @@ input[type='color'] {
   overflow: hidden;
   isolation: isolate;
   background: radial-gradient(120% 90% at 20% 0%, #3d1f6e 0%, #1a0f3a 55%, #0b0716 100%);
-  animation: tournamentCardIn 0.5s var(--ease-out, ease) both;
+  animation: tournamentCardIn var(--t-view) both;
 }
 
 @media (max-width: 1100px) {
@@ -8032,7 +8375,8 @@ input[type='color'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .tournaments-promo-portrait {
+  .tournaments-promo-portrait,
+  .tournaments-promo {
     animation: none;
   }
 }
@@ -8081,7 +8425,7 @@ input[type='color'] {
   background-position: center;
   background-color: var(--surface, #17181f);
   margin-bottom: 1.5rem;
-  animation: tournamentCardIn 0.45s var(--ease-out, ease) both;
+  animation: tournamentCardIn var(--t-view) both;
 }
 
 .tournament-hero::before {
@@ -8202,7 +8546,11 @@ input[type='color'] {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .generate-bracket-button.ready::after {
+  .generate-bracket-button.ready::after,
+  .tournament-hero,
+  .admin-panel,
+  .tournament-registration,
+  .tournament-teams-list {
     animation: none;
   }
 }
@@ -8227,7 +8575,14 @@ input[type='color'] {
   overflow: hidden;
   transition: border-color var(--t-state), background-color var(--t-state);
   animation: tournamentCardIn var(--t-enter) both;
-  animation-delay: calc(var(--i, 0) * 0.04s);
+}
+
+/* Le garde-fou doit suivre la regle qu'il neutralise : a specificite egale,
+   c'est la derniere declaration qui gagne, une media query n'y change rien. */
+@media (prefers-reduced-motion: reduce) {
+  .tournament-team-card {
+    animation: none;
+  }
 }
 
 .tournament-team-card:hover {
@@ -8412,8 +8767,7 @@ input[type='color'] {
   flex-direction: column;
   min-width: 220px;
   flex-shrink: 0;
-  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
-  animation-delay: calc(var(--round, 0) * 0.15s);
+  animation: tournamentCardIn var(--t-enter) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -9011,7 +9365,21 @@ body:not(.overlay-window) .agent-select-dot {
     border: 1px solid transparent;
     cursor: pointer;
     user-select: none;
-    transition: background-color var(--t-state), border-color var(--t-state), color var(--t-state);
+    /* Voir la note sur `button` plus haut : `scale` doit avoir une valeur
+       numerique au repos pour que la transition vers 0.96 aboutisse. */
+    scale: 1;
+    /* box-shadow et scale font partie de la liste : sans eux le voile d'appui
+       claquait sans transition sur les boutons du composant, alors qu'il
+       fondait sur un <button> ecrit a la main. */
+    transition: background-color var(--t-state), border-color var(--t-state), color var(--t-state),
+      box-shadow var(--t-state), filter var(--t-state), scale var(--t-state);
+  }
+
+  /* Retour tactile a l'appui, identique pour toutes les variantes. Le design
+     system n'avait aucun etat :active, seul l'element en avait un. */
+  .btn:active:not(:disabled) {
+    box-shadow: var(--press-veil);
+    scale: 0.96;
   }
 
   .btn:focus-visible {
@@ -9053,6 +9421,21 @@ body:not(.overlay-window) .agent-select-dot {
   .btn-danger:hover:not(:disabled) {
     background: var(--accent-soft);
     border-color: var(--accent);
+  }
+
+  /* Variante reservee a l'Aim Trainer. Meme geometrie et memes etats que les
+     autres, seule la couleur change : le degrade ne s'interpole pas, c'est
+     donc `filter` qui porte le survol, comme partout ailleurs sur un fond
+     degrade. */
+  .btn-accent {
+    background: linear-gradient(180deg, var(--accent-warm), var(--accent-warm-mid) 55%, var(--accent-warm-deep));
+    border-color: var(--accent-warm-border);
+    color: #fff;
+  }
+
+  .btn-accent:hover:not(:disabled) {
+    filter: brightness(1.08);
+    border-color: rgba(255, 180, 120, 0.7);
   }
 
   .btn-icon {
@@ -9311,7 +9694,6 @@ body:not(.overlay-window) .agent-select-dot {
   }
 
   .skeleton::after,
-  .aim-topbar-button::after,
   body:not(.overlay-window) .agent-select-dot {
     animation: none;
   }
@@ -9359,14 +9741,17 @@ body:not(.overlay-window) .agent-select-dot {
   position: relative;
   isolation: isolate;
   text-align: left;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
+  background-color: var(--surface);
+  background-image: linear-gradient(180deg, var(--surface-alt), var(--surface) 60%);
   background-size: cover;
   background-position: center;
-  background-color: var(--surface);
-  background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)) 0%, var(--surface) 65%);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
-  box-shadow: var(--elev-2), 0 0 26px -8px color-mix(in srgb, var(--accent) 55%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 32%, var(--border));
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.045),
+    0 1px 3px rgba(0, 0, 0, 0.4),
+    0 20px 44px -30px rgba(0, 0, 0, 0.9);
   animation: announcementCardIn 0.4s var(--ease-out, ease) both;
 }
 
@@ -9387,17 +9772,6 @@ body:not(.overlay-window) .agent-select-dot {
   }
 }
 
-.announcement-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  z-index: 2;
-  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 40%, transparent) 60%, transparent);
-}
-
 .announcement-card.has-image {
   background-image: none;
 }
@@ -9405,7 +9779,7 @@ body:not(.overlay-window) .agent-select-dot {
 .announcement-card-overlay {
   position: relative;
   z-index: 1;
-  padding: 1.3rem 1.5rem 1.2rem;
+  padding: 1.2rem 1.5rem 1.15rem;
 }
 
 .announcement-card.has-image .announcement-card-overlay {
@@ -9416,7 +9790,7 @@ body:not(.overlay-window) .agent-select-dot {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  margin: 0 0 0.5rem 0;
+  margin: 0 0 0.65rem 0;
 }
 
 .announcement-card-icon {
@@ -9424,37 +9798,47 @@ body:not(.overlay-window) .agent-select-dot {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 32px;
-  height: 32px;
-  border-radius: 10px;
+  width: 28px;
+  height: 28px;
+  border-radius: var(--r-sm);
   color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 20%, transparent);
-  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
-  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 60%, transparent));
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
+/* Pas de `text-transform` : le titre garde la casse tapée par l'auteur. */
 .announcement-card-title {
   margin: 0;
   font-family: var(--font-display);
-  font-size: 1.15rem;
-  text-transform: uppercase;
-  letter-spacing: 0.03em;
+  font-size: 1.02rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
   color: var(--text);
 }
 
 .announcement-card-body {
   margin: 0;
-  color: var(--text);
-  font-size: 0.92rem;
-  line-height: 1.55;
+  color: var(--text-muted);
+  font-size: 0.88rem;
+  line-height: 1.6;
   white-space: pre-wrap;
+}
+
+.announcement-card.has-image .announcement-card-body {
+  color: var(--text);
 }
 
 .announcement-card-author {
   display: flex;
   align-items: center;
   gap: 0.5rem;
-  margin-top: 0.75rem;
+  margin-top: 1rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.announcement-card.has-image .announcement-card-author {
+  border-top-color: rgba(255, 255, 255, 0.14);
 }
 
 .announcement-card-author-avatar {
@@ -9478,5 +9862,18 @@ body:not(.overlay-window) .agent-select-dot {
 .announcement-card-author-name {
   font-size: 0.78rem;
   font-weight: 600;
-  color: var(--text-muted);
+  color: var(--text);
+}
+
+.announcement-card-author-role {
+  padding: 0.14rem 0.45rem;
+  border-radius: 999px;
+  background: var(--accent-soft);
+  border: 1px solid color-mix(in srgb, var(--accent) 30%, transparent);
+  color: var(--accent);
+  font-family: var(--font-display);
+  font-size: 0.64rem;
+  font-weight: 600;
+  letter-spacing: 0.07em;
+  text-transform: uppercase;
 }

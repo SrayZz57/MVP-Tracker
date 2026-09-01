@@ -26,7 +26,7 @@
       "titleLabel": "Titre",
       "bodyLabel": "Message",
       "imageUrlLabel": "URL de l'image (optionnel)",
-      "imageUrlHint": "Colle un lien direct vers une image déjà hébergée ailleurs (Discord, Imgur...) — pas d'upload intégré.",
+      "imageUrlHint": "Colle un lien direct vers une image déjà hébergée ailleurs (Discord, Imgur...). Pas d'upload intégré.",
       "publish": "Publier",
       "publishing": "Publication…",
       "listTitle": "Annonces",
@@ -1497,7 +1497,7 @@
     "statHs": "Précision tête",
     "recentLabel": "5 dernières :",
     "noMatches": "Aucune partie en cache pour l'instant.",
-    "announcementFounder": "{{name}} — Fondateur"
+    "announcementRole": "Fondateur"
   },
   "linkRiot": {
     "title": "Lier ton compte Riot",
@@ -1520,31 +1520,51 @@
     "genericLinkError": "La liaison a échoué. Réessaie dans un instant."
   },
   "auth": {
-    "titles": {
-      "signin": "Connecte-toi à ton compte.",
-      "signup": "Crée ton compte pour commencer.",
-      "forgot": "Réinitialise ton mot de passe.",
-      "reset": "Entre le code reçu par mail et ton nouveau mot de passe."
+    "headings": {
+      "signin": "Connexion",
+      "signup": "Créer un compte",
+      "forgot": "Mot de passe oublié",
+      "reset": "Nouveau mot de passe"
     },
+    "subtitles": {
+      "forgot": "Entre ton adresse, on t'envoie un code de récupération.",
+      "reset": "Le code à 6 chiffres se trouve dans le mail qu'on vient de t'envoyer."
+    },
+    "fields": {
+      "email": "Email",
+      "confirmEmail": "Confirmer l'email",
+      "password": "Mot de passe",
+      "newPassword": "Nouveau mot de passe",
+      "confirmPassword": "Confirmer le mot de passe",
+      "code": "Code de vérification"
+    },
+    "placeholders": {
+      "email": "toi@exemple.com",
+      "password": "********",
+      "code": "123456"
+    },
+    "passwordHint": "6 caractères minimum.",
+    "showPassword": "Afficher le mot de passe",
+    "hidePassword": "Masquer le mot de passe",
     "signupSuccess": "Compte créé. Vérifie ta boîte mail pour confirmer ton adresse, puis connecte-toi.",
-    "resetEmailSent": "Email envoyé. Clique le lien qu'il contient (sur ce PC), ou tape le code ci-dessous.",
+    "resetEmailSent": "Email envoyé. Clique le lien qu'il contient (sur ce PC), ou entre le code reçu ci-dessus.",
     "passwordMismatch": "Les deux mots de passe ne correspondent pas.",
-    "emailPlaceholder": "Email",
-    "passwordPlaceholder": "Mot de passe",
+    "emailMismatch": "Les deux adresses email ne correspondent pas.",
     "loading": "Chargement...",
     "createAccount": "Créer mon compte",
     "signIn": "Se connecter",
     "sending": "Envoi...",
-    "sendCode": "Envoyer le code / lien",
-    "codePlaceholder": "Code reçu par mail",
-    "newPasswordPlaceholder": "Nouveau mot de passe",
-    "confirmPasswordPlaceholder": "Confirme le mot de passe",
+    "sendCode": "Envoyer le code",
     "validating": "Validation...",
     "resetPassword": "Réinitialiser le mot de passe",
     "forgotPassword": "Mot de passe oublié ?",
-    "backToSignin": "← Retour à la connexion",
-    "alreadyHaveAccount": "Déjà un compte ? Se connecter",
-    "noAccountYet": "Pas encore de compte ? S'inscrire"
+    "backToSignin": "Retour à la connexion",
+    "switch": {
+      "signupPrompt": "Pas encore de compte ?",
+      "signupAction": "S'inscrire",
+      "signinPrompt": "Déjà un compte ?",
+      "signinAction": "Se connecter"
+    }
   },
   "setNewPassword": {
     "tagline": "Choisis ton nouveau mot de passe.",

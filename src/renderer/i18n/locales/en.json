@@ -26,7 +26,7 @@
       "titleLabel": "Title",
       "bodyLabel": "Message",
       "imageUrlLabel": "Image URL (optional)",
-      "imageUrlHint": "Paste a direct link to an image already hosted elsewhere (Discord, Imgur...) — no built-in upload.",
+      "imageUrlHint": "Paste a direct link to an image already hosted elsewhere (Discord, Imgur...). No built-in upload.",
       "publish": "Publish",
       "publishing": "Publishing…",
       "listTitle": "Announcements",
@@ -1497,7 +1497,7 @@
     "statHs": "Headshot",
     "recentLabel": "Last 5:",
     "noMatches": "No cached matches yet.",
-    "announcementFounder": "{{name}} — Founder"
+    "announcementRole": "Founder"
   },
   "linkRiot": {
     "title": "Link your Riot account",
@@ -1520,31 +1520,51 @@
     "genericLinkError": "Linking failed. Try again in a moment."
   },
   "auth": {
-    "titles": {
-      "signin": "Sign in to your account.",
-      "signup": "Create your account to get started.",
-      "forgot": "Reset your password.",
-      "reset": "Enter the code you received by email and your new password."
+    "headings": {
+      "signin": "Sign in",
+      "signup": "Create an account",
+      "forgot": "Forgot password",
+      "reset": "New password"
     },
+    "subtitles": {
+      "forgot": "Enter your address and we'll send you a recovery code.",
+      "reset": "The 6-digit code is in the email we just sent you."
+    },
+    "fields": {
+      "email": "Email",
+      "confirmEmail": "Confirm email",
+      "password": "Password",
+      "newPassword": "New password",
+      "confirmPassword": "Confirm password",
+      "code": "Verification code"
+    },
+    "placeholders": {
+      "email": "you@example.com",
+      "password": "********",
+      "code": "123456"
+    },
+    "passwordHint": "6 characters minimum.",
+    "showPassword": "Show password",
+    "hidePassword": "Hide password",
     "signupSuccess": "Account created. Check your inbox to confirm your address, then sign in.",
-    "resetEmailSent": "Email sent. Click the link inside (on this PC), or type the code below.",
+    "resetEmailSent": "Email sent. Click the link inside (on this PC), or enter the code above.",
     "passwordMismatch": "The two passwords don't match.",
-    "emailPlaceholder": "Email",
-    "passwordPlaceholder": "Password",
+    "emailMismatch": "The two email addresses don't match.",
     "loading": "Loading...",
     "createAccount": "Create my account",
     "signIn": "Sign in",
     "sending": "Sending...",
-    "sendCode": "Send the code / link",
-    "codePlaceholder": "Code received by email",
-    "newPasswordPlaceholder": "New password",
-    "confirmPasswordPlaceholder": "Confirm password",
+    "sendCode": "Send the code",
     "validating": "Validating...",
     "resetPassword": "Reset password",
     "forgotPassword": "Forgot your password?",
-    "backToSignin": "← Back to sign in",
-    "alreadyHaveAccount": "Already have an account? Sign in",
-    "noAccountYet": "No account yet? Sign up"
+    "backToSignin": "Back to sign in",
+    "switch": {
+      "signupPrompt": "No account yet?",
+      "signupAction": "Sign up",
+      "signinPrompt": "Already have an account?",
+      "signinAction": "Sign in"
+    }
   },
   "setNewPassword": {
     "tagline": "Choose your new password.",

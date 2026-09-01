@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
+import { AlertCircle } from 'lucide-react';
 import { supabase } from './supabaseClient.js';
 import { useE2EE } from './E2EEContext.jsx';
 import Button from './ui/Button';
@@ -34,44 +35,81 @@ function SetNewPasswordScreen({ onDone }) {
   };
 
   return (
-    <div className="welcome-screen">
-      <div className="welcome-bg" aria-hidden="true">
-        <span className="welcome-orb welcome-orb-1" />
-        <span className="welcome-orb welcome-orb-2" />
-        <span className="welcome-orb welcome-orb-3" />
-        <span className="welcome-orb welcome-orb-4" />
-        <span className="welcome-orb welcome-orb-5" />
-        <span className="welcome-orb welcome-orb-6" />
-        <span className="welcome-orb welcome-orb-7" />
+    <div className="auth-screen">
+      <div className="auth-bg" aria-hidden="true">
+        <span className="auth-glow auth-glow-warm" />
+        <span className="auth-glow auth-glow-cool" />
       </div>
 
-      <img src={logoText} alt="MVP Tracker" className="welcome-logo-text" />
-      <p className="welcome-tagline">{t('setNewPassword.tagline')}</p>
+      <div className="auth-shell">
+        <img src={logoText} alt="MVP Tracker" className="auth-logo" />
 
-      <form className="account-auth-form" onSubmit={handleSubmit}>
-        <input
-          type="password"
-          placeholder={t('auth.newPasswordPlaceholder')}
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          minLength={6}
-          autoFocus
-          required
-        />
-        <input
-          type="password"
-          placeholder={t('auth.confirmPasswordPlaceholder')}
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          minLength={6}
-          required
-        />
-        <Button variant="primary" type="submit" loading={loading} loadingLabel={t('auth.validating')}>
-          {t('setNewPassword.validate')}
-        </Button>
-      </form>
+        <section className="auth-card">
+          <header className="auth-card-head">
+            <h1>{t('auth.headings.reset')}</h1>
+            <p className="auth-subtitle">{t('setNewPassword.tagline')}</p>
+          </header>
 
-      {error && <p className="warning">{error}</p>}
+          <form className="auth-form" onSubmit={handleSubmit}>
+            <div className="auth-field">
+              <div className="auth-field-head">
+                <label className="auth-label" htmlFor="set-password">
+                  {t('auth.fields.newPassword')}
+                </label>
+              </div>
+              <input
+                id="set-password"
+                className="auth-input auth-input-password"
+                type="password"
+                placeholder={t('auth.placeholders.password')}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                autoFocus
+                required
+              />
+              <p className="auth-hint">{t('auth.passwordHint')}</p>
+            </div>
+
+            <div className="auth-field">
+              <div className="auth-field-head">
+                <label className="auth-label" htmlFor="set-password-confirm">
+                  {t('auth.fields.confirmPassword')}
+                </label>
+              </div>
+              <input
+                id="set-password-confirm"
+                className="auth-input auth-input-password"
+                type="password"
+                placeholder={t('auth.placeholders.password')}
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                autoComplete="new-password"
+                minLength={6}
+                required
+              />
+            </div>
+
+            <Button
+              variant="primary"
+              type="submit"
+              className="auth-submit"
+              loading={loading}
+              loadingLabel={t('auth.validating')}
+            >
+              {t('setNewPassword.validate')}
+            </Button>
+          </form>
+
+          {error && (
+            <p className="auth-alert auth-alert-error" role="alert">
+              <AlertCircle size={16} />
+              <span>{error}</span>
+            </p>
+          )}
+        </section>
+      </div>
     </div>
   );
 }

@@ -66,7 +66,7 @@ function TournamentsHowItWorks() {
       <h2 className="tournaments-how-title">{t('tournaments.howItWorks.title')}</h2>
       <ol className="tournaments-how-steps">
         {HOW_IT_WORKS_STEPS.map((step, index) => (
-          <li key={step.titleKey} className="tournaments-how-step" style={{ '--i': index }}>
+          <li key={step.titleKey} className="tournaments-how-step">
             <span className="tournaments-how-step-number">{index + 1}</span>
             <div>
               <p className="tournaments-how-step-title">{t(step.titleKey)}</p>
@@ -246,7 +246,7 @@ function TournamentsTab({ myId, isAdmin }) {
           </div>
         ) : (
           <div className="tournaments-list">
-            {visibleTournaments.map((tournament, index) => {
+            {visibleTournaments.map((tournament) => {
               const splash = pickSplash(tournament.id, mapImages);
               const winner = winnerNames.get(tournament.id);
               const confirming = confirmDeleteId === tournament.id;
@@ -256,7 +256,7 @@ function TournamentsTab({ myId, isAdmin }) {
                   className="tournament-card"
                   role="button"
                   tabIndex={0}
-                  style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
+                  style={splash ? { backgroundImage: `url(${splash})` } : undefined}
                   onClick={() => setSelectedId(tournament.id)}
                   onKeyDown={(e) => e.key === 'Enter' && setSelectedId(tournament.id)}
                 >
