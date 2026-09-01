@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X, Megaphone } from 'lucide-react';
+import { Megaphone } from 'lucide-react';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import Icon from './Icon.jsx';
 import { usePlayerCardArt } from './rankData.js';
@@ -9,20 +9,6 @@ import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent, resultL
 import logo from '../assets/logo.png';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
-
-// Fermeture par annonce : locale et par utilisateur (localStorage), pas de
-// table de dismissal côté Supabase — inutile pour ce besoin. Même schéma que
-// mvp-achievements-seen dans HallOfFame.jsx. Une nouvelle annonce (id jamais
-// vu) réapparaît malgré une fermeture précédente sur une autre.
-const DISMISSED_KEY = 'mvp-announcements-dismissed';
-
-function loadDismissed() {
-  try {
-    return new Set(JSON.parse(localStorage.getItem(DISMISSED_KEY) || '[]'));
-  } catch {
-    return new Set();
-  }
-}
 
 // Auteur affiché en dur comme "Fondateur" : un seul admin publie ces
 // annonces pour l'instant. Le nom/l'avatar, eux, restent dynamiques (tirés
@@ -46,16 +32,13 @@ function AnnouncementAuthor({ author, t }) {
   );
 }
 
-function AnnouncementCard({ announcement, onDismiss, t }) {
+function AnnouncementCard({ announcement, t }) {
   return (
     <div
       className={`announcement-card ${announcement.image_url ? 'has-image' : ''}`}
       style={announcement.image_url ? { backgroundImage: `url(${announcement.image_url})` } : undefined}
     >
       <div className="announcement-card-overlay">
-        <button className="announcement-card-close" onClick={onDismiss} title={t('accountGreeting.announcementDismiss')}>
-          <Icon icon={X} size={14} />
-        </button>
         <div className="announcement-card-head">
           <span className="announcement-card-icon">
             <Icon icon={Megaphone} size={16} />
@@ -77,7 +60,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
   const { t } = useTranslation();
 
   const [announcements, setAnnouncements] = useState([]);
-  const [dismissed, setDismissed] = useState(loadDismissed);
 
   useEffect(() => {
     supabase
@@ -87,15 +69,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
       .order('created_at', { ascending: false })
       .then(({ data }) => setAnnouncements(data ?? []));
   }, []);
-
-  const visibleAnnouncements = announcements.filter((a) => !dismissed.has(a.id));
-
-  const dismissAnnouncement = (id) => {
-    const next = new Set(dismissed);
-    next.add(id);
-    setDismissed(next);
-    localStorage.setItem(DISMISSED_KEY, JSON.stringify([...next]));
-  };
 
   // Résumé rapide du compte suivi : évite un grand vide entre l'aperçu de
   // profil et les boutons, et donne déjà une information utile avant même
@@ -136,15 +109,10 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
       <h1>{t('accountGreeting.title')}</h1>
       <p className="welcome-tagline">{t('accountGreeting.tagline')}</p>
 
-      {visibleAnnouncements.length > 0 && (
+      {announcements.length > 0 && (
         <div className="announcement-stack">
-          {visibleAnnouncements.map((announcement) => (
-            <AnnouncementCard
-              key={announcement.id}
-              announcement={announcement}
-              onDismiss={() => dismissAnnouncement(announcement.id)}
-              t={t}
-            />
+          {announcements.map((announcement) => (
+            <AnnouncementCard key={announcement.id} announcement={announcement} t={t} />
           ))}
         </div>
       )}
