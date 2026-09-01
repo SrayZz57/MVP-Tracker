@@ -58,7 +58,16 @@ function findLongestWinStreak(matches, name, tag) {
 
   chronological.forEach((match) => {
     const me = findMe(match, name, tag);
-    if (!me) return;
+    // Un match nul ou aux données indisponibles ('?') n'est PAS une victoire
+    // — le laisser passer sans casser la série (comme avant) fusionnait à
+    // tort deux séries distinctes séparées par un tel match, gonflant le
+    // chiffre affiché. Seule une vraie victoire prolonge la série ; tout le
+    // reste (défaite, nul, données absentes, joueur introuvable) la casse.
+    if (!me) {
+      currentStreak = 0;
+      currentStart = null;
+      return;
+    }
     const label = resultLabel(match, me);
     if (label === 'Victoire') {
       if (currentStreak === 0) currentStart = match;
@@ -68,7 +77,7 @@ function findLongestWinStreak(matches, name, tag) {
         bestStart = currentStart;
         bestEnd = match;
       }
-    } else if (label === 'Défaite') {
+    } else {
       currentStreak = 0;
       currentStart = null;
     }
@@ -98,6 +107,13 @@ function findBestClutch(matches, name, tag) {
       const playerStats = round.player_stats || [];
       const teammates = playerStats.filter((ps) => ps.player_team === me.team).map((ps) => ps.player_puuid);
       if (!teammates.includes(me.puuid)) return;
+      // Si les données du round ne listent qu'UN SEUL coéquipier (moi), rien
+      // ne prouve qu'il y en avait bien 4 autres à côté qui sont morts avant
+      // — ça ressemble plutôt à des données de round incomplètes côté API
+      // (joueur manquant de round.player_stats) qu'à un vrai clutch. Sans
+      // cette garde, ce genre de round se faisait passer pour un 1v5 dès le
+      // départ, sans qu'aucun coéquipier n'ait été tué dans les kill_events.
+      if (teammates.length < 2) return;
 
       const allKills = [];
       playerStats.forEach((ps) => (ps.kill_events || []).forEach((k) => allKills.push(k)));
