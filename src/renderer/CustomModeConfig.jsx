@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Trash2 } from 'lucide-react';
+import { Trash2, Star } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
 
@@ -95,6 +95,19 @@ function CustomModeConfig({ onClose, onSaved }) {
     savePresets(next);
   };
 
+  // Demandé sur Discord, aux côtés des presets nommés : pouvoir en épingler
+  // certains en haut de la liste plutôt que de scroller parmi tous à chaque
+  // fois. Tri stable (favoris d'abord, ordre de création préservé dans
+  // chaque groupe) recalculé à l'affichage plutôt que réordonné en stockage,
+  // pour ne jamais perdre l'ordre de création d'origine.
+  const toggleFavorite = (id) => {
+    const next = presets.map((p) => (p.id === id ? { ...p, favorite: !p.favorite } : p));
+    setPresets(next);
+    savePresets(next);
+  };
+
+  const sortedPresets = [...presets].sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
+
   const startNewPreset = () => {
     setName('');
     applyBase('flick');
@@ -131,8 +144,16 @@ function CustomModeConfig({ onClose, onSaved }) {
           <>
             <p className="label">{t('aimTrainer.presetsIntro')}</p>
             <ul className="custom-preset-list">
-              {presets.map((preset) => (
+              {sortedPresets.map((preset) => (
                 <li key={preset.id} className="custom-preset-item">
+                  <button
+                    type="button"
+                    className={preset.favorite ? 'preset-favorite-btn active' : 'preset-favorite-btn'}
+                    title={t(preset.favorite ? 'aimTrainer.presetUnfavorite' : 'aimTrainer.presetFavorite')}
+                    onClick={() => toggleFavorite(preset.id)}
+                  >
+                    <Icon icon={Star} size={16} fill={preset.favorite ? 'currentColor' : 'none'} />
+                  </button>
                   <div className="custom-preset-info">
                     <strong>{preset.name}</strong>
                     <span className="label">

@@ -26,7 +26,9 @@ function savePlaylists(playlists) {
 
 function PlaylistManager({ onClose, onLaunch }) {
   const { t } = useTranslation();
-  const presets = loadPresets();
+  // Favoris d'abord — même tri que dans CustomModeConfig.jsx, pour que les
+  // presets qu'on utilise le plus reviennent en premier ici aussi.
+  const presets = [...loadPresets()].sort((a, b) => (b.favorite ? 1 : 0) - (a.favorite ? 1 : 0));
   const [playlists, setPlaylists] = useState(loadPlaylists);
   const [view, setView] = useState('list');
   const [name, setName] = useState('');

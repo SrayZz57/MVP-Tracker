@@ -529,6 +529,8 @@
     "presetNameLabel": "Nom du preset",
     "presetNamePlaceholder": "Ex : Flick serré",
     "presetNameRequired": "Donne un nom à ce preset avant de l'enregistrer.",
+    "presetFavorite": "Mettre en favori",
+    "presetUnfavorite": "Retirer des favoris",
     "playlistsTitle": "Playlists",
     "playlistsIntro": "Enchaîne plusieurs de tes presets personnalisés dans la même session.",
     "playlistsEmpty": "Aucune playlist créée pour l'instant.",

@@ -529,6 +529,8 @@
     "presetNameLabel": "Preset name",
     "presetNamePlaceholder": "e.g. Tight flick",
     "presetNameRequired": "Give this preset a name before saving it.",
+    "presetFavorite": "Add to favorites",
+    "presetUnfavorite": "Remove from favorites",
     "playlistsTitle": "Playlists",
     "playlistsIntro": "Chain several of your custom presets together in the same session.",
     "playlistsEmpty": "No playlist created yet.",

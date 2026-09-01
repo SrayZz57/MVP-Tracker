@@ -1786,6 +1786,14 @@ function AimTrainerGame({ config: rawConfig }) {
                 <button className="refresh aim-game-cta" onClick={resumeSession}>
                   <Icon icon={Play} size={16} /> Reprendre
                 </button>
+                {/* Demandé sur Discord : pouvoir relancer le même exo sans
+                    fermer la fenêtre. Même exclusion que "Recommencer" en fin
+                    de session pour le défi du jour (un seul essai compté). */}
+                {!config.challengeDate && (
+                  <button className="account-forgot-password" onClick={startSession}>
+                    <Icon icon={RotateCcw} size={16} /> Recommencer
+                  </button>
+                )}
               </>
             )}
 
