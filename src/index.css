@@ -9024,3 +9024,63 @@ input[type='color'] {
 .overlay-agent-suggestion-row:first-of-type {
   border-top: none;
 }
+
+/* =========================================================================
+   ANNONCES ADMIN (écran "Content de te revoir" — AccountGreeting.jsx)
+   ========================================================================= */
+.announcement-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  width: 100%;
+  max-width: 720px;
+  margin: 0.5rem 0 1.5rem;
+}
+
+.announcement-card {
+  position: relative;
+  border-radius: 14px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-color: var(--surface);
+  border: 1px solid var(--border);
+  box-shadow: var(--elev-2);
+}
+
+.announcement-card-overlay {
+  position: relative;
+  padding: 1.1rem 1.3rem;
+  background: linear-gradient(180deg, rgba(10, 10, 16, 0.35) 0%, rgba(8, 8, 12, 0.85) 100%);
+}
+
+.announcement-card-close {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  background: rgba(0, 0, 0, 0.35);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  color: var(--text);
+}
+
+.announcement-card-title {
+  margin: 0 2rem 0.35rem 0;
+  font-family: var(--font-display);
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.announcement-card-body {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.88rem;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}

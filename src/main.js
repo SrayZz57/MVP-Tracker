@@ -992,7 +992,10 @@ app.whenReady().then(() => {
       "default-src 'self'",
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://*.valorant-api.com",
+      // https: en plus de valorant-api.com : les annonces admin (écran
+      // d'accueil) référencent une image par URL externe collée à la main
+      // (Discord CDN, Imgur...), pas d'upload intégré — voir AdminPage.jsx.
+      "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
       "object-src 'none'",
