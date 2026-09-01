@@ -21,7 +21,7 @@ export function SkeletonCircle({ size, className = '', style }) {
   return (
     <span
       className={`skeleton ${className}`.trim()}
-      style={{ width: size, height: size, borderRadius: '50%', flexShrink: 0, ...style }}
+      style={{ width: size, height: size, borderRadius: '50%', flex: '0 0 auto', ...style }}
     />
   );
 }

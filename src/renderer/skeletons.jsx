@@ -2,6 +2,8 @@ import Skeleton, { SkeletonBox, SkeletonCircle, SkeletonText } from './Skeleton.
 
 const range = (n) => Array.from({ length: n }, (_, i) => i);
 
+const BLANK_PIXEL = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
+
 export function MatchListShape({ rows = 6 }) {
   return (
     <div className="match-list">
@@ -38,7 +40,7 @@ export function KpiRowShape({ count = 4 }) {
       {range(count).map((i) => (
         <div key={i} className="kpi-tile is-skeleton">
           <div className="kpi-tile-icon"><SkeletonBox w={22} h={22} r={6} style={{ margin: '0 auto' }} /></div>
-          <div className="kpi-tile-value"><SkeletonText>00</SkeletonText></div>
+          <div className="kpi-tile-value"><SkeletonText>000</SkeletonText></div>
           <div className="kpi-tile-label"><SkeletonText>Indicateur</SkeletonText></div>
         </div>
       ))}
@@ -112,8 +114,8 @@ export function SkinGridShape({ count = 10 }) {
     <div className="skin-grid">
       {range(count).map((i) => (
         <div key={i} className="skin-card is-skeleton">
-          <div className="skin-card-img-wrap">
-            <SkeletonBox h={80} r={6} style={{ display: 'block', width: '100%' }} />
+          <div className="skin-card-img-wrap skeleton">
+            <img src={BLANK_PIXEL} alt="" />
           </div>
           <p className="skin-card-name"><SkeletonText>Nom du skin</SkeletonText></p>
           <span className="skin-card-price is-skeleton"><SkeletonText>0000 VP</SkeletonText></span>

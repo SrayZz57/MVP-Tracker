@@ -62,7 +62,7 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
       <p className="label">{t('tournaments.playersHint', { count: PLAYER_COUNT })}</p>
 
       {players.map((player, index) => (
-        <div key={index} className="team-roster-player-row">
+        <div key={index} className={`team-roster-player-row ${player.linkedProfileId ? 'filled' : ''}`}>
           <Button
             variant="ghost"
             type="button"
@@ -445,8 +445,8 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                       {isAdmin && <span className="tournament-team-row-chevron"><Icon icon={expanded ? ChevronDown : ChevronRight} size={16} /></span>}
                     </div>
                     <div className="tournament-team-card-tags">
-                      {team.status === 'pending' && <span className="label">{t('tournaments.pending')}</span>}
-                      {team.captain_id === myId && <span className="label">{t('tournaments.yourTeam')}</span>}
+                      {team.status === 'pending' && <span className="label tag-pending">{t('tournaments.pending')}</span>}
+                      {team.captain_id === myId && <span className="label tag-mine">{t('tournaments.yourTeam')}</span>}
                     </div>
                     {/* Aperçu de composition : les icônes d'agent choisies pour
                         chaque joueur, visibles sans avoir à déplier · un

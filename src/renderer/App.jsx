@@ -1,4 +1,4 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import FlagFR from 'country-flag-icons/react/3x2/FR';
 import FlagGB from 'country-flag-icons/react/3x2/GB';
@@ -344,17 +344,45 @@ function App() {
 
   // Badge sur l'onglet Tournois : nombre de tournois ouverts aux
   // inscriptions ou en cours, la feature est facile à rater dans une
-  // sidebar où tout se ressemble sinon. Un simple comptage à l'ouverture
-  // suffit, pas besoin de temps réel pour un badge de découverte.
+  // sidebar où tout se ressemble sinon.
   const [activeTournamentsCount, setActiveTournamentsCount] = useState(0);
-  useEffect(() => {
-    if (!session) return;
-    supabase
+
+  const loadActiveTournamentsCount = useCallback(async () => {
+    const { count } = await supabase
       .from('tournaments')
       .select('id', { count: 'exact', head: true })
-      .in('status', ['registration', 'ongoing'])
-      .then(({ count }) => setActiveTournamentsCount(count ?? 0));
-  }, [session]);
+      .in('status', ['registration', 'ongoing']);
+    setActiveTournamentsCount(count ?? 0);
+  }, []);
+
+  // Ce comptage n'était fait qu'une fois, à l'ouverture de la session : créer
+  // ou supprimer un tournoi, générer un bracket (statut 'registration' ->
+  // 'ongoing') ou le clôturer laissait le badge sur son ancienne valeur
+  // jusqu'au redémarrage de l'app.
+  useEffect(() => {
+    if (!session) return undefined;
+    loadActiveTournamentsCount();
+    const channel = supabase
+      .channel('app-tournaments')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'tournaments' }, loadActiveTournamentsCount)
+      .subscribe();
+    return () => supabase.removeChannel(channel);
+  }, [session, loadActiveTournamentsCount]);
+
+  // Le temps réel ci-dessus ne remonte que si `tournaments` fait partie de la
+  // publication Realtime côté Postgres, ce qui est une case à cocher côté
+  // base et pas une garantie du code. Un recomptage à chaque changement
+  // d'onglet remet le badge d'aplomb dans tous les cas : c'est une requête
+  // `head` sans données, et elle ne part que sur une navigation volontaire.
+  const countedOnceRef = useRef(false);
+  useEffect(() => {
+    if (!session) return;
+    if (!countedOnceRef.current) {
+      countedOnceRef.current = true;
+      return;
+    }
+    loadActiveTournamentsCount();
+  }, [activeTab, session, loadActiveTournamentsCount]);
 
   // true uniquement après un vrai passage par l'écran de recherche Riot ID
   // *pendant cette session*, jamais déduit des réglages déjà en cache, pour
@@ -911,7 +939,7 @@ function App() {
                         <span className="sidebar-link-badge">{socialNotificationCount}</span>
                       )}
                       {tab.id === 'tournaments' && activeTournamentsCount > 0 && (
-                        <span className="sidebar-link-badge glow">{activeTournamentsCount}</span>
+                        <span className="sidebar-link-badge">{activeTournamentsCount}</span>
                       )}
                     </Button>
                   ))}

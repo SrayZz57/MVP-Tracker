@@ -489,6 +489,11 @@ h1 {
   opacity: 1;
 }
 
+/* Pastille de comptage. `line-height: 1` et les chiffres tabulaires sont ce
+   qui la centre vraiment : avec la hauteur de ligne du texte courant, la
+   ligne réserve la place d'un jambage sous le chiffre, qui remonte donc dans
+   la pastille, et le "1" proportionnel d'Inter, plus étroit que sa chasse,
+   se décale vers la gauche. */
 .sidebar-link-badge {
   margin-left: auto;
   flex-shrink: 0;
@@ -496,6 +501,8 @@ h1 {
   color: #fff;
   font-size: 0.7rem;
   font-weight: 700;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
   min-width: 18px;
   height: 18px;
   padding: 0 0.35rem;
@@ -503,10 +510,6 @@ h1 {
   display: flex;
   align-items: center;
   justify-content: center;
-}
-
-.sidebar-link-badge.glow {
-  animation: live-pulse var(--t-live) infinite;
 }
 
 @keyframes live-pulse {
@@ -8096,17 +8099,31 @@ input[type='color'] {
   transition: width 0.4s var(--ease-out, ease);
 }
 
-/* Panneaux admin : bordure d'accent à gauche pour signaler "réservé à
-   l'admin" d'un coup d'œil, cohérent sur les 3 sections (validations,
-   ajout d'équipe, génération du bracket). */
+/* Les sections du détail parlent le même langage que .card : même surface,
+   même rayon, une bordure complète plutôt qu'un filet flottant à gauche. */
 .admin-panel,
 .tournament-registration,
 .tournament-teams-list {
-  padding: 1.1rem 1.25rem;
-  border-radius: 10px;
-  background: var(--surface, rgba(255, 255, 255, 0.04));
-  border-left: 3px solid var(--accent, #ff4655);
-  animation: tournamentCardIn 0.4s var(--ease-out, ease) both;
+  padding: 1.15rem 1.35rem;
+  border-radius: var(--r-lg);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  animation: tournamentCardIn var(--t-view) both;
+}
+
+/* Le liseré d'accent signale "réservé à l'admin". Il était aussi posé sur
+   l'inscription et la liste d'équipes, donc sur toute la page : il ne
+   distinguait plus rien. Réservé aux 3 panneaux admin (validations, ajout
+   d'équipe, génération du bracket), il redevient lisible.
+   En ombre interne et non en `border-left` : une bordure épaisse suit la
+   courbe des angles et ressort en deux virgules détachées de part et
+   d'autre de la carte, l'ombre interne est détourée par le rayon. */
+.admin-panel {
+  box-shadow: inset 3px 0 0 var(--accent);
+}
+
+.tournament-detail section > h2:first-child {
+  margin-top: 0;
 }
 
 .generate-bracket-button.ready {
@@ -8137,24 +8154,36 @@ input[type='color'] {
   gap: 0.85rem;
 }
 
+/* Un cran au-dessus de la section qui les contient : les deux étaient sur
+   --surface, les cartes se fondaient dans leur propre liste et seul le filet
+   de bordure les séparait du fond. */
 .tournament-team-card {
-  border-radius: 10px;
-  background: var(--surface, rgba(255, 255, 255, 0.04));
-  border: 1px solid var(--border, rgba(255, 255, 255, 0.08));
-  border-top: 3px solid var(--text-dim, #5f6572);
+  border-radius: var(--r-md);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-top: 2px solid var(--team-status, var(--text-dim));
   overflow: hidden;
-  animation: tournamentCardIn 0.35s var(--ease-out, ease) both;
+  transition: border-color var(--t-state), background-color var(--t-state);
+  animation: tournamentCardIn var(--t-enter) both;
   animation-delay: calc(var(--i, 0) * 0.04s);
 }
 
+.tournament-team-card:hover {
+  border-color: var(--border-strong);
+  border-top-color: var(--team-status, var(--text-dim));
+}
+
 .tournament-team-card.status-approved {
-  border-top-color: #50c878;
+  --team-status: var(--good);
 }
 
 .tournament-team-card.status-pending {
-  border-top-color: #e0b34a;
+  --team-status: var(--warning);
 }
 
+/* `align-items` explicite : `.btn` centre son contenu, ce qui en colonne
+   centrait le nom de l'équipe, le chevron et la compo au milieu de la carte
+   au lieu de les aligner sur son bord gauche. */
 .tournament-team-card > button {
   width: 100%;
   text-align: left;
@@ -8163,11 +8192,12 @@ input[type='color'] {
   border: none;
   display: flex;
   flex-direction: column;
+  align-items: stretch;
   gap: 0.5rem;
 }
 
 .tournament-team-card > button.clickable:hover {
-  background: var(--surface-hi, rgba(255, 255, 255, 0.06));
+  background: var(--hover-veil);
 }
 
 .tournament-team-card-head {
@@ -8184,10 +8214,36 @@ input[type='color'] {
   white-space: nowrap;
 }
 
+/* Pastilles plutôt que du texte gris posé sous le nom : "en attente" et
+   "ton équipe" sont des états de la carte, ils se lisent comme le badge de
+   statut du tournoi, pas comme une légende. */
 .tournament-team-card-tags {
   display: flex;
-  gap: 0.5rem;
-  font-size: 0.72rem;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.tournament-team-card-tags:empty {
+  display: none;
+}
+
+.tournament-team-card-tags .label {
+  padding: 0.12rem 0.5rem;
+  border-radius: 999px;
+  background: var(--surface-hi);
+  color: var(--text-muted);
+  font-size: 0.7rem;
+  line-height: 1.5;
+}
+
+.tournament-team-card-tags .tag-pending {
+  background: color-mix(in srgb, var(--warning) 15%, transparent);
+  color: var(--warning);
+}
+
+.tournament-team-card-tags .tag-mine {
+  background: var(--accent-soft);
+  color: var(--accent);
 }
 
 .tournament-team-composition {
@@ -8247,16 +8303,18 @@ input[type='color'] {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  max-width: 480px;
 }
 
 .tournament-approval-list li {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem;
-  border-radius: var(--radius, 8px);
-  background: var(--surface, rgba(255, 255, 255, 0.04));
+  gap: 0.75rem;
+  margin: 0;
+  padding: 0.5rem 0.55rem 0.5rem 0.75rem;
+  border-radius: var(--r-md);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
 }
 
 /* Bracket : une colonne par tour, chacune centrée verticalement pour que les
@@ -8394,17 +8452,48 @@ input[type='color'] {
   width: 3rem;
 }
 
+/* Pas de max-width ici : la section qui contient le formulaire est déjà
+   bridée à 640px, un second plafond à 480px laissait une bande morte de
+   160px à droite, champs et boutons ne tombant plus sur le bord de la carte. */
 .team-roster-form {
   display: flex;
   flex-direction: column;
-  gap: 0.85rem;
-  max-width: 480px;
+  gap: 0.6rem;
 }
 
+.team-roster-form > .label {
+  margin: 0.35rem 0 0;
+}
+
+/* Même traitement que le formulaire de création de tournoi juste à côté :
+   le bouton de validation garde sa largeur naturelle. Étiré sur toute la
+   carte, il devenait l'élément le plus lourd de la page alors qu'il passe
+   l'essentiel de son temps désactivé. */
+.team-roster-form > button[type='submit'] {
+  align-self: flex-start;
+  margin-top: 0.4rem;
+}
+
+/* Les 5 lignes sont des emplacements, pas une liste de contrôles posés dans
+   le vide : chacune a sa surface, et une bordure d'accent dès qu'elle est
+   remplie, pour voir d'un coup d'œil ce qu'il reste à choisir. */
 .team-roster-player-row {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.65rem;
+  padding: 0.45rem 0.55rem;
+  border-radius: var(--r-md);
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  transition: border-color var(--t-state), background-color var(--t-state);
+}
+
+.team-roster-player-row:hover {
+  border-color: var(--border-strong);
+}
+
+.team-roster-player-row.filled {
+  border-color: color-mix(in srgb, var(--accent) 35%, var(--border));
 }
 
 .team-roster-player-row input {
@@ -8443,29 +8532,33 @@ input[type='color'] {
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.65rem 0.85rem;
-  border-radius: var(--radius, 8px);
-  background: var(--surface-hi, rgba(255, 255, 255, 0.06));
+  border-radius: var(--r-md);
+  background: var(--surface-hi);
 }
 
 .team-roster-agent-avatar {
   flex-shrink: 0;
-  width: 40px;
-  height: 40px;
+  width: 38px;
+  height: 38px;
   border-radius: 50%;
   overflow: hidden;
   padding: 0;
-  border: 2px solid var(--border, rgba(255, 255, 255, 0.12));
-  background: var(--bg-deep, #0c0d12);
+  border: 2px solid var(--border);
+  background: var(--bg-deep);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: var(--text-muted);
-  transition: border-color 0.2s, transform 0.2s;
+  color: var(--text-dim);
+  transition: border-color var(--t-state), background-color var(--t-state);
 }
 
+/* Survol sans transform : la règle posée avec le design system est qu'un
+   survol ne change jamais la géométrie, seulement fond, bordure ou anneau
+   (voir --hover-veil). Ce scale(1.08) était le dernier survol de la page à
+   ne pas la suivre. */
 .team-roster-agent-avatar:hover {
-  border-color: var(--accent, #ff4655);
-  transform: scale(1.08);
+  border-color: var(--accent);
+  background: var(--surface-hi);
 }
 
 .team-roster-agent-avatar img {
@@ -8492,12 +8585,20 @@ input[type='color'] {
   display: flex;
   align-items: center;
   gap: 0.6rem;
+  margin: 0;
 }
 
 .tournament-team-actions {
   display: flex;
   gap: 0.75rem;
   margin-top: 0.75rem;
+}
+
+/* Sur une ligne de validation, les deux boutons sont à droite du nom, pas
+   en dessous : la marge d'empilement les décalait vers le bas du rang. */
+.tournament-approval-list .tournament-team-actions {
+  margin-top: 0;
+  flex-shrink: 0;
 }
 
 .button-danger {
@@ -9047,12 +9148,15 @@ body:not(.overlay-window) .agent-select-dot {
   box-shadow: none;
 }
 
-.stat-tile.is-skeleton::after,
-.result-badge.is-skeleton {
+.stat-tile.is-skeleton::after {
   background: none;
 }
 
-.result-badge.is-skeleton {
+.result-badge.is-skeleton,
+.skin-card-price.is-skeleton,
+.message-bubble.is-skeleton {
+  background: none;
+  border-color: var(--border);
   color: transparent;
 }
 
@@ -9074,7 +9178,8 @@ body:not(.overlay-window) .agent-select-dot {
   border: 1px solid var(--border);
 }
 
-.card-picker-item.is-skeleton {
+.card-picker-item.is-skeleton,
+.skin-card-img-wrap.skeleton {
   display: block;
 }
 
@@ -9144,7 +9249,6 @@ body:not(.overlay-window) .agent-select-dot {
   }
 
   .skeleton::after,
-  .sidebar-link-badge.glow,
   .aim-topbar-button::after,
   body:not(.overlay-window) .agent-select-dot {
     animation: none;
