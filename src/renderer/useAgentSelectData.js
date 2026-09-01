@@ -7,11 +7,16 @@ const POLL_MS = 4000;
 
 // Riot n'expose aucun signal "le round a commencé, tu peux bouger" — l'API
 // core-game reste active du chargement jusqu'à la fin du match, sans
-// distinction. On masque donc nous-mêmes, à l'ancienneté, un délai fixe
-// après l'apparition des adversaires (signe que le chargement est bien
-// entamé) plutôt que de laisser le bandeau/l'overlay affichés toute la
-// partie.
-const AUTO_HIDE_AFTER_ENEMIES_MS = 25000;
+// distinction. On masque donc nous-mêmes, à l'ancienneté, un délai fixe dès
+// l'entrée en partie plutôt que de laisser le bandeau/l'overlay affichés
+// toute la partie.
+//
+// Déclenché sur la phase 'game' elle-même, PAS sur l'apparition d'un
+// adversaire (`team === 'enemy'`) comme avant : en Combat à mort et les
+// modes sans équipes, personne n'a jamais ce tag (pas de vraies équipes),
+// donc ce déclencheur ne se déclenchait jamais — l'overlay restait affiché
+// indéfiniment, signalé en vrai.
+const AUTO_HIDE_AFTER_GAME_MS = 30000;
 
 // Partagé entre le bandeau intégré (AgentSelectLive) et la fenêtre overlay
 // (AgentSelectOverlay) : même source de données, deux affichages.
@@ -48,13 +53,13 @@ export function useAgentSelectData() {
           clearHideTimer();
         }
 
-        const hasEnemies = result.state === 'ok' && result.phase === 'game' && result.players.some((p) => p.team === 'enemy');
-        if (hasEnemies && !hideTimerRef.current && hiddenMatchIdRef.current !== matchId) {
+        const inGame = result.state === 'ok' && result.phase === 'game';
+        if (inGame && !hideTimerRef.current && hiddenMatchIdRef.current !== matchId) {
           hideTimerRef.current = setTimeout(() => {
             hiddenMatchIdRef.current = matchId;
             hideTimerRef.current = null;
             if (!cancelled) setData({ state: 'idle' });
-          }, AUTO_HIDE_AFTER_ENEMIES_MS);
+          }, AUTO_HIDE_AFTER_GAME_MS);
         }
 
         setData(matchId !== null && matchId === hiddenMatchIdRef.current ? { state: 'idle' } : result);
