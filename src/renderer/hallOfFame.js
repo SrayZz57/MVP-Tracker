@@ -115,6 +115,14 @@ function findBestClutch(matches, name, tag) {
       // départ, sans qu'aucun coéquipier n'ait été tué dans les kill_events.
       if (teammates.length < 2) return;
 
+      // Gagner un round à la régulière face à des adversaires encore en vie
+      // sans avoir soi-même fait le moindre kill n'a pas de sens (round gagné
+      // à 0 kill signalé en vrai, alors que l'algo le comptait comme un
+      // 1v5) — une vraie histoire de clutch implique d'avoir dégommé au
+      // moins un adversaire pendant qu'on était seul, pas juste survécu.
+      const myKillsThisRound = playerStats.find((ps) => ps.player_puuid === me.puuid)?.kills ?? 0;
+      if (myKillsThisRound < 1) return;
+
       const allKills = [];
       playerStats.forEach((ps) => (ps.kill_events || []).forEach((k) => allKills.push(k)));
       allKills.sort((a, b) => a.kill_time_in_round - b.kill_time_in_round);
