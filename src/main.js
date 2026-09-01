@@ -4,11 +4,13 @@ import fs from 'node:fs';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
-import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
+import { getAccount, getMatches, getMmr, henrikDedupCount } from './services/henrikdev.js';
 import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
 import {
   saveMatches,
   getCachedMatches,
+  getCachedMatchIds,
+  getLatestCachedMatchId,
   savePingSample,
   getAllPingSamples,
   saveCrosshair,
@@ -41,6 +43,7 @@ import { getAgentSelect } from './services/valorantLocal.js';
 import { syncMatches } from './services/matchSync.js';
 import { updateElectronApp } from 'update-electron-app';
 import { captureEvent, captureException, shutdown as shutdownTelemetry } from './services/telemetry.js';
+import { initApiCache, remember, write, forget, ageOf, cacheStats } from './services/apiCache.js';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
 // move the cache: Accès refusé" au démarrage, cache disque probablement
@@ -50,6 +53,10 @@ import { captureEvent, captureException, shutdown as shutdownTelemetry } from '.
 app.commandLine.appendSwitch('disable-http-cache');
 
 const store = new Store();
+
+// Cache des réponses d'API adossé au même stockage, initialisé tout de suite :
+// tout ce qui suit peut en dépendre.
+initApiCache(store);
 
 // Toutes les données "personnelles" (crosshairs, stratégies, paris,
 // évaluations, puzzles, wrapped, objectifs, skins) sont scopées par puuid,
@@ -71,27 +78,29 @@ const store = new Store();
 // Cache partagé et persistant (survit aux redémarrages) pour les "aperçus"
 // d'AUTRES joueurs (rang, K/D récent), classement Aim Trainer, amis, écran
 // de liaison. Sans lui, chaque survol/ouverture repayait une requête même
-// pour un joueur déjà consulté il y a 30 secondes. 5 minutes de fraîcheur :
-// assez pour ne pas répéter les mêmes requêtes en rafale, assez court pour
-// qu'un rang qui vient de changer se voie sans attendre une éternité.
+// pour un joueur déjà consulté il y a 30 secondes.
+//
+// TTL des données d'API, calés sur la vitesse à laquelle chacune change
+// réellement plutôt que sur une valeur unique :
+//   - l'identité d'un compte (puuid, region, plateformes) ne change jamais ;
+//     seuls le niveau et la carte bougent, et pas à la minute ;
+//   - le rang ne bouge qu'après une partie classée terminée, et ce cas-là est
+//     détecté autrement (voir refreshRank) plutôt que par un sondage ;
+//   - l'aperçu affiché sur une fiche est un composé des deux.
+const ACCOUNT_TTL_MS = 6 * 60 * 60 * 1000;
+const RANK_TTL_MS = 10 * 60 * 1000;
 const PREVIEW_CACHE_TTL_MS = 5 * 60 * 1000;
 
-function previewCacheKey(kind, name, tag) {
-  return `${kind}:${name}#${tag}`.toLowerCase();
-}
+// Deux rafraîchissements du même compte à moins de ça d'intervalle ne
+// relancent pas de synchro d'historique : HenrikDev ne publie pas de nouveau
+// match dans cet intervalle, les pages redemandées reviendraient identiques.
+// Le bouton Rafraîchir passe force=true et n'est donc jamais bloqué par ça.
+const SYNC_COOLDOWN_MS = 60 * 1000;
 
-function getPreviewCache(kind, name, tag) {
-  const cache = store.get('apiPreviewCache') || {};
-  const entry = cache[previewCacheKey(kind, name, tag)];
-  if (!entry || Date.now() - entry.ts > PREVIEW_CACHE_TTL_MS) return undefined;
-  return entry.data;
-}
-
-function setPreviewCache(kind, name, tag, data) {
-  const cache = store.get('apiPreviewCache') || {};
-  cache[previewCacheKey(kind, name, tag)] = { data, ts: Date.now() };
-  store.set('apiPreviewCache', cache);
-}
+const accountKey = (name, tag) => `account:${String(name).toLowerCase()}#${String(tag).toLowerCase()}`;
+const mmrKey = (puuid) => `mmr:${puuid}`;
+const previewKey = (name, tag) => `preview:${String(name).toLowerCase()}#${String(tag).toLowerCase()}`;
+const syncKey = (puuid) => `sync:${puuid}`;
 
 function platformCandidates(account) {
   const platforms = (account?.platforms ?? []).map((p) => String(p).toLowerCase());
@@ -127,6 +136,54 @@ async function getMatchesWithFallback(account, name, tag, apiKey, options) {
     }
   }
   throw lastErr;
+}
+
+// L'identité d'un compte Riot (puuid, region, plateformes) est fixe. Elle
+// était pourtant redemandée à HenrikDev à chaque rafraîchissement ET à chaque
+// sondage de fond, soit la requête la plus fréquente de l'app pour un
+// résultat toujours identique. Le cache survit au redémarrage : relancer
+// l'app ne coûte plus cette requête-là.
+async function getAccountCached(name, tag, apiKey, { force = false } = {}) {
+  const key = accountKey(name, tag);
+  if (force) forget(key);
+  return remember(key, ACCOUNT_TTL_MS, () => getAccount(name, tag, apiKey));
+}
+
+async function getMmrCached(account, name, tag, apiKey, { force = false } = {}) {
+  const key = mmrKey(account.puuid);
+  if (force) forget(key);
+  return remember(key, RANK_TTL_MS, () => getMmrWithFallback(account, name, tag, apiKey));
+}
+
+/**
+ * Met à jour le rang en cache pour ce compte. Ne consomme du quota que si le
+ * cache est périmé ou si `force` est demandé — c'est ce qui permet d'appeler
+ * cette fonction sans y penser, avant et après la synchro d'historique.
+ * Ne lève jamais : un rang indisponible (compte non classé, 429, réseau) ne
+ * doit pas faire échouer le rafraîchissement des matchs.
+ */
+async function refreshRank(account, name, tag, apiKey, { force = false } = {}) {
+  try {
+    const mmr = await getMmrCached(account, name, tag, apiKey, { force });
+    store.set(`valorantRank:${account.puuid}`, {
+      accountLevel: account.account_level,
+      cardUuid: account.card,
+      tierId: mmr.current.tier.id,
+      tierName: mmr.current.tier.name,
+      rr: mmr.current.rr,
+      peakTierId: mmr.peak.tier.id,
+      peakTierName: mmr.peak.tier.name,
+      peakSeasonUuid: mmr.peak.season.id,
+    });
+    return true;
+  } catch {
+    // Rang indisponible pour CE compte (non classé, erreur API, rate limit),
+    // on ne touche pas au cache d'un autre compte : le rang renvoyé plus loin
+    // est toujours scopé au puuid réellement recherché, jamais un "dernier
+    // connu" global qui pouvait laisser transparaître le rang d'un autre
+    // joueur.
+    return false;
+  }
 }
 
 function currentPuuid() {
@@ -517,60 +574,64 @@ ipcMain.handle('messaging:clear-cached-key', (_event, userId) => {
 // (bannière/rang/pseudo) avant que l'utilisateur confirme que c'est bien le
 // sien, sur l'écran de liaison de compte.
 ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey }) => {
-  const cached = getPreviewCache('account', name, tag);
-  if (cached) return cached;
-
-  const account = await getAccount(name, tag, apiKey);
-  let rank = null;
-  try {
-    const mmr = await getMmrWithFallback(account, name, tag, apiKey);
-    rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
-  } catch {
-    // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
-  }
-  const result = {
-    name,
-    tag,
-    puuid: account.puuid,
-    region: account.region,
-    platforms: account.platforms,
-    accountLevel: account.account_level,
-    cardUuid: account.card,
-    rank,
-  };
-  setPreviewCache('account', name, tag, result);
-  return result;
-});
-
-ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => {
-  const account = await getAccount(name, tag, apiKey);
-  setValorantSettings({ name, tag, apiKey, puuid: account.puuid });
-
-  // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
-  // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup
-  // (jusqu'à 50, un par match manquant) sur la même minute, sur la clé
-  // Basic (30 req/min), le rang passait après coup et pouvait se retrouver
-  // sans quota restant, faisant échouer silencieusement rien que lui. Là, il
-  // profite du quota complet dès le début du rafraîchissement.
-  try {
-    const mmr = await getMmrWithFallback(account, name, tag, apiKey);
-    const rankInfo = {
+  // `remember` couvre les deux cas d'un coup : aperçu déjà calculé assez
+  // récemment (0 requête), et deux fiches ouvertes en même temps sur le même
+  // joueur (une seule requête au lieu de deux). Les appels internes sont eux
+  // aussi cachés, un aperçu périmé ne repaie donc pas forcément les deux
+  // requêtes.
+  return remember(previewKey(name, tag), PREVIEW_CACHE_TTL_MS, async () => {
+    const account = await getAccountCached(name, tag, apiKey);
+    let rank = null;
+    try {
+      const mmr = await getMmrCached(account, name, tag, apiKey);
+      rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
+    } catch {
+      // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
+    }
+    return {
+      name,
+      tag,
+      puuid: account.puuid,
+      region: account.region,
+      platforms: account.platforms,
       accountLevel: account.account_level,
       cardUuid: account.card,
-      tierId: mmr.current.tier.id,
-      tierName: mmr.current.tier.name,
-      rr: mmr.current.rr,
-      peakTierId: mmr.peak.tier.id,
-      peakTierName: mmr.peak.tier.name,
-      peakSeasonUuid: mmr.peak.season.id,
+      rank,
     };
-    store.set(`valorantRank:${account.puuid}`, rankInfo);
-  } catch {
-    // Rang indisponible pour CE compte (non classé, erreur API, rate limit),
-    // on ne touche pas au cache d'un autre compte (voir le retour ci-dessous,
-    // toujours scopé au puuid réellement recherché, jamais un "dernier connu"
-    // global qui pouvait laisser transparaître le rang d'un autre joueur).
+  });
+});
+
+// Synchros en cours, par compte : deux appels concurrents sur le même joueur
+// (montage de l'app pendant qu'un sondage de fond tourne) partagent le même
+// travail au lieu de lancer deux fois la même pagination.
+const matchSyncInFlight = new Map();
+
+async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
+  const account = await getAccountCached(name, tag, apiKey);
+  setValorantSettings({ name, tag, apiKey, puuid: account.puuid });
+
+  const readResult = () => ({
+    matches: getCachedMatches(account.puuid),
+    rank: store.get(`valorantRank:${account.puuid}`) || null,
+  });
+
+  // Rien de neuf ne peut être apparu côté HenrikDev depuis la dernière
+  // synchro : on rend le cache local sans consommer une seule requête. C'est
+  // ce qui absorbe les rafraîchissements en rafale (changement d'onglet,
+  // retour sur un profil déjà consulté, remontage d'un composant).
+  if (!force && ageOf(syncKey(account.puuid)) < SYNC_COOLDOWN_MS) {
+    console.log(`[henrikdev] synchro ignorée (moins de ${SYNC_COOLDOWN_MS / 1000}s depuis la précédente) → cache local`);
+    return readResult();
   }
+
+  // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
+  // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup sur
+  // la même minute ; sur la clé Basic (30 req/min), le rang passait après
+  // coup et pouvait se retrouver sans quota restant, faisant échouer
+  // silencieusement rien que lui. Cet appel-ci ne coûte rien tant que le cache
+  // de rang est frais (voir refreshRank).
+  const rankWasForced = force;
+  await refreshRank(account, name, tag, apiKey, { force: rankWasForced });
 
   // v4/matches renvoie déjà le détail complet de chaque match (round par
   // round, kills avec position), plus besoin d'un aller-retour "liste
@@ -600,17 +661,24 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   // (pas de trou possible dans l'historique). Une resynchro "à vide" (rien
   // de nouveau) coûte donc 1 requête par plateforme au lieu des 4 qu'il
   // fallait avant pour vérifier les 40 derniers matchs à chaque fois.
-  const cachedIds = new Set(getCachedMatches(account.puuid).map((m) => m.metadata.matchid));
+  //
+  // Les identifiants suffisent ici : inutile de désérialiser tout
+  // l'historique juste pour savoir ce qu'on possède déjà.
+  const cachedIds = new Set(getCachedMatchIds(account.puuid));
 
   let rateLimited = false;
+  let newMatches = 0;
   for (const candidate of platformCandidates(account)) {
     if (rateLimited) break;
     for (let start = 0; start < HISTORY_CAP; start += PAGE_SIZE) {
       try {
         const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start });
-        console.log(`[henrikdev] page ${candidate}/start=${start} → ${page.length} match(s) normalisé(s)`);
+        const fresh = page.filter((m) => !cachedIds.has(m.metadata?.matchid));
+        console.log(`[henrikdev] page ${candidate}/start=${start} → ${page.length} match(s), dont ${fresh.length} nouveau(x)`);
         if (page.length > 0) saveMatches(account.puuid, page);
-        if (page.length > 0 && page.every((m) => cachedIds.has(m.metadata.matchid))) break; // rien de nouveau au-delà
+        fresh.forEach((m) => cachedIds.add(m.metadata?.matchid));
+        newMatches += fresh.length;
+        if (page.length > 0 && fresh.length === 0) break; // rien de nouveau au-delà
         if (page.length < PAGE_SIZE) break; // plus d'historique derrière sur cette plateforme
       } catch (err) {
         if (err.status === 429) {
@@ -629,10 +697,36 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
     }
   }
 
-  return {
-    matches: getCachedMatches(account.puuid),
-    rank: store.get(`valorantRank:${account.puuid}`) || null,
-  };
+  // Un nouveau match est le SEUL événement qui peut avoir fait bouger le rang.
+  // On ne repaie donc la requête MMR que dans ce cas, au lieu de la refaire à
+  // chaque rafraîchissement comme avant (et jamais deux fois si le rang venait
+  // déjà d'être forcé ci-dessus).
+  if (newMatches > 0 && !rankWasForced) {
+    await refreshRank(account, name, tag, apiKey, { force: true });
+  }
+
+  // Marque la synchro comme faite même si elle n'a rien rapporté : c'est
+  // justement le cas où il ne faut pas recommencer tout de suite. En revanche,
+  // une synchro coupée par un 429 ne compte pas, sinon le rattrapage de
+  // l'historique resterait bloqué une minute de plus pour rien.
+  if (!rateLimited) write(syncKey(account.puuid), Date.now());
+
+  const stats = cacheStats();
+  console.log(
+    `[henrikdev] synchro terminée · ${newMatches} nouveau(x) match(s) · requêtes évitées depuis le lancement : ${stats.saved + henrikDedupCount()}`,
+  );
+
+  return readResult();
+}
+
+ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey, force = false }) => {
+  const key = `${String(name).toLowerCase()}#${String(tag).toLowerCase()}`;
+  const pending = matchSyncInFlight.get(key);
+  if (pending) return pending;
+
+  const promise = syncAndReadMatches({ name, tag, apiKey, force }).finally(() => matchSyncInFlight.delete(key));
+  matchSyncInFlight.set(key, promise);
+  return promise;
 });
 
 ipcMain.handle('valorant:get-rank-for', (_event, puuid) => {
@@ -692,21 +786,35 @@ function notifyTilt(tilt, form) {
   notification.show();
 }
 
+/**
+ * Une seule requête HenrikDev : la première page de matchs du compte suivi.
+ * L'identité du compte vient du cache (voir getAccountCached), elle ne coûte
+ * plus rien ici. Renvoie true si un match jamais vu est apparu.
+ */
 async function checkTiltAndNotify() {
   const settings = getValorantSettings();
-  if (!settings?.name || !settings?.tag || !settings?.apiKey) return;
+  if (!settings?.name || !settings?.tag || !settings?.apiKey) return false;
   try {
-    const account = await getAccount(settings.name, settings.tag, settings.apiKey);
+    const account = await getAccountCached(settings.name, settings.tag, settings.apiKey);
+
+    // Point de départ pris sur le cache local plutôt que sur "le premier
+    // appel de la session" : au lancement de l'app, le dernier match connu
+    // est déjà sur le disque, inutile de brûler une requête juste pour
+    // apprendre ce qu'on sait déjà.
+    if (tiltPollState.lastMatchId === null) {
+      tiltPollState.lastMatchId = getLatestCachedMatchId(account.puuid);
+    }
+
     const freshMatches = await getMatchesWithFallback(account, settings.name, settings.tag, settings.apiKey);
     saveMatches(account.puuid, freshMatches);
 
     const latestId = freshMatches[0]?.metadata?.matchid ?? null;
-    if (!latestId || latestId === tiltPollState.lastMatchId) return;
-    const isFirstCheck = tiltPollState.lastMatchId === null;
+    if (!latestId || latestId === tiltPollState.lastMatchId) return false;
     tiltPollState.lastMatchId = latestId;
-    // Premier check depuis le lancement de l'app : sert juste de point de
-    // départ, pour ne pas notifier immédiatement sur un tilt déjà ancien.
-    if (isFirstCheck) return;
+
+    // Le rang a forcément pu bouger avec ce nouveau match : on invalide, la
+    // prochaine lecture ira le rechercher au lieu de servir l'ancien.
+    forget(mmrKey(account.puuid));
 
     const played = excludeDeathmatch(getCachedMatches(account.puuid));
     const form = formStats(played, settings.name, settings.tag);
@@ -720,15 +828,92 @@ async function checkTiltAndNotify() {
     } else {
       tiltPollState.notified = false;
     }
+    return true;
   } catch {
     // Erreur ponctuelle (rate limit, réseau) : on retentera au prochain tick,
     // pas besoin de faire planter la vérification pour ça.
+    return false;
   }
 }
 
-setInterval(() => {
-  if (isValorantRunning()) checkTiltAndNotify();
-}, 120000);
+// =============================================================================
+// DÉTECTION DE FIN DE MATCH — PILOTÉE PAR L'API LOCALE, PAS PAR HENRIKDEV
+//
+// Avant : un sondage HenrikDev toutes les 2 minutes tant que Valorant
+// tournait, soit ~90 requêtes par heure de jeu (~700 sur une soirée) rien que
+// pour poser la question "un match vient-il de se terminer ?", à laquelle la
+// réponse était non dans l'écrasante majorité des cas.
+//
+// L'API locale du client Valorant (voir services/valorantLocal.js) répond à
+// cette question gratuitement et sans quota : elle dit si le joueur est en
+// sélection d'agent, en partie, ou à l'écran d'accueil. On ne dépense une
+// requête HenrikDev qu'au moment précis où le joueur SORT d'une partie, soit
+// au plus une poignée de fois par soirée au lieu de plusieurs centaines.
+//
+// Deux précautions :
+//   - HenrikDev ne publie pas un match à la seconde où il se termine, d'où le
+//     délai avant la première tentative et une seule relance ensuite ;
+//   - si l'API locale est indisponible (client fermé en cours de route,
+//     endpoint changé par Riot), on retombe sur un sondage HenrikDev, mais
+//     très espacé, jamais sur l'ancienne cadence.
+// =============================================================================
+const LOCAL_STATE_POLL_MS = 30 * 1000;
+const MATCH_END_FIRST_DELAY_MS = 60 * 1000;
+const MATCH_END_RETRY_DELAY_MS = 150 * 1000;
+const API_FALLBACK_POLL_MS = 15 * 60 * 1000;
+
+const IN_MATCH_STATES = new Set(['pregame', 'coregame']);
+
+let lastLocalState = null;
+let lastFallbackCheck = 0;
+let matchEndPending = false;
+
+async function onMatchEnded() {
+  if (matchEndPending) return;
+  matchEndPending = true;
+  try {
+    await new Promise((resolve) => setTimeout(resolve, MATCH_END_FIRST_DELAY_MS));
+    if (await checkTiltAndNotify()) return;
+    // Match pas encore publié côté HenrikDev : une seule relance, puis on
+    // laisse tomber jusqu'au prochain match (le rafraîchissement manuel de
+    // l'utilisateur rattrapera de toute façon).
+    await new Promise((resolve) => setTimeout(resolve, MATCH_END_RETRY_DELAY_MS));
+    await checkTiltAndNotify();
+  } finally {
+    matchEndPending = false;
+  }
+}
+
+setInterval(async () => {
+  if (!isValorantRunning()) {
+    lastLocalState = null;
+    return;
+  }
+
+  let state = 'unavailable';
+  try {
+    state = (await getAgentSelect()).state;
+  } catch {
+    // getAgentSelect ne lève pas en principe, le catch couvre le cas limite.
+  }
+
+  if (state !== 'unavailable') {
+    const wasInMatch = IN_MATCH_STATES.has(lastLocalState);
+    const isInMatch = IN_MATCH_STATES.has(state);
+    lastLocalState = state;
+    // Transition "en partie" → "plus en partie" : c'est le seul instant où un
+    // nouveau match peut apparaître. `lastLocalState === null` au premier tour
+    // ne déclenche donc rien, ce qui évite une requête au lancement de l'app.
+    if (wasInMatch && !isInMatch) onMatchEnded();
+    return;
+  }
+
+  // Repli : API locale muette, on retombe sur un sondage direct, très espacé.
+  if (Date.now() - lastFallbackCheck >= API_FALLBACK_POLL_MS) {
+    lastFallbackCheck = Date.now();
+    checkTiltAndNotify();
+  }
+}, LOCAL_STATE_POLL_MS);
 
 // Accepte un puuid explicite plutôt que de compter uniquement sur
 // currentPuuid() (lu depuis le disque) : au tout premier appel d'une

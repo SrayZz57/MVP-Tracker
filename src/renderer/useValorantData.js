@@ -14,13 +14,17 @@ function useValorantData(settings) {
   // avec les données de l'ancien.
   const requestIdRef = useRef(0);
 
-  const refresh = async () => {
+  // `force` n'est vrai que sur une action explicite de l'utilisateur (bouton
+  // Rafraîchir). Les rafraîchissements automatiques (montage, changement de
+  // profil) laissent le process principal servir son cache local quand rien
+  // n'a pu bouger, plutôt que de repayer des requêtes d'API à chaque fois.
+  const refresh = async ({ force = false } = {}) => {
     if (!settings) return;
     const requestId = requestIdRef.current;
     setLoading(true);
     setError(null);
     try {
-      const { matches: freshMatches, rank: freshRank } = await window.electronAPI.getMatches(settings);
+      const { matches: freshMatches, rank: freshRank } = await window.electronAPI.getMatches(settings, { force });
       const pingData = await window.electronAPI.getPingSamples();
       if (requestId !== requestIdRef.current) return;
       setMatches(freshMatches || []);

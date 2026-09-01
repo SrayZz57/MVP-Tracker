@@ -300,6 +300,23 @@ export function backfillLegacyPuuid(puuid) {
   });
 }
 
+// Matchs déjà désérialisés, par puuid. getCachedMatches() était appelé à
+// chaque rafraîchissement, à chaque changement de profil et à chaque sondage
+// de fond, et reparsait à chaque fois le JSON round par round de TOUT
+// l'historique (plusieurs Mo pour 100 matchs) alors que rien n'avait bougé
+// entre-temps. Le contenu d'un match terminé ne change plus, seul l'ajout de
+// nouveaux matchs invalide l'entrée.
+//
+// Le tableau est renvoyé tel quel, sans copie (c'est tout l'intérêt) : les
+// appelants le lisent seulement — les fonctions de stats filtrent et
+// recopient, et un envoi par IPC est de toute façon cloné avant d'atteindre
+// le renderer.
+const parsedMatchesCache = new Map();
+
+function invalidateMatchCache(puuid) {
+  parsedMatchesCache.delete(puuid);
+}
+
 export function saveMatches(puuid, matches) {
   const insert = db.prepare(
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
@@ -320,13 +337,36 @@ export function saveMatches(puuid, matches) {
   if (skipped > 0) {
     console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) · metadata.matchid manquant`);
   }
+  invalidateMatchCache(puuid);
 }
 
 export function getCachedMatches(puuid) {
+  const memo = parsedMatchesCache.get(puuid);
+  if (memo) return memo;
+
   const rows = db
     .prepare('SELECT data FROM matches WHERE puuid = ? ORDER BY game_start DESC')
     .all(puuid);
-  return rows.map((row) => JSON.parse(row.data));
+  const parsed = rows.map((row) => JSON.parse(row.data));
+  parsedMatchesCache.set(puuid, parsed);
+  return parsed;
+}
+
+// Savoir CE QUI est déjà en cache ne demande pas de désérialiser ce qui est
+// dedans : la synchro n'a besoin que des identifiants pour décider si une
+// page rapporte du nouveau, et le sondage de fond que du dernier en date.
+export function getCachedMatchIds(puuid) {
+  return db
+    .prepare('SELECT match_id FROM matches WHERE puuid = ?')
+    .all(puuid)
+    .map((row) => row.match_id);
+}
+
+export function getLatestCachedMatchId(puuid) {
+  const row = db
+    .prepare('SELECT match_id FROM matches WHERE puuid = ? ORDER BY game_start DESC LIMIT 1')
+    .get(puuid);
+  return row?.match_id ?? null;
 }
 
 export function savePingSample(puuid, latencyMs) {

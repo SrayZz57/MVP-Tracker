@@ -18,7 +18,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   cacheMessagingKey: (payload) => ipcRenderer.invoke('messaging:cache-key', payload),
   getCachedMessagingKey: (userId) => ipcRenderer.invoke('messaging:get-cached-key', userId),
   clearCachedMessagingKey: (userId) => ipcRenderer.invoke('messaging:clear-cached-key', userId),
-  getMatches: (settings) => ipcRenderer.invoke('valorant:get-matches', settings),
+  // `force` : rafraîchissement demandé explicitement par l'utilisateur, il
+  // court-circuite le délai anti-rafale côté process principal.
+  getMatches: (settings, { force = false } = {}) =>
+    ipcRenderer.invoke('valorant:get-matches', { ...settings, force }),
   previewRiotAccount: (payload) => ipcRenderer.invoke('valorant:preview-account', payload),
   getCachedMatches: () => ipcRenderer.invoke('valorant:get-cached-matches'),
   getCachedMatchesFor: (puuid) => ipcRenderer.invoke('valorant:get-cached-matches-for', puuid),
