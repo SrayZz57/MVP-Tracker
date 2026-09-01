@@ -271,6 +271,14 @@ function App() {
   const myUserId = session?.user?.id ?? null;
   const onlineFriendIds = useOnlinePresence(myUserId);
 
+  // Usage par feature (Stats, Tournois, Aim Trainer...) pour PostHog — un
+  // event léger par changement d'onglet plutôt que d'instrumenter chaque
+  // écran séparément.
+  useEffect(() => {
+    window.electronAPI?.captureEvent(myUserId, 'tab_viewed', { tab: activeTab });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeTab]);
+
   // Tente de récupérer la clé de messagerie déjà mise en cache localement
   // sur CET appareil (voir E2EEContext.jsx) dès que la session est connue,
   // couvre le cas normal (redémarrage de l'app, session Supabase déjà

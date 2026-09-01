@@ -40,6 +40,7 @@ import { isValorantRunning, pingOnce } from './services/network.js';
 import { getAgentSelect } from './services/valorantLocal.js';
 import { syncMatches } from './services/matchSync.js';
 import { updateElectronApp } from 'update-electron-app';
+import { captureEvent, captureException, shutdown as shutdownTelemetry } from './services/telemetry.js';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
 // move the cache: Accès refusé" au démarrage, cache disque probablement
@@ -154,9 +155,26 @@ backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
 })();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// app.quit() ne stoppe pas l'exécution du script : sans le exit() qui suit,
+// tout le reste de ce fichier (fenêtres, timers, IPC...) continuait de
+// tourner même dans cette invocation spéciale de Squirrel — censée juste
+// poser les raccourcis puis quitter tout de suite — jusqu'à ce que le quit
+// en attente finisse par détruire des objets en pleine création ("Object
+// has been destroyed"), observé en vrai juste après une mise à jour.
 if (started) {
   app.quit();
+  app.exit(0);
 }
+
+// Filet de sécurité pour les crashs jamais rattrapés ailleurs dans le process
+// principal — distinctId = compte MVP Tracker lié s'il est déjà connu à cet
+// instant, sinon 'unknown' (ex. crash avant toute liaison de compte).
+process.on('uncaughtException', (err) => {
+  captureException(currentPuuid(), err);
+});
+process.on('unhandledRejection', (reason) => {
+  captureException(currentPuuid(), reason instanceof Error ? reason : new Error(String(reason)));
+});
 
 // Vérifie les GitHub Releases au démarrage puis toutes les 10 minutes
 // (valeur par défaut de update-electron-app) ; ne fait rien en dev (app pas
@@ -311,6 +329,18 @@ const createWindow = () => {
 };
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
+
+// Relais des événements/erreurs du renderer vers PostHog — le renderer n'a
+// pas accès direct au SDK (voir services/telemetry.js), il passe par ici.
+ipcMain.handle('telemetry:capture-event', (_event, { distinctId, event, properties }) => {
+  captureEvent(distinctId, event, properties);
+});
+
+ipcMain.handle('telemetry:capture-exception', (_event, { distinctId, message, stack, context }) => {
+  const err = new Error(message);
+  if (stack) err.stack = stack;
+  captureException(distinctId, err, context);
+});
 
 // L'Aim Trainer tourne dans sa PROPRE fenêtre plein écran, pas dans un onglet
 // de la fenêtre principale : c'est la seule façon d'avoir un vrai comportement
@@ -782,12 +812,36 @@ function createAgentSelectOverlay() {
   agentSelectOverlayWindow.showInactive();
   if (!overlayTopmostInterval) {
     overlayTopmostInterval = setInterval(() => {
-      if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
-        agentSelectOverlayWindow.moveTop();
+      // isDestroyed() puis l'appel juste après ne sont pas garantis
+      // atomiques côté natif — le try/catch couvre le cas rare où la
+      // fenêtre se détruit entre les deux ("Object has been destroyed").
+      try {
+        if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+          agentSelectOverlayWindow.moveTop();
+        }
+      } catch {
+        clearInterval(overlayTopmostInterval);
+        overlayTopmostInterval = null;
       }
     }, 1000);
   }
 }
+
+// Activable/désactivable depuis Mon compte — certains joueurs préfèrent ne
+// jamais avoir de fenêtre supplémentaire par-dessus le jeu, même créée à la
+// demande. Activé par défaut.
+ipcMain.handle('agent-select-overlay:get-enabled', () => store.get('agentSelectOverlayEnabled') ?? true);
+
+ipcMain.handle('agent-select-overlay:set-enabled', (_event, enabled) => {
+  store.set('agentSelectOverlayEnabled', enabled);
+  // Coupure immédiate si désactivé en plein milieu d'une sélection/partie.
+  if (!enabled && agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+    clearInterval(overlayTopmostInterval);
+    overlayTopmostInterval = null;
+    agentSelectOverlayWindow.close();
+    agentSelectOverlayWindow = null;
+  }
+});
 
 // Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
 // qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
@@ -796,14 +850,19 @@ function createAgentSelectOverlay() {
 // et cause du lag système (souris qui rame), même en restant invisible.
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
   if (visible) {
-    if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) {
+    const enabled = store.get('agentSelectOverlayEnabled') ?? true;
+    if (enabled && (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed())) {
       createAgentSelectOverlay();
     }
   } else {
     clearInterval(overlayTopmostInterval);
     overlayTopmostInterval = null;
     if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
-      agentSelectOverlayWindow.close();
+      try {
+        agentSelectOverlayWindow.close();
+      } catch {
+        // déjà détruite entre le check et l'appel — rien à faire de plus.
+      }
     }
     agentSelectOverlayWindow = null;
   }
@@ -1007,7 +1066,10 @@ app.whenReady().then(() => {
       "default-src 'self'",
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://*.valorant-api.com",
+      // https: en plus de valorant-api.com : les annonces admin (écran
+      // d'accueil) référencent une image par URL externe collée à la main
+      // (Discord CDN, Imgur...), pas d'upload intégré — voir AdminPage.jsx.
+      "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
       "object-src 'none'",
@@ -1032,6 +1094,11 @@ app.whenReady().then(() => {
   });
 
   createWindow();
+
+  // Sert de base au calcul PostHog des utilisateurs actifs (DAU/WAU/MAU) —
+  // distinctId pas encore connu ici (compte pas forcément lié à ce stade),
+  // PostHog regroupe quand même par distinctId 'unknown' pour ces lancements.
+  captureEvent(currentPuuid(), 'app_launched', { app_version: app.getVersion(), platform: process.platform });
 
   // Premier lancement déclenché directement par le lien (l'app n'était pas
   // encore ouverte), le lien arrive dans les arguments de démarrage.
@@ -1062,6 +1129,13 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
+});
+
+// Vide la file d'événements PostHog avant fermeture — sans ça, les derniers
+// events d'une session (ex. le crash qui vient de la faire quitter) peuvent
+// se perdre s'ils n'ont pas encore été envoyés.
+app.on('will-quit', () => {
+  shutdownTelemetry();
 });
 
 // In this file you can include the rest of your app's specific main process

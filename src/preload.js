@@ -28,6 +28,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Sélection d'agent en direct (API locale du client Valorant).
   getAgentSelect: () => ipcRenderer.invoke('valorant-local:agent-select'),
   setAgentSelectOverlayVisible: (visible) => ipcRenderer.invoke('agent-select-overlay:set-visible', visible),
+  getAgentSelectOverlayEnabled: () => ipcRenderer.invoke('agent-select-overlay:get-enabled'),
+  setAgentSelectOverlayEnabled: (enabled) => ipcRenderer.invoke('agent-select-overlay:set-enabled', enabled),
   syncMatches: (payload) => ipcRenderer.invoke('sync:matches', payload),
   setAgentSelectSuggestions: (suggestions) =>
     ipcRenderer.invoke('agent-select-overlay:set-suggestions', suggestions),
@@ -86,4 +88,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addGoal: (goal) => ipcRenderer.invoke('goals:add', goal),
   toggleGoalDone: (id) => ipcRenderer.invoke('goals:toggle-done', id),
   deleteGoal: (id) => ipcRenderer.invoke('goals:delete', id),
+  captureEvent: (distinctId, event, properties) =>
+    ipcRenderer.invoke('telemetry:capture-event', { distinctId, event, properties }),
+  captureException: (distinctId, error, context) =>
+    ipcRenderer.invoke('telemetry:capture-exception', {
+      distinctId,
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+      context,
+    }),
 });

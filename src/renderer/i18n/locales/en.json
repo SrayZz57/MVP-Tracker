@@ -20,6 +20,23 @@
         "ongoing": "Ongoing",
         "completed": "Completed"
       }
+    },
+    "announcements": {
+      "createTitle": "Post an announcement",
+      "titleLabel": "Title",
+      "bodyLabel": "Message",
+      "imageUrlLabel": "Image URL (optional)",
+      "imageUrlHint": "Paste a direct link to an image already hosted elsewhere (Discord, Imgur...) — no built-in upload.",
+      "publish": "Publish",
+      "publishing": "Publishing…",
+      "listTitle": "Announcements",
+      "loading": "Loading…",
+      "empty": "No announcement yet.",
+      "active": "Active",
+      "inactive": "Hidden",
+      "activate": "Reactivate",
+      "deactivate": "Hide",
+      "delete": "Delete"
     }
   },
   "tournaments": {
@@ -1479,7 +1496,8 @@
     "statKd": "K/D",
     "statHs": "Headshot",
     "recentLabel": "Last 5:",
-    "noMatches": "No cached matches yet."
+    "noMatches": "No cached matches yet.",
+    "announcementFounder": "{{name}} — Founder"
   },
   "linkRiot": {
     "title": "Link your Riot account",
@@ -1557,6 +1575,8 @@
     "emailLabel": "Email address",
     "apiKeyLabel": "HenrikDev API key",
     "apiKeyMissing": "Not set",
+    "agentSelectOverlayLabel": "Agent select window over the game",
+    "agentSelectOverlayHint": "Shows a small window over Valorant during agent select and the start of a match (ranks, suggestions). Turn it off if you never want an extra window on top of the game.",
     "signOut": "Sign out",
     "forgotPassword": "Forgot your password?",
     "forgotPasswordSending": "Sending...",
