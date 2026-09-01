@@ -154,8 +154,15 @@ backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
 })();
 
 // Handle creating/removing shortcuts on Windows when installing/uninstalling.
+// app.quit() ne stoppe pas l'exécution du script : sans le exit() qui suit,
+// tout le reste de ce fichier (fenêtres, timers, IPC...) continuait de
+// tourner même dans cette invocation spéciale de Squirrel — censée juste
+// poser les raccourcis puis quitter tout de suite — jusqu'à ce que le quit
+// en attente finisse par détruire des objets en pleine création ("Object
+// has been destroyed"), observé en vrai juste après une mise à jour.
 if (started) {
   app.quit();
+  app.exit(0);
 }
 
 // Vérifie les GitHub Releases au démarrage puis toutes les 10 minutes
@@ -731,8 +738,16 @@ function createAgentSelectOverlay() {
   agentSelectOverlayWindow.showInactive();
   if (!overlayTopmostInterval) {
     overlayTopmostInterval = setInterval(() => {
-      if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
-        agentSelectOverlayWindow.moveTop();
+      // isDestroyed() puis l'appel juste après ne sont pas garantis
+      // atomiques côté natif — le try/catch couvre le cas rare où la
+      // fenêtre se détruit entre les deux ("Object has been destroyed").
+      try {
+        if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+          agentSelectOverlayWindow.moveTop();
+        }
+      } catch {
+        clearInterval(overlayTopmostInterval);
+        overlayTopmostInterval = null;
       }
     }, 1000);
   }
@@ -769,7 +784,11 @@ ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
     clearInterval(overlayTopmostInterval);
     overlayTopmostInterval = null;
     if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
-      agentSelectOverlayWindow.close();
+      try {
+        agentSelectOverlayWindow.close();
+      } catch {
+        // déjà détruite entre le check et l'appel — rien à faire de plus.
+      }
     }
     agentSelectOverlayWindow = null;
   }
