@@ -20,6 +20,23 @@
         "ongoing": "En cours",
         "completed": "Terminé"
       }
+    },
+    "announcements": {
+      "createTitle": "Publier une annonce",
+      "titleLabel": "Titre",
+      "bodyLabel": "Message",
+      "imageUrlLabel": "URL de l'image (optionnel)",
+      "imageUrlHint": "Colle un lien direct vers une image déjà hébergée ailleurs (Discord, Imgur...) — pas d'upload intégré.",
+      "publish": "Publier",
+      "publishing": "Publication…",
+      "listTitle": "Annonces",
+      "loading": "Chargement…",
+      "empty": "Aucune annonce pour l'instant.",
+      "active": "Active",
+      "inactive": "Masquée",
+      "activate": "Réactiver",
+      "deactivate": "Masquer",
+      "delete": "Supprimer"
     }
   },
   "tournaments": {
@@ -1471,7 +1488,8 @@
     "statKd": "K/D",
     "statHs": "Précision tête",
     "recentLabel": "5 dernières :",
-    "noMatches": "Aucune partie en cache pour l'instant."
+    "noMatches": "Aucune partie en cache pour l'instant.",
+    "announcementFounder": "{{name}} — Fondateur"
   },
   "linkRiot": {
     "title": "Lier ton compte Riot",
@@ -1549,6 +1567,8 @@
     "emailLabel": "Adresse mail",
     "apiKeyLabel": "Clé API HenrikDev",
     "apiKeyMissing": "Non renseignée",
+    "agentSelectOverlayLabel": "Fenêtre de sélection d'agent par-dessus le jeu",
+    "agentSelectOverlayHint": "Affiche une petite fenêtre par-dessus Valorant pendant la sélection d'agent et le début de partie (rangs, suggestions). Désactive-la si tu ne veux jamais de fenêtre supplémentaire par-dessus le jeu.",
     "signOut": "Se déconnecter",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordSending": "Envoi en cours...",

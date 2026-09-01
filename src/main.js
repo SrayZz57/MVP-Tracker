@@ -753,6 +753,22 @@ function createAgentSelectOverlay() {
   }
 }
 
+// Activable/désactivable depuis Mon compte — certains joueurs préfèrent ne
+// jamais avoir de fenêtre supplémentaire par-dessus le jeu, même créée à la
+// demande. Activé par défaut.
+ipcMain.handle('agent-select-overlay:get-enabled', () => store.get('agentSelectOverlayEnabled') ?? true);
+
+ipcMain.handle('agent-select-overlay:set-enabled', (_event, enabled) => {
+  store.set('agentSelectOverlayEnabled', enabled);
+  // Coupure immédiate si désactivé en plein milieu d'une sélection/partie.
+  if (!enabled && agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
+    clearInterval(overlayTopmostInterval);
+    overlayTopmostInterval = null;
+    agentSelectOverlayWindow.close();
+    agentSelectOverlayWindow = null;
+  }
+});
+
 // Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
 // qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
 // de l'app — une fenêtre transparente/always-on-top GPU-composée qui traîne
@@ -760,7 +776,8 @@ function createAgentSelectOverlay() {
 // et cause du lag système (souris qui rame), même en restant invisible.
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
   if (visible) {
-    if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) {
+    const enabled = store.get('agentSelectOverlayEnabled') ?? true;
+    if (enabled && (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed())) {
       createAgentSelectOverlay();
     }
   } else {
@@ -975,7 +992,10 @@ app.whenReady().then(() => {
       "default-src 'self'",
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      "img-src 'self' data: https://*.valorant-api.com",
+      // https: en plus de valorant-api.com : les annonces admin (écran
+      // d'accueil) référencent une image par URL externe collée à la main
+      // (Discord CDN, Imgur...), pas d'upload intégré — voir AdminPage.jsx.
+      "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
       "object-src 'none'",
