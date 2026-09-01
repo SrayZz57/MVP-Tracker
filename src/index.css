@@ -2968,6 +2968,28 @@ li {
   flex-shrink: 0;
 }
 
+.playlist-preset-picker {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  margin-top: 0.4rem;
+}
+
+.playlist-preset-chip {
+  padding: 0.35rem 0.65rem;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: var(--surface-alt);
+  color: var(--text);
+  font-size: 0.82rem;
+  cursor: pointer;
+}
+
+.playlist-preset-chip:hover {
+  border-color: var(--accent, #ff4655);
+  color: var(--accent, #ff4655);
+}
+
 /* --- Aim Trainer : panneau de réglages (dans l'onglet) -------------------- */
 .aim-mode-grid {
   display: grid;

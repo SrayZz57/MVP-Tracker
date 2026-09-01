@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Flame, Snowflake, Crown, Wrench } from 'lucide-react';
+import { Flame, Snowflake, Crown, Wrench, ListMusic } from 'lucide-react';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
 import Icon from './Icon.jsx';
 import {
@@ -17,6 +17,7 @@ import { computeTrainingImpact } from './aimCorrelation.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CustomModeConfig from './CustomModeConfig.jsx';
+import PlaylistManager from './PlaylistManager.jsx';
 import AimLeaderboardRow from './AimLeaderboardRow.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import CrosshairPreview from './CrosshairPreview.jsx';
@@ -62,6 +63,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [dailyBoard, setDailyBoard] = useState([]);
   const [friendsBoard, setFriendsBoard] = useState([]);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
+  const [showPlaylistManager, setShowPlaylistManager] = useState(false);
   const [crosshairs, setCrosshairs] = useState([]);
   // Statut d'amitié envers chaque joueur croisé dans les classements —
   // chargé une fois (pas par ligne survolée) pour savoir quel bouton
@@ -323,6 +325,23 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             <span className="aim-mode-name">{t('aimTrainer.customTitle')}</span>
             <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>
           </button>
+
+          {/* Lance directement une SESSION (pas juste un réglage) : contrairement
+              aux autres tuiles, cliquer ici ne change pas config.mode — la
+              playlist choisie pilote toute la session dès l'ouverture de la
+              fenêtre de jeu (voir launchPlaylist ci-dessous). */}
+          <button
+            className="aim-mode-card"
+            style={{ '--mode-accent': '#4ec9f5' }}
+            onClick={() => setShowPlaylistManager(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={ListMusic} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.playlistsTitle')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.playlistsIntro')}</span>
+          </button>
         </div>
 
         {/* Résumé en lecture seule : les 6 modes standards sont figés (mêmes
@@ -548,6 +567,16 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           onSaved={() => {
             setShowCustomConfig(false);
             setConfig(loadConfig());
+          }}
+        />
+      )}
+
+      {showPlaylistManager && (
+        <PlaylistManager
+          onClose={() => setShowPlaylistManager(false)}
+          onLaunch={(playlistSteps) => {
+            setShowPlaylistManager(false);
+            launch({ playlistSteps });
           }}
         />
       )}

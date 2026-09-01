@@ -618,14 +618,32 @@ function AimTrainerGame({ config: rawConfig }) {
   // le nombre de cibles reste celui du départ (elles sont créées une seule
   // fois au montage de la scène).
   const playlist = rawConfig?.playlist ?? null;
+  // Playlist de PRESETS PERSONNALISÉS (pas des modes fixes) : chaque étape
+  // porte déjà sa config numérique complète (duration/targetSize/targetCount/
+  // spread + un nom pour l'affichage), résolue côté AimTrainer.jsx avant le
+  // lancement — cette fenêtre n'a pas besoin de connaître les presets
+  // sauvegardés en localStorage. Toujours des cibles statiques (comme le
+  // mode Personnalisé), les presets n'exposant pas de réglage de mouvement.
+  const playlistSteps = rawConfig?.playlistSteps ?? null;
+  const activeList = playlist ?? playlistSteps;
   const [step, setStep] = useState(0);
   const activeMode = playlist ? playlist[Math.min(step, playlist.length - 1)] : rawConfig?.mode;
+  const activeStepConfig = playlistSteps ? playlistSteps[Math.min(step, playlistSteps.length - 1)] : null;
   const config = {
     ...DEFAULT_CONFIG,
     ...rawConfig,
     ...(playlist ? { mode: activeMode, targetSize: MODES[activeMode].preset.targetSize, spread: MODES[activeMode].preset.spread } : {}),
+    ...(activeStepConfig
+      ? {
+          mode: 'custom',
+          duration: activeStepConfig.duration,
+          targetSize: activeStepConfig.targetSize,
+          targetCount: activeStepConfig.targetCount,
+          spread: activeStepConfig.spread,
+        }
+      : {}),
   };
-  const isLastStep = !playlist || step >= playlist.length - 1;
+  const isLastStep = !activeList || step >= activeList.length - 1;
 
   const mountRef = useRef(null);
   const [phase, setPhase] = useState('ready'); // ready | running | paused | done
@@ -1583,11 +1601,26 @@ function AimTrainerGame({ config: rawConfig }) {
   const nextStep = () => {
     setStep((s) => s + 1);
     setStats({ hits: 0, misses: 0, times: [] });
-    const nextMode = playlist[step + 1];
-    setTimeLeft(config.duration);
     stateRef.current.sessionEnded = false;
     clearTrackingHold();
     const now = performance.now();
+
+    if (playlistSteps) {
+      const nextConfig = playlistSteps[step + 1];
+      setTimeLeft(nextConfig.duration);
+      // Toujours statique : les presets personnalisés n'ont pas de réglage
+      // de mouvement (voir CustomModeConfig.jsx), inutile de chercher un
+      // "mode" dans MODES qui n'existerait pas pour eux.
+      const mode = { movement: 'none', lifetime: null };
+      stateRef.current.targets?.forEach((entry) => {
+        resetTargetForMode(entry, mode, nextConfig, now, stateRef.current);
+      });
+      lockPointer(() => setPhase('running'));
+      return;
+    }
+
+    const nextMode = playlist[step + 1];
+    setTimeLeft(config.duration);
     const mode = MODES[nextMode] ?? MODES.flick;
     stateRef.current.targets?.forEach((entry) => {
       resetTargetForMode(entry, mode, mode.preset, now, stateRef.current);
@@ -1698,6 +1731,13 @@ function AimTrainerGame({ config: rawConfig }) {
                     <span className="aim-game-step">
                       {' '}
                       · Routine {step + 1}/{playlist.length}
+                    </span>
+                  )}
+                  {playlistSteps && (
+                    <span className="aim-game-step">
+                      {' '}
+                      · Playlist {step + 1}/{playlistSteps.length}
+                      {activeStepConfig?.name ? ` — ${activeStepConfig.name}` : ''}
                     </span>
                   )}
                 </h1>
@@ -1817,6 +1857,12 @@ function AimTrainerGame({ config: rawConfig }) {
                     <Icon icon={MODES[playlist[step + 1]].icon} style={{ color: MODES[playlist[step + 1]].accent }} />{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
+                  </button>
+                )}
+                {playlistSteps && !isLastStep && (
+                  <button className="refresh aim-game-cta" onClick={nextStep}>
+                    <Icon icon={Play} size={16} /> Étape suivante — {playlistSteps[step + 1].name} ({step + 2}/
+                    {playlistSteps.length})
                   </button>
                 )}
                 {/* Défi du jour : un seul essai compte au classement — pas de

@@ -21,7 +21,10 @@ function loadStoredConfig() {
   }
 }
 
-function loadPresets() {
+// Exporté : PlaylistManager.jsx pioche dans la même bibliothèque de presets
+// pour construire ses playlists — une seule source de vérité, pas de
+// duplication de la logique de lecture.
+export function loadPresets() {
   try {
     const raw = localStorage.getItem(PRESETS_STORAGE_KEY);
     return raw ? JSON.parse(raw) : [];
