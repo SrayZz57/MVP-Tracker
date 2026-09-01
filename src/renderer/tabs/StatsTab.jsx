@@ -510,7 +510,7 @@ function StatsTab({ settings, matches, rank, loading }) {
         </div>
       </CollapsibleCard>
 
-      <CollapsibleCard collapsible={false} id="stats.globalStats" title={t('stats.globalStatsTitle', { count: scopedMatches.length })}>
+      <CollapsibleCard id="stats.globalStats" title={t('stats.globalStatsTitle', { count: scopedMatches.length })}>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value">{globalStats.hsPercent === null ? '?' : `${globalStats.hsPercent.toFixed(1)}%`}</div>

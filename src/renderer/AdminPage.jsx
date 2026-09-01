@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { Trash2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from './supabaseClient.js';
 import Button from './ui/Button';
+import CollapsibleCard from './CollapsibleCard.jsx';
 import { AdminTournamentsSkeleton } from './skeletons.jsx';
 import LoadingGate from './LoadingGate.jsx';
 import Icon from './Icon.jsx';
@@ -61,8 +62,6 @@ function TournamentCreateForm({ myId, onCreated }) {
 
   return (
     <form className="tournament-create-form" onSubmit={handleSubmit}>
-      <h2>{t('admin.tournaments.createTitle')}</h2>
-
       <label>
         {t('admin.tournaments.name')}
         <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
@@ -173,8 +172,6 @@ function AnnouncementCreateForm({ myId, onCreated }) {
 
   return (
     <form className="tournament-create-form" onSubmit={handleSubmit}>
-      <h2>{t('admin.announcements.createTitle')}</h2>
-
       <label>
         {t('admin.announcements.titleLabel')}
         <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={80} />
@@ -286,29 +283,35 @@ function AdminPage({ myId }) {
     <div className="admin-page">
       <h1>{t('admin.title')}</h1>
 
-      <section className="admin-section">
+      <CollapsibleCard
+        id="admin.tournamentCreate"
+        title={t('admin.tournaments.createTitle')}
+        className="admin-section"
+      >
         <TournamentCreateForm myId={myId} onCreated={loadTournaments} />
-      </section>
+      </CollapsibleCard>
 
-      <section className="admin-section">
-        <h2>{t('admin.tournaments.listTitle')}</h2>
+      <CollapsibleCard id="admin.tournamentList" title={t('admin.tournaments.listTitle')} className="admin-section">
         <LoadingGate active={loading} fallback={<AdminTournamentsSkeleton />}>
           <TournamentList tournaments={tournaments} />
         </LoadingGate>
-      </section>
+      </CollapsibleCard>
 
-      <section className="admin-section">
+      <CollapsibleCard
+        id="admin.announcementCreate"
+        title={t('admin.announcements.createTitle')}
+        className="admin-section"
+      >
         <AnnouncementCreateForm myId={myId} onCreated={loadAnnouncements} />
-      </section>
+      </CollapsibleCard>
 
-      <section className="admin-section">
-        <h2>{t('admin.announcements.listTitle')}</h2>
+      <CollapsibleCard id="admin.announcementList" title={t('admin.announcements.listTitle')} className="admin-section">
         {announcementsLoading ? (
           <p className="label">{t('admin.announcements.loading')}</p>
         ) : (
           <AnnouncementList announcements={announcements} onChanged={loadAnnouncements} />
         )}
-      </section>
+      </CollapsibleCard>
     </div>
   );
 }

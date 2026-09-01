@@ -28,7 +28,7 @@ function PlayerProfileCard({ settings, matches }) {
 
   if (!profile.ready) {
     return (
-      <CollapsibleCard collapsible={false} id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
+      <CollapsibleCard id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
         <p className="label">
           {t('profile.notReady', { count: profile.minMatches - profile.matchesAnalyzed })}
         </p>
@@ -37,7 +37,7 @@ function PlayerProfileCard({ settings, matches }) {
   }
 
   return (
-    <CollapsibleCard collapsible={false} id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
+    <CollapsibleCard id="profile.adn" title={t('profile.cardTitle')} className="profile-adn-card">
       <div className="profile-adn-title">{t(`profile.archetypes.${profile.archetype}.title`)}</div>
       <p className="label">{t(`profile.archetypes.${profile.archetype}.text`)}</p>
 

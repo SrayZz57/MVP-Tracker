@@ -37,7 +37,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard collapsible={false} id="analyse.timing" title={t('analyse.timingTitle', { count: timing.total })}>
+      <CollapsibleCard id="analyse.timing" title={t('analyse.timingTitle', { count: timing.total })}>
         {timing.total === 0 ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (
@@ -100,7 +100,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard collapsible={false} id="analyse.clutch" title={t('analyse.clutchTitle')} className="comp-score-card">
+      <CollapsibleCard id="analyse.clutch" title={t('analyse.clutchTitle')} className="comp-score-card">
         {clutch.attempts === 0 ? (
           <p>{t('analyse.noClutch')}</p>
         ) : (
@@ -127,7 +127,7 @@ function TacticalAnalysis({ settings, matches, loading }) {
         <p className="label" style={{ marginTop: '0.5rem' }}>{t('analyse.clutchHint')}</p>
       </CollapsibleCard>
 
-      <CollapsibleCard collapsible={false} id="analyse.economy" title={t('analyse.economyTitle')}>
+      <CollapsibleCard id="analyse.economy" title={t('analyse.economyTitle')}>
         {economy.every((t2) => t2.rounds === 0) ? (
           <p>{t('analyse.noDataYet')}</p>
         ) : (

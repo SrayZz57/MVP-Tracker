@@ -59,7 +59,7 @@ function PerformanceCharts({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard collapsible={false} id="charts.kpis" title={t('charts.title')}>
+      <CollapsibleCard id="charts.kpis" title={t('charts.title')}>
         <p className="label">{t('charts.description')}</p>
         <div className="kpi-row">
           <KpiTile icon={Gamepad2} label={t('charts.rankedMatches')} value={kpis.games} />
@@ -87,7 +87,7 @@ function PerformanceCharts({ settings, matches, loading }) {
         <AnimatedBarList rows={mapWinrates} />
       </CollapsibleCard>
 
-      <CollapsibleCard collapsible={false} id="charts.roleDistribution" title={t('charts.roleDistributionTitle')}>
+      <CollapsibleCard id="charts.roleDistribution" title={t('charts.roleDistributionTitle')}>
         <RoleStackedBar rows={roleDistribution} />
       </CollapsibleCard>
     </div>

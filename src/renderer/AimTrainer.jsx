@@ -542,7 +542,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
         <CollapsibleCard id="aimTrainer.friendsBoard" title={t('aimTrainer.friendsTitle')}>
           <LoadingGate active={friendsBoard === undefined} fallback={<Skeleton><LeaderboardShape rows={5} /></Skeleton>}>
-            {friendsBoard?.length === 0 ? (
+            {!friendsBoard?.length ? (
               <p className="label">{t('aimTrainer.friendsEmpty')}</p>
             ) : (
               <div className="aim-board">

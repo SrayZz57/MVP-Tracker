@@ -8391,7 +8391,8 @@ input[type='color'] {
 .tournament-registration,
 .tournament-teams-list,
 .tournament-admin-approvals,
-.tournament-admin-add-team {
+.tournament-admin-add-team,
+.tournament-admin-generate {
   max-width: 640px;
 }
 
@@ -8526,10 +8527,6 @@ input[type='color'] {
    d'autre de la carte, l'ombre interne est détourée par le rayon. */
 .admin-panel {
   box-shadow: inset 3px 0 0 var(--accent);
-}
-
-.tournament-detail section > h2:first-child {
-  margin-top: 0;
 }
 
 .generate-bracket-button.ready {

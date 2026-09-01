@@ -11,6 +11,7 @@ import { pickSplash } from './tournamentVisuals.js';
 import IconPickerModal from './IconPickerModal.jsx';
 import AccountPickerModal from './AccountPickerModal.jsx';
 import Button from './ui/Button';
+import CollapsibleCard from './CollapsibleCard.jsx';
 import { TournamentDetailSkeleton } from './skeletons.jsx';
 import useLoadingGate from './useLoadingGate.js';
 
@@ -339,6 +340,14 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
+  // Le bloc d'inscription change de titre selon l'état ; le titre remonte
+  // dans l'en-tête repliable, il doit donc être connu avant le rendu.
+  const registrationTitle = myTeam
+    ? editing
+      ? t('tournaments.editTeam')
+      : t('tournaments.yourTeam')
+    : t('tournaments.registerTeam');
+
   const splash = pickSplash(tournamentId, mapImages);
   const fillPercent = Math.min(100, Math.round((teams.length / tournament.max_teams) * 100));
 
@@ -365,8 +374,11 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       </div>
 
       {isAdmin && pendingTeams.length > 0 && (
-        <section className="tournament-admin-approvals admin-panel">
-          <h2>{t('tournaments.pendingTeams')}</h2>
+        <CollapsibleCard
+          id="tournamentDetail.pendingTeams"
+          title={t('tournaments.pendingTeams')}
+          className="tournament-admin-approvals admin-panel"
+        >
           <ul className="tournament-approval-list">
             {pendingTeams.map((team) => (
               <li key={team.id}>
@@ -380,12 +392,15 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               </li>
             ))}
           </ul>
-        </section>
+        </CollapsibleCard>
       )}
 
       {isAdmin && matches.length === 0 && (
-        <section className="tournament-admin-add-team admin-panel">
-          <h2>{t('tournaments.adminAddTeam')}</h2>
+        <CollapsibleCard
+          id="tournamentDetail.adminAddTeam"
+          title={t('tournaments.adminAddTeam')}
+          className="tournament-admin-add-team admin-panel"
+        >
           {isFull ? (
             <p className="label">{t('tournaments.full')}</p>
           ) : (
@@ -398,7 +413,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               submitLabel={t('tournaments.adminAddSubmit')}
             />
           )}
-        </section>
+        </CollapsibleCard>
       )}
 
       {isAdmin && matches.length === 0 && (
@@ -418,8 +433,11 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       )}
 
       <div className={matches.length > 0 ? 'tournament-columns' : undefined}>
-      <section className="tournament-teams-list">
-        <h2>{t('tournaments.registeredTeams')}</h2>
+      <CollapsibleCard
+        id="tournamentDetail.registeredTeams"
+        title={t('tournaments.registeredTeams')}
+        className="tournament-teams-list"
+      >
         {teams.length === 0 ? (
           <p className="label">{t('tournaments.noTeamsYet')}</p>
         ) : (
@@ -491,18 +509,24 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
             })}
           </ul>
         )}
-      </section>
+      </CollapsibleCard>
 
       {matches.length > 0 ? (
-        <section className="tournament-bracket-section">
-          <h2>{t('tournaments.bracket.title')}</h2>
+        <CollapsibleCard
+          id="tournamentDetail.bracket"
+          title={t('tournaments.bracket.title')}
+          className="tournament-bracket-section"
+        >
           <BracketView tournamentId={tournamentId} matches={matches} teams={teams} isAdmin={isAdmin} onUpdated={loadAll} />
-        </section>
+        </CollapsibleCard>
       ) : (
-        <section className="tournament-registration">
+        <CollapsibleCard
+          id="tournamentDetail.registration"
+          title={registrationTitle}
+          className="tournament-registration"
+        >
           {myTeam && !editing ? (
             <>
-              <h2>{t('tournaments.yourTeam')}</h2>
               <p className="tournament-card-name">{myTeam.name}</p>
               <ul className="team-roster-display">
                 {myTeamPlayers.map((p) => (
@@ -525,7 +549,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
             </>
           ) : myTeam && editing ? (
             <>
-              <h2>{t('tournaments.editTeam')}</h2>
               <TeamRosterForm
                 initialName={myTeam.name}
                 initialPlayers={
@@ -549,7 +572,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
             <p className="warning">{t('tournaments.registrationClosed')}</p>
           ) : (
             <>
-              <h2>{t('tournaments.registerTeam')}</h2>
               <TeamRosterForm
                 initialName=""
                 initialPlayers={EMPTY_PLAYERS}
@@ -560,7 +582,7 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
               />
             </>
           )}
-        </section>
+        </CollapsibleCard>
       )}
       </div>
     </div>
