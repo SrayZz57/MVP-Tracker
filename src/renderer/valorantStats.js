@@ -55,6 +55,32 @@ export function findMe(match, name, tag) {
   );
 }
 
+// Un match stocké garde le pseudo/tag du joueur TEL QU'IL ÉTAIT au moment du
+// match (snapshot Riot, jamais mis à jour rétroactivement) — mais toutes les
+// stats de l'app (par map, par rôle, par mode, historique...) retrouvent "moi"
+// dans chaque match via findMe(), qui compare au nom ACTUEL. Un joueur qui a
+// renommé son pseudo en jeu se retrouve donc introuvable dans tous ses
+// matchs d'avant le changement (signalé en vrai : rang/aperçu du compte
+// corrects, mais "Pas encore de données" partout et "?" dans l'historique).
+// `saveMatches` utilise INSERT OR IGNORE (db.js) : un match déjà en cache
+// n'est JAMAIS réécrit lors d'une resynchro, donc corriger seulement au
+// moment de l'enregistrement ne répare pas l'historique déjà stocké — cette
+// fonction corrige plutôt à la LECTURE, en réécrivant en mémoire le nom/tag
+// de l'entrée dont le puuid correspond à celui du compte suivi (le puuid,
+// lui, ne change jamais). Appelée par main.js partout où des matchs mis en
+// cache sont renvoyés pour LE COMPTE LIÉ, jamais pour un profil consulté.
+export function patchSelfIdentity(matches, puuid, name, tag) {
+  if (!puuid || !name || !tag) return matches;
+  for (const match of matches) {
+    const me = match?.players?.all_players?.find((p) => p.puuid === puuid);
+    if (me) {
+      me.name = name;
+      me.tag = tag;
+    }
+  }
+  return matches;
+}
+
 // Positions de mort (mode: 'deaths') ou de kill (mode: 'kills') du joueur suivi
 // sur une map donnée, tirées de round.player_stats[].kill_events[] — coordonnées
 // monde brutes, à convertir en pixels minimap via les facteurs de useMapCoordinates().

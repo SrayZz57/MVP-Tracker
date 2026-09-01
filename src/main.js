@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches, getMmr } from './services/henrikdev.js';
-import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
+import { excludeDeathmatch, formStats, tiltStatus, patchSelfIdentity } from './renderer/valorantStats.js';
 import {
   saveMatches,
   getCachedMatches,
@@ -579,7 +579,7 @@ ipcMain.handle('valorant:get-matches', async (_event, { name, tag, apiKey }) => 
   }
 
   return {
-    matches: getCachedMatches(account.puuid),
+    matches: patchSelfIdentity(getCachedMatches(account.puuid), account.puuid, name, tag),
     rank: store.get(`valorantRank:${account.puuid}`) || null,
   };
 });
@@ -592,14 +592,21 @@ ipcMain.handle('valorant:get-rank-for', (_event, puuid) => {
 ipcMain.handle('valorant:get-cached-matches', () => {
   const settings = store.get('valorantSettings');
   if (!settings?.puuid) return [];
-  return getCachedMatches(settings.puuid);
+  return patchSelfIdentity(getCachedMatches(settings.puuid), settings.puuid, settings.name, settings.tag);
 });
 
 // Variante par puuid explicite — sert aux widgets "personnels" (wrapped
 // hebdo, etc.) qui doivent toujours parler du compte lié, pas de celui
 // éventuellement affiché à l'écran si l'utilisateur consulte quelqu'un d'autre.
+// `valorantSettings` n'est pas forcément CE compte (l'utilisateur peut être
+// en train de consulter quelqu'un d'autre) — on ne corrige donc le nom que
+// si le puuid correspond bien à ce qui est actuellement chargé.
 ipcMain.handle('valorant:get-cached-matches-for', (_event, puuid) => {
   if (!puuid) return [];
+  const settings = store.get('valorantSettings');
+  if (settings?.puuid === puuid) {
+    return patchSelfIdentity(getCachedMatches(puuid), puuid, settings.name, settings.tag);
+  }
   return getCachedMatches(puuid);
 });
 
