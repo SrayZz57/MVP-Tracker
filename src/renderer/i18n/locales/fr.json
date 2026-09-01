@@ -167,6 +167,8 @@
     "refresh": "Rafraîchir",
     "error": "Erreur : {{message}}",
     "rateLimited": "Trop de requêtes ont été effectuées à l'API cette minute. Réessaie dans moins d'une minute.",
+    "riotIdOutdated": "Ton Riot ID lié ne répond plus — tu as peut-être changé de pseudo en jeu ?",
+    "riotIdOutdatedLink": "Mets-le à jour dans Mon compte →",
     "linkingInProgress": "Liaison de ton compte en cours...",
     "unreadMessages": "Messages",
     "friendsTitle": "Amis",

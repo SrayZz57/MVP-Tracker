@@ -996,6 +996,18 @@ function App() {
         {data.error &&
           (/rate limit/i.test(data.error) ? (
             <p className="error-banner">{t('nav.rateLimited')}</p>
+          ) : /account not found/i.test(data.error) && settings?.puuid === profile?.riot_puuid ? (
+            // Le compte lié (pas une recherche d'un autre joueur) ne répond
+            // plus par nom#tag — signe typique d'un changement de pseudo EN
+            // JEU après la liaison (HenrikDev interroge par nom#tag, pas par
+            // puuid). On pointe directement vers le champ prévu pour ça
+            // plutôt que de laisser un message d'erreur brut sans solution.
+            <p className="error-banner">
+              {t('nav.riotIdOutdated')}{' '}
+              <button className="error-banner-link" onClick={() => setActiveTab('account')}>
+                {t('nav.riotIdOutdatedLink')}
+              </button>
+            </p>
           ) : (
             <p className="warning">{t('nav.error', { message: data.error })}</p>
           ))}

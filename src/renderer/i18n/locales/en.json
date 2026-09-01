@@ -167,6 +167,8 @@
     "refresh": "Refresh",
     "error": "Error: {{message}}",
     "rateLimited": "Too many requests were sent to the API this minute. Try again in less than a minute.",
+    "riotIdOutdated": "Your linked Riot ID isn't responding anymore — did you change your in-game username?",
+    "riotIdOutdatedLink": "Update it in My Account →",
     "linkingInProgress": "Linking your account...",
     "unreadMessages": "Messages",
     "friendsTitle": "Friends",
