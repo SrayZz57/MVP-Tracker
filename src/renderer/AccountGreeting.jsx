@@ -3,6 +3,7 @@ import { useTranslation } from 'react-i18next';
 import { X } from 'lucide-react';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import Icon from './Icon.jsx';
+import { usePlayerCardArt } from './rankData.js';
 import { supabase } from './supabaseClient.js';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent, resultLabelKey, resultLabel, findMe } from './valorantStats.js';
 import logo from '../assets/logo.png';
@@ -23,6 +24,28 @@ function loadDismissed() {
   }
 }
 
+// Auteur affiché en dur comme "Fondateur" : un seul admin publie ces
+// annonces pour l'instant. Le nom/l'avatar, eux, restent dynamiques (tirés
+// du vrai profil MVP Tracker de l'auteur) plutôt qu'en dur, pour rester
+// à jour si SrayZz change sa photo/son pseudo affiché.
+function AnnouncementAuthor({ author, t }) {
+  const avatarArt = usePlayerCardArt(author?.avatar_card_uuid);
+  if (!author) return null;
+  const name = author.display_name || (author.riot_name ? `${author.riot_name}#${author.riot_tag}` : null);
+  if (!name) return null;
+
+  return (
+    <div className="announcement-card-author">
+      {avatarArt.icon ? (
+        <img src={avatarArt.icon} alt="" className="announcement-card-author-avatar" />
+      ) : (
+        <span className="announcement-card-author-avatar announcement-card-author-fallback">{name.charAt(0)}</span>
+      )}
+      <span className="announcement-card-author-name">{t('accountGreeting.announcementFounder', { name })}</span>
+    </div>
+  );
+}
+
 function AnnouncementCard({ announcement, onDismiss, t }) {
   return (
     <div
@@ -35,6 +58,7 @@ function AnnouncementCard({ announcement, onDismiss, t }) {
         </button>
         <h3 className="announcement-card-title">{announcement.title}</h3>
         <p className="announcement-card-body">{announcement.body}</p>
+        <AnnouncementAuthor author={announcement.author} t={t} />
       </div>
     </div>
   );
@@ -53,7 +77,7 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
   useEffect(() => {
     supabase
       .from('announcements')
-      .select('id, title, body, image_url, created_at')
+      .select('id, title, body, image_url, created_at, author:profiles(display_name, riot_name, riot_tag, avatar_card_uuid)')
       .eq('is_active', true)
       .order('created_at', { ascending: false })
       .then(({ data }) => setAnnouncements(data ?? []));

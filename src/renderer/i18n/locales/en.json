@@ -1489,7 +1489,8 @@
     "statHs": "Headshot",
     "recentLabel": "Last 5:",
     "noMatches": "No cached matches yet.",
-    "announcementDismiss": "Close"
+    "announcementDismiss": "Close",
+    "announcementFounder": "{{name}} — Founder"
   },
   "linkRiot": {
     "title": "Link your Riot account",
