@@ -77,12 +77,23 @@ export function readLockfile() {
   return { port, password, protocol };
 }
 
+// Le jeton local reste valide largement plus longtemps que l'intervalle de
+// poll (4s, voir useAgentSelectData.js) — le redemander à chaque poll faisait
+// un aller-retour HTTPS complet (avec le certificat auto-signé) pour rien à
+// chaque tour. Cache court, invalidé si le lockfile change (relance du
+// client Riot = nouveau mot de passe).
+let authCache = null; // { password, auth, expiresAt }
+const AUTH_CACHE_MS = 5 * 60 * 1000;
+
 /**
  * Jetons d'accès, obtenus auprès du client local.
  * `subject` est le puuid du joueur connecté — pas besoin de le demander
  * ailleurs ni de le faire saisir.
  */
 async function getLocalAuth(lock) {
+  if (authCache && authCache.password === lock.password && authCache.expiresAt > Date.now()) {
+    return authCache.auth;
+  }
   const basic = Buffer.from(`riot:${lock.password}`).toString('base64');
   const res = await localRequest(
     `${lock.protocol}://127.0.0.1:${lock.port}/entitlements/v1/token`,
@@ -90,8 +101,20 @@ async function getLocalAuth(lock) {
   );
   if (res.status !== 200) throw new Error(`entitlements ${res.status}`);
   const json = JSON.parse(res.body);
-  return { accessToken: json.accessToken, entitlements: json.token, puuid: json.subject };
+  const auth = { accessToken: json.accessToken, entitlements: json.token, puuid: json.subject };
+  authCache = { password: lock.password, auth, expiresAt: Date.now() + AUTH_CACHE_MS };
+  return auth;
 }
+
+// Cette URL ne change jamais en cours de session (elle est écrite une fois
+// par le client, tôt dans ShooterGame.log, au moment du routing régional) —
+// mais ce log grossit tout au long de la session de jeu (pas par match, tout
+// le log du client). Le relire en entier + regex dessus à chaque poll (4s,
+// voir useAgentSelectData.js) devenait de plus en plus coûteux à mesure que
+// le fichier grandissait pendant une longue session, un vrai souci de CPU
+// constaté chez un testeur. Mis en cache après la première lecture réussie,
+// comme versionCache juste en dessous.
+let glzBaseCache = null;
 
 /**
  * Base des serveurs de jeu (glz), lue dans le log du jeu.
@@ -100,9 +123,11 @@ async function getLocalAuth(lock) {
  * log, lui, contient l'URL réellement utilisée par le client.
  */
 export function readGlzBase() {
+  if (glzBaseCache) return glzBaseCache;
   if (!fs.existsSync(SHOOTER_LOG)) return null;
   const log = fs.readFileSync(SHOOTER_LOG, 'utf8');
   const match = log.match(/https:\/\/glz-[a-z0-9-]+\.[a-z0-9]+\.a\.pvp\.net/i);
+  if (match) glzBaseCache = match[0];
   return match ? match[0] : null;
 }
 
