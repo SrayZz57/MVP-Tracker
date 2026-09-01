@@ -9039,49 +9039,119 @@ input[type='color'] {
 
 .announcement-card {
   position: relative;
+  isolation: isolate;
+  text-align: left;
   border-radius: 14px;
   overflow: hidden;
   background-size: cover;
   background-position: center;
   background-color: var(--surface);
-  border: 1px solid var(--border);
-  box-shadow: var(--elev-2);
+  background-image: linear-gradient(135deg, color-mix(in srgb, var(--accent) 16%, var(--surface)) 0%, var(--surface) 65%);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, var(--border));
+  box-shadow: var(--elev-2), 0 0 26px -8px color-mix(in srgb, var(--accent) 55%, transparent);
+  animation: announcementCardIn 0.4s var(--ease-out, ease) both;
+}
+
+@keyframes announcementCardIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .announcement-card {
+    animation: none;
+  }
+}
+
+.announcement-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  z-index: 2;
+  background: linear-gradient(90deg, var(--accent), color-mix(in srgb, var(--accent) 40%, transparent) 60%, transparent);
+}
+
+.announcement-card.has-image {
+  background-image: none;
 }
 
 .announcement-card-overlay {
   position: relative;
-  padding: 1.1rem 1.3rem;
-  background: linear-gradient(180deg, rgba(10, 10, 16, 0.35) 0%, rgba(8, 8, 12, 0.85) 100%);
+  z-index: 1;
+  padding: 1.3rem 1.5rem 1.2rem;
+}
+
+.announcement-card.has-image .announcement-card-overlay {
+  background: linear-gradient(180deg, rgba(10, 10, 16, 0.4) 0%, rgba(8, 8, 12, 0.9) 100%);
 }
 
 .announcement-card-close {
   position: absolute;
-  top: 0.6rem;
-  right: 0.6rem;
-  width: 26px;
-  height: 26px;
+  top: 0.7rem;
+  right: 0.7rem;
+  z-index: 2;
+  width: 28px;
+  height: 28px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   padding: 0;
-  background: rgba(0, 0, 0, 0.35);
+  background: rgba(0, 0, 0, 0.4);
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: var(--text);
+  transition: background 0.18s ease, border-color 0.18s ease;
+}
+
+.announcement-card-close:hover {
+  background: color-mix(in srgb, var(--accent) 30%, rgba(0, 0, 0, 0.4));
+  border-color: var(--accent);
+}
+
+.announcement-card-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin: 0 2rem 0.5rem 0;
+}
+
+.announcement-card-icon {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+  color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 20%, transparent);
+  border: 1px solid color-mix(in srgb, var(--accent) 45%, transparent);
+  filter: drop-shadow(0 0 8px color-mix(in srgb, var(--accent) 60%, transparent));
 }
 
 .announcement-card-title {
-  margin: 0 2rem 0.35rem 0;
+  margin: 0;
   font-family: var(--font-display);
+  font-size: 1.15rem;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.03em;
+  color: var(--text);
 }
 
 .announcement-card-body {
   margin: 0;
   color: var(--text);
-  font-size: 0.88rem;
-  line-height: 1.5;
+  font-size: 0.92rem;
+  line-height: 1.55;
   white-space: pre-wrap;
 }
 

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { X } from 'lucide-react';
+import { X, Megaphone } from 'lucide-react';
 import RiotProfilePreview from './RiotProfilePreview.jsx';
 import Icon from './Icon.jsx';
 import { usePlayerCardArt } from './rankData.js';
@@ -49,14 +49,19 @@ function AnnouncementAuthor({ author, t }) {
 function AnnouncementCard({ announcement, onDismiss, t }) {
   return (
     <div
-      className="announcement-card"
+      className={`announcement-card ${announcement.image_url ? 'has-image' : ''}`}
       style={announcement.image_url ? { backgroundImage: `url(${announcement.image_url})` } : undefined}
     >
       <div className="announcement-card-overlay">
         <button className="announcement-card-close" onClick={onDismiss} title={t('accountGreeting.announcementDismiss')}>
           <Icon icon={X} size={14} />
         </button>
-        <h3 className="announcement-card-title">{announcement.title}</h3>
+        <div className="announcement-card-head">
+          <span className="announcement-card-icon">
+            <Icon icon={Megaphone} size={16} />
+          </span>
+          <h3 className="announcement-card-title">{announcement.title}</h3>
+        </div>
         <p className="announcement-card-body">{announcement.body}</p>
         <AnnouncementAuthor author={announcement.author} t={t} />
       </div>
