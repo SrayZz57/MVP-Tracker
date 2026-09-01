@@ -15,8 +15,14 @@ import AgentSelectOverlay from './renderer/AgentSelectOverlay.jsx';
 import { CollapsedBlocksProvider } from './renderer/CollapsedBlocksContext.jsx';
 import { E2EEProvider } from './renderer/E2EEContext.jsx';
 
-window.addEventListener('error', (e) => console.error('window error', e.message, e.filename));
-window.addEventListener('unhandledrejection', (e) => console.error('unhandled rejection', e.reason));
+window.addEventListener('error', (e) => {
+  console.error('window error', e.message, e.filename);
+  window.electronAPI?.captureException(null, e.error ?? new Error(e.message));
+});
+window.addEventListener('unhandledrejection', (e) => {
+  console.error('unhandled rejection', e.reason);
+  window.electronAPI?.captureException(null, e.reason instanceof Error ? e.reason : new Error(String(e.reason)));
+});
 
 // Certaines fenêtres chargent le même bundle que la fenêtre principale, mais
 // avec un `?view=...` : elles rendent uniquement leur contenu propre, sans le

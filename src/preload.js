@@ -88,4 +88,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   addGoal: (goal) => ipcRenderer.invoke('goals:add', goal),
   toggleGoalDone: (id) => ipcRenderer.invoke('goals:toggle-done', id),
   deleteGoal: (id) => ipcRenderer.invoke('goals:delete', id),
+  captureEvent: (distinctId, event, properties) =>
+    ipcRenderer.invoke('telemetry:capture-event', { distinctId, event, properties }),
+  captureException: (distinctId, error, context) =>
+    ipcRenderer.invoke('telemetry:capture-exception', {
+      distinctId,
+      message: error?.message ?? String(error),
+      stack: error?.stack,
+      context,
+    }),
 });
