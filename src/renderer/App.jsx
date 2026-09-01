@@ -590,6 +590,26 @@ function App() {
     window.electronAPI.saveSettings(updatedSettings);
   };
 
+  // Resynchronise le pseudo/tag Riot lié — nécessaire quand un joueur change
+  // de pseudo EN JEU après avoir lié son compte : le puuid ne change jamais,
+  // mais les requêtes HenrikDev (par nom#tag, pas par puuid) échouent tant
+  // que le nom enregistré ici ne suit pas. On revérifie via previewAccount
+  // que le nouveau nom#tag résout bien VERS LE MÊME puuid déjà lié, pour ne
+  // jamais laisser quelqu'un relier accidentellement (ou volontairement) le
+  // Riot ID de quelqu'un d'autre à la place du sien.
+  const updateRiotId = async (newName, newTag) => {
+    const name = newName.trim();
+    const tag = newTag.trim();
+    const preview = await window.electronAPI.previewRiotAccount({ name, tag, apiKey: settings.apiKey });
+    if (preview.puuid !== profile.riot_puuid) {
+      throw new Error(t('account.riotIdMismatch'));
+    }
+    await updateProfile({ riot_name: preview.name, riot_tag: preview.tag });
+    const updatedSettings = { ...settings, name: preview.name, tag: preview.tag };
+    setSettings(updatedSettings);
+    window.electronAPI.saveSettings(updatedSettings);
+  };
+
   // Sur une machine neuve (pas encore de réglages locaux), reconstruit
   // automatiquement `settings` à partir du compte lié plutôt que de forcer
   // un nouveau passage par l'écran de liaison — le Riot ID et la clé API
@@ -665,6 +685,7 @@ function App() {
           setSettings(confirmedSettings);
           setLinkingRiot(true);
         }}
+        onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
       />
     );
   }
@@ -813,6 +834,7 @@ function App() {
             apiKey={settings?.apiKey}
             onUpdate={updateProfile}
             onUpdateApiKey={updateApiKey}
+            onUpdateRiotId={updateRiotId}
             onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
           />
         );

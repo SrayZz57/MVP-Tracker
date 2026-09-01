@@ -8188,6 +8188,16 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
+/* Positionné en coin plutôt qu'inline : évite de casser la mise en page
+   centrée de l'écran de liaison de compte (welcome-screen), qui n'a par
+   ailleurs aucun autre élément en haut à gauche. */
+.link-riot-back {
+  position: absolute;
+  top: 1.5rem;
+  left: 1.5rem;
+  margin-bottom: 0;
+}
+
 /* En-tête façon bannière — même langage visuel que les cartes de la liste
    (splash art, dégradé, motif de bracket en filigrane) pour que la page
    détail se sente comme la suite naturelle de la liste, pas un écran à part. */

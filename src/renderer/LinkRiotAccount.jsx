@@ -23,7 +23,7 @@ function WelcomeOrbs() {
 // recherche libre depuis la barre du haut, qui elle ne lie jamais de compte.
 // En deux temps : recherche (rien n'est encore enregistré) puis confirmation
 // avec aperçu du vrai profil avant la liaison définitive.
-function LinkRiotAccount({ onConfirmed, linkError }) {
+function LinkRiotAccount({ onConfirmed, linkError, onSignOut }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -66,6 +66,11 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
       <WelcomeOrbs />
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
       <h1>{t('linkRiot.title')}</h1>
+      {onSignOut && (
+        <button type="button" className="link-back link-riot-back" onClick={onSignOut}>
+          {t('linkRiot.backToLogin')}
+        </button>
+      )}
 
       {step === 'search' && (
         <>

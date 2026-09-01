@@ -1509,7 +1509,8 @@
     "confirmYes": "Oui, c'est moi — lier ce compte",
     "confirmNo": "↺ Non, recommencer",
     "alreadyLinkedError": "Ce compte Riot est déjà lié à un autre compte MVP Tracker — chaque Riot ID ne peut être lié qu'à un seul compte à la fois.",
-    "genericLinkError": "La liaison a échoué. Réessaie dans un instant."
+    "genericLinkError": "La liaison a échoué. Réessaie dans un instant.",
+    "backToLogin": "← Retour à l'écran de connexion"
   },
   "auth": {
     "titles": {
@@ -1565,6 +1566,9 @@
     "settingsTitle": "Compte",
     "settingsHint": "Connecté avec ton compte MVP Tracker — ton Riot ID lié reste indépendant de ce compte.",
     "emailLabel": "Adresse mail",
+    "riotIdLabel": "Riot ID lié",
+    "riotIdHint": "Si tu as changé de pseudo EN JEU, mets-le à jour ici pour que le tracker continue à trouver tes parties — ça ne change pas le compte Valorant lié, juste le nom sous lequel on le cherche.",
+    "riotIdMismatch": "Ce Riot ID appartient à un autre compte Valorant — pas au tien. Vérifie l'orthographe, ou contacte-nous si tu penses que c'est une erreur.",
     "apiKeyLabel": "Clé API HenrikDev",
     "apiKeyMissing": "Non renseignée",
     "agentSelectOverlayLabel": "Fenêtre de sélection d'agent par-dessus le jeu",

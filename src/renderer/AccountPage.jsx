@@ -23,7 +23,7 @@ function formatMemberSince(isoDate, locale) {
   return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onSignOut }) {
+function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onUpdateRiotId, onSignOut }) {
   const { t, i18n } = useTranslation();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
@@ -35,6 +35,14 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
   const [overlayEnabled, setOverlayEnabled] = useState(true);
+  // Resynchro du Riot ID lié — pour les joueurs qui ont changé de pseudo EN
+  // JEU après avoir lié leur compte (le tracker reste bloqué sur l'ancien nom
+  // tant qu'on ne le met pas à jour ici, voir onUpdateRiotId dans App.jsx).
+  const [editingRiotId, setEditingRiotId] = useState(false);
+  const [riotNameDraft, setRiotNameDraft] = useState(mySettings.name ?? '');
+  const [riotTagDraft, setRiotTagDraft] = useState(mySettings.tag ?? '');
+  const [savingRiotId, setSavingRiotId] = useState(false);
+  const [riotIdError, setRiotIdError] = useState(null);
 
   useEffect(() => {
     window.electronAPI.getAgentSelectOverlayEnabled().then(setOverlayEnabled);
@@ -123,6 +131,19 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
     await onUpdateApiKey(apiKeyDraft);
     setSavingApiKey(false);
     setEditingApiKey(false);
+  };
+
+  const handleSaveRiotId = async () => {
+    setSavingRiotId(true);
+    setRiotIdError(null);
+    try {
+      await onUpdateRiotId(riotNameDraft, riotTagDraft);
+      setEditingRiotId(false);
+    } catch (err) {
+      setRiotIdError(err.message);
+    } finally {
+      setSavingRiotId(false);
+    }
   };
 
   return (
@@ -258,6 +279,49 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             <span>{email}</span>
           </p>
         )}
+        <div className="account-email-row">
+          <span className="account-tile-label">{t('account.riotIdLabel')}</span>
+          {editingRiotId ? (
+            <div className="account-name-edit-row">
+              <input
+                type="text"
+                value={riotNameDraft}
+                onChange={(e) => setRiotNameDraft(e.target.value)}
+                placeholder={t('linkRiot.usernamePlaceholder')}
+                autoFocus
+              />
+              <span className="search-bar-hash">#</span>
+              <input
+                type="text"
+                value={riotTagDraft}
+                onChange={(e) => setRiotTagDraft(e.target.value)}
+                placeholder={t('linkRiot.tagPlaceholder')}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveRiotId()}
+              />
+              <button onClick={handleSaveRiotId} disabled={savingRiotId}>
+                {savingRiotId ? "..." : <Icon icon={Check} size={16} />}
+              </button>
+              <button
+                className="account-name-cancel"
+                onClick={() => {
+                  setRiotNameDraft(mySettings.name ?? '');
+                  setRiotTagDraft(mySettings.tag ?? '');
+                  setRiotIdError(null);
+                  setEditingRiotId(false);
+                }}
+              >
+                <Icon icon={X} size={16} />
+              </button>
+            </div>
+          ) : (
+            <span className="account-name-display" onClick={() => setEditingRiotId(true)} title={t('account.clickToEdit')}>
+              {mySettings.name}#{mySettings.tag}
+              <span className="account-name-pencil"><Icon icon={Pencil} size={14} /></span>
+            </span>
+          )}
+        </div>
+        {riotIdError && <p className="warning">{riotIdError}</p>}
+        <p className="label account-toggle-hint">{t('account.riotIdHint')}</p>
         <div className="account-email-row">
           <span className="account-tile-label">{t('account.apiKeyLabel')}</span>
           {editingApiKey ? (

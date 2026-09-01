@@ -1509,7 +1509,8 @@
     "confirmYes": "Yes, that's me — link this account",
     "confirmNo": "↺ No, start over",
     "alreadyLinkedError": "This Riot account is already linked to another MVP Tracker account — each Riot ID can only be linked to one account at a time.",
-    "genericLinkError": "Linking failed. Try again in a moment."
+    "genericLinkError": "Linking failed. Try again in a moment.",
+    "backToLogin": "← Back to the login screen"
   },
   "auth": {
     "titles": {
@@ -1565,6 +1566,9 @@
     "settingsTitle": "Account",
     "settingsHint": "Signed in with your MVP Tracker account — your linked Riot ID stays independent from this account.",
     "emailLabel": "Email address",
+    "riotIdLabel": "Linked Riot ID",
+    "riotIdHint": "If you changed your username IN-GAME, update it here so the tracker keeps finding your matches — this doesn't change the linked Valorant account, just the name it's looked up by.",
+    "riotIdMismatch": "This Riot ID belongs to a different Valorant account — not yours. Check the spelling, or contact us if you think this is a mistake.",
     "apiKeyLabel": "HenrikDev API key",
     "apiKeyMissing": "Not set",
     "agentSelectOverlayLabel": "Agent select window over the game",
