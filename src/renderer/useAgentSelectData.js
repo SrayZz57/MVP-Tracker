@@ -7,16 +7,21 @@ const POLL_MS = 4000;
 
 // Riot n'expose aucun signal "le round a commencé, tu peux bouger" — l'API
 // core-game reste active du chargement jusqu'à la fin du match, sans
-// distinction. On masque donc nous-mêmes, à l'ancienneté, un délai fixe dès
-// l'entrée en partie plutôt que de laisser le bandeau/l'overlay affichés
-// toute la partie.
+// distinction. On masque donc nous-mêmes, à l'ancienneté, un délai fixe
+// plutôt que de laisser le bandeau/l'overlay affichés toute la partie.
 //
-// Déclenché sur la phase 'game' elle-même, PAS sur l'apparition d'un
-// adversaire (`team === 'enemy'`) comme avant : en Combat à mort et les
-// modes sans équipes, personne n'a jamais ce tag (pas de vraies équipes),
-// donc ce déclencheur ne se déclenchait jamais — l'overlay restait affiché
-// indéfiniment, signalé en vrai.
-const AUTO_HIDE_AFTER_GAME_MS = 30000;
+// Deux cas, selon que le mode a une vraie phase de sélection ('select',
+// pregame) ou pas :
+//   - AVEC sélection (Compétitif, Non classé...) : comme avant, on attend
+//     l'apparition d'un adversaire (signe que le chargement est bien
+//     entamé) avant de compter.
+//   - SANS sélection (Combat à mort, modes sans équipes...) : personne n'a
+//     jamais le tag `team === 'enemy'` (pas de vraies équipes), donc ce
+//     déclencheur ne se déclenchait jamais et l'overlay restait affiché
+//     indéfiniment (signalé en vrai) — on compte plutôt dès l'entrée en
+//     partie, avec un délai un peu plus long vu que ça part plus tôt.
+const AUTO_HIDE_AFTER_ENEMIES_MS = 25000;
+const AUTO_HIDE_NO_SELECT_MS = 30000;
 
 // Partagé entre le bandeau intégré (AgentSelectLive) et la fenêtre overlay
 // (AgentSelectOverlay) : même source de données, deux affichages.
@@ -27,6 +32,9 @@ export function useAgentSelectData() {
   const lastMatchIdRef = useRef(null);
   const hiddenMatchIdRef = useRef(null);
   const hideTimerRef = useRef(null);
+  // A-t-on vu une phase 'select' pour le match en cours ? Détermine quel
+  // délai/déclencheur de masquage s'applique (voir plus haut).
+  const hadSelectPhaseRef = useRef(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -50,16 +58,25 @@ export function useAgentSelectData() {
           // masquage précédente ne concernait que l'ancien.
           lastMatchIdRef.current = matchId;
           hiddenMatchIdRef.current = null;
+          hadSelectPhaseRef.current = false;
           clearHideTimer();
         }
 
+        if (result.state === 'ok' && result.phase === 'select') {
+          hadSelectPhaseRef.current = true;
+        }
+
         const inGame = result.state === 'ok' && result.phase === 'game';
-        if (inGame && !hideTimerRef.current && hiddenMatchIdRef.current !== matchId) {
+        const hasEnemies = inGame && result.players.some((p) => p.team === 'enemy');
+        const shouldStartHideTimer = hadSelectPhaseRef.current ? hasEnemies : inGame;
+        const hideDelay = hadSelectPhaseRef.current ? AUTO_HIDE_AFTER_ENEMIES_MS : AUTO_HIDE_NO_SELECT_MS;
+
+        if (shouldStartHideTimer && !hideTimerRef.current && hiddenMatchIdRef.current !== matchId) {
           hideTimerRef.current = setTimeout(() => {
             hiddenMatchIdRef.current = matchId;
             hideTimerRef.current = null;
             if (!cancelled) setData({ state: 'idle' });
-          }, AUTO_HIDE_AFTER_GAME_MS);
+          }, hideDelay);
         }
 
         setData(matchId !== null && matchId === hiddenMatchIdRef.current ? { state: 'idle' } : result);
