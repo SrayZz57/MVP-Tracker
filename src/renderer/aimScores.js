@@ -1,13 +1,6 @@
 import { supabase } from './supabaseClient.js';
 import { PROFILE_FIELDS } from './friendsShared.jsx';
 
-// Scores de l'Aim Trainer, par mode. Trois usages :
-//  - le record PERSONNEL (meilleur score de l'utilisateur sur ce mode)
-//  - le record GÉNÉRAL de l'app (meilleur score tous utilisateurs confondus)
-//  - les classements (défi du jour, amis) et l'historique de progression
-// Les lignes sont lisibles par tout le monde, mais chacun ne peut écrire que
-// les siennes (voir les règles RLS de la table).
-
 export function todayKey() {
   const now = new Date();
   const pad = (n) => String(n).padStart(2, '0');
@@ -42,7 +35,6 @@ export async function saveScore(
   return { ok: true };
 }
 
-// Meilleur score de l'utilisateur pour chaque mode, en une seule requête.
 export async function loadPersonalBests(userId) {
   if (!userId) return {};
   const { data, error } = await supabase
@@ -61,9 +53,6 @@ export async function loadPersonalBests(userId) {
   return bests;
 }
 
-// Meilleur score de TOUS les joueurs pour chaque mode. `aim_trainer_global_bests`
-// est une vue côté base : elle ne renvoie que le maximum par mode, jamais la
-// liste des scores individuels des autres joueurs.
 export async function loadGlobalBests() {
   const { data, error } = await supabase.from('aim_trainer_global_bests').select('mode, best_score');
   if (error) {
@@ -77,8 +66,6 @@ export async function loadGlobalBests() {
   return bests;
 }
 
-// Historique complet de l'utilisateur : sert à la courbe de progression et au
-// calcul de la série de jours consécutifs.
 export async function loadHistory(userId, limit = 300) {
   if (!userId) return [];
   const { data, error } = await supabase
@@ -94,9 +81,6 @@ export async function loadHistory(userId, limit = 300) {
   return data ?? [];
 }
 
-// Série de jours consécutifs avec au moins une session, en repartant
-// d'aujourd'hui (ou d'hier : une série n'est pas rompue tant que la journée
-// en cours n'est pas terminée).
 export function computeStreak(history) {
   const days = new Set(history.map((row) => row.created_at.slice(0, 10)));
   if (days.size === 0) return 0;
@@ -116,8 +100,6 @@ export function computeStreak(history) {
   return streak;
 }
 
-// Classement du défi du jour : meilleur score de chaque joueur sur le défi
-// d'aujourd'hui, avec son profil pour l'affichage.
 export async function loadDailyLeaderboard(date, limit = 20) {
   const { data, error } = await supabase
     .from('aim_trainer_scores')
@@ -129,7 +111,6 @@ export async function loadDailyLeaderboard(date, limit = 20) {
     console.error('[aim_trainer_scores] échec du classement du jour :', error.message);
     return [];
   }
-  // Un joueur peut retenter le défi : on ne garde que sa meilleure tentative.
   const bestByUser = new Map();
   (data ?? []).forEach((row) => {
     if (!bestByUser.has(row.user_id)) bestByUser.set(row.user_id, row);
@@ -137,7 +118,6 @@ export async function loadDailyLeaderboard(date, limit = 20) {
   return [...bestByUser.values()].slice(0, limit);
 }
 
-// Classement entre amis sur un mode donné (soi-même inclus).
 export async function loadFriendsLeaderboard(userId, mode) {
   if (!userId) return [];
 

@@ -17,11 +17,8 @@ function periodOf(match) {
 
 export { PERIODS };
 
-// Grille jour de la semaine × moment de la journée (4 créneaux plutôt que les
-// 8 tranches de 3h utilisées ailleurs, sinon la grille est trop clairsemée
-// avec un historique de quelques dizaines de matchs).
 export function computeDayPeriodGrid(matches, name, tag) {
-  const cells = new Map(); // "Lundi|morning" -> { games, wins }
+  const cells = new Map();
 
   excludeDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
@@ -54,8 +51,6 @@ export function computeDayPeriodGrid(matches, name, tag) {
   }));
 }
 
-// Winrate par map, matchs suffisants uniquement (>= 2), triés du meilleur au
-// pire, plafonné pour rester lisible en barres.
 export function computeMapWinrates(matches, name, tag, limit = 8) {
   return groupStats(excludeDeathmatch(matches), name, tag, (match) => match.metadata?.map)
     .filter((row) => row.games >= 2 && row.winrate !== null)
@@ -63,8 +58,6 @@ export function computeMapWinrates(matches, name, tag, limit = 8) {
     .slice(0, limit);
 }
 
-// Répartition des parties par rôle (part-to-whole), dans un ordre fixe pour
-// que les couleurs catégorielles restent stables d'un rendu à l'autre.
 const ROLE_ORDER = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
 
 export function computeRoleDistribution(matches, name, tag, agentRoles) {
@@ -78,9 +71,6 @@ export function computeRoleDistribution(matches, name, tag, agentRoles) {
   }).filter((r) => r.games > 0);
 }
 
-// Tendance K/D et winrate glissant sur les derniers matchs, du plus ancien au
-// plus récent (même fenêtre que la progression K/D déjà affichée sur Stats).
-// `t` reçu en paramètre pour traduire les labels d'axe X à la génération.
 export function computeTrend(t, matches, name, tag, limit = 20) {
   const recent = excludeDeathmatch(matches).slice(0, limit).reverse();
   const rollingWindow = 5;

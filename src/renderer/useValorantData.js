@@ -7,17 +7,8 @@ function useValorantData(settings) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  // Incrémenté à chaque changement de profil suivi. Une requête réseau lancée
-  // pour un profil précédent peut répondre APRÈS que l'utilisateur soit déjà
-  // passé à un autre profil (ex. rate limit qui retarde la réponse), sans ce
-  // garde-fou, cette réponse tardive écraserait l'affichage du nouveau profil
-  // avec les données de l'ancien.
   const requestIdRef = useRef(0);
 
-  // `force` n'est vrai que sur une action explicite de l'utilisateur (bouton
-  // Rafraîchir). Les rafraîchissements automatiques (montage, changement de
-  // profil) laissent le process principal servir son cache local quand rien
-  // n'a pu bouger, plutôt que de repayer des requêtes d'API à chaque fois.
   const refresh = async ({ force = false } = {}) => {
     if (!settings) return;
     const requestId = requestIdRef.current;
@@ -42,14 +33,8 @@ function useValorantData(settings) {
     if (!settings) return;
     requestIdRef.current += 1;
     const requestId = requestIdRef.current;
-    // Vide tout de suite (synchrone) avant même de relire le cache, sinon,
-    // le temps que les appels async ci-dessous répondent, le nom affiché en
-    // haut peut déjà être le nouveau pendant que la photo/le rang à l'écran
-    // sont encore ceux du profil précédent.
     setMatches([]);
     setRank(null);
-    // Recharge le cache local puis relance une recherche en direct dès que le
-    // profil suivi change (nouvelle recherche depuis la barre du haut).
     window.electronAPI.getCachedMatches().then((cached) => {
       if (requestId === requestIdRef.current) setMatches(cached);
     });

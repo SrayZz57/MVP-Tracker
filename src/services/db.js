@@ -6,11 +6,6 @@ import { debug } from '../logger.js';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
-// PRIMARY KEY composite (match_id, puuid), pas juste match_id : deux joueurs
-// suivis qui jouent ENSEMBLE partagent le même match_id (Riot en assigne un
-// seul par partie), donc une clé sur match_id seul ne permettait d'enregistrer
-// ce match que pour le premier des deux consulté, le second se le voyait
-// silencieusement ignoré (INSERT OR IGNORE) et donc invisible dans son historique.
 db.exec(`
   CREATE TABLE IF NOT EXISTS matches (
     match_id TEXT NOT NULL,
@@ -21,8 +16,6 @@ db.exec(`
   )
 `);
 
-// Migration pour les bases créées avant ce correctif, même schéma visé,
-// juste appliqué a posteriori sans perdre les matchs déjà en cache.
 (function migrateMatchesPrimaryKey() {
   const existingSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'matches'`).get()?.sql;
   if (!existingSql || existingSql.includes('PRIMARY KEY (match_id, puuid)')) return;
@@ -42,13 +35,6 @@ db.exec(`
   db.exec('DROP TABLE matches_legacy');
 })();
 
-// Correctif rétroactif (une seule fois, via PRAGMA user_version comme
-// marqueur) : avant l'ajout d'ABILITY_WEAPON_NAMES dans matchNormalizer.js,
-// les kills au pistolet Headhunter et à l'ult Tour De Force de Chamber
-// étaient stockés avec un nom d'arme vide (HenrikDev ne renvoie pas leur nom,
-// seulement leur id) et donc invisibles dans les stats par arme. L'id, lui,
-// était bien conservé, on répare les matchs déjà en cache directement,
-// sans devoir tout re-télécharger depuis HenrikDev.
 (function backfillAbilityWeaponNames() {
   const userVersion = db.prepare('PRAGMA user_version').get().user_version;
   if (userVersion >= 1) return;
@@ -130,10 +116,6 @@ db.exec(`
   )
 `);
 
-// UNIQUE(match_id, puuid), pas match_id seul : un match partagé entre deux
-// comptes suivis (ou une simple re-tentative) faisait échouer silencieusement
-// l'enregistrement dès qu'une ligne existait déjà pour ce match_id, peu importe
-// le compte (même bug de fond que celui corrigé sur la table matches).
 db.exec(`
   CREATE TABLE IF NOT EXISTS match_assessments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -147,7 +129,6 @@ db.exec(`
   )
 `);
 
-// Migration pour les bases créées avant ce correctif.
 (function migrateAssessmentsUnique() {
   const existingSql = db
     .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'match_assessments'`)
@@ -200,26 +181,13 @@ db.exec(`
   )
 `);
 
-// Migration légère pour les bases déjà créées avant l'ajout de ces colonnes.
 try {
   db.exec('ALTER TABLE crosshairs ADD COLUMN color TEXT');
-} catch {
-  // colonne déjà présente
-}
+} catch {}
 try {
   db.exec('ALTER TABLE crosshairs ADD COLUMN image TEXT');
-} catch {
-  // colonne déjà présente
-}
+} catch {}
 
-// Scoping par compte (2026-08-18) : ajoute `puuid` aux tables qui n'en avaient
-// pas encore, pour que consulter le tracker d'un autre joueur sur la même
-// machine ne mélange plus ses données avec les tiennes. `puzzles` et
-// `weekly_narratives` avaient une contrainte UNIQUE sur une seule colonne
-// (date / week_start), SQLite ne permet pas de la transformer en UNIQUE
-// composite via ALTER TABLE, donc ces deux tables sont recréées avec le bon
-// schéma si elles existent encore sous l'ancienne forme (détecté via absence
-// de la colonne puuid), en conservant les lignes existantes.
 function tableHasColumn(table, column) {
   return db
     .prepare(`PRAGMA table_info(${table})`)
@@ -241,8 +209,6 @@ addPuuidColumn('ping_samples');
 
 function recreateWithCompositeUnique(table, columns, uniqueCols) {
   if (tableHasColumn(table, 'puuid')) {
-    // Colonne déjà là : soit table neuve (CREATE TABLE ci-dessus l'a posée),
-    // soit déjà migrée lors d'un lancement précédent, rien à faire.
     const hadUniqueAlready = db
       .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?`)
       .get(table)?.sql;
@@ -292,8 +258,6 @@ recreateWithCompositeUnique(
   ['puuid', 'week_start'],
 );
 
-// Attribue les lignes créées avant ce scoping (puuid = '') au compte
-// actuellement configuré, pour ne pas perdre l'historique déjà là.
 export function backfillLegacyPuuid(puuid) {
   if (!puuid) return;
   ['strategies', 'crosshairs', 'bets', 'match_assessments', 'puzzles', 'weekly_narratives', 'ping_samples'].forEach((table) => {
@@ -301,17 +265,6 @@ export function backfillLegacyPuuid(puuid) {
   });
 }
 
-// Matchs déjà désérialisés, par puuid. getCachedMatches() était appelé à
-// chaque rafraîchissement, à chaque changement de profil et à chaque sondage
-// de fond, et reparsait à chaque fois le JSON round par round de TOUT
-// l'historique (plusieurs Mo pour 100 matchs) alors que rien n'avait bougé
-// entre-temps. Le contenu d'un match terminé ne change plus, seul l'ajout de
-// nouveaux matchs invalide l'entrée.
-//
-// Le tableau est renvoyé tel quel, sans copie (c'est tout l'intérêt) : les
-// appelants le lisent seulement — les fonctions de stats filtrent et
-// recopient, et un envoi par IPC est de toute façon cloné avant d'atteindre
-// le renderer.
 const parsedMatchesCache = new Map();
 
 function invalidateMatchCache(puuid) {
@@ -322,11 +275,6 @@ export function saveMatches(puuid, matches) {
   const insert = db.prepare(
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
   );
-  // HenrikDev renvoie parfois une entrée null/incomplète dans la liste (match
-  // corrompu de leur côté), on l'ignore plutôt que de planter dessus. Logué
-  // (pas juste silencieusement ignoré) pour pouvoir diagnostiquer un compte
-  // dont AUCUN match n'arrive jamais en cache malgré une requête HenrikDev
-  // réussie, sinon ce cas précis est indiscernable d'un simple 0 match.
   let skipped = 0;
   for (const match of matches) {
     if (!match?.metadata?.matchid) {
@@ -353,9 +301,6 @@ export function getCachedMatches(puuid) {
   return parsed;
 }
 
-// Savoir CE QUI est déjà en cache ne demande pas de désérialiser ce qui est
-// dedans : la synchro n'a besoin que des identifiants pour décider si une
-// page rapporte du nouveau, et le sondage de fond que du dernier en date.
 export function getCachedMatchIds(puuid) {
   return db
     .prepare('SELECT match_id FROM matches WHERE puuid = ?')

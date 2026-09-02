@@ -46,56 +46,16 @@ import { captureEvent, captureException, shutdown as shutdownTelemetry } from '.
 import { initApiCache, remember, write, forget, ageOf, cacheStats } from './services/apiCache.js';
 import { debug } from './logger.js';
 
-// Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
-// move the cache: Accès refusé" au démarrage, cache disque probablement
-// verrouillé/corrompu par un antivirus ou des instances précédentes), chaque
-// requête réseau (dont tous les appels aux API d'assets) échouait tant que le
-// service redémarrait. Désactiver le cache disque HTTP contourne le problème.
 app.commandLine.appendSwitch('disable-http-cache');
 
 const store = new Store();
 
-// Cache des réponses d'API adossé au même stockage, initialisé tout de suite :
-// tout ce qui suit peut en dépendre.
 initApiCache(store);
 
-// Toutes les données "personnelles" (crosshairs, stratégies, paris,
-// évaluations, puzzles, wrapped, objectifs, skins) sont scopées par puuid,
-// mais celui du compte MVP Tracker réellement LIÉ (Supabase), jamais celui
-// de "qui est actuellement affiché à l'écran" (valorantSettings.puuid change
-// à chaque recherche d'un autre joueur, utiliser ce champ ici recréait
-// exactement le bug qu'on scope pour éviter). Le renderer tient cette valeur
-// à jour via account:set-linked-puuid dès qu'il connaît le profil Supabase.
-// L'API distingue "pc" et "console" pour la MMR (v3/mmr) et les matchs
-// (v4/matches), interroger la mauvaise plateforme renvoie soit 0 résultat,
-// soit une erreur 500. `account.platforms` (v2/account) liste les
-// plateformes déjà VUES sur le compte, mais un compte crossplay peut lister
-// les deux ("PC" et "CONSOLE") même si l'essentiel de l'historique récent
-// n'est que sur l'une des deux (constaté en conditions réelles : un compte
-// avec platforms: ["PC", "CONSOLE"] renvoyait ses matchs sur "pc" et une
-// erreur 500 sur "console"). Un choix figé se trompait donc à coup sûr pour
-// ces comptes-là. platformCandidates() renvoie un ordre d'essai plutôt qu'un
-// choix unique ; les appelants essaient chaque candidat jusqu'à un succès.
-// Cache partagé et persistant (survit aux redémarrages) pour les "aperçus"
-// d'AUTRES joueurs (rang, K/D récent), classement Aim Trainer, amis, écran
-// de liaison. Sans lui, chaque survol/ouverture repayait une requête même
-// pour un joueur déjà consulté il y a 30 secondes.
-//
-// TTL des données d'API, calés sur la vitesse à laquelle chacune change
-// réellement plutôt que sur une valeur unique :
-//   - l'identité d'un compte (puuid, region, plateformes) ne change jamais ;
-//     seuls le niveau et la carte bougent, et pas à la minute ;
-//   - le rang ne bouge qu'après une partie classée terminée, et ce cas-là est
-//     détecté autrement (voir refreshRank) plutôt que par un sondage ;
-//   - l'aperçu affiché sur une fiche est un composé des deux.
 const ACCOUNT_TTL_MS = 6 * 60 * 60 * 1000;
 const RANK_TTL_MS = 10 * 60 * 1000;
 const PREVIEW_CACHE_TTL_MS = 5 * 60 * 1000;
 
-// Deux rafraîchissements du même compte à moins de ça d'intervalle ne
-// relancent pas de synchro d'historique : HenrikDev ne publie pas de nouveau
-// match dans cet intervalle, les pages redemandées reviendraient identiques.
-// Le bouton Rafraîchir passe force=true et n'est donc jamais bloqué par ça.
 const SYNC_COOLDOWN_MS = 60 * 1000;
 
 const accountKey = (name, tag) => `account:${String(name).toLowerCase()}#${String(tag).toLowerCase()}`;
@@ -112,8 +72,6 @@ function platformCandidates(account) {
   return ['pc'];
 }
 
-// Essaie chaque plateforme candidate dans l'ordre jusqu'à un succès ; relance
-// la dernière erreur si aucune ne fonctionne (ex. compte réellement non classé).
 async function getMmrWithFallback(account, name, tag, apiKey) {
   let lastErr;
   for (const platform of platformCandidates(account)) {
@@ -133,17 +91,12 @@ async function getMatchesWithFallback(account, name, tag, apiKey, options) {
       return await getMatches(account.region, platform, name, tag, apiKey, options);
     } catch (err) {
       lastErr = err;
-      if (err.status === 429) break; // même quota épuisé, inutile d'essayer l'autre plateforme
+      if (err.status === 429) break;
     }
   }
   throw lastErr;
 }
 
-// L'identité d'un compte Riot (puuid, region, plateformes) est fixe. Elle
-// était pourtant redemandée à HenrikDev à chaque rafraîchissement ET à chaque
-// sondage de fond, soit la requête la plus fréquente de l'app pour un
-// résultat toujours identique. Le cache survit au redémarrage : relancer
-// l'app ne coûte plus cette requête-là.
 async function getAccountCached(name, tag, apiKey, { force = false } = {}) {
   const key = accountKey(name, tag);
   if (force) forget(key);
@@ -156,13 +109,6 @@ async function getMmrCached(account, name, tag, apiKey, { force = false } = {}) 
   return remember(key, RANK_TTL_MS, () => getMmrWithFallback(account, name, tag, apiKey));
 }
 
-/**
- * Met à jour le rang en cache pour ce compte. Ne consomme du quota que si le
- * cache est périmé ou si `force` est demandé — c'est ce qui permet d'appeler
- * cette fonction sans y penser, avant et après la synchro d'historique.
- * Ne lève jamais : un rang indisponible (compte non classé, 429, réseau) ne
- * doit pas faire échouer le rafraîchissement des matchs.
- */
 async function refreshRank(account, name, tag, apiKey, { force = false } = {}) {
   try {
     const mmr = await getMmrCached(account, name, tag, apiKey, { force });
@@ -178,11 +124,6 @@ async function refreshRank(account, name, tag, apiKey, { force = false } = {}) {
     });
     return true;
   } catch {
-    // Rang indisponible pour CE compte (non classé, erreur API, rate limit),
-    // on ne touche pas au cache d'un autre compte : le rang renvoyé plus loin
-    // est toujours scopé au puuid réellement recherché, jamais un "dernier
-    // connu" global qui pouvait laisser transparaître le rang d'un autre
-    // joueur.
     return false;
   }
 }
@@ -191,14 +132,8 @@ function currentPuuid() {
   return store.get('linkedAccountPuuid') ?? null;
 }
 
-// Migration ponctuelle (une seule fois, à l'introduction de ce scoping) :
-// rattache les données déjà présentes au compte alors actif localement,
-// avant même qu'un vrai compte lié (au sens Supabase) n'existe.
 backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
 
-// Même chose côté electron-store : `personalGoals`/`skinsWishlist`/
-// `skinsCollection` existaient en clés globales avant ce scoping, on les
-// rattache au compte actuellement configuré si ce n'est pas déjà fait.
 (function migrateLegacyStoreKeys() {
   const puuid = store.get('valorantSettings')?.puuid ?? null;
   if (!puuid) return;
@@ -212,21 +147,11 @@ backfillLegacyPuuid(store.get('valorantSettings')?.puuid ?? null);
   });
 })();
 
-// Handle creating/removing shortcuts on Windows when installing/uninstalling.
-// app.quit() ne stoppe pas l'exécution du script : sans le exit() qui suit,
-// tout le reste de ce fichier (fenêtres, timers, IPC...) continuait de
-// tourner même dans cette invocation spéciale de Squirrel — censée juste
-// poser les raccourcis puis quitter tout de suite — jusqu'à ce que le quit
-// en attente finisse par détruire des objets en pleine création ("Object
-// has been destroyed"), observé en vrai juste après une mise à jour.
 if (started) {
   app.quit();
   app.exit(0);
 }
 
-// Filet de sécurité pour les crashs jamais rattrapés ailleurs dans le process
-// principal — distinctId = compte MVP Tracker lié s'il est déjà connu à cet
-// instant, sinon 'unknown' (ex. crash avant toute liaison de compte).
 process.on('uncaughtException', (err) => {
   captureException(currentPuuid(), err);
 });
@@ -234,26 +159,11 @@ process.on('unhandledRejection', (reason) => {
   captureException(currentPuuid(), reason instanceof Error ? reason : new Error(String(reason)));
 });
 
-// Vérifie les GitHub Releases au démarrage puis toutes les 10 minutes
-// (valeur par défaut de update-electron-app) ; ne fait rien en dev (app pas
-// empaquetée), donc sûr à laisser tel quel.
 updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
 
-// Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
-// version dans son propre dossier `app-<version>` et supprime normalement
-// les anciennes une fois la mise à jour appliquée, mais seulement s'il a pu
-// le faire (dossier pas verrouillé par une instance encore ouverte, app
-// fermée proprement). Ça peut laisser d'anciennes versions traîner dans
-// %LocalAppData%\MVP Tracker\ indéfiniment. Ce nettoyage ne touche QUE ce
-// dossier d'installation (le code de l'app), jamais `app.getPath('userData')`
-// (%AppData%\MVP Tracker\, où vivent matches.db, les réglages, etc.), qui est
-// un chemin totalement différent.
 function cleanupOldSquirrelVersions() {
   if (!app.isPackaged || process.platform !== 'win32') return;
   try {
-    // En Squirrel.Windows, l'exécutable qui tourne est toujours
-    // <racine>\app-<version courante>\<ProductName>.exe, on en déduit la
-    // racine d'installation et le nom du dossier à préserver.
     const currentVersionDir = path.dirname(process.execPath);
     const installRoot = path.dirname(currentVersionDir);
     const currentVersionFolder = path.basename(currentVersionDir);
@@ -270,25 +180,16 @@ function cleanupOldSquirrelVersions() {
         });
       });
   } catch (err) {
-    // Best-effort : un échec ici ne doit jamais empêcher l'app de démarrer.
     console.warn('[squirrel-cleanup] échec du nettoyage :', err.message);
   }
 }
 
-// Enlève le bandeau de menu natif (File/Edit/View/Window), l'app a sa propre
-// navigation, ce menu par défaut d'Electron n'a aucune utilité ici.
 Menu.setApplicationMenu(null);
 
-// Schéma personnalisé utilisé pour le lien de réinitialisation de mot de
-// passe envoyé par Supabase, l'app n'a pas de site web pour héberger la
-// page de redirection, donc le lien rouvre directement l'app à la place.
 const DEEP_LINK_SCHEME = 'mvptracker';
 
 let mainWindow = null;
 
-// En dev (app pas empaquetée), il faut préciser explicitement l'exécutable
-// et le script à relancer, sinon l'enregistrement du protocole ne pointe pas
-// vers la bonne commande.
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
     app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME, process.execPath, [path.resolve(process.argv[1])]);
@@ -297,9 +198,6 @@ if (process.defaultApp) {
   app.setAsDefaultProtocolClient(DEEP_LINK_SCHEME);
 }
 
-// Extrait access_token/refresh_token/type du lien mvptracker://reset-password#...
-// et les transmet au renderer, qui active la session puis affiche l'écran de
-// nouveau mot de passe.
 function handleDeepLink(url) {
   if (!url || !url.startsWith(`${DEEP_LINK_SCHEME}://`)) return;
   let parsed;
@@ -317,9 +215,6 @@ function handleDeepLink(url) {
   mainWindow?.webContents.send('deep-link:recovery', { accessToken, refreshToken });
 }
 
-// Windows lance une deuxième instance quand on clique le lien, le verrou
-// redirige cet appel vers l'instance déjà ouverte au lieu d'en ouvrir une
-// deuxième qui écrirait dans les mêmes fichiers locaux.
 const gotSingleInstanceLock = app.requestSingleInstanceLock();
 if (!gotSingleInstanceLock) {
   app.quit();
@@ -335,17 +230,11 @@ if (!gotSingleInstanceLock) {
 }
 
 const createWindow = () => {
-  // Create the browser window.
   mainWindow = new BrowserWindow({
     width: 800,
     height: 600,
-    // `show: false` + maximize()/show() une fois prête évite un flash visible
-    // de la fenêtre à sa petite taille par défaut avant l'agrandissement.
     show: false,
     autoHideMenuBar: true,
-    // En dev, la fenêtre prend l'icône de l'app (sinon Electron affiche la
-    // sienne par défaut). En prod, c'est l'exe packagé (forge setupIcon) qui
-    // porte l'icône, donc on ne pointe pas vers un chemin src/ non empaqueté.
     icon: MAIN_WINDOW_VITE_DEV_SERVER_URL ? path.join(app.getAppPath(), 'src/assets/favicon.ico') : undefined,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -355,8 +244,6 @@ const createWindow = () => {
     },
   });
 
-  // L'app ouvre les liens externes via shell.openExternal (IPC), jamais par
-  // window.open : on refuse toute nouvelle fenêtre native par défaut.
   mainWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
   mainWindow.once('ready-to-show', () => {
@@ -364,10 +251,6 @@ const createWindow = () => {
     mainWindow.show();
   });
 
-  // `Menu.setApplicationMenu(null)` ci-dessous supprime aussi le raccourci
-  // DevTools par défaut (Ctrl+Maj+I), celui-ci le restitue via F12, pour
-  // pouvoir profiler l'app (utile pour investiguer un souci de perf signalé
-  // par un utilisateur avancé) sans avoir à relancer en mode dev.
   mainWindow.webContents.on('before-input-event', (_event, input) => {
     if (input.type === 'keyDown' && input.key === 'F12') {
       mainWindow.webContents.toggleDevTools();
@@ -378,7 +261,6 @@ const createWindow = () => {
     debug('[renderer]', message);
   });
 
-  // and load the index.html of the app.
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     mainWindow.loadURL(MAIN_WINDOW_VITE_DEV_SERVER_URL);
   } else {
@@ -388,8 +270,6 @@ const createWindow = () => {
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
 
-// Relais des événements/erreurs du renderer vers PostHog — le renderer n'a
-// pas accès direct au SDK (voir services/telemetry.js), il passe par ici.
 ipcMain.handle('telemetry:capture-event', (_event, { distinctId, event, properties }) => {
   captureEvent(distinctId, event, properties);
 });
@@ -400,10 +280,6 @@ ipcMain.handle('telemetry:capture-exception', (_event, { distinctId, message, st
   captureException(distinctId, err, context);
 });
 
-// L'Aim Trainer tourne dans sa PROPRE fenêtre plein écran, pas dans un onglet
-// de la fenêtre principale : c'est la seule façon d'avoir un vrai comportement
-// de jeu (plein écran réel, souris capturée, aucune interface autour) sans que
-// le reste de l'app ne rétrécisse le canvas ou ne vole le focus.
 let aimTrainerWindow = null;
 
 ipcMain.handle('aim-trainer:open', (_event, config) => {
@@ -426,8 +302,6 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
 
   aimTrainerWindow.webContents.setWindowOpenHandler(() => ({ action: 'deny' }));
 
-  // Les réglages passent par l'URL : la fenêtre de jeu est un rendu autonome
-  // du même bundle, elle ne partage aucun état React avec la fenêtre principale.
   const query = `view=aim-trainer&config=${encodeURIComponent(JSON.stringify(config ?? {}))}`;
   if (MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     aimTrainerWindow.loadURL(`${MAIN_WINDOW_VITE_DEV_SERVER_URL}?${query}`);
@@ -443,17 +317,12 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
     }
   });
 
-  // Sans ça, les erreurs de la fenêtre de jeu (échec d'enregistrement d'un
-  // score, par exemple) sont invisibles : elles ne remontent pas dans la
-  // console du process principal comme celles de la fenêtre principale.
   aimTrainerWindow.webContents.on('console-message', (_e, _level, message) => {
     debug('[aim-trainer]', message);
   });
 
   aimTrainerWindow.on('closed', () => {
     aimTrainerWindow = null;
-    // La fenêtre principale recharge ses records : une session vient d'être
-    // jouée, l'onglet doit refléter le nouveau score sans redémarrage.
     mainWindow?.webContents.send('aim-trainer:closed');
   });
 });
@@ -462,12 +331,6 @@ ipcMain.handle('aim-trainer:close', (event) => {
   BrowserWindow.fromWebContents(event.sender)?.close();
 });
 
-
-// La clé API HenrikDev est chiffrée au repos par le coffre-fort système
-// (safeStorage/DPAPI), comme la clé de messagerie, plutôt qu'écrite en clair
-// dans le JSON d'electron-store. Compat ascendante : une valeur déjà en clair
-// (ancienne version) est relue telle quelle, puis re-chiffrée à la prochaine
-// écriture. Si le coffre-fort est indisponible, on retombe sur du clair.
 const API_KEY_ENC_PREFIX = 'enc:v1:';
 
 function encryptApiKey(key) {
@@ -504,10 +367,6 @@ ipcMain.handle('settings:set', (_event, settings) => {
   setValorantSettings(settings);
 });
 
-// Identifiant stable de cette installation, sert uniquement à distinguer les
-// lignes de stats réseau de chaque appareil dans Supabase (un identifiant par
-// PC, pas par personne), pour additionner les totaux sans qu'un appareil
-// n'écrase les chiffres d'un autre.
 ipcMain.handle('network:get-device-id', () => {
   let id = store.get('deviceId');
   if (!id) {
@@ -517,17 +376,12 @@ ipcMain.handle('network:get-device-id', () => {
   return id;
 });
 
-// Préférence de langue de l'interface, globale à l'app, indépendante du
-// profil consulté ou du compte lié.
 ipcMain.handle('language:get', () => store.get('appLanguage') || 'fr');
 
 ipcMain.handle('language:set', (_event, language) => {
   store.set('appLanguage', language);
 });
 
-// Le renderer appelle ceci dès qu'il connaît (ou perd) le compte MVP Tracker
-// lié, c'est cette valeur, pas valorantSettings.puuid, qui scope toutes les
-// données personnelles (voir currentPuuid() plus haut).
 ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
   if (puuid) {
     store.set('linkedAccountPuuid', puuid);
@@ -536,15 +390,6 @@ ipcMain.handle('account:set-linked-puuid', (_event, puuid) => {
   }
 });
 
-// Cache local (par compte MVP Tracker, pas par compte Riot) de la clé de
-// messagerie déjà déchiffrée, chiffré par le coffre-fort du système
-// (DPAPI sous Windows, Trousseau sous macOS) via safeStorage, PAS par
-// electron-store lui-même (qui écrit du JSON en clair sur disque). Le mot
-// de passe du compte ne sert donc qu'une fois par appareil : une fois cette
-// clé mise en cache ici, les lancements suivants n'ont plus besoin de le
-// redemander. Un nouvel appareil (ou ce cache vidé) redemande le mot de
-// passe une fois, voir wrapped_private_key côté Supabase pour cette
-// récupération, jamais la clé elle-même en clair côté serveur.
 ipcMain.handle('messaging:cache-key', (_event, { userId, publicKey, secretKeyBase64 }) => {
   if (!safeStorage.isEncryptionAvailable()) return false;
   const payload = JSON.stringify({ publicKey, secretKeyBase64 });
@@ -561,8 +406,6 @@ ipcMain.handle('messaging:get-cached-key', (_event, userId) => {
     const decrypted = safeStorage.decryptString(Buffer.from(cached, 'base64'));
     return JSON.parse(decrypted);
   } catch {
-    // Coffre-fort système inaccessible/déplacé (ex. profil Windows recréé),
-    // pas grave, ça retombe sur la demande de mot de passe habituelle.
     return null;
   }
 });
@@ -571,24 +414,14 @@ ipcMain.handle('messaging:clear-cached-key', (_event, userId) => {
   store.delete(`messagingKeyCache.${userId}`);
 });
 
-// Cherche un compte Riot sans rien enregistrer, sert à afficher un aperçu
-// (bannière/rang/pseudo) avant que l'utilisateur confirme que c'est bien le
-// sien, sur l'écran de liaison de compte.
 ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey }) => {
-  // `remember` couvre les deux cas d'un coup : aperçu déjà calculé assez
-  // récemment (0 requête), et deux fiches ouvertes en même temps sur le même
-  // joueur (une seule requête au lieu de deux). Les appels internes sont eux
-  // aussi cachés, un aperçu périmé ne repaie donc pas forcément les deux
-  // requêtes.
   return remember(previewKey(name, tag), PREVIEW_CACHE_TTL_MS, async () => {
     const account = await getAccountCached(name, tag, apiKey);
     let rank = null;
     try {
       const mmr = await getMmrCached(account, name, tag, apiKey);
       rank = { tierId: mmr.current.tier.id, tierName: mmr.current.tier.name, rr: mmr.current.rr };
-    } catch {
-      // Compte non classé ou erreur MMR : pas grave, l'aperçu reste utile sans rang.
-    }
+    } catch {}
     return {
       name,
       tag,
@@ -602,9 +435,6 @@ ipcMain.handle('valorant:preview-account', async (_event, { name, tag, apiKey })
   });
 });
 
-// Synchros en cours, par compte : deux appels concurrents sur le même joueur
-// (montage de l'app pendant qu'un sondage de fond tourne) partagent le même
-// travail au lieu de lancer deux fois la même pagination.
 const matchSyncInFlight = new Map();
 
 async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
@@ -616,55 +446,17 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
     rank: store.get(`valorantRank:${account.puuid}`) || null,
   });
 
-  // Rien de neuf ne peut être apparu côté HenrikDev depuis la dernière
-  // synchro : on rend le cache local sans consommer une seule requête. C'est
-  // ce qui absorbe les rafraîchissements en rafale (changement d'onglet,
-  // retour sur un profil déjà consulté, remontage d'un composant).
   if (!force && ageOf(syncKey(account.puuid)) < SYNC_COOLDOWN_MS) {
     debug(`[henrikdev] synchro ignorée (moins de ${SYNC_COOLDOWN_MS / 1000}s depuis la précédente) → cache local`);
     return readResult();
   }
 
-  // Le rang passe AVANT le rattrapage d'historique : c'est une seule requête
-  // légère, alors que le rattrapage ci-dessous peut en consommer beaucoup sur
-  // la même minute ; sur la clé Basic (30 req/min), le rang passait après
-  // coup et pouvait se retrouver sans quota restant, faisant échouer
-  // silencieusement rien que lui. Cet appel-ci ne coûte rien tant que le cache
-  // de rang est frais (voir refreshRank).
   const rankWasForced = force;
   await refreshRank(account, name, tag, apiKey, { force: rankWasForced });
 
-  // v4/matches renvoie déjà le détail complet de chaque match (round par
-  // round, kills avec position), plus besoin d'un aller-retour "liste
-  // d'IDs" puis "détail par ID" comme avant. Le nombre de résultats par
-  // requête reste plafonné à 10 quel que soit `size` (même limite silencieuse
-  // que l'ancien point d'accès, confirmée en test réel), mais `start` permet
-  // de paginer au-delà, vérifié aussi. On tourne tant qu'une page est
-  // pleine (encore de l'historique derrière), jusqu'à 40 matchs par sync
-  // (marge de quota, comme avant) ou jusqu'à une limite de requêtes atteinte.
   const HISTORY_CAP = 40;
   const PAGE_SIZE = 10;
 
-  // Un compte crossplay (account.platforms liste "PC" ET "CONSOLE") peut
-  // avoir de vrais matchs sur LES DEUX, pas juste une seule "bonne"
-  // plateforme à deviner. On récupère donc l'historique de chaque
-  // plateforme listée plutôt que de s'arrêter à la première qui répond, et
-  // chaque match garde sa plateforme d'origine (metadata.platform, déjà
-  // conservée par le normaliseur), ça permet à l'interface de proposer un
-  // filtre PC/Console dans chaque onglet, uniquement quand les deux sont
-  // réellement présentes en cache pour ce joueur (voir usePlatformFilter.js
-  // côté renderer). Si une plateforme listée n'a en réalité aucun historique
-  // exploitable (ex. erreur 500 constatée sur "console" pour un compte qui
-  // ne joue que sur PC malgré le crossplay activé), elle est simplement
-  // ignorée sans bloquer l'autre.
-  // Les matchs les plus récents arrivent en premier (start=0), dès qu'une
-  // page entière est déjà en cache, tout ce qui suit l'est forcément aussi
-  // (pas de trou possible dans l'historique). Une resynchro "à vide" (rien
-  // de nouveau) coûte donc 1 requête par plateforme au lieu des 4 qu'il
-  // fallait avant pour vérifier les 40 derniers matchs à chaque fois.
-  //
-  // Les identifiants suffisent ici : inutile de désérialiser tout
-  // l'historique juste pour savoir ce qu'on possède déjà.
   const cachedIds = new Set(getCachedMatchIds(account.puuid));
 
   let rateLimited = false;
@@ -679,13 +471,10 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
         if (page.length > 0) saveMatches(account.puuid, page);
         fresh.forEach((m) => cachedIds.add(m.metadata?.matchid));
         newMatches += fresh.length;
-        if (page.length > 0 && fresh.length === 0) break; // rien de nouveau au-delà
-        if (page.length < PAGE_SIZE) break; // plus d'historique derrière sur cette plateforme
+        if (page.length > 0 && fresh.length === 0) break;
+        if (page.length < PAGE_SIZE) break;
       } catch (err) {
         if (err.status === 429) {
-          // Limite de requêtes atteinte : inutile d'insister, y compris sur
-          // l'autre plateforme (même quota), reprise à la prochaine
-          // synchronisation (chaque match déjà en cache n'est jamais redemandé).
           console.error("[henrikdev] limite de requêtes atteinte, rattrapage de l'historique interrompu pour cette sync");
           rateLimited = true;
         } else if (start === 0) {
@@ -698,18 +487,10 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
     }
   }
 
-  // Un nouveau match est le SEUL événement qui peut avoir fait bouger le rang.
-  // On ne repaie donc la requête MMR que dans ce cas, au lieu de la refaire à
-  // chaque rafraîchissement comme avant (et jamais deux fois si le rang venait
-  // déjà d'être forcé ci-dessus).
   if (newMatches > 0 && !rankWasForced) {
     await refreshRank(account, name, tag, apiKey, { force: true });
   }
 
-  // Marque la synchro comme faite même si elle n'a rien rapporté : c'est
-  // justement le cas où il ne faut pas recommencer tout de suite. En revanche,
-  // une synchro coupée par un 429 ne compte pas, sinon le rattrapage de
-  // l'historique resterait bloqué une minute de plus pour rien.
   if (!rateLimited) write(syncKey(account.puuid), Date.now());
 
   const stats = cacheStats();
@@ -741,9 +522,6 @@ ipcMain.handle('valorant:get-cached-matches', () => {
   return getCachedMatches(settings.puuid);
 });
 
-// Variante par puuid explicite, sert aux widgets "personnels" (wrapped
-// hebdo, etc.) qui doivent toujours parler du compte lié, pas de celui
-// éventuellement affiché à l'écran si l'utilisateur consulte quelqu'un d'autre.
 ipcMain.handle('valorant:get-cached-matches-for', (_event, puuid) => {
   if (!puuid) return [];
   return getCachedMatches(puuid);
@@ -762,10 +540,6 @@ setInterval(async () => {
 
 ipcMain.handle('network:get-status', () => networkStatus);
 
-// Détection de tilt en direct : tant que Valorant tourne, on revérifie
-// régulièrement si un nouveau match vient de se terminer et, si oui, on
-// recalcule le statut de tilt pour prévenir par notification Windows,
-// sans attendre que l'utilisateur ouvre l'app et clique sur l'onglet Tilt.
 const tiltPollState = { lastMatchId: null, notified: false };
 
 function notifyTilt(tilt, form) {
@@ -787,21 +561,12 @@ function notifyTilt(tilt, form) {
   notification.show();
 }
 
-/**
- * Une seule requête HenrikDev : la première page de matchs du compte suivi.
- * L'identité du compte vient du cache (voir getAccountCached), elle ne coûte
- * plus rien ici. Renvoie true si un match jamais vu est apparu.
- */
 async function checkTiltAndNotify() {
   const settings = getValorantSettings();
   if (!settings?.name || !settings?.tag || !settings?.apiKey) return false;
   try {
     const account = await getAccountCached(settings.name, settings.tag, settings.apiKey);
 
-    // Point de départ pris sur le cache local plutôt que sur "le premier
-    // appel de la session" : au lancement de l'app, le dernier match connu
-    // est déjà sur le disque, inutile de brûler une requête juste pour
-    // apprendre ce qu'on sait déjà.
     if (tiltPollState.lastMatchId === null) {
       tiltPollState.lastMatchId = getLatestCachedMatchId(account.puuid);
     }
@@ -813,8 +578,6 @@ async function checkTiltAndNotify() {
     if (!latestId || latestId === tiltPollState.lastMatchId) return false;
     tiltPollState.lastMatchId = latestId;
 
-    // Le rang a forcément pu bouger avec ce nouveau match : on invalide, la
-    // prochaine lecture ira le rechercher au lieu de servir l'ancien.
     forget(mmrKey(account.puuid));
 
     const played = excludeDeathmatch(getCachedMatches(account.puuid));
@@ -831,33 +594,10 @@ async function checkTiltAndNotify() {
     }
     return true;
   } catch {
-    // Erreur ponctuelle (rate limit, réseau) : on retentera au prochain tick,
-    // pas besoin de faire planter la vérification pour ça.
     return false;
   }
 }
 
-// =============================================================================
-// DÉTECTION DE FIN DE MATCH — PILOTÉE PAR L'API LOCALE, PAS PAR HENRIKDEV
-//
-// Avant : un sondage HenrikDev toutes les 2 minutes tant que Valorant
-// tournait, soit ~90 requêtes par heure de jeu (~700 sur une soirée) rien que
-// pour poser la question "un match vient-il de se terminer ?", à laquelle la
-// réponse était non dans l'écrasante majorité des cas.
-//
-// L'API locale du client Valorant (voir services/valorantLocal.js) répond à
-// cette question gratuitement et sans quota : elle dit si le joueur est en
-// sélection d'agent, en partie, ou à l'écran d'accueil. On ne dépense une
-// requête HenrikDev qu'au moment précis où le joueur SORT d'une partie, soit
-// au plus une poignée de fois par soirée au lieu de plusieurs centaines.
-//
-// Deux précautions :
-//   - HenrikDev ne publie pas un match à la seconde où il se termine, d'où le
-//     délai avant la première tentative et une seule relance ensuite ;
-//   - si l'API locale est indisponible (client fermé en cours de route,
-//     endpoint changé par Riot), on retombe sur un sondage HenrikDev, mais
-//     très espacé, jamais sur l'ancienne cadence.
-// =============================================================================
 const LOCAL_STATE_POLL_MS = 30 * 1000;
 const MATCH_END_FIRST_DELAY_MS = 60 * 1000;
 const MATCH_END_RETRY_DELAY_MS = 150 * 1000;
@@ -875,9 +615,6 @@ async function onMatchEnded() {
   try {
     await new Promise((resolve) => setTimeout(resolve, MATCH_END_FIRST_DELAY_MS));
     if (await checkTiltAndNotify()) return;
-    // Match pas encore publié côté HenrikDev : une seule relance, puis on
-    // laisse tomber jusqu'au prochain match (le rafraîchissement manuel de
-    // l'utilisateur rattrapera de toute façon).
     await new Promise((resolve) => setTimeout(resolve, MATCH_END_RETRY_DELAY_MS));
     await checkTiltAndNotify();
   } finally {
@@ -894,65 +631,36 @@ setInterval(async () => {
   let state = 'unavailable';
   try {
     state = (await getAgentSelect()).state;
-  } catch {
-    // getAgentSelect ne lève pas en principe, le catch couvre le cas limite.
-  }
+  } catch {}
 
   if (state !== 'unavailable') {
     const wasInMatch = IN_MATCH_STATES.has(lastLocalState);
     const isInMatch = IN_MATCH_STATES.has(state);
     lastLocalState = state;
-    // Transition "en partie" → "plus en partie" : c'est le seul instant où un
-    // nouveau match peut apparaître. `lastLocalState === null` au premier tour
-    // ne déclenche donc rien, ce qui évite une requête au lancement de l'app.
     if (wasInMatch && !isInMatch) onMatchEnded();
     return;
   }
 
-  // Repli : API locale muette, on retombe sur un sondage direct, très espacé.
   if (Date.now() - lastFallbackCheck >= API_FALLBACK_POLL_MS) {
     lastFallbackCheck = Date.now();
     checkTiltAndNotify();
   }
 }, LOCAL_STATE_POLL_MS);
 
-// Accepte un puuid explicite plutôt que de compter uniquement sur
-// currentPuuid() (lu depuis le disque) : au tout premier appel d'une
-// session, cet appel et celui qui enregistre linkedAccountPuuid partent en
-// parallèle depuis le renderer, currentPuuid() peut donc encore être vide
-// au moment où celui-ci s'exécute, même si le puuid demandé est le bon.
 ipcMain.handle('network:get-ping-samples', (_event, puuid) => {
   const target = puuid ?? currentPuuid();
   return target ? getAllPingSamples(target) : [];
 });
 
-// Sélection d'agent en direct, via l'API locale du client Valorant. Passe
-// obligatoirement par le process principal : lecture du lockfile et du log du
-// jeu, plus un certificat auto-signé à accepter, trois choses impossibles
-// depuis le renderer, que la CSP bloquerait de toute façon.
 ipcMain.handle('valorant-local:agent-select', () => getAgentSelect());
 
-// Overlay de sélection d'agent : une fenêtre séparée, transparente et
-// toujours au premier plan, PAS une injection dans le jeu. Elle reste
-// invisible aux anti-triches (Vanguard) parce qu'elle ne touche jamais au
-// processus de Valorant : c'est juste une fenêtre de plus gérée par Windows,
-// comme n'importe quelle autre appli flottante. Ne fonctionne qu'en Sans
-// bordure / Fenêtré : le plein écran exclusif bloque toute fenêtre par
-// Windows lui-même, aucun outil ne peut passer devant.
 let agentSelectOverlayWindow = null;
 
-// Réaffirme le premier plan pendant que l'overlay est visible : Windows lui
-// fait perdre son rang "always on top" dès qu'on reclique sur le jeu (qui
-// redevient l'appli active), donc un seul setAlwaysOnTop() à la création ne
-// suffit pas, il faut regagner ce combat de z-order en continu.
 let overlayTopmostInterval = null;
 
 function createAgentSelectOverlay() {
   agentSelectOverlayWindow = new BrowserWindow({
     width: 300,
-    // Assez haut pour les deux équipes une fois en partie (10 joueurs) ou les
-    // suggestions de pick + l'équipe en sélection ; l'espace en trop reste
-    // transparent, invisible.
     height: 700,
     show: false,
     frame: false,
@@ -961,10 +669,6 @@ function createAgentSelectOverlay() {
     resizable: false,
     skipTaskbar: true,
     alwaysOnTop: true,
-    // `focusable: false` empêchait la fenêtre de repasser devant d'autres
-    // fenêtres "always on top" (dont le jeu) de façon fiable sous Windows,
-    // le clic-traversant ci-dessous protège déjà des clics volés, donc rien
-    // à perdre à la laisser focusable.
     autoHideMenuBar: true,
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
@@ -972,8 +676,6 @@ function createAgentSelectOverlay() {
   });
 
   agentSelectOverlayWindow.setAlwaysOnTop(true, 'screen-saver');
-  // Clic-traversant par défaut : l'overlay ne doit jamais voler un clic
-  // destiné au jeu en dessous.
   agentSelectOverlayWindow.setIgnoreMouseEvents(true, { forward: true });
 
   const display = screen.getPrimaryDisplay().workArea;
@@ -992,15 +694,9 @@ function createAgentSelectOverlay() {
     debug('[agent-select-overlay]', message);
   });
 
-  // Affichage direct plutôt qu'en attendant 'did-finish-load' : un contenu
-  // local se charge quasi instantanément, et si jamais cet événement ne se
-  // déclenchait pas comme prévu, la fenêtre resterait invisible pour de bon.
   agentSelectOverlayWindow.showInactive();
   if (!overlayTopmostInterval) {
     overlayTopmostInterval = setInterval(() => {
-      // isDestroyed() puis l'appel juste après ne sont pas garantis
-      // atomiques côté natif — le try/catch couvre le cas rare où la
-      // fenêtre se détruit entre les deux ("Object has been destroyed").
       try {
         if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
           agentSelectOverlayWindow.moveTop();
@@ -1013,14 +709,10 @@ function createAgentSelectOverlay() {
   }
 }
 
-// Activable/désactivable depuis Mon compte — certains joueurs préfèrent ne
-// jamais avoir de fenêtre supplémentaire par-dessus le jeu, même créée à la
-// demande. Activé par défaut.
 ipcMain.handle('agent-select-overlay:get-enabled', () => store.get('agentSelectOverlayEnabled') ?? true);
 
 ipcMain.handle('agent-select-overlay:set-enabled', (_event, enabled) => {
   store.set('agentSelectOverlayEnabled', enabled);
-  // Coupure immédiate si désactivé en plein milieu d'une sélection/partie.
   if (!enabled && agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
     clearInterval(overlayTopmostInterval);
     overlayTopmostInterval = null;
@@ -1029,11 +721,6 @@ ipcMain.handle('agent-select-overlay:set-enabled', (_event, enabled) => {
   }
 });
 
-// Fenêtre créée à la demande (pendant la sélection d'agent) et détruite dès
-// qu'elle n'est plus utile, plutôt qu'ouverte en permanence dès le lancement
-// de l'app, une fenêtre transparente/always-on-top GPU-composée qui traîne
-// en continu entre en conflit avec le rendu plein écran exclusif de Valorant
-// et cause du lag système (souris qui rame), même en restant invisible.
 ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
   if (visible) {
     const enabled = store.get('agentSelectOverlayEnabled') ?? true;
@@ -1046,18 +733,12 @@ ipcMain.handle('agent-select-overlay:set-visible', (_event, visible) => {
     if (agentSelectOverlayWindow && !agentSelectOverlayWindow.isDestroyed()) {
       try {
         agentSelectOverlayWindow.close();
-      } catch {
-        // déjà détruite entre le check et l'appel — rien à faire de plus.
-      }
+      } catch {}
     }
     agentSelectOverlayWindow = null;
   }
 });
 
-// Les suggestions d'agent sont calculées dans la fenêtre PRINCIPALE (seule à
-// connaître le compte MVP Tracker lié et son historique de matchs, la
-// fenêtre overlay, elle, n'a aucune session Supabase). On les relaie donc
-// simplement à l'overlay au lieu de dupliquer cette logique côté overlay.
 ipcMain.handle('agent-select-overlay:set-suggestions', (_event, suggestions) => {
   if (!agentSelectOverlayWindow || agentSelectOverlayWindow.isDestroyed()) return;
   agentSelectOverlayWindow.webContents.send('agent-select-overlay:suggestions', suggestions);
@@ -1081,17 +762,11 @@ ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
 
 ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(currentPuuid(), id));
 
-// Clé `electron-store` scopée par compte, `skinsWishlist` / `skinsCollection`
-// / `personalGoals` suivent maintenant le compte plutôt que la machine.
 function scopedKey(base) {
   const puuid = currentPuuid();
   return puuid ? `${base}:${puuid}` : null;
 }
 
-// Blocs réduits (chaque carte de chaque onglet, voir CollapsibleCard.jsx),
-// liste d'identifiants stables (ex. "stats.profileHeader"), scopée au compte
-// LIÉ comme le reste des préférences personnelles (jamais au profil
-// actuellement affiché, qui change à chaque recherche).
 ipcMain.handle('ui:get-collapsed-blocks', () => {
   const key = scopedKey('collapsedBlocks');
   return key ? store.get(key) || [] : [];
@@ -1234,27 +909,14 @@ ipcMain.handle('goals:delete', (_event, id) => {
   return next;
 });
 
-// This method will be called when Electron has finished
-// initialization and is ready to create browser windows.
-// Some APIs can only be used after this event occurs.
 app.whenReady().then(() => {
   cleanupOldSquirrelVersions();
 
-  // Content-Security-Policy, uniquement en production packagée : le serveur
-  // de dev Vite a besoin d'unsafe-eval pour le rechargement à chaud, inutile
-  // (et contre-productif) de le restreindre en dev. Les seules origines
-  // distantes réellement contactées par l'app : HenrikDev (matchs/rang),
-  // valorant-api.com (assets du jeu, images servies depuis le sous-domaine
-  // media.valorant-api.com) et Supabase (comptes/social, https + websocket
-  // pour le temps réel).
   if (!MAIN_WINDOW_VITE_DEV_SERVER_URL) {
     const csp = [
       "default-src 'self'",
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
-      // https: en plus de valorant-api.com : les annonces admin (écran
-      // d'accueil) référencent une image par URL externe collée à la main
-      // (Discord CDN, Imgur...), pas d'upload intégré — voir AdminPage.jsx.
       "img-src 'self' data: https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
@@ -1266,10 +928,6 @@ app.whenReady().then(() => {
     });
   }
 
-  // Empêche toute fenêtre de l'app de naviguer ailleurs que vers son propre
-  // contenu, les liens externes (Discord, mailto...) passent déjà par
-  // shell.openExternal, jamais par une navigation dans la fenêtre. Défense
-  // en profondeur si du contenu inattendu tentait de rediriger la fenêtre.
   app.on('web-contents-created', (_event, contents) => {
     contents.on('will-navigate', (navEvent, url) => {
       const isAppUrl = MAIN_WINDOW_VITE_DEV_SERVER_URL
@@ -1281,20 +939,13 @@ app.whenReady().then(() => {
 
   createWindow();
 
-  // Sert de base au calcul PostHog des utilisateurs actifs (DAU/WAU/MAU) —
-  // distinctId pas encore connu ici (compte pas forcément lié à ce stade),
-  // PostHog regroupe quand même par distinctId 'unknown' pour ces lancements.
   captureEvent(currentPuuid(), 'app_launched', { app_version: app.getVersion(), platform: process.platform });
 
-  // Premier lancement déclenché directement par le lien (l'app n'était pas
-  // encore ouverte), le lien arrive dans les arguments de démarrage.
   const startupDeepLink = process.argv.find((arg) => arg.startsWith(`${DEEP_LINK_SCHEME}://`));
   if (startupDeepLink) {
     mainWindow.webContents.once('did-finish-load', () => handleDeepLink(startupDeepLink));
   }
 
-  // On OS X it's common to re-create a window in the app when the
-  // dock icon is clicked and there are no other windows open.
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) {
       createWindow();
@@ -1302,27 +953,18 @@ app.whenReady().then(() => {
   });
 });
 
-// macOS lance ce lien via 'open-url' plutôt que les arguments de démarrage.
 app.on('open-url', (event, url) => {
   event.preventDefault();
   handleDeepLink(url);
 });
 
-// Quit when all windows are closed, except on macOS. There, it's common
-// for applications and their menu bar to stay active until the user quits
-// explicitly with Cmd + Q.
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
     app.quit();
   }
 });
 
-// Vide la file d'événements PostHog avant fermeture — sans ça, les derniers
-// events d'une session (ex. le crash qui vient de la faire quitter) peuvent
-// se perdre s'ils n'ont pas encore été envoyés.
 app.on('will-quit', () => {
   shutdownTelemetry();
 });
 
-// In this file you can include the rest of your app's specific main process
-// code. You can also put them in separate files and import them here.

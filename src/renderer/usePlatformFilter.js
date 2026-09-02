@@ -1,10 +1,5 @@
 import { useMemo, useState } from 'react';
 
-// Détecte les plateformes réellement présentes dans un lot de matchs (un
-// compte crossplay peut avoir de l'historique sur "pc" ET "console", voir
-// main.js) et expose un filtre local à l'onglet qui l'utilise. Si une seule
-// plateforme est présente, `platforms` reste vide : pas la peine de proposer
-// un filtre à un joueur qui ne joue que sur une seule plateforme.
 function usePlatformFilter(matches, defaultPlatform = 'all') {
   const [platform, setPlatform] = useState(defaultPlatform);
 

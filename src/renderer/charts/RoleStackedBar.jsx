@@ -1,7 +1,5 @@
 import { useTranslation } from 'react-i18next';
 
-// Ordre fixe (jamais recyclé), 4 premiers slots de la palette catégorielle
-// validée CVD (voir dataviz skill) contre la surface sombre de l'appli.
 export const ROLE_COLORS = {
   Duelliste: '#3987e5',
   Initiateur: '#d95926',

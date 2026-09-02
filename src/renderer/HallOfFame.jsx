@@ -73,9 +73,6 @@ function HallOfFame({ settings, matches, loading }) {
   const unlockedCount = achievementGroups.reduce((sum, g) => sum + g.items.filter((i) => i.unlocked).length, 0);
   const [celebrate, setCelebrate] = useState(false);
 
-  // Compare aux succès déjà vus (stockés localement par compte) pour ne
-  // fêter que ceux qui viennent réellement de tomber, pas ceux déjà connus
-  // à chaque fois que l'onglet se rouvre.
   useEffect(() => {
     const storageKey = `mvp-achievements-seen:${settings.name}#${settings.tag}`.toLowerCase();
     const seen = new Set(JSON.parse(localStorage.getItem(storageKey) || '[]'));

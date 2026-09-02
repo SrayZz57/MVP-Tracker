@@ -12,12 +12,6 @@ import Skeleton from './Skeleton.jsx';
 import useLoadingGate from './useLoadingGate.js';
 import LoadingGate from './LoadingGate.jsx';
 
-// Écran affiché tant que la clé de messagerie n'est pas en mémoire, arrive
-// après chaque redémarrage de l'app (session Supabase restaurée sans jamais
-// redemander le mot de passe, donc sans repasser par l'endroit qui débloque
-// normalement la clé, voir AccountAuth.jsx). Ce mot de passe ne sert qu'à
-// déchiffrer localement la clé déjà stockée (chiffrée) côté serveur, il
-// n'est jamais renvoyé ni conservé au-delà de cet instant.
 function UnlockMessagingForm({ myId }) {
   const { t } = useTranslation();
   const { unlockForUser } = useE2EE();
@@ -55,8 +49,6 @@ function UnlockMessagingForm({ myId }) {
             autoFocus
             required
           />
-          {/* L'erreur est collée au champ fautif, avant l'action : lue avant
-              de recliquer sur « Déverrouiller ». */}
           {error && (
             <p className="messages-unlock-error" id="messaging-password-error" role="alert">
               {error}
@@ -78,9 +70,6 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
   const [loading, setLoading] = useState(true);
   const [selectedFriendId, setSelectedFriendId] = useState(null);
   const [unreadFrom, setUnreadFrom] = useState(new Set());
-  // Même principe que dans l'onglet Amis : aperçu (rang, niveau) chargé en
-  // direct via HenrikDev, mis en cache par profil pour ne pas le refaire à
-  // chaque fois qu'on rouvre la même conversation.
   const [friendPreviews, setFriendPreviews] = useState({});
 
   const [messages, setMessages] = useState([]);
@@ -115,8 +104,6 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [myId]);
 
-  // Écoute en temps réel les messages qui m'arrivent, ajoute au fil ouvert
-  // s'il vient de la conversation affichée, sinon marque juste un point non lu.
   useEffect(() => {
     const channel = supabase
       .channel(`messages-to-${myId}`)
@@ -170,9 +157,6 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     setMessagesLoading(false);
   };
 
-  // N'ouvre la conversation demandée depuis la page Amis qu'une seule fois,
-  // au premier montage, sans quoi revenir sur une conversation déjà changée
-  // manuellement se ferait réécraser à chaque re-render.
   const initialFriendIdHandled = useRef(false);
   useEffect(() => {
     if (initialFriendIdHandled.current || !initialFriendId) return;
@@ -214,12 +198,6 @@ function MessagesPage({ myId, onlineFriendIds = new Set(), initialFriendId = nul
     if (error) console.error('[messages] échec de l\'envoi :', error.message);
   };
 
-  // Les messages "legacy" (envoyés avant le chiffrement de bout en bout,
-  // reconnaissables à l'absence de `nonce`) restent affichés tels quels,
-  // ils étaient déjà en clair dans la base avant ce changement, les masquer
-  // n'y changerait rien. Les nouveaux sont déchiffrés à la volée ici plutôt
-  // qu'au chargement, pour que les messages arrivant en temps réel (voir
-  // l'abonnement plus haut) passent par le même chemin sans code dupliqué.
   const decryptedMessages = useMemo(() => {
     if (!selectedProfile?.public_key) return [];
     return messages.map((msg) => ({

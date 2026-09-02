@@ -1,13 +1,6 @@
 import { findMe, excludeDeathmatch, hitStats } from './valorantStats.js';
 
-// Croise les séances d'Aim Trainer avec les vraies parties Valorant : est-ce
-// que les jours où tu t'entraînes, tu joues réellement mieux ?
-//
-// C'est l'angle propre à MVP Tracker : un aim trainer classique ne connaît pas
-// tes matchs, et un tracker classique ne connaît pas tes séances. Ici on a les
-// deux, donc la comparaison est possible.
-
-const MIN_MATCHES_PER_GROUP = 3; // en dessous, la comparaison n'a aucun sens
+const MIN_MATCHES_PER_GROUP = 3;
 
 function dayKeyFromMs(ms) {
   const d = new Date(ms);
@@ -50,8 +43,6 @@ function summarize(matches, name, tag) {
   };
 }
 
-// `history` : lignes de aim_trainer_scores (created_at)
-// `matches`  : matchs bruts HenrikDev du compte lié
 export function computeTrainingImpact(history, matches, name, tag) {
   if (!history?.length || !matches?.length) return null;
 
@@ -69,8 +60,6 @@ export function computeTrainingImpact(history, matches, name, tag) {
   const trained = summarize(withTraining, name, tag);
   const untrained = summarize(withoutTraining, name, tag);
 
-  // Sans assez de matchs des deux côtés, on préfère ne rien affirmer plutôt
-  // que de sortir un écart calculé sur une ou deux parties.
   if (!trained || !untrained || trained.games < MIN_MATCHES_PER_GROUP || untrained.games < MIN_MATCHES_PER_GROUP) {
     return {
       ready: false,

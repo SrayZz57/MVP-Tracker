@@ -1,7 +1,3 @@
-// Logique pure de génération/lecture du bracket à élimination directe,
-// aucun appel réseau ici, juste des transformations de données, pour rester
-// facile à vérifier indépendamment de Supabase.
-
 export function nextPowerOfTwo(n) {
   let size = 1;
   while (size < n) size *= 2;
@@ -17,31 +13,11 @@ function shuffle(array) {
   return result;
 }
 
-/**
- * Construit les lignes `tournament_matches` pour un tournoi, à partir des
- * équipes qualifiées (déjà validées). Répartition aléatoire des équipes ET
- * des byes dans l'arbre.
- *
- * Byes : si le nombre d'équipes n'est pas une puissance de 2, on complète
- * jusqu'à la puissance de 2 supérieure avec des emplacements vides, une
- * équipe qui tombe face à un emplacement vide gagne son match automatiquement
- * (`is_bye: true`, `winner_id` déjà renseigné) SANS qu'aucun admin n'ait à
- * intervenir. Seul le premier tour peut contenir des byes : à partir du tour
- * 2, chaque match oppose forcément deux vainqueurs bien réels.
- */
 export function generateBracketRows(tournamentId, teamIds) {
   const bracketSize = nextPowerOfTwo(teamIds.length);
   const byeCount = bracketSize - teamIds.length;
   const roundCount = Math.log2(bracketSize);
 
-  // byeCount est toujours < bracketSize/2 (nombre de matchs du tour 1) : la
-  // puissance de 2 supérieure ne peut jamais demander plus de la moitié des
-  // matchs en byes. On construit donc chaque bye à part, une vraie équipe
-  // face à un emplacement vide, PLUTÔT que de mélanger équipes et vides
-  // dans un même tirage : un mélange global peut, par pur hasard, faire
-  // tomber deux emplacements vides dans le même match (un "match" sans
-  // aucune équipe, qui ne progresse jamais), bug réel rencontré en testant
-  // avec 6 équipes avant ce correctif.
   const shuffled = shuffle(teamIds);
   const byeTeams = shuffled.slice(0, byeCount);
   const pairedTeams = shuffled.slice(byeCount);
@@ -50,11 +26,10 @@ export function generateBracketRows(tournamentId, teamIds) {
   for (let i = 0; i < pairedTeams.length; i += 2) {
     pairs.push([pairedTeams[i], pairedTeams[i + 1]]);
   }
-  const orderedPairs = shuffle(pairs); // ordre des matchs dans l'arbre, pas les paires elles-mêmes
+  const orderedPairs = shuffle(pairs);
 
   const rows = [];
 
-  // Tour 1 : vraies paires, byes déjà résolus.
   orderedPairs.forEach(([team1Id, team2Id], position) => {
     const isBye = !team1Id || !team2Id;
     rows.push({
@@ -68,8 +43,6 @@ export function generateBracketRows(tournamentId, teamIds) {
     });
   });
 
-  // Tours suivants : matchs vides, remplis au fil des résultats (ou tout de
-  // suite pour un match dont les deux entrées viennent d'un bye au tour 1).
   for (let round = 2; round <= roundCount; round++) {
     const matchesInRound = bracketSize / 2 ** round;
     for (let position = 0; position < matchesInRound; position++) {
@@ -77,8 +50,6 @@ export function generateBracketRows(tournamentId, teamIds) {
     }
   }
 
-  // Propage les vainqueurs de byes du tour 1 vers le tour 2, le seul cas où
-  // un tour 2+ peut être partiellement rempli dès la génération.
   const round1ByesWithWinner = rows.filter((r) => r.round === 1 && r.winner_id);
   for (const bye of round1ByesWithWinner) {
     const nextMatch = rows.find((r) => r.round === 2 && r.position === Math.floor(bye.position / 2));
@@ -90,7 +61,6 @@ export function generateBracketRows(tournamentId, teamIds) {
   return rows;
 }
 
-/** Regroupe une liste plate de matchs par round, triés par position. */
 export function groupByRound(matches) {
   const rounds = new Map();
   for (const match of matches) {

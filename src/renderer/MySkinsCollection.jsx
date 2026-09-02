@@ -8,9 +8,6 @@ import CountUp from './CountUp.jsx';
 import { loadCollection, loadWishlist, toggleWishlist, toggleCollection, setCollectionPrice } from './personalData.js';
 import Button from './ui/Button';
 
-// Page dédiée à la collection personnelle, auparavant un petit onglet noyé
-// dans "Skins", maintenant sa propre page dans "Mon compte" puisque c'est une
-// donnée intrinsèquement personnelle (pas liée au joueur qu'on suit).
 function MySkinsCollection({ myId }) {
   const { t } = useTranslation();
   const catalog = useSkinsCatalog();

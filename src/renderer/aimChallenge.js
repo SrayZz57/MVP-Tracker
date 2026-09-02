@@ -1,9 +1,5 @@
 import { MODES } from './AimTrainerGame.jsx';
 
-// Défi du jour : mêmes réglages pour tout le monde, dérivés uniquement de la
-// date. Aucun aléa réel, donc aucun besoin de synchroniser quoi que ce soit
-// entre les joueurs, deux personnes qui ouvrent l'app le même jour obtiennent
-// exactement le même défi, et le classement est comparable.
 function hashDate(dateKey) {
   let hash = 0;
   for (let i = 0; i < dateKey.length; i += 1) {
@@ -25,8 +21,6 @@ export function buildDailyChallenge(dateKey) {
     dateKey,
     mode: modeId,
     ...mode.preset,
-    // Le défi impose sa durée et un léger ajustement de taille de cible, pour
-    // que deux jours de suite sur le même mode ne se ressemblent pas.
     duration: DURATIONS[(hash >> 3) % DURATIONS.length],
     targetSize: Math.max(0.15, +(mode.preset.targetSize + SIZE_TWEAKS[(hash >> 6) % SIZE_TWEAKS.length]).toFixed(2)),
   };

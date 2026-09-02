@@ -31,8 +31,6 @@ function timeSlotIcon(key) {
   return Moon;
 }
 
-// Fonction utilitaire (pas un composant) : reçoit `t` et une fonction de
-// traduction de la clé de ligne (les jours sont en français en interne).
 function renderStatBars(t, id, title, rows, icon, rowIcon, rowLabel) {
   return (
     <CollapsibleCard id={id} title={<><Icon icon={icon} size={16} /> {title}</>}>

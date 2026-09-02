@@ -1,6 +1,3 @@
-// Polices bundlées localement (pas de CDN) : l'app doit garder son identité
-// visuelle même sans connexion. Chakra Petch = titres/chiffres (même police
-// que le site vitrine), Inter = texte courant.
 import '@fontsource/chakra-petch/latin-500.css';
 import '@fontsource/chakra-petch/latin-600.css';
 import '@fontsource/chakra-petch/latin-700.css';
@@ -24,9 +21,6 @@ window.addEventListener('unhandledrejection', (e) => {
   window.electronAPI?.captureException(null, e.reason instanceof Error ? e.reason : new Error(String(e.reason)));
 });
 
-// Certaines fenêtres chargent le même bundle que la fenêtre principale, mais
-// avec un `?view=...` : elles rendent uniquement leur contenu propre, sans le
-// reste de l'app (pas de sidebar, pas de compte, pas de requête inutile).
 const params = new URLSearchParams(window.location.search);
 const view = params.get('view');
 

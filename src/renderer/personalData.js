@@ -1,11 +1,5 @@
 import { supabase } from './supabaseClient.js';
 
-// Objectifs, wishlist et collection de skins, liés au compte MVP Tracker
-// (Supabase) plutôt qu'au PC. Au tout premier chargement sur un compte,
-// si le cloud est vide, on regarde s'il existe encore des données locales
-// (ancien stockage electron-store) et on les fait migrer une seule fois,
-// pour ne rien perdre pour les comptes déjà existants.
-
 async function fetchRows(table, userId) {
   const { data, error } = await supabase
     .from(table)
@@ -18,8 +12,6 @@ async function fetchRows(table, userId) {
   }
   return data ?? [];
 }
-
-// --- Wishlist de skins -------------------------------------------------
 
 export async function loadWishlist(userId) {
   let rows = await fetchRows('skin_wishlist', userId);
@@ -48,8 +40,6 @@ export async function toggleWishlist(userId, uuid) {
   const rows = await fetchRows('skin_wishlist', userId);
   return rows.map((r) => r.skin_uuid);
 }
-
-// --- Collection de skins -------------------------------------------------
 
 function mapCollectionRow(r) {
   return { uuid: r.skin_uuid, priceVp: r.price_vp };
@@ -90,8 +80,6 @@ export async function setCollectionPrice(userId, uuid, priceVp) {
   const rows = await fetchRows('skin_collection', userId);
   return rows.map(mapCollectionRow);
 }
-
-// --- Objectifs personnels -------------------------------------------------
 
 function mapGoalRow(r) {
   return {

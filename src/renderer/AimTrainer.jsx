@@ -30,14 +30,6 @@ const SETTINGS_STORAGE_KEY = 'mvptracker-aim-trainer-settings';
 
 const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#ffffff'];
 
-// Le nombre de colonnes de la grille dépend de la largeur de fenêtre (grid
-// auto-fill) : une pagination à taille fixe laissait une dernière ligne
-// très clairsemée en plein écran large (ex. 3 cartes + bouton sur une ligne
-// qui en contient 9). Tous les modes tiennent sans problème en une ou deux
-// lignes complètes selon la largeur, plus besoin de les cacher.
-
-// Routine d'échauffement : trois modes complémentaires enchaînés, à lancer
-// avant une session de jeu (visée sèche, suivi, puis précision fine).
 const WARMUP_ROUTINE = ['flick', 'tracking', 'micro'];
 
 function loadConfig() {
@@ -49,9 +41,6 @@ function loadConfig() {
   }
 }
 
-// cm/360 : la distance physique à parcourir avec la souris pour faire un tour
-// complet. C'est la vraie référence entre joueurs (l'eDPI seul ne dit rien
-// sans le yaw du jeu). Formule officielle Valorant.
 function cm360(dpi, sens) {
   if (!dpi || !sens) return null;
   return (2.54 * 360) / (dpi * sens * 0.07);
@@ -67,9 +56,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [friendsBoard, setFriendsBoard] = useState(undefined);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
   const [crosshairs, setCrosshairs] = useState([]);
-  // Statut d'amitié envers chaque joueur croisé dans les classements,
-  // chargé une fois (pas par ligne survolée) pour savoir quel bouton
-  // proposer dans la carte au survol (voir AimLeaderboardRow.jsx).
   const [friendStatusByUser, setFriendStatusByUser] = useState({});
 
   const challenge = useMemo(() => buildDailyChallenge(todayKey()), []);
@@ -78,9 +64,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
     localStorage.setItem(SETTINGS_STORAGE_KEY, JSON.stringify(config));
   }, [config]);
 
-  // Données rechargées à l'ouverture de l'onglet ET à la fermeture de la
-  // fenêtre de jeu : une session qui vient d'être jouée doit se voir ici
-  // immédiatement, sans redémarrer l'app ni changer d'onglet.
   const refresh = useCallback(() => {
     loadGlobalBests().then(setGlobalBests);
     loadDailyLeaderboard(challenge.dateKey).then(setDailyBoard);
@@ -95,13 +78,9 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
     return window.electronAPI.onAimTrainerClosed(refresh);
   }, [refresh]);
 
-  // Bibliothèque de crosshairs (compte lié) : sert au sélecteur dans les
-  // réglages d'affichage, pour viser avec sa vraie croix Valorant plutôt que
-  // la croix par défaut de l'Aim Trainer.
   useEffect(() => {
     window.electronAPI.listCrosshairs().then(setCrosshairs);
   }, []);
-
 
   useEffect(() => {
     if (myId) loadFriendsLeaderboard(myId, config.mode).then(setFriendsBoard);
@@ -138,14 +117,12 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
       .insert({ requester_id: myId, addressee_id: targetUserId, status: 'pending' });
     if (error) {
       console.error("[friendships] échec de l'ajout depuis le classement :", error.message);
-      loadFriendStatuses(); // remet le vrai statut si l'insertion a échoué
+      loadFriendStatuses();
     }
   };
 
   const set = (patch) => setConfig((prev) => ({ ...prev, ...patch }));
 
-  // Choisir un mode applique ses valeurs recommandées (nombre/taille des
-  // cibles, dispersion), elles restent modifiables ensuite à la main.
   const selectMode = (id) => setConfig((prev) => ({ ...prev, mode: id, ...MODES[id].preset }));
 
   const launch = (extra = {}) => window.electronAPI.openAimTrainer({ ...config, ...extra, userId: myId });
@@ -155,25 +132,17 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const streak = useMemo(() => computeStreak(history), [history]);
   const challengeDone = (dailyBoard ?? []).some((row) => row.user_id === myId);
 
-  // L'Aim Trainer ne se joue que sur PC (mini-jeu 3D dans l'app), corréler
-  // ses sessions à des matchs Valorant joués sur console n'aurait aucun sens.
-  // Filtre par défaut sur "pc" quand les deux plateformes sont détectées.
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches, 'pc');
   const impact = useMemo(
     () => (settings?.name ? computeTrainingImpact(history, filteredMatches, settings.name, settings.tag) : null),
     [history, filteredMatches, settings?.name, settings?.tag],
   );
 
-  // Courbe de progression : scores du mode sélectionné, du plus ancien au
-  // plus récent, plafonnée aux 20 dernières séances pour rester lisible.
   const progression = useMemo(() => {
     const rows = history.filter((row) => row.mode === config.mode).slice(0, 20).reverse();
     return rows.map((row) => row.score);
   }, [history, config.mode]);
 
-  // Le mode Personnalisé n'existe pas dans MODES (volontairement, jamais
-  // proposé en défi du jour ni comparé dans les records), donc pas d'icône
-  // ni de nom à y récupérer.
   const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
   const activeModeAccent = MODES[config.mode]?.accent ?? '#8a8f9c';
 
@@ -181,7 +150,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
   return (
     <div>
-      {/* --- Comment ça marche --------------------------------------------- */}
       <CollapsibleCard id="aimTrainer.howto" title={t('aimTrainer.howtoTitle')} className="aim-howto-card">
         <p className="label">{t('aimTrainer.howtoIntro')}</p>
 
@@ -210,7 +178,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </div>
       </CollapsibleCard>
 
-      {/* --- Défi du jour + série ------------------------------------------ */}
       <div className="aim-top-row">
         <div className="card aim-challenge-card">
           <span className="aim-challenge-badge">{t('aimTrainer.dailyChallenge')}</span>
@@ -231,8 +198,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               launch({
                 ...challenge,
                 challengeDate: challenge.dateKey,
-                // La sensibilité reste celle du joueur : le défi porte sur la
-                // difficulté des cibles, pas sur une config souris imposée.
                 dpi: config.dpi,
                 sens: config.sens,
                 fov: config.fov,
@@ -284,7 +249,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </div>
       </div>
 
-      {/* --- Aim Trainer : mode, réglages, lancement ------------------------- */}
       <div className="card">
         <h3>{t('aimTrainer.title')}</h3>
         <p className="label">{t('aimTrainer.hint')}</p>
@@ -324,9 +288,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             );
           })}
 
-          {/* Seul mode aux réglages libres · volontairement à part des 6
-              autres : ceux-là doivent rester identiques pour tout le monde,
-              sinon comparer les records n'a aucun sens. */}
           <Button
             variant="ghost"
             className={config.mode === 'custom' ? 'aim-mode-card active' : 'aim-mode-card'}
@@ -342,9 +303,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           </Button>
         </div>
 
-        {/* Résumé en lecture seule : les 6 modes standards sont figés (mêmes
-            réglages pour tout le monde), et même le mode Personnalisé ne se
-            règle que dans sa fenêtre dédiée, pas ici. */}
         <div className="aim-mode-summary">
           <span className="aim-mode-summary-item">{t('aimTrainer.summaryDuration', { seconds: config.duration })}</span>
           <span className="aim-mode-summary-item">{t('aimTrainer.summaryCount', { count: config.targetCount })}</span>
@@ -469,7 +427,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         <p className="label" style={{ marginTop: '0.75rem' }}>{t('aimTrainer.accuracyNote')}</p>
       </div>
 
-      {/* --- Impact sur les vraies parties ---------------------------------- */}
       {impact && (
         <CollapsibleCard collapsible={false} id="aimTrainer.impact" title={t('aimTrainer.impactTitle')}>
           <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
@@ -521,7 +478,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </CollapsibleCard>
       )}
 
-      {/* --- Progression + classement amis, sur le mode sélectionné --------- */}
       <div className="aim-bottom-row">
         <CollapsibleCard id="aimTrainer.progression" title={t('aimTrainer.progressTitle', { mode: activeModeLabel })}>
           {progression.length < 2 ? (
@@ -577,8 +533,6 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   );
 }
 
-// Courbe de progression : SVG minimal, pas de librairie de graphiques pour si
-// peu (une polyligne et quelques points suffisent).
 function ProgressionChart({ scores, accent }) {
   const width = 320;
   const height = 90;

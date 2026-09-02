@@ -10,31 +10,16 @@ import LoadingGate from './LoadingGate.jsx';
 const CARD_WIDTH = 220;
 const CARD_MARGIN = 10;
 
-// Une ligne de classement Aim Trainer (défi du jour ou amis), avec une carte
-// au survol montrant rang + réglages souris pour CE score, chargée à la
-// demande (pas pour toutes les lignes d'un coup, pour ne pas saturer le
-// quota API sur un classement de 20 joueurs) et mise en cache pour ne pas
-// rappeler l'API à chaque survol du même joueur.
-//
-// Rendue via un portail dans <body>, positionnée en `fixed` à partir du
-// rectangle réel de la ligne (pas en `absolute` imbriquée dans la liste) :
-// une carte de ~200px de haut ne tient pas dans l'espace d'UNE ligne de
-// classement, donc la positionner en flux normal la faisait chevaucher et
-// écraser visuellement les lignes suivantes plutôt que de flotter par-dessus.
 function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend, highlight }) {
   const { t } = useTranslation();
   const rankTiers = useRankTiers();
   const nameRef = useRef(null);
-  const [cardPos, setCardPos] = useState(null); // null = pas survolé
-  const [preview, setPreview] = useState(undefined); // undefined = pas encore chargé, null = échec
+  const [cardPos, setCardPos] = useState(null);
+  const [preview, setPreview] = useState(undefined);
 
   const isSelf = row.user_id === myId;
 
   const handleEnter = () => {
-    // Ancrée sur le pseudo lui-même (pas sur toute la largeur de la ligne,
-    // qui s'étend jusqu'au score tout à droite), juste à côté du nom, à
-    // droite par défaut, bascule à gauche si ça déborderait de la fenêtre.
-    // Hauteur clampée pour ne jamais sortir en bas de l'écran.
     const rect = nameRef.current?.getBoundingClientRect();
     if (rect) {
       const spaceRight = window.innerWidth - rect.right;
@@ -46,7 +31,7 @@ function AimLeaderboardRow({ row, rank, myId, apiKey, friendStatus, onAddFriend,
       setCardPos({ top, left });
     }
     if (isSelf || !apiKey || !row.profiles) return;
-    if (preview !== undefined) return; // déjà chargé (ou en échec) pour ce joueur
+    if (preview !== undefined) return;
     const { riot_name: name, riot_tag: tag } = row.profiles;
     window.electronAPI
       .previewRiotAccount({ name, tag, apiKey })

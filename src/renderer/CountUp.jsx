@@ -6,10 +6,6 @@ function easeOutCubic(t) {
 
 const DURATION_MS = 600;
 
-// Anime un nombre de sa valeur précédente vers sa nouvelle valeur au lieu de
-// juste l'afficher directement, utilisé sur les chiffres "vitrine" (scores,
-// points, moyennes) plutôt que partout, pour ne pas surcharger l'app de
-// chiffres qui grouillent en permanence.
 function CountUp({ value, decimals = 0, suffix = '' }) {
   const [display, setDisplay] = useState(value);
   const fromRef = useRef(value);

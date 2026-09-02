@@ -1,18 +1,3 @@
-// Le Combat à mort n'a pas d'équipes/de winrate, une partie perso a des
-// réglages libres (bots, rounds illimités, règles modifiées), et l'Escalade
-// (mode_id 'ggteam', nom interne Riot "GunGame") n'a ni rounds classiques ni
-// équipes 5v5 (les "rounds" y correspondent à des paliers d'arme, avec
-// respawns en continu) : les trois faussent les stats qui en dépendent (par
-// agent, par map, par tranche horaire, par jour, K/D global, records comme
-// le meilleur ace...), pas les stats PAR MODE (où ils restent des catégories
-// légitimes à afficher, voir StatsTab qui liste les modes depuis les matchs
-// bruts, sans passer par cette fonction). Signalé en vrai : un "meilleur ace"
-// à 23 kills en un round, provenant d'un match d'Escalade.
-// HenrikDev renvoie mode_id = "" (chaîne vide) pour une partie perso, pas
-// "custom", repéré en inspectant les vrais matchs stockés localement, où
-// aucune partie perso n'avait jamais mode_id === 'custom'. Les skirmish
-// (mode_id "skirmish_*") comptent normalement, ce ne sont pas des parties
-// perso.
 export function excludeDeathmatch(matches) {
   return matches.filter(
     (m) =>
@@ -23,19 +8,6 @@ export function excludeDeathmatch(matches) {
   );
 }
 
-// Compare les noms SANS tenir compte des accents, pas juste en unifiant leur
-// encodage (NFC seul ne suffit pas), repéré sur un compte réel où l'API
-// HenrikDev renvoie "sampl" + ę (ogonek, U+0119) sur l'endpoint compte mais
-// "sampl" + ȩ (cédille, U+0229) sur l'endpoint matchs : deux caractères
-// Unicode différents, quasi indiscernables à l'œil, mais qui ne sont PAS
-// équivalents pour .normalize('NFC') puisque ce ne sont pas deux écritures
-// de la même lettre. Décomposer (NFD) puis retirer tous les diacritiques
-// (accents, cédille, ogonek...) ramène les deux à "e" nu, même technique
-// déjà utilisée pour la recherche insensible aux accents (crosshairs).
-// Construit via les codes plutôt qu'écrit en littéral : des caractères
-// combinants bruts dans le code source sont fragiles (éditeur, encodage du
-// fichier), même approche que CrosshairLibrary.jsx pour sa recherche
-// insensible aux accents.
 const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
 
 export function normalizeRiotIdPart(value) {
@@ -55,15 +27,6 @@ export function findMe(match, name, tag) {
   );
 }
 
-// Positions de mort (mode: 'deaths') ou de kill (mode: 'kills') du joueur suivi
-// sur une map donnée, tirées de round.player_stats[].kill_events[], coordonnées
-// monde brutes, à convertir en pixels minimap via les facteurs de useMapCoordinates().
-// Chaque point est tagué avec le côté (attaque/défense, via attackerTeamByRound),
-// l'arme utilisée pour CE kill, le numéro de round (filtre pistol round) et
-// MON économie à moi ce round-là (filtre full buy/éco), cette dernière est
-// toujours la mienne, jamais celle du tueur : les kill_events sont rattachés
-// au round.player_stats du TUEUR (voir matchNormalizer), donc en mode
-// 'deaths' il faut chercher séparément mon propre player_stats de ce round.
 export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths') {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const points = [];
@@ -110,9 +73,6 @@ const DEATH_TIMING_BUCKETS = [
   { id: 'late', label: 'Fin de round (60s+)', max: Infinity },
 ];
 
-// Répartition des morts du joueur suivi selon le moment du round où elles
-// arrivent, kill_time_in_round (ms) est déjà présent dans les kill_events
-// utilisés pour la heatmap, juste pas encore exploité pour son axe temporel.
 export function deathTimingStats(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const counts = { early: 0, mid: 0, late: 0 };
@@ -142,10 +102,6 @@ export function deathTimingStats(matches, name, tag) {
   };
 }
 
-// Détecte les situations de clutch : le joueur suivi est le dernier vivant de
-// son équipe alors qu'au moins un adversaire est encore en vie. On reconstruit
-// qui est vivant à chaque instant en rejouant les kill_events du round dans
-// l'ordre, faute d'un champ "joueurs vivants" direct dans les données.
 export function clutchStats(matches, name, tag) {
   let attempts = 0;
   let wins = 0;
@@ -185,10 +141,6 @@ export function clutchStats(matches, name, tag) {
   return { attempts, wins, winrate: attempts > 0 ? (wins / attempts) * 100 : null };
 }
 
-// Premier kill du round (toutes équipes confondues) : le joueur suivi en est
-// soit l'auteur ("premier sang"), soit la victime ("première mort"). Sert de
-// proxy d'agressivité, plus fiable qu'un ratio K/D brut puisqu'il capture
-// spécifiquement la prise d'initiative en tout début de round.
 export function firstBloodStats(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let firstBloods = 0;
@@ -213,10 +165,6 @@ export function firstBloodStats(matches, name, tag) {
   return { firstBloods, firstDeaths, roundsWithKills, ratio: involved > 0 ? (firstBloods / involved) * 100 : null };
 }
 
-// Fréquence de tilt sur l'historique récent : proportion des matchs qui font
-// partie d'une série de 3 défaites consécutives ou plus, rejouée en ordre
-// chronologique (même seuil que tiltStatus(), mais mesuré dans le temps
-// plutôt qu'à l'instant présent).
 export function tiltFrequency(matches, name, tag) {
   const chronological = [...excludeDeathmatch(matches)].reverse();
   const results = chronological
@@ -242,12 +190,8 @@ export function tiltFrequency(matches, name, tag) {
   return { total: results.length, tiltedCount, percent: (tiltedCount / results.length) * 100 };
 }
 
-// Valorant tourne sur Unreal Engine (4 puis 5), dont la convention par défaut est
-// 1 unité = 1 cm, pas de documentation officielle Riot sur ce ratio précis, donc
-// distance approximative, mais cohérente avec la taille réelle des maps.
 const UNITS_PER_METER = 100;
 
-// Seuils en mètres, killDistance() convertit déjà les unités brutes en mètres.
 const DISTANCE_BUCKETS = [
   { id: 'close', label: 'Courte (< 8m)', max: 8 },
   { id: 'mid', label: 'Moyenne (8-20m)', max: 20 },
@@ -263,10 +207,6 @@ export function killDistance(k) {
   return Math.sqrt(dx * dx + dy * dy) / UNITS_PER_METER;
 }
 
-// Riot n'expose aucune donnée de précision de tir (pas de balles tirées/ratées),
-// impossible de calculer une vraie "accuracy". Le meilleur proxy honnête pour voir
-// si l'aim baisse avec la distance : le taux de victoire en duel (kills vs morts du
-// joueur suivi) selon la distance entre les deux joueurs au moment du kill.
 export function duelDistanceStats(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const buckets = {};
@@ -328,8 +268,6 @@ export const ECONOMY_TIERS = [
   { id: 'full', label: 'Full buy', max: Infinity },
 ];
 
-// Winrate selon la valeur du loadout du joueur suivi à chaque round
-// (economy.loadout_value), pour voir l'impact réel des rounds d'éco/save.
 export function economyImpactStats(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const buckets = { eco: { rounds: 0, wins: 0 }, semi: { rounds: 0, wins: 0 }, full: { rounds: 0, wins: 0 } };
@@ -372,10 +310,6 @@ export function resultLabel(match, me) {
   return won ? 'Victoire' : 'Défaite';
 }
 
-// resultLabel() reste en français en interne, c'est la valeur comparée un
-// peu partout dans le code (=== 'Victoire' etc.), donc la changer casserait
-// beaucoup de logique existante. Ce petit helper sert uniquement à choisir
-// la bonne clé de traduction *à l'affichage*, sans toucher à la logique.
 const RESULT_LABEL_KEYS = {
   Victoire: 'result.win',
   Défaite: 'result.loss',
@@ -419,11 +353,6 @@ export function weaponKillsFor(match, puuid) {
     .map((k) => k.damage_weapon_name);
 }
 
-// Détail d'une arme précise : répartition des kills par map et par agent joué,
-// et distance moyenne des kills (mêmes coordonnées que duelDistanceStats).
-// Riot ne tague pas les damage_events par arme, donc pas de HS/BS/JB par arme
-// possible ici, seul le total (toutes armes confondues) l'est, déjà affiché
-// dans "Stats globales".
 export function weaponDetailStats(matches, name, tag, weaponName) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let totalKills = 0;
@@ -505,7 +434,6 @@ export function mapStatsForAgent(matches, name, tag, character) {
   return groupStats(matchesForAgent(matches, name, tag, character), name, tag, (match) => match.metadata?.map);
 }
 
-// `metadata.game_length` est en secondes dans les données de l'API.
 export function agentPlaytimeSeconds(matches, name, tag, character) {
   return matchesForAgent(matches, name, tag, character).reduce(
     (sum, match) => sum + (match.metadata?.game_length ?? 0),
@@ -520,16 +448,6 @@ export function agentTotalKills(matches, name, tag, character) {
   }, 0);
 }
 
-// Détermine qui attaquait un round donné à partir d'indices fiables :
-// - si une équipe a posé la spike, elle attaquait forcément ce round-là
-// - si le round se termine par "Time expired", l'équipe gagnante défendait
-// Sinon (élimination sans pose), on ne peut rien déduire du round pris isolément.
-//
-// Mais les côtés ne changent JAMAIS au milieu d'une mi-temps (12 rounds en
-// Compétitif/Non classé) : un seul indice trouvé n'importe où dans les 12
-// premiers rounds suffit à connaître le côté des 12 (et donc, par symétrie,
-// celui des 12 suivants aussi). En prolongation, le round 25 reprend le côté
-// du tout premier round du match.
 const HALF_SIZE = 12;
 const STANDARD_HALF_MODES = ['competitive', 'unrated'];
 
@@ -547,9 +465,6 @@ function directAttackerTeam(round) {
   return null;
 }
 
-// Reconstruit, pour un match donné, l'équipe qui attaquait à chaque round,
-// logique partagée par mapSideStats() et deathLocationsOnMap() (filtre
-// attaque/défense de la heatmap).
 export function attackerTeamByRound(match) {
   const rounds = match.rounds || [];
   const attackerByRound = rounds.map(directAttackerTeam);
@@ -674,9 +589,6 @@ export function dayOfWeek(match) {
   return DAY_LABELS[new Date(gameStart * 1000).getDay()];
 }
 
-// Même principe que resultLabelKey() : le nom de jour reste en français en
-// interne (clé de tri via WEEK_ORDER, clé d'icône dans FormTab), seule la
-// traduction à l'affichage passe par ce helper.
 const DAY_LABEL_KEYS = {
   Lundi: 'days.monday',
   Mardi: 'days.tuesday',
@@ -719,19 +631,15 @@ export function overallWinrate(matches, name, tag) {
   return decided > 0 ? (wins / decided) * 100 : null;
 }
 
-// Lundi 00h00 (heure locale) de la semaine en cours.
 function startOfCurrentWeek() {
   const now = new Date();
-  const day = now.getDay(); // 0=dimanche, 1=lundi, ..., 6=samedi
+  const day = now.getDay();
   const diffToMonday = day === 0 ? 6 : day - 1;
   const monday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - diffToMonday);
   monday.setHours(0, 0, 0, 0);
   return monday;
 }
 
-// Lundi 00h00 (heure locale) de la dernière semaine complète (celle qui
-// précède la semaine en cours), sert de clé stable pour identifier "la
-// semaine dernière" indépendamment du jour où on la consulte.
 export function lastCompletedWeekStart() {
   const thisMonday = startOfCurrentWeek().getTime();
   return new Date(thisMonday - 7 * 24 * 60 * 60 * 1000);
@@ -741,7 +649,6 @@ export function weekStartKey(date) {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 }
 
-// Matchs joués entre weekStart (inclus) et weekStart+7j (exclu).
 export function matchesInWeek(matches, weekStart) {
   const start = weekStart.getTime();
   const end = start + 7 * 24 * 60 * 60 * 1000;
@@ -753,15 +660,10 @@ export function matchesInWeek(matches, weekStart) {
   });
 }
 
-// Le wrapped montre la dernière semaine complète (lundi-dimanche précédents),
-// pas la semaine en cours : sinon le lundi matin, avant d'avoir rejoué, le
-// wrapped serait vide au lieu de récapituler ce qui vient de se terminer. Il
-// change donc une fois par semaine, le lundi, quand "la semaine dernière" avance.
 export function matchesInCurrentWeek(matches) {
   return matchesInWeek(matches, lastCompletedWeekStart());
 }
 
-// Suppose `matches` triés du plus récent au plus ancien (c'est l'ordre renvoyé par le cache SQLite).
 export function formStats(matches, name, tag) {
   let streakType = null;
   let streakCount = 0;

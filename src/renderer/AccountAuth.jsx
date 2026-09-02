@@ -55,7 +55,7 @@ function PasswordField({ id, label, value, onChange, autoComplete, action, hint 
 function AccountAuth() {
   const { t } = useTranslation();
   const { unlockForUser } = useE2EE();
-  const [mode, setMode] = useState('signin'); // 'signin' | 'signup' | 'forgot' | 'reset'
+  const [mode, setMode] = useState('signin');
   const [email, setEmail] = useState('');
   const [confirmEmail, setConfirmEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -75,8 +75,6 @@ function AccountAuth() {
     event.preventDefault();
     resetMessages();
 
-    // Une faute de frappe dans l'email rend le compte inconfirmable, le mail
-    // de validation partant dans le vide.
     if (mode === 'signup') {
       if (email !== confirmEmail) {
         setError(t('auth.emailMismatch'));
@@ -103,28 +101,17 @@ function AccountAuth() {
     }
 
     if (mode === 'signup' && !data.session) {
-      // Confirmation par email requise avant toute session active, la clé
-      // de messagerie sera créée à la vraie première connexion (une fois la
-      // session active, le mot de passe redevient disponible ici).
       setInfo(t('auth.signupSuccess'));
       return;
     }
 
-    // Supabase vient de vérifier ce mot de passe lui-même (connexion ou
-    // inscription à confirmation immédiate), sûr de régénérer la clé de
-    // messagerie si elle est orpheline (voir E2EEContext.jsx).
     if (data.user) unlockForUser(data.user.id, password);
-    // En connexion, onAuthStateChange (écouté dans App.jsx) prend le relais automatiquement.
   };
 
   const handleSendReset = async (event) => {
     event.preventDefault();
     resetMessages();
     setLoading(true);
-    // Un seul email envoyé, deux façons de l'utiliser ensuite : cliquer le
-    // lien (rouvre directement l'app via mvptracker://, mais seulement sur ce
-    // PC) ou taper le code à 6 chiffres qu'il contient (marche depuis
-    // n'importe quel appareil où le mail est lu).
     const { error: resetError } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: 'mvptracker://reset-password',
     });
@@ -157,18 +144,12 @@ function AccountAuth() {
       setError(updateError.message);
       return;
     }
-    // Le nouveau mot de passe vient d'être posé côté Supabase à l'instant,
-    // sûr de régénérer la clé de messagerie (l'ancienne, enveloppée avec
-    // l'ancien mot de passe, est désormais irrécupérable).
     if (updateData.user) unlockForUser(updateData.user.id, newPassword);
-    // onAuthStateChange (App.jsx) prend le relais, la session est déjà active.
   };
 
   const switchMode = (nextMode) => {
     setMode(nextMode);
     resetMessages();
-    // Sinon une confirmation tapée à l'inscription se retrouve pré-remplie
-    // dans le formulaire de réinitialisation.
     setConfirmEmail('');
     setConfirmPassword('');
   };
@@ -185,8 +166,6 @@ function AccountAuth() {
       <div className="auth-shell">
         <img src={logoText} alt="MVP Tracker" className="auth-logo" />
 
-        {/* key : chaque bascule rejoue l'apparition et remet le focus sur le
-            premier champ. */}
         <section className="auth-card" key={mode}>
           <header className="auth-card-head">
             <h1>{t(`auth.headings.${mode}`)}</h1>

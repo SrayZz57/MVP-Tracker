@@ -14,16 +14,12 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
   const { t } = useTranslation();
   const [friendships, setFriendships] = useState([]);
   const [loading, setLoading] = useState(true);
-  // Aperçu (rang, niveau) de chaque ami, chargé à part des `friendships` :
-  // c'est un appel HenrikDev en direct (comme rechercher n'importe quel Riot
-  // ID public), pas une donnée stockée, donc on la garde en cache local plutôt
-  // que de la refaire à chaque re-render.
   const [friendPreviews, setFriendPreviews] = useState({});
   const [openSummaryFor, setOpenSummaryFor] = useState(null);
 
   const [searchName, setSearchName] = useState('');
   const [searchTag, setSearchTag] = useState('');
-  const [searchResult, setSearchResult] = useState(undefined); // undefined = pas cherché, null = introuvable
+  const [searchResult, setSearchResult] = useState(undefined);
   const [searching, setSearching] = useState(false);
   const [requestSent, setRequestSent] = useState(false);
 
@@ -63,10 +59,6 @@ function FriendsPage({ myId, onlineFriendIds = new Set(), onOpenConversation, ap
 
   const otherProfile = (f) => (f.requester_id === myId ? f.addressee : f.requester);
 
-  // Chargé à la demande (au clic sur un ami, pas pour toute la liste au
-  // montage), c'est un appel HenrikDev par ami, et le seul endroit qui lit
-  // `friendPreviews` est la modale ouverte par ce clic (voir plus bas) : pas
-  // besoin de payer le quota pour des amis dont la fiche n'est jamais ouverte.
   useEffect(() => {
     if (!apiKey || !openSummaryFor) return;
     const p = openSummaryFor;

@@ -35,16 +35,12 @@ import Button from '../ui/Button';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
 
-// `id` reste la vraie valeur de filtrage (comparée à match.metadata.mode_id),
-// seul le libellé affiché passe par la traduction (voir `labelKey`).
 const SCOPE_OPTIONS = [
   { id: '', labelKey: 'stats.scope.all' },
   { id: 'competitive', labelKey: 'stats.scope.ranked' },
   { id: 'unrated', labelKey: 'stats.scope.unrated' },
 ];
 
-// Fonction utilitaire (pas un composant) : reçoit `t` en paramètre plutôt que
-// d'appeler useTranslation() elle-même.
 function renderModeStats(t, id, title, rows, icons) {
   return (
     <CollapsibleCard id={id} title={title}>
@@ -191,15 +187,10 @@ function StatsTab({ settings, matches, rank, loading }) {
   const [scope, setScope] = useState('');
   const [actFilter, setActFilter] = useState('');
 
-  // Filtre PC/Console local à cet onglet, n'affiche un choix que si le
-  // compte a réellement de l'historique sur les deux (voir usePlatformFilter.js).
   const { platforms, platform, setPlatform, filteredMatches: platformMatches } = usePlatformFilter(matches);
 
-  // Actes réellement présents dans l'historique en cache, du plus récent au
-  // plus ancien (basé sur la dernière game jouée dans chacun), jamais une
-  // liste figée qui proposerait un acte jamais joué.
   const availableActs = useMemo(() => {
-    const latestByAct = new Map(); // season_id -> game_start le plus récent
+    const latestByAct = new Map();
     platformMatches.forEach((match) => {
       const seasonId = match.metadata?.season_id;
       const gameStart = match.metadata?.game_start ?? 0;
@@ -213,10 +204,6 @@ function StatsTab({ settings, matches, rank, loading }) {
       .map(([seasonId]) => ({ id: seasonId, label: seasonNames.get(seasonId) ?? seasonId }));
   }, [platformMatches, seasonNames]);
 
-  // Filtre global de la page : "Tout" (comme avant), "Classé" (competitive
-  // uniquement) ou "Non classé" (unrated uniquement), croisé avec un acte
-  // précis si choisi, s'applique à toutes les stats de l'onglet, pas juste
-  // à la liste de matchs en bas.
   const scopedMatches = useMemo(() => {
     let result = platformMatches;
     if (scope) result = result.filter((match) => match.metadata?.mode_id === scope);
@@ -312,7 +299,6 @@ function StatsTab({ settings, matches, rank, loading }) {
     return { avg, best, worst, trend: secondHalfAvg - firstHalfAvg };
   }, [kdProgression]);
 
-  // Même fenêtre de matchs que le graphique de K/D, pour un bilan V/D à côté.
   const periodResults = useMemo(() => {
     const results = excludeDeathmatch(scopedMatches)
       .slice(0, 20)
@@ -330,8 +316,6 @@ function StatsTab({ settings, matches, rank, loading }) {
     return { results, wins, losses, draws, winrate };
   }, [scopedMatches, settings.name, settings.tag]);
 
-  // Modes réellement présents dans le scope actuel, pas de liste figée, pour
-  // ne jamais proposer un mode que le joueur n'a pas joué (ou hors du scope).
   const availableModes = useMemo(() => {
     const modes = new Map();
     scopedMatches.forEach((match) => {

@@ -10,11 +10,8 @@ import { loadWishlist, toggleWishlist, loadCollection, toggleCollection } from '
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
-// 40 = multiple de 8 (colonnes observées à largeur de carte habituelle),
-// réduit les lignes à moitié vides, même logique que pour les crosshairs.
 const PAGE_SIZE = 40;
 
-// Recherche insensible aux accents ("celeste" doit trouver "céleste").
 function normalizeText(text) {
   return text
     .normalize('NFD')

@@ -4,18 +4,6 @@ import { useAgentsById, useAgentIcons } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 import { useAgentSelectData } from './useAgentSelectData.js';
 
-// Fenêtre séparée, transparente, toujours au premier plan, voir le
-// commentaire dans main.js (createAgentSelectOverlay) pour le détail de
-// pourquoi c'est sûr vis-à-vis de Vanguard : aucune injection dans le
-// processus du jeu, juste une fenêtre de plus gérée par Windows.
-//
-// Ne fonctionne qu'en Sans bordure / Fenêtré. En plein écran exclusif,
-// aucune fenêtre ne peut passer devant, limite de Windows, pas de l'app.
-//
-// Les suggestions de pick sont calculées dans la fenêtre PRINCIPALE (elle
-// seule a accès au compte lié et à l'historique de matchs) et relayées ici
-// par IPC, voir agent-select-overlay:set-suggestions dans main.js.
-
 function OverlayPlayer({ player, agentsById, rankTiers, t }) {
   const agent = player.agentId ? agentsById.get(player.agentId.toLowerCase()) : null;
   const tier = rankTiers.get(player.competitiveTier);
@@ -53,10 +41,6 @@ function AgentSelectOverlay() {
 
   useEffect(() => window.electronAPI.onAgentSelectSuggestions(setSuggestions), []);
 
-  // La visibilité (et la création/fermeture de cette fenêtre) est pilotée
-  // depuis la fenêtre principale, qui tourne déjà en continu, voir
-  // AgentSelectLive.jsx. Ici on ne fait que décider quoi afficher une fois
-  // la fenêtre bien créée et ses propres données arrivées.
   const visible = data.state === 'ok' && data.players.length > 0;
 
   if (!visible) return null;

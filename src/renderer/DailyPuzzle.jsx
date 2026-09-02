@@ -19,7 +19,7 @@ function economyTierId(tierId) {
 
 function DailyPuzzle({ settings, matches }) {
   const { t } = useTranslation();
-  const [puzzle, setPuzzle] = useState(undefined); // undefined = chargement, null = indisponible
+  const [puzzle, setPuzzle] = useState(undefined);
   const [history, setHistory] = useState([]);
   const date = useMemo(() => todayKey(), []);
 

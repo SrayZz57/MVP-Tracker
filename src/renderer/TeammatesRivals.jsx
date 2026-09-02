@@ -129,8 +129,6 @@ function TeammatesRivals({ settings, matches, loading, myPuuid }) {
     () => computeNemesis(filteredMatches, settings.name, settings.tag),
     [filteredMatches, settings.name, settings.tag],
   );
-  // Le centre du graphe représente le tracker actuellement consulté, "Toi"
-  // seulement quand c'est vraiment le cas, sinon le pseudo de l'autre joueur.
   const centerLabel = settings.puuid === myPuuid ? t('social.you') : settings.name;
 
   const loadingGate = useLoadingGate(loading && matches.length === 0);

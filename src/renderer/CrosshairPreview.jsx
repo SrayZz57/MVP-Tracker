@@ -12,9 +12,6 @@ const PALETTE_HEX = {
   7: 'FF0000',
 };
 
-// @valapi/crosshair a un bug qui empêche l'import correct des champs de type
-// "couleur" (String), on décode donc nous-mêmes le code, en se basant sur le
-// vrai format et les vraies valeurs par défaut lus dans son code source.
 const PRIMARY_FIELDS = {
   b: { type: 'bool', default: 0 },
   c: { type: 'str', default: '0' },
@@ -55,9 +52,6 @@ export function parseCrosshair(code) {
     values[key] = field.default;
   });
 
-  // Suit exactement l'algorithme de ValCrosshair.import() : seuls "P"/"A"/"S"
-  // changent de catégorie ; "0" n'est spécial que comme tout premier token
-  // (déjà consommé ci-dessus), sinon "0" est une valeur comme une autre.
   let category = '0';
   let pendingKey = null;
   let expecting = 'value';
@@ -131,8 +125,6 @@ function lineSegments(spec, keyPrefix) {
   ));
 }
 
-// `bare` : sans fond ni grille, pour un usage en surimpression (overlay de
-// visée dans l'Aim Trainer) plutôt qu'en vignette de bibliothèque.
 function CrosshairPreview({ code, bare = false, size = 100, className }) {
   const { t } = useTranslation();
   const parsed = useMemo(() => parseCrosshair(code), [code]);

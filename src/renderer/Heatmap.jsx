@@ -23,8 +23,6 @@ const SIDES = [
   { id: 'defense', labelKey: 'heatmap.sides.defense' },
 ];
 
-// Pistol rounds : 1er, 2e, 13e et 14e round d'une partie (indices 0/1/12/13,
-// avant/après le changement de camp au round 13 dans le format 24 rounds).
 const GUN_ROUND_INDICES = new Set([0, 1, 12, 13]);
 const FULL_BUY_THRESHOLD = 2500;
 
@@ -35,12 +33,6 @@ const ROUND_TYPES = [
   { id: 'eco', labelKey: 'heatmap.roundTypes.eco' },
 ];
 
-// Un pistol round reste un pistol round peu importe le prix de l'arme,
-// vérifié avant l'économie. Sinon classé par le coût de MON arme ce
-// round-là (voir myWeaponId dans deathLocationsOnMap) ; `null` si l'arme
-// n'est pas reconnue dans le référentiel valorant-api.com (couteau/arme
-// retirée), pour ne compter ce point dans aucun des deux camps plutôt que
-// de deviner.
 function classifyRound(point, weaponCosts) {
   if (GUN_ROUND_INDICES.has(point.roundIndex)) return 'gun';
   const cost = point.myWeaponId ? weaponCosts.get(point.myWeaponId) : undefined;
@@ -59,7 +51,7 @@ function Heatmap({ settings, matches }) {
   const [side, setSide] = useState('all');
   const [roundType, setRoundType] = useState('all');
   const [weapon, setWeapon] = useState('');
-  const [rotation, setRotation] = useState(0); // 0 | 90 | 180 | 270
+  const [rotation, setRotation] = useState(0);
   const canvasRef = useRef(null);
 
   const mapNames = useMemo(() => [...minimaps.keys()].sort(), [minimaps]);
@@ -118,9 +110,6 @@ function Heatmap({ settings, matches }) {
       canvas.height = CANVAS_SIZE;
       ctx.clearRect(0, 0, CANVAS_SIZE, CANVAS_SIZE);
 
-      // Rotation appliquée au repère du canvas AVANT de dessiner quoi que ce
-      // soit : la carte et les points suivent alors la même rotation sans
-      // avoir à recalculer les coordonnées des points séparément.
       ctx.save();
       ctx.translate(CANVAS_SIZE / 2, CANVAS_SIZE / 2);
       ctx.rotate((rotation * Math.PI) / 180);
@@ -157,8 +146,6 @@ function Heatmap({ settings, matches }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      {/* Ni collapse (la carte EST la page, la replier vide l'onglet) ni titre
-          (la topbar affiche deja "Heatmap" 40 px au-dessus). */}
       <div className="card">
         <p className="label">{t('heatmap.description')}</p>
 

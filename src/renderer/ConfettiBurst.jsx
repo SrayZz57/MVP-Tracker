@@ -3,8 +3,6 @@ import { useMemo } from 'react';
 const COLORS = ['#ff4655', '#ffc857', '#3ddc84', '#5ac8fa', '#c77dff'];
 const PIECE_COUNT = 44;
 
-// Petit éclat de confettis déclenché quand un nouveau succès vient de se
-// débloquer (voir HallOfFame.jsx), pur CSS/JS, pas de nouvelle dépendance.
 function ConfettiBurst() {
   const pieces = useMemo(
     () =>

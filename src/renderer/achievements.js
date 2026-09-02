@@ -57,17 +57,6 @@ function formatHours(seconds) {
   return (seconds / 3600).toFixed(0);
 }
 
-// Tous dérivés de computeHallOfFame(), pas de seuil inventé sur des données
-// qu'on n'a pas (pas de "précision globale" par ex., puisque Riot n'expose
-// pas les tirs manqués ailleurs dans l'appli non plus). Les groupes "carrière"
-// (volume, temps de jeu, maîtrise...) s'ajoutent aux records ponctuels pour
-// donner des objectifs à long terme plutôt que juste des exploits ponctuels.
-// Titres/descriptions résolus via t('hallOfFame.groups.<group>.items.<id>.*'),
-// contextes construits à l'affichage (deriveAchievements) car ils dépendent
-// de hof + t.
-// Une teinte par groupe (même palette que la nav et les modes Aim Trainer),
-// appliquée à toutes les icônes du groupe pour que le mur de succès ne soit
-// pas un bloc gris uniforme.
 const GROUP_COLORS = {
   multiKills: 'var(--hue-red)',
   winStreaks: 'var(--hue-orange)',
@@ -280,10 +269,6 @@ function buildGroups(t, i18nLang) {
   ];
 }
 
-// Trie chaque groupe : débloqués d'abord (dans leur ordre de définition),
-// puis verrouillés du plus proche du déblocage au plus loin, pour que la
-// prochaine étape logique saute aux yeux plutôt que de scroller 75 succès
-// dans un ordre figé.
 export function deriveAchievements(t, i18nLang, hof) {
   const groups = buildGroups(t, i18nLang);
   return groups.map((group) => {

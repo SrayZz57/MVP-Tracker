@@ -13,9 +13,6 @@ const MIN_GAMES_FOR_PEAK = 3;
 
 function HeatmapGrid({ grid }) {
   const { t } = useTranslation();
-  // Met en avant le créneau avec le meilleur winrate, à condition d'avoir un
-  // minimum d'échantillon, sinon un 100% sur 1 seule partie ressortirait
-  // comme "meilleur créneau" de façon trompeuse.
   let peakId = null;
   let peakWinrate = -1;
   grid.forEach((row) =>

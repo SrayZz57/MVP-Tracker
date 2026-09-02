@@ -88,10 +88,6 @@ function PingSparkline({ samples }) {
 
 function NetworkTab({ settings, matches, pingSamples, myId }) {
   const { t } = useTranslation();
-  // Le ping mesuré ici vient du réseau de CET appareil, corréler des morts
-  // survenues sur une partie console jouée ailleurs n'aurait aucun sens.
-  // Filtre par défaut sur "pc" quand les deux plateformes sont détectées
-  // (l'utilisateur peut quand même changer s'il veut comparer).
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches, 'pc');
   const pingStats = useMemo(
     () => pingCorrelation(filteredMatches, pingSamples, settings.name, settings.tag),
@@ -100,10 +96,6 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
 
   const percent = pingStats.deathsAnalyzed > 0 ? (pingStats.deathsNearSpike / pingStats.deathsAnalyzed) * 100 : 0;
 
-  // Chaque appareil envoie son propre total (pas l'historique brut du ping,
-  // qui n'a de sens que sur ce réseau précis) vers le compte, sous sa propre
-  // ligne, pour additionner les totaux de tous les PCs sans qu'un appareil
-  // n'écrase les chiffres d'un autre.
   const [accountTotals, setAccountTotals] = useState(null);
 
   useEffect(() => {

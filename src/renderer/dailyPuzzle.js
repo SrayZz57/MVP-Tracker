@@ -1,10 +1,6 @@
 import { Swords, Zap, Shield, Wallet } from 'lucide-react';
 import { excludeDeathmatch, findMe, ECONOMY_TIERS, attackerTeamByRound } from './valorantStats.js';
 
-// Deux options poussent vers un engagement rapide, deux vers la prudence,
-// pour rester honnête, le "bucket" auquel une option est associée est la
-// seule chose comparée à la réalité, pas un jugement de "bonne tactique"
-// dans l'absolu (impossible à établir avec les seules données de match).
 export const PUZZLE_OPTIONS = [
   { id: 'duel_early', icon: Swords, labelKey: 'puzzle.options.duelEarly', bucket: 'aggressive' },
   { id: 'rush_site', icon: Zap, labelKey: 'puzzle.options.rushSite', bucket: 'aggressive' },
@@ -81,15 +77,6 @@ function buildSituation(match, round, roundIndex, me, myPs) {
   };
 }
 
-// Choisit une map/round déterministe pour une date donnée (même date = même
-// puzzle tant qu'il n'a pas déjà été généré et persisté), et reconstruit tout
-// ce qu'il faut pour l'afficher ET le corriger : économie des deux équipes,
-// score avant le round, et comportement réel du joueur suivi ce round-là
-// (agressif = kill ou mort dans les 20 premières secondes, sinon patient).
-// Certains rounds ont des données de round.player_stats incomplètes (joueur
-// déconnecté, round abandonné...) : on parcourt matchs puis rounds à partir
-// du point de départ tiré de la date, pour retomber sur le premier round
-// exploitable plutôt que d'abandonner sur le premier tirage.
 export function generatePuzzleSituation(matches, name, tag, dateSeed) {
   const eligibleMatches = excludeDeathmatch(matches).filter((m) => {
     if (!Array.isArray(m.rounds) || m.rounds.length === 0) return false;

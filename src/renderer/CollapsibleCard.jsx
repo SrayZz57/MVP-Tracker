@@ -4,17 +4,6 @@ import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import Icon from './Icon.jsx';
 import Button from './ui/Button';
 
-// Remplace `<div className="card">...<h3>Titre</h3>...</div>` : le titre
-// reste visible une fois le bloc réduit, avec un bouton "Réduire"/"Agrandir"
-// bien visible (pas juste un petit chevron discret, demande explicite après
-// un premier essai jugé pas assez repérable). État mémorisé par compte lié,
-// voir CollapsedBlocksContext.jsx. `id` doit être stable et unique dans toute
-// l'app (ex. "stats.profileHeader"), pas dérivé d'un index de liste.
-//
-// `collapsible={false}` pour les blocs courts (une rangée de tuiles, un
-// formulaire, un intro) : replier trois tuiles ne fait gagner aucune place et
-// un bouton dans chaque en-tête finit par se voir plus que les titres. Le
-// repli est réservé à ce qui est haut ou peut grandir sans limite.
 function CollapsibleCard({ id, title, className = '', headerExtra, collapsible = true, children }) {
   const { t } = useTranslation();
   const { collapsed, toggle } = useCollapsedBlocks();

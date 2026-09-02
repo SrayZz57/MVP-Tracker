@@ -236,10 +236,6 @@ function MapModal({ map, minimapUrl, onClose }) {
   );
 }
 
-// Regroupe les paliers par division (Fer/Bronze/.../Immortel, 3 sous-paliers
-// chacun), Non classé et Radiant n'en ont qu'un seul. Ordre conservé tel que
-// renvoyé par l'API (croissant), inversé à l'affichage pour aller du plus
-// haut rang au plus bas.
 function groupRankLadder(ladder) {
   const order = [];
   const byDivision = new Map();

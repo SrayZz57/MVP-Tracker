@@ -10,8 +10,6 @@ import Button from './ui/Button';
 
 const ORBS = [1, 2, 3, 4, 5, 6, 7];
 
-// Rôle affiché en dur : un seul admin publie ces annonces pour l'instant.
-// Nom et avatar viennent du profil réel, pour suivre les changements de pseudo.
 function AnnouncementAuthor({ author, t }) {
   const avatarArt = usePlayerCardArt(author?.avatar_card_uuid);
   if (!author) return null;
@@ -51,10 +49,6 @@ function AnnouncementCard({ announcement, t }) {
   );
 }
 
-// Écran d'accueil affiché à chaque lancement une fois le compte lié. Deux
-// entrées côte à côte : consulter ses stats, ou s'échauffer avant de jouer,
-// l'Aim Trainer étant surtout utile juste avant une session, c'est ici qu'il
-// a le plus de chances d'être lancé.
 function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther, onOpenAimTrainer }) {
   const { t } = useTranslation();
 
@@ -69,9 +63,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
       .then(({ data }) => setAnnouncements(data ?? []));
   }, []);
 
-  // Résumé rapide du compte suivi : évite un grand vide entre l'aperçu de
-  // profil et les boutons, et donne déjà une information utile avant même
-  // d'entrer dans le tracker.
   const summary = useMemo(() => {
     const ranked = excludeDeathmatch(matches);
     if (ranked.length === 0) return null;
@@ -86,7 +77,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
     };
   }, [matches, settings.name, settings.tag]);
 
-  // Cinq derniers résultats, du plus ancien au plus récent (sens de lecture).
   const recent = useMemo(
     () =>
       excludeDeathmatch(matches)
@@ -176,8 +166,6 @@ function AccountGreeting({ settings, rank, matches = [], onEnter, onSearchOther,
         <section className="greeting-panel greeting-aim">
           <span className="greeting-panel-label greeting-aim-label">{t('accountGreeting.aimLabel')}</span>
 
-          {/* Illustration de l'arène : dessinée en CSS plutôt qu'une capture,
-              pour rester nette à toutes les tailles et ne rien alourdir. */}
           <div className="aim-preview" aria-hidden="true">
             <span className="aim-preview-sky" />
             <span className="aim-preview-floor" />

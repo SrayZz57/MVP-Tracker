@@ -5,9 +5,6 @@ const ROLE_NAMES = {
   sentinel: 'Sentinelle',
 };
 
-// Règles générales largement admises dans la communauté Valorant, des conseils,
-// pas un verdict garanti (aucune donnée de winrate par compo/map n'est disponible
-// publiquement pour aller plus loin que ça).
 export function analyzeComposition(agentNames, agentRoles) {
   const counts = { Duelliste: 0, Initiateur: 0, Contrôleur: 0, Sentinelle: 0 };
   const chosen = agentNames.filter(Boolean);
@@ -48,9 +45,6 @@ export function analyzeComposition(agentNames, agentRoles) {
 const TIER_POINTS = { S: 100, A: 78, B: 55 };
 const NOTE_WEIGHT = { warning: -20, info: -8, good: 5 };
 
-// Score composite /100 = 50% équilibre des rôles + 50% "fit" map/agent
-// (avis communautaires figés, voir mapAgentTiers.js). Volontairement pas une
-// science exacte, combine deux estimations, pas des winrates mesurés.
 export function scoreComposition(agentNames, mapName, agentRoles, getAgentMapTier) {
   const chosen = agentNames.filter(Boolean);
   if (chosen.length < 5 || !mapName) return null;

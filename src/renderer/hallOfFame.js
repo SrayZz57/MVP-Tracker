@@ -22,8 +22,6 @@ function matchContext(match) {
   };
 }
 
-// Meilleur "ace" : le round avec le plus de kills du joueur suivi (à partir
-// de 5, seuil classique d'un ace en 5v5), toutes équipes confondues.
 function findBestAce(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
@@ -33,8 +31,6 @@ function findBestAce(matches, name, tag) {
     if (!me?.puuid) return;
     (match.rounds || []).forEach((round, roundIndex) => {
       const myPs = (round.player_stats || []).find((ps) => ps.player_puuid === me.puuid);
-      // Exclut les kill_events où killer === victim : mort par l'explosion du
-      // spike (ou suicide) n'est pas un kill, même si l'API le liste ici.
       const kills = (myPs?.kill_events || []).filter((k) => k.killer_puuid !== k.victim_puuid).length;
       if (kills < ACE_THRESHOLD) return;
       if (!best || kills > best.kills) {
@@ -46,8 +42,6 @@ function findBestAce(matches, name, tag) {
   return best;
 }
 
-// Plus longue série de victoires jamais observée dans l'historique (pas
-// seulement la série en cours), rejoue les résultats en ordre chronologique.
 function findLongestWinStreak(matches, name, tag) {
   const chronological = [...excludeDeathmatch(matches)].reverse();
   let bestStreak = 0;
@@ -83,10 +77,6 @@ function findLongestWinStreak(matches, name, tag) {
   };
 }
 
-// Meilleur clutch gagné : le round où le joueur suivi a été le dernier vivant
-// de son équipe face au plus grand nombre d'adversaires encore en vie, ET a
-// gagné le round. Même reconstruction que clutchStats(), mais on garde la
-// meilleure occurrence plutôt qu'un agrégat.
 function findBestClutch(matches, name, tag) {
   let best = null;
 
@@ -126,8 +116,6 @@ function findBestClutch(matches, name, tag) {
   return best;
 }
 
-// Meilleur KDA sur un match : (kills + assists) / max(deaths, 1), complète le
-// "meilleur K/D" déjà affiché ailleurs en valorisant aussi le soutien.
 function findBestKda(matches, name, tag) {
   let best = null;
 
@@ -146,7 +134,6 @@ function findBestKda(matches, name, tag) {
   return best;
 }
 
-// Meilleure précision tête sur un match (au moins un tir enregistré).
 function findBestHsPercent(matches, name, tag) {
   let best = null;
 
@@ -163,7 +150,6 @@ function findBestHsPercent(matches, name, tag) {
   return best;
 }
 
-// Match avec le plus de kills du joueur suivi.
 function findBestKillsMatch(matches, name, tag) {
   let best = null;
 
@@ -179,8 +165,6 @@ function findBestKillsMatch(matches, name, tag) {
   return best;
 }
 
-// Kill le plus lointain jamais enregistré (mêmes coordonnées/conversion que
-// duelDistanceStats, voir killDistance() dans valorantStats.js).
 function findBestKillDistance(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let best = null;
@@ -205,7 +189,6 @@ function findBestKillDistance(matches, name, tag) {
   return best;
 }
 
-// Nombre d'agents distincts joués (matchs classés/non-deathmatch).
 function countAgentDiversity(matches, name, tag) {
   const agents = new Set();
   excludeDeathmatch(matches).forEach((match) => {
@@ -215,8 +198,6 @@ function countAgentDiversity(matches, name, tag) {
   return agents.size;
 }
 
-// Meilleur "match parfait" : victoire sans être mort une seule fois, on
-// garde celui avec le plus de kills parmi ces occurrences.
 function findBestPerfectMatch(matches, name, tag) {
   let best = null;
 
@@ -235,8 +216,6 @@ function findBestPerfectMatch(matches, name, tag) {
   return best;
 }
 
-// Compteurs "carrière" (cumulés sur tout l'historique en cache), pour des
-// succès de progression sur le long terme plutôt que des records ponctuels.
 function careerCounters(matches, name, tag) {
   const clean = excludeDeathmatch(matches);
   let totalKills = 0;
@@ -304,9 +283,6 @@ function careerCounters(matches, name, tag) {
   };
 }
 
-// Nombre de spikes posés / désamorcés par le joueur suivi, plant_events et
-// defuse_events n'existent que sur le round où l'action a eu lieu (sinon les
-// champs sont null), pas besoin de reconstruire quoi que ce soit.
 function countSpikeActions(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   let plants = 0;

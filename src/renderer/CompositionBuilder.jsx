@@ -58,9 +58,6 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
     setSlots((prev) => prev.map((v, i) => (i === index ? value : v)));
   };
 
-  // Tes agents les plus joués, en accès rapide, toujours ceux du compte
-  // lié (même en composant pour la map/l'historique de quelqu'un d'autre),
-  // pas ceux du joueur actuellement affiché.
   const myRankedMatches = useMemo(() => excludeDeathmatch(myMatches ?? matches), [myMatches, matches]);
   const ownerSettings = mySettings ?? settings;
   const mostPlayedAgents = useMemo(

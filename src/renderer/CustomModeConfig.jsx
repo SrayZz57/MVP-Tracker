@@ -14,16 +14,10 @@ function loadStoredConfig() {
   }
 }
 
-// Fenêtre modale (dans la même fenêtre que l'onglet, pas une fenêtre OS
-// séparée) dédiée au mode Personnalisé : les 6 modes standards sont figés
-// (mêmes réglages pour tout le monde, sinon le record général n'a aucun
-// sens), ce mode est le seul endroit où la difficulté reste libre.
 function CustomModeConfig({ onClose, onSaved }) {
   const { t } = useTranslation();
   const stored = loadStoredConfig();
 
-  // Point de départ : les valeurs déjà personnalisées si le mode l'était
-  // déjà, sinon celles du mode Flick (un point de départ raisonnable).
   const initial = stored.mode === 'custom' ? stored : { ...stored, ...MODES.flick.preset };
   const [duration, setDuration] = useState(initial.duration);
   const [targetSize, setTargetSize] = useState(initial.targetSize);

@@ -5,9 +5,6 @@ import { PRO_CROSSHAIRS } from './crosshairPresets.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
-// 24 = 2 lignes complètes à la largeur de carte habituelle sur un écran
-// large (12 colonnes), 15 tombait souvent en plein milieu d'une ligne,
-// laissant la suivante à moitié vide.
 const PRO_PAGE_SIZE = 24;
 const DIACRITICS_RE = new RegExp('[' + String.fromCharCode(768) + '-' + String.fromCharCode(879) + ']', 'g');
 

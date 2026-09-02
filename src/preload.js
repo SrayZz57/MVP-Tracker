@@ -1,6 +1,3 @@
-// See the Electron documentation for details on how to use preload scripts:
-// https://www.electronjs.org/docs/latest/tutorial/process-model#preload-scripts
-
 import { contextBridge, ipcRenderer } from 'electron';
 
 contextBridge.exposeInMainWorld('electronAPI', {
@@ -18,8 +15,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   cacheMessagingKey: (payload) => ipcRenderer.invoke('messaging:cache-key', payload),
   getCachedMessagingKey: (userId) => ipcRenderer.invoke('messaging:get-cached-key', userId),
   clearCachedMessagingKey: (userId) => ipcRenderer.invoke('messaging:clear-cached-key', userId),
-  // `force` : rafraîchissement demandé explicitement par l'utilisateur, il
-  // court-circuite le délai anti-rafale côté process principal.
   getMatches: (settings, { force = false } = {}) =>
     ipcRenderer.invoke('valorant:get-matches', { ...settings, force }),
   previewRiotAccount: (payload) => ipcRenderer.invoke('valorant:preview-account', payload),
@@ -28,7 +23,6 @@ contextBridge.exposeInMainWorld('electronAPI', {
   getRankFor: (puuid) => ipcRenderer.invoke('valorant:get-rank-for', puuid),
   getNetworkStatus: () => ipcRenderer.invoke('network:get-status'),
   getPingSamples: (puuid) => ipcRenderer.invoke('network:get-ping-samples', puuid),
-  // Sélection d'agent en direct (API locale du client Valorant).
   getAgentSelect: () => ipcRenderer.invoke('valorant-local:agent-select'),
   setAgentSelectOverlayVisible: (visible) => ipcRenderer.invoke('agent-select-overlay:set-visible', visible),
   getAgentSelectOverlayEnabled: () => ipcRenderer.invoke('agent-select-overlay:get-enabled'),

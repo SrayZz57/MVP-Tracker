@@ -11,7 +11,7 @@ import Button from './ui/Button';
 
 function BetsTracker({ settings, matches }) {
   const { t, i18n } = useTranslation();
-  const [pending, setPending] = useState(undefined); // undefined = chargement, null = aucun
+  const [pending, setPending] = useState(undefined);
   const [history, setHistory] = useState([]);
   const [totalPoints, setTotalPoints] = useState(0);
   const [type, setType] = useState('kills');
@@ -27,10 +27,6 @@ function BetsTracker({ settings, matches }) {
     refresh();
   }, []);
 
-  // Dès qu'un nouveau match apparaît après la pose du pari, on le résout
-  // automatiquement contre ce match-là. Certains matchs en cache n'ont pas le
-  // joueur suivi dans leur roster (mode annexe, aléa de l'API), on essaie
-  // alors le suivant plutôt que de rester bloqué en attente indéfiniment.
   useEffect(() => {
     if (!pending || matches.length === 0) return;
 

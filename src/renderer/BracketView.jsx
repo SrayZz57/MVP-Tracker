@@ -38,10 +38,6 @@ function MatchResultForm({ match, onSaved }) {
   );
 }
 
-// Bracket en colonnes (un tour = une colonne) avec de vraies lignes de
-// connexion entre les matchs, dessinées en SVG et mesurées en direct
-// (getBoundingClientRect) plutôt qu'approximées en CSS pur, fiable quelle
-// que soit la hauteur réelle des cartes (score affiché ou non, bye ou pas).
 function BracketView({ tournamentId, matches, teams, isAdmin, onUpdated }) {
   const { t } = useTranslation();
   const containerRef = useRef(null);
@@ -105,7 +101,6 @@ function BracketView({ tournamentId, matches, teams, isAdmin, onUpdated }) {
           .eq('id', nextMatch.id);
       }
     } else {
-      // Dernier tour : le tournoi est terminé.
       await supabase.from('tournaments').update({ status: 'completed' }).eq('id', tournamentId);
     }
 

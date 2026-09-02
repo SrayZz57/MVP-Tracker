@@ -8,13 +8,6 @@ import { AdminTournamentsSkeleton } from './skeletons.jsx';
 import LoadingGate from './LoadingGate.jsx';
 import Icon from './Icon.jsx';
 
-// Écran d'administration, pour l'instant seulement la création de tournois
-// (étape validée avec l'utilisateur avant d'enchaîner sur l'inscription
-// d'équipes et l'affichage du bracket). Toute la vraie sécurité vient des
-// policies RLS côté Supabase (public.is_admin()) : ce composant n'est
-// accessible que si `isAdmin` est vrai côté App.jsx, mais même un accès
-// direct forcé ne permettrait aucune écriture, la porte fermée est serveur.
-
 const STATUS_LABELS = {
   registration: 'admin.tournaments.status.registration',
   ongoing: 'admin.tournaments.status.ongoing',
@@ -83,8 +76,6 @@ function TournamentCreateForm({ myId, onCreated }) {
           required
         />
       </label>
-      {/* Pas limité aux puissances de 2 : la génération du bracket (étape
-          suivante) calculera les "byes" nécessaires pour les autres nombres. */}
       <p className="label">{t('admin.tournaments.maxTeamsHint')}</p>
 
       <label>
@@ -132,11 +123,6 @@ function TournamentList({ tournaments }) {
   );
 }
 
-// Annonces affichées sur l'écran "Content de te revoir" (AccountGreeting.jsx)
-// — ex. annoncer un tournoi. Pas d'upload d'image : le bug Storage/RLS
-// documenté ailleurs dans le projet (matchSync.js) rendrait un nouvel upload
-// probablement tout aussi cassé. L'admin colle une URL d'image externe
-// (Discord CDN, Imgur...) à la place.
 function AnnouncementCreateForm({ myId, onCreated }) {
   const { t } = useTranslation();
   const [title, setTitle] = useState('');

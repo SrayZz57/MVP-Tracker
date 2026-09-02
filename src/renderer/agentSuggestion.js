@@ -3,23 +3,9 @@ import { getAgentMapTier } from './mapAgentTiers.js';
 
 const MIN_GAMES_FOR_PERSONAL_STATS = 3;
 const ROLE_NAMES = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
-// Score de repli quand on n'a pas assez de matchs personnels sur cette map,
-// mêmes valeurs que scoreComposition() dans compAnalysis.js, pour rester
-// cohérent avec ce qu'affiche déjà le Compositeur.
 const TIER_SCORE = { S: 85, A: 70, B: 55 };
 const ROLE_GAP_BONUS = 15;
 
-/**
- * Suggère jusqu'à `max` agents à choisir en sélection, en combinant deux
- * sources :
- *  - ton winrate personnel sur CETTE map, si tu as assez de matchs joués
- *    avec cet agent dessus (source la plus fiable, c'est TA donnée)
- *  - à défaut, l'avis communautaire agent/map déjà utilisé par le
- *    Compositeur (mapAgentTiers.js), pas une vraie stat, un repère
- *
- * Un bonus est ajouté si l'agent comble un rôle qu'aucun coéquipier déjà
- * sélectionné ne couvre encore.
- */
 export function suggestAgents({ matches, name, tag, mapName, teammateAgentNames, agentRoles, max = 3 }) {
   if (!mapName || agentRoles.size === 0) return [];
 

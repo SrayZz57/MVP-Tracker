@@ -6,10 +6,6 @@ function currentTimeSlotLabel() {
   return `${start}h-${start + SLOT_HOURS}h`;
 }
 
-// Durée d'échauffement suggérée à partir du module "Perf & Forme" : plus
-// courte si l'historique montre que tu performes déjà bien sur ce créneau
-// horaire précis, plus longue s'il montre l'inverse (ou s'il n'y a pas encore
-// assez de données pour ce créneau).
 function suggestWarmup(t, slotStats) {
   const currentSlot = currentTimeSlotLabel();
   const stats = slotStats.find((s) => s.key === currentSlot) ?? null;
@@ -32,11 +28,6 @@ function suggestWarmup(t, slotStats) {
   };
 }
 
-// Génère le plan de session : échauffement, map/stratégie à revoir, état de
-// tilt, et un objectif du jour concret, le tout dérivé des modules déjà
-// existants (Perf & Forme, Tilt, historique de matchs), sans nouvel appel API.
-// `t` reçu en paramètre : le texte généré est figé dans la langue active au
-// moment du lancement de la session (même pattern que weeklyNarrative.js).
 export function buildSessionPlan(t, matches, name, tag) {
   const ranked = excludeDeathmatch(matches);
   const form = formStats(ranked, name, tag);

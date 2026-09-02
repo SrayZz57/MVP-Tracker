@@ -2,10 +2,6 @@ import { useEffect, useState } from 'react';
 
 let cache = null;
 
-// Le pistolet Headhunter et l'ult Tour De Force de Chamber sont des
-// compétences équipables, pas des armes achetables, absentes du catalogue
-// valorant-api.com/v1/weapons (voir matchNormalizer.js : ABILITY_WEAPON_NAMES).
-// On leur associe quand même une icône, celle de la compétence correspondante.
 const ABILITY_WEAPON_ICONS = {
   Headhunter: 'https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ability1/displayicon.png',
   'Tour De Force': 'https://media.valorant-api.com/agents/22697a3d-45bf-8dd7-4fec-84a9e28c69d7/abilities/ultimate/displayicon.png',
@@ -32,9 +28,6 @@ export function useWeaponIcons() {
 
 let shopWeaponsPromise = null;
 
-// Prix/catégories réels du shop (valorant-api.com), pour le calculateur de
-// budget, category vient d'un enum anglais stable ("EEquippableCategory::Rifle"),
-// indépendant de la langue utilisée pour displayName.
 function loadShopWeapons() {
   if (!shopWeaponsPromise) {
     shopWeaponsPromise = fetch('https://valorant-api.com/v1/weapons?language=fr-FR')
@@ -65,11 +58,6 @@ export function useShopWeapons() {
 
 let weaponCostsPromise = null;
 
-// Prix par UUID d'arme, pas par nom : `economy.weapon.name` (HenrikDev) n'est
-// pas forcément dans la même langue que `displayName` (valorant-api.com),
-// matcher par nom serait fragile. L'UUID, lui, est le même des deux côtés
-// (vérifié : `economy.weapon.id` correspond exactement à l'`uuid` de
-// valorant-api.com pour une même arme).
 function loadWeaponCosts() {
   if (!weaponCostsPromise) {
     weaponCostsPromise = fetch('https://valorant-api.com/v1/weapons')
@@ -118,8 +106,6 @@ export function useShopArmors() {
 
 let weaponsDataPromise = null;
 
-// Données complètes (weaponStats : dégâts par distance, cadence, chargeur...)
-// pour le wiki, armes sans shopData (couteau) filtrées, comme ailleurs.
 function loadWeaponsData() {
   if (!weaponsDataPromise) {
     weaponsDataPromise = fetch('https://valorant-api.com/v1/weapons?language=fr-FR')

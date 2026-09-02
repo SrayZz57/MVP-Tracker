@@ -14,9 +14,6 @@ import Button from './ui/Button';
 
 const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
-// Noms de rôles issus de valorant-api.com (appelée en fr-FR), hors périmètre
-// de cette passe de traduction (voir CLAUDE.md / plan i18n), comparés tels
-// quels à profile.main_role et aux clés de roleIconByName.
 const ROLES = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
 
 function formatMemberSince(isoDate, locale) {
@@ -31,7 +28,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [nameDraft, setNameDraft] = useState(profile.display_name ?? '');
   const [editingName, setEditingName] = useState(false);
   const [saving, setSaving] = useState(false);
-  const [resetStatus, setResetStatus] = useState(null); // null | 'sending' | 'sent' | 'error'
+  const [resetStatus, setResetStatus] = useState(null);
   const [editingApiKey, setEditingApiKey] = useState(false);
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
@@ -72,9 +69,6 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
     [allCards],
   );
 
-  // Suggestion indicative basée sur les vraies parties trackées, n'est
-  // jamais enregistrée automatiquement, c'est le joueur qui choisit son rôle
-  // et son agent, pas un calcul qui décide à sa place.
   const rankedMatches = useMemo(() => excludeDeathmatch(myMatches ?? []), [myMatches]);
   const agentRows = useMemo(
     () => groupStats(rankedMatches, mySettings.name, mySettings.tag, (match, me) => me.character),

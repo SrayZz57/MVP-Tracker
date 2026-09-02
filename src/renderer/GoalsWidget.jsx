@@ -28,20 +28,12 @@ function currentMetricValue(goal, matches, settings) {
   return null;
 }
 
-// Un objectif déjà proposé (ajouté ou non, terminé ou non) sur le même
-// sujet ne doit pas être re-proposé, sinon un objectif déjà réussi une
-// fois peut être ré-ajouté et re-marqué "atteint" à l'infini.
 function alreadyCovered(existingGoals, metric, subject) {
   return existingGoals.some(
     (g) => g.metric === metric && (g.subject ?? null) === (subject ?? null),
   );
 }
 
-// Propose des objectifs à partir des stats déjà calculées ailleurs dans l'app
-// (pas de saisie manuelle de cible : la cible est déduite du niveau actuel).
-// `t` reçu en paramètre : `label` est traduit au moment de la génération,
-// mais reste ensuite figé tel quel une fois l'objectif enregistré (comme
-// n'importe quelle donnée sauvegardée par l'utilisateur).
 function generateSuggestions(t, matches, settings, existingGoals) {
   const clean = excludeDeathmatch(matches);
   const suggestions = [];
@@ -70,9 +62,6 @@ function generateSuggestions(t, matches, settings, existingGoals) {
     }
   }
 
-  // Un objectif par map étant lié à un `subject` précis, on cherche la pire
-  // map qui n'a pas déjà un objectif (actif ou terminé) dessus, plutôt que
-  // de s'arrêter à la toute pire si elle est déjà couverte.
   const mapRows = groupStats(clean, settings.name, settings.tag, (m) => m.metadata?.map)
     .filter((r) => r.games >= MIN_GAMES_FOR_BREAKDOWN && r.winrate !== null)
     .filter((r) => !alreadyCovered(existingGoals, 'mapWinrate', r.key))
@@ -123,8 +112,6 @@ function GoalsWidget({ matches, settings, myId }) {
 
   const suggestions = useMemo(() => {
     if (matches.length === 0) return [];
-    // On exclut tout sujet déjà couvert par un objectif actif OU terminé,
-    // pour ne jamais reproposer un objectif déjà réussi.
     return generateSuggestions(t, matches, settings, goals);
   }, [t, matches, settings, goals]);
 

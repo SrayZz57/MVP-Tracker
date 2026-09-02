@@ -14,7 +14,7 @@ const MAX_ZOOM_FACTOR = 6;
 const ZOOM_STEP = 1.2;
 const DEFAULT_COLOR = '#ff4655';
 const STAMP_SIZE = 56;
-const FOV_DEGREES = 103; // FOV par défaut de Valorant.
+const FOV_DEGREES = 103;
 const FOV_RADIUS = 220;
 const FOV_SEGMENTS = 20;
 
@@ -32,13 +32,6 @@ function genMarkerId() {
   return `m-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
-// Poignée de rotation libre pour la ligne de vue : positionnée au bord droit
-// de sa bounding box (x:0.5, y:0), ce qui correspond exactement à la pointe
-// du cône (le rayon central de buildSightlinePoints() passe par ce point).
-// L'action pivote autour de l'ancrage réel de l'objet (getPositionByOrigin),
-// pas autour de son centre visuel, contrairement à la poignée 'mtr' par
-// défaut de Fabric, qui pivote toujours au centre et ferait dériver la
-// pointe hors de la position du joueur.
 function renderSightlineRotateHandle(ctx, left, top, styleOverride, fabricObject) {
   ctx.save();
   ctx.beginPath();
@@ -76,8 +69,6 @@ function attachSightlineControls(obj) {
   obj.controls = { ...obj.controls, rotateFree: createSightlineRotateControl() };
 }
 
-// labelKey plutôt que label : ces constantes sont au niveau module, hors de
-// tout composant, donc sans accès à t().
 const SHAPE_TOOLS = [
   { key: 'select', labelKey: 'strategy.tools.select' },
   { key: 'pan', labelKey: 'strategy.tools.pan' },
@@ -173,7 +164,6 @@ function StrategyBoard() {
     obj.set('visible', layersRef.current[layerType] !== false);
   };
 
-  // Initialise le canvas Fabric une seule fois.
   useEffect(() => {
     const canvas = new Canvas(canvasElRef.current, { selection: true });
     fabricCanvasRef.current = canvas;
@@ -334,7 +324,6 @@ function StrategyBoard() {
       }
     });
 
-    // Une ligne de vue attachée à une position joueur suit son marqueur.
     canvas.on('object:moving', (opt) => {
       const moved = opt.target;
       if (!moved.markerId) return;
@@ -346,8 +335,6 @@ function StrategyBoard() {
       canvas.requestRenderAll();
     });
 
-    // Si le marqueur attaché est supprimé, la ligne de vue redevient libre
-    // plutôt que de rester verrouillée en place.
     canvas.on('object:removed', (opt) => {
       const removed = opt.target;
       if (!removed.markerId) return;
@@ -390,10 +377,6 @@ function StrategyBoard() {
     };
   }, []);
 
-  // Adapte la taille AFFICHÉE du canvas à la taille de son conteneur (donc à
-  // la fenêtre de l'app), sans toucher à sa résolution interne (VIEWPORT_SIZE)
-  //, les coordonnées des objets (dessins, icônes, stratégies sauvegardées)
-  // restent donc valables quelle que soit la taille de la fenêtre.
   useEffect(() => {
     const wrap = canvasWrapRef.current;
     if (!wrap) return;
@@ -408,7 +391,6 @@ function StrategyBoard() {
     return () => observer.disconnect();
   }, []);
 
-  // Bascule dessin libre / sélection / déplacement de la vue.
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -421,7 +403,6 @@ function StrategyBoard() {
     }
   }, [tool, color]);
 
-  // Recharge le fond de map à chaque changement de map.
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     const url = minimaps.get(selectedMap);
@@ -453,7 +434,6 @@ function StrategyBoard() {
     };
   }, [selectedMap, minimaps]);
 
-  // Applique la visibilité des calques.
   useEffect(() => {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -483,9 +463,6 @@ function StrategyBoard() {
     canvas.setViewportTransform([...initialViewportRef.current]);
   }
 
-  // Taille fixée une fois, à la pose, en unités de la carte, pas à l'écran :
-  // l'icône doit rester à la même taille RELATIVEMENT à la carte, donc suivre
-  // le zoom exactement comme la carte elle-même, sans compensation.
   function placeStamp(objectFactory, layerType, scale, origin = { originX: 'center', originY: 'center' }) {
     const canvas = fabricCanvasRef.current;
     if (!canvas) return;
@@ -541,10 +518,6 @@ function StrategyBoard() {
       lockMovementX: !!marker,
       lockMovementY: !!marker,
     });
-    // Rotation libre via une poignée custom ancrée sur la position (pas le
-    // centre de la forme comme le ferait la poignée 'mtr' par défaut de
-    // Fabric), voir attachSightlineControls(). Les boutons ↺/↻ restent
-    // disponibles pour des ajustements précis en plus du glisser-déposer.
     attachSightlineControls(cone);
     tagLayer(cone, 'icons');
     canvas.add(cone);
@@ -559,9 +532,6 @@ function StrategyBoard() {
     canvas.requestRenderAll();
   }
 
-  // Arme le mode "verrouillage" : le prochain clic sur une position joueur
-  // sur la carte attache la ligne de vue sélectionnée à ce marqueur (elle se
-  // recale dessus et le suit désormais), sans perdre son orientation actuelle.
   function armLockToPlayer() {
     if (!selectedSightline) return;
     pendingLockSightlineRef.current = selectedSightline;

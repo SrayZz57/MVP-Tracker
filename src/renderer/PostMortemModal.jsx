@@ -17,7 +17,7 @@ function PostMortemModal({ settings, matches }) {
   const latestMatch = matches[0] ?? null;
   const matchId = latestMatch?.metadata?.matchid ?? null;
 
-  const [status, setStatus] = useState('hidden'); // hidden | prompting | answered
+  const [status, setStatus] = useState('hidden');
   const [answers, setAnswers] = useState({});
   const [graded, setGraded] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set());

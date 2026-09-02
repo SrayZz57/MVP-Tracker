@@ -29,11 +29,6 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
-// Chaque emplacement joueur DOIT correspondre à un vrai compte MVP Tracker
-// (recherché et sélectionné via AccountPickerModal), plus de Riot ID tapé
-// à la main. `linked_profile_id` passe de facultatif à obligatoire (voir la
-// contrainte NOT NULL posée en base) : impossible d'inscrire quelqu'un qui
-// n'a pas de compte. L'agent reste, lui, purement cosmétique et optionnel.
 function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, submitLabel }) {
   const { t } = useTranslation();
   const [name, setName] = useState(initialName);
@@ -132,11 +127,6 @@ function TeamRosterForm({ initialName, initialPlayers, saving, error, onSubmit, 
   );
 }
 
-// Détail d'un tournoi : inscription d'équipe, validation admin des
-// inscriptions, génération et affichage du bracket. Toute la sécurité réelle
-// est côté RLS (voir les policies sur tournament_teams/tournament_matches) :
-// ce composant se contente de ne PAS proposer les actions interdites, même
-// en cas de requête forcée, Supabase refuse.
 function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
@@ -178,9 +168,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       setMyTeamPlayers([]);
     }
 
-    // Chargés en une seule requête pour toutes les équipes plutôt qu'à la
-    // demande par clic, évite un aller-retour à chaque ouverture/fermeture,
-    // et le nombre d'équipes reste toujours modeste (borné par max_teams).
     const teamIds = (t2 ?? []).map((team) => team.id);
     if (teamIds.length > 0) {
       const { data: allPlayers } = await supabase
@@ -240,11 +227,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     return { error: playersError };
   }
 
-  // Réservé à l'admin : contrairement à l'inscription normale (une seule
-  // équipe par compte, la tienne), ceci permet d'ajouter autant d'équipes
-  // que nécessaire depuis un seul compte, utile pour peupler un tournoi de
-  // test sans avoir besoin de plusieurs comptes réels. Statut 'approved'
-  // directement : c'est l'admin qui les ajoute, pas de validation à refaire.
   async function handleAdminAddTeam(name, players) {
     setSaving(true);
     setError(null);
@@ -278,9 +260,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       setError(updateError.message);
       return;
     }
-    // Roster remplacé en entier plutôt que fusionné : plus simple et sûr,
-    // pas de risque de mélanger d'anciens et de nouveaux joueurs sur les
-    // mêmes lignes si l'ordre a changé.
     await supabase.from('tournament_team_players').delete().eq('team_id', myTeam.id);
     const { error: playersError } = await supabase
       .from('tournament_team_players')
@@ -314,10 +293,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
-  // Réservé à l'admin, et seulement avant que le bracket existe, retirer
-  // une équipe déjà placée dans l'arbre laisserait un match pointer vers une
-  // équipe qui n'existe plus. La suppression cascade sur ses joueurs
-  // (contrainte on delete cascade côté table).
   async function handleAdminRemoveTeam(teamId) {
     setSaving(true);
     await supabase.from('tournament_teams').delete().eq('id', teamId);
@@ -340,8 +315,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
     await loadAll();
   }
 
-  // Le bloc d'inscription change de titre selon l'état ; le titre remonte
-  // dans l'en-tête repliable, il doit donc être connu avant le rendu.
   const registrationTitle = myTeam
     ? editing
       ? t('tournaments.editTeam')
@@ -465,9 +438,6 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
                       {team.status === 'pending' && <span className="label tag-pending">{t('tournaments.pending')}</span>}
                       {team.captain_id === myId && <span className="label tag-mine">{t('tournaments.yourTeam')}</span>}
                     </div>
-                    {/* Aperçu de composition : les icônes d'agent choisies pour
-                        chaque joueur, visibles sans avoir à déplier · un
-                        emplacement vide (agent pas choisi) reste un "?". */}
                     <div className="tournament-team-composition">
                       {Array.from({ length: PLAYER_COUNT }).map((_, slot) => {
                         const player = players[slot];

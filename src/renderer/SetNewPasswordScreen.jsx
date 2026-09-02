@@ -28,8 +28,6 @@ function SetNewPasswordScreen({ onDone }) {
       setError(updateError.message);
       return;
     }
-    // Le nouveau mot de passe vient d'être posé à l'instant, sûr de
-    // régénérer la clé de messagerie si l'ancienne est devenue orpheline.
     if (data.user) unlockForUser(data.user.id, password);
     onDone();
   };

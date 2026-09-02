@@ -1,7 +1,5 @@
 import { excludeDeathmatch, findMe, groupStats, formStats, overallHsPercent, overallWinrate } from './valorantStats.js';
 
-// Recalcule le même récapitulatif que la carte "Ta semaine" (WeeklyRecapCard),
-// plus une pire map, pour avoir de quoi écrire un vrai contraste dans le récit.
 export function buildWeekRecap(weekAllMatches, name, tag) {
   const week = excludeDeathmatch(weekAllMatches);
   if (week.length === 0) return null;
@@ -80,9 +78,6 @@ function rankParagraph(t, currentRank, previousRank) {
   }
 
   const previousText = `${previousRank.tierName} (${previousRank.rr} RR)`;
-  // Comparaison par tierId (ordre numérique officiel des rangs) : le RR seul
-  // n'est pas comparable d'un tier à l'autre puisqu'il repart d'une base
-  // différente à chaque changement de tier.
   const sameTier = previousRank.tierId === currentRank.tierId;
 
   if (sameTier && previousRank.rr === currentRank.rr) {
@@ -98,11 +93,6 @@ function rankParagraph(t, currentRank, previousRank) {
     : t('weekly.narrative.rankDown', { previous: previousText, current: currentText });
 }
 
-// Génère 2-3 paragraphes à partir de règles simples (pas d'IA générative),
-// même logique que playerProfile.js : combiner des vraies stats en phrases
-// lisibles, avec de la variation selon les tranches de valeurs. `t` reçu en
-// paramètre : le texte est figé dans la langue active au moment de la
-// génération, puis sauvegardé tel quel (comme les suggestions d'objectifs).
 export function generateNarrative(t, recap, currentRank, previousRank) {
   const paragraphs = [overviewParagraph(t, recap)];
   const highlights = highlightsParagraph(t, recap);

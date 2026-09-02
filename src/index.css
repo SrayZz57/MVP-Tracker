@@ -1,9 +1,7 @@
 @layer base;
 
 :root {
-  /* Surfaces, échelle plus profonde et plus contrastée qu'avant, pour que
-     les niveaux se lisent comme des matières empilées et non comme des
-     rectangles à bordure. */
+
   --bg: #0a0c11;
   --bg-deep: #06070a;
   --surface: #161922;
@@ -20,10 +18,6 @@
   --accent-hover: #ff6472;
   --accent-deep: #d81f31;
 
-  /* Accent chaud, reserve a l'Aim Trainer (barre du haut + ecran d'accueil).
-     Etait duplique en litteral aux deux endroits ; c'est la seule couleur de
-     bouton de l'app en dehors de l'accent rouge, elle merite un token plutot
-     qu'un copier-coller. */
   --accent-warm: #ff8f4d;
   --accent-warm-mid: #ff5a3c;
   --accent-warm-deep: #e0342f;
@@ -34,9 +28,6 @@
   --good: #3ddc84;
   --warning: #ffb84d;
 
-  /* Teintes d'icônes, même palette que les cartes de mode Aim Trainer,
-     réutilisée pour colorer les icônes SVG (nav, succès, badges) au lieu de
-     les laisser toutes en gris uniforme. */
   --hue-red: #ff4655;
   --hue-gold: #ffc857;
   --hue-blue: #4ec9f5;
@@ -48,21 +39,11 @@
   --font-display: 'Chakra Petch', 'Segoe UI', sans-serif;
   --font-body: 'Inter Variable', 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
-  /* Élévation à deux couches : une ombre de contact courte et dense + une
-     ombre ambiante large et diffuse. Une seule ombre floue donne toujours cet
-     aspect "carte web" plat ; deux couches imitent une vraie source de lumière. */
-
-  /* Liseré clair sur l'arête haute : simule la lumière qui accroche le bord
-     d'une surface physique. C'est ce détail qui sépare une UI sombre premium
-     d'une UI sombre plate. */
-
   --r-sm: 8px;
   --r-md: 12px;
   --r-lg: 16px;
   --r-xl: 20px;
 
-  /* Hauteur unique de tous les controles du header (boutons, champs) : la
-     valeur etait recopiee dans six regles, elles derivaient une a une. */
   --control-h: 42px;
 
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
@@ -76,10 +57,6 @@
   --t-spin: 760ms linear;
   --t-ambient: 4900ms var(--ease-in-out);
 
-  /* Etats interactifs. Regle unique dans toute l'app : un survol ne change
-     jamais la geometrie, seulement fond, bordure ou anneau. Le voile en
-     box-shadow inset marche aussi par-dessus un degrade, contrairement a
-     background-color. */
   --hover-veil: rgba(255, 255, 255, 0.055);
   --press-veil: inset 0 0 0 999px rgba(0, 0, 0, 0.2);
 
@@ -100,8 +77,6 @@ body {
   text-rendering: optimizeLegibility;
 }
 
-/* Fenêtre overlay de sélection d'agent : fond réellement transparent, pour
-   flotter par-dessus Valorant sans rectangle opaque autour de la carte. */
 body.overlay-window {
   background: transparent;
 }
@@ -111,10 +86,6 @@ body.overlay-window::after {
   content: none;
 }
 
-/* Atmosphère ambiante : deux halos colorés qui dérivent très lentement.
-   Fixé derrière tout le reste, ça donne à l'app une présence "vivante" au
-   lieu d'un aplat statique, sans jamais distraire puisque le mouvement est
-   trop lent pour être suivi consciemment. */
 body::before {
   content: '';
   position: fixed;
@@ -127,16 +98,10 @@ body::before {
     radial-gradient(50% 50% at 50% 0%, rgba(255, 255, 255, 0.028), transparent 72%);
 }
 
-/* Une fois dans l'app (au-delà des écrans de bienvenue/connexion), le halo
-   est retiré : il tournait en continu derrière la topbar/sidebar qui ont un
-   backdrop-filter, ce qui forçait un repaint permanent de ce flou pour un
-   effet à peine visible sous le reste de l'interface. */
 body.in-app::before {
   display: none;
 }
 
-/* Grain fin sur toute la surface : casse le banding des dégradés sombres et
-   donne une texture de matière plutôt qu'un aplat numérique. */
 body::after {
   content: '';
   position: fixed;
@@ -147,9 +112,6 @@ body::after {
   background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
-/* Tous les chiffres de stats en chasse fixe : sans ça, chaque rafraîchissement
-   fait "sauter" les valeurs en largeur puisque les glyphes n'ont pas la même
-   avance. Indispensable sur un tracker où les nombres se mettent à jour. */
 .stat-tile .value,
 .kpi-tile-value,
 .account-tile-value,
@@ -172,9 +134,6 @@ table td {
   background: transparent;
 }
 
-/* Barre de défilement discrète, détachée du bord par une bordure transparente
-   (technique du padding via background-clip), elle se lit comme un élément
-   flottant et non comme une gouttière collée au bord de la fenêtre. */
 ::-webkit-scrollbar-thumb {
   background: #333a48;
   border-radius: 999px;
@@ -208,20 +167,12 @@ h1 {
   letter-spacing: -0.02em;
 }
 
-/* `.label` sert de texte secondaire (aides, précisions, légendes) dans toute
-   l'app, mais n'avait jusqu'ici aucun style global : ces phrases s'affichaient
-   au même poids visuel que le contenu principal. Les subordonner rétablit une
-   hiérarchie de lecture sur tous les écrans d'un coup. Les contextes qui ont
-   déjà leur propre `.label` (tuiles de stats, jauges…) restent prioritaires. */
 .label {
   color: var(--text-muted);
   font-size: 0.85rem;
   line-height: 1.55;
 }
 
-/* Titre de carte : le filet de séparation part de l'accent et se dissout,
-   au lieu d'une bordure grise uniforme d'un bord à l'autre. Donne une
-   direction de lecture au lieu d'un simple trait. */
 .card > h3:first-child {
   position: relative;
   padding-bottom: 0.7rem;
@@ -240,17 +191,13 @@ h1 {
   background: linear-gradient(90deg, rgba(255, 70, 85, 0.5), var(--border) 22%, transparent 92%);
 }
 
-/* CollapsibleCard : même liseré que `.card > h3:first-child`, mais porté par
-   l'en-tête (le h3 n'est plus tout à fait le premier enfant direct de
-   `.card` au sens CSS une fois wrappé, donc le style est réappliqué ici). */
 .collapsible-card-header {
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
   position: relative;
-  /* Meme hauteur avec ou sans bouton Reduire, sinon le rythme vertical saute
-     d une carte a l autre. */
+
   min-height: 2.31rem;
   padding-bottom: 0.7rem;
   margin-bottom: 0.9rem;
@@ -283,9 +230,6 @@ h1 {
   flex-shrink: 0;
 }
 
-/* Bouton "Réduire"/"Agrandir" bien visible plutôt qu'un simple chevron
-   discret, demande explicite après un premier essai jugé pas assez
-   repérable (pastille contrastée, pas juste du texte nu). */
 .collapsible-card-toggle {
   display: flex;
   align-items: center;
@@ -398,7 +342,7 @@ h1 {
   overflow-y: auto;
   overflow-x: hidden;
   position: relative;
-  /* Espace pour que l'indicateur qui glisse ne soit pas tronqué à droite. */
+
   margin: 0 -0.85rem;
   padding: 0 0.85rem;
 }
@@ -464,7 +408,7 @@ h1 {
   z-index: 1;
   display: flex;
   align-items: center;
-  /* Sinon `.btn` centre le contenu et le bord des icônes danse. */
+
   justify-content: flex-start;
   font-family: var(--font-body);
   gap: 0.7rem;
@@ -498,11 +442,6 @@ h1 {
   opacity: 1;
 }
 
-/* Pastille de comptage. `line-height: 1` et les chiffres tabulaires sont ce
-   qui la centre vraiment : avec la hauteur de ligne du texte courant, la
-   ligne réserve la place d'un jambage sous le chiffre, qui remonte donc dans
-   la pastille, et le "1" proportionnel d'Inter, plus étroit que sa chasse,
-   se décale vers la gauche. */
 .sidebar-link-badge {
   margin-left: auto;
   flex-shrink: 0;
@@ -540,7 +479,6 @@ h1 {
   transition: background var(--t-state), color var(--t-state);
 }
 
-/* Nav strictement immobile au survol et à la sélection. */
 .sidebar-link:hover .sidebar-link-icon,
 .sidebar-link.active .sidebar-link-icon,
 .sidebar-link:hover,
@@ -567,10 +505,6 @@ h1 {
   font-weight: 700;
 }
 
-/* Le fond/la bordure/la barre d'accent de l'onglet actif vivent maintenant
-   sur .sidebar-active-indicator (voir App.jsx) plutôt que directement sur le
-   lien, pour pouvoir glisser d'une position à l'autre au lieu de sauter. */
-/* Retrait = padding de .sidebar-nav, pour coller à la boîte du lien. */
 .sidebar-active-indicator {
   position: absolute;
   left: 0.85rem;
@@ -599,9 +533,6 @@ h1 {
   background: color-mix(in srgb, var(--accent) 20%, transparent);
 }
 
-/* `stretch` : le bouton de deconnexion prend exactement la hauteur de la
-   carte de profil, les deux blocs du pied de barre forment une seule ligne
-   au lieu d'un petit carre flottant a cote d'une grande carte. */
 .sidebar-footer {
   display: flex;
   align-items: stretch;
@@ -621,10 +552,6 @@ h1 {
   padding: 0;
 }
 
-/* Dans le pied de la barre laterale, le bouton reprend la geometrie de la
-   carte de profil : meme hauteur (via le stretch du conteneur) et meme rayon,
-   pour que les deux tuiles se lisent comme une paire. La classe reste partagee
-   avec le bouton libelle de la page Compte, qui garde sa forme a lui. */
 .sidebar-footer .sidebar-signout {
   width: 44px;
   height: auto;
@@ -699,16 +626,11 @@ h1 {
   text-overflow: ellipsis;
 }
 
-/* `.profile-tag` est calibre pour la grande carte de profil (1.05rem, a cote
-   d'un pseudo bien plus gros). Ici il doit rester sur la meme taille que le
-   pseudo : seule la graisse et la couleur le mettent en retrait. */
 .sidebar-profile-name .profile-tag {
   font-size: inherit;
   margin-left: 0.25rem;
 }
 
-/* Le croisillon est de la ponctuation, pas une lettre du tag : on l'efface
-   d'un cran pour que l'oeil attrape directement les caracteres utiles. */
 .sidebar-profile-name .profile-tag-hash {
   color: color-mix(in srgb, var(--text-dim) 55%, transparent);
   margin-right: 0.04em;
@@ -741,11 +663,7 @@ h1 {
   z-index: 5;
   display: flex;
   align-items: center;
-  /* Un seul ecart entre tous les controles de la barre : les groupes etaient
-     separes par le double de leur ecart interne, ce qui donnait des trous
-     inegaux entre boutons voisins. Le regroupement se lit deja aux formes
-     (bouton plein, bouton carre). Row-gap plus large : quand la barre se
-     replie, les deux lignes doivent respirer. */
+
   gap: 0.75rem 0.5rem;
   padding: 0.8rem 1.25rem;
   background: linear-gradient(180deg, rgba(24, 28, 37, 0.82), rgba(18, 21, 28, 0.68));
@@ -754,31 +672,22 @@ h1 {
   flex-wrap: wrap;
 }
 
-/* Une seule hauteur et un seul rayon pour toute la barre : trois valeurs
-   cohabitaient sur la meme ligne (42 / 37 / 35.6 px). */
 .topbar .btn,
 .topbar .search-bar-riotid {
   height: var(--control-h);
   border-radius: var(--r-md);
 }
 
-/* Padding horizontal des seuls boutons a libelle. Les boutons carres
-   (icones, avatar) doivent en etre exclus : la regle gagnait sur leur
-   `padding: 0` et ecrasait l'avatar du compte a 4 px de large. */
 .topbar .btn:not(.topbar-icon-button):not(.topbar-lang):not(.topbar-account-button) {
   padding-inline: 1.1rem;
 }
 
-/* Meme ecart qu'entre les groupes : voir le gap de .topbar. */
 .topbar-group {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
-/* Tout l'espace libre de la barre tombe ici, entre le bloc d'identification
-   (titre + recherche) et les actions : un seul vide, et des ecarts egaux
-   partout ailleurs. */
 .topbar-group-actions {
   margin-inline-start: auto;
 }
@@ -801,7 +710,6 @@ h1 {
   border-color: var(--accent);
 }
 
-/* Meme rendu de drapeau que sur le site (voir globals.css). */
 .flag-icon {
   width: 1.35em;
   height: auto;
@@ -1087,10 +995,6 @@ h1 {
   transform: none;
 }
 
-/* ============================================================
-   Connexion / inscription (AccountAuth, SetNewPasswordScreen)
-   ============================================================ */
-
 .auth-screen {
   position: relative;
   min-height: 100vh;
@@ -1116,8 +1020,7 @@ h1 {
 }
 
 .auth-glow-warm {
-  /* Taille liée au viewport, sinon le halo se réduit à une tache au centre
-     des grands écrans. */
+
   width: clamp(700px, 78vw, 1700px);
   height: clamp(700px, 78vw, 1700px);
   top: -40%;
@@ -1236,8 +1139,6 @@ h1 {
   position: relative;
 }
 
-/* Corps agrandi : le glyphe `*` est dessiné en exposant, au corps du champ la
-   rangée d'astérisques flotte contre le haut. */
 .auth-input-password::placeholder {
   font-size: 1.25rem;
   letter-spacing: 0.16em;
@@ -1321,7 +1222,6 @@ h1 {
   color: var(--text-muted);
 }
 
-/* Neutralise le fond et la bordure que `button` pose par défaut. */
 .auth-link {
   padding: 0;
   border: none;
@@ -1373,7 +1273,6 @@ h1 {
   }
 }
 
-/* Au-delà de 1800px la carte paraissait minuscule au centre de l'écran. */
 @media (min-width: 1800px) and (min-height: 1000px) {
   .auth-shell {
     max-width: 460px;
@@ -1515,10 +1414,6 @@ h1 {
   gap: 0.5rem;
 }
 
-/* Pseudo et tag forment un seul champ : meme fond creuse que les autres
-   saisies de l'app, une seule bordure autour des deux. `stretch` (et non
-   `center`) pour que le fond du champ actif remplisse toute la hauteur du
-   groupe au lieu de flotter dedans. */
 .search-bar-riotid {
   display: flex;
   align-items: stretch;
@@ -1529,9 +1424,6 @@ h1 {
   transition: border-color var(--t-state);
 }
 
-/* L'anneau de focus appartient au groupe, pas aux deux <input> : pose sur un
-   champ, il etait rogne par l'`overflow: hidden` du groupe et n'apparaissait
-   qu'en moitie d'anneau. Le champ actif, lui, se signale par son fond. */
 .search-bar-riotid:focus-within {
   border-color: var(--accent);
   outline: 2px solid var(--accent);
@@ -1545,9 +1437,6 @@ h1 {
   padding-inline: 0.7rem;
 }
 
-/* Largeur calee sur le contenu reel (un pseudo, un tag) : la largeur par
-   defaut d'un <input> laissait un trou de 60 px entre le pseudo saisi et
-   le « # ». */
 .search-bar .search-bar-riotid input:not(.search-bar-tag) {
   width: 150px;
 }
@@ -1600,14 +1489,11 @@ h1 {
   }
 }
 
-/* Scroll sur .content, largeur bornée sur l'enfant : sinon les cartes
-   s'étirent en blocs quasi vides sur un écran large. */
 .content > * {
   max-width: 1240px;
   margin-inline: auto;
 }
 
-/* Le board a besoin de plus de large pour garder canvas et outils côte à côte. */
 .content > .strategy-board {
   max-width: 1640px;
 }
@@ -1671,8 +1557,6 @@ h1 {
   transition: border-color var(--t-state), box-shadow var(--t-state);
 }
 
-/* Trait d'accent en haut de la tuile, révélé au survol : donne un retour
-   visuel net sans déplacer ni redimensionner quoi que ce soit. */
 .stat-tile::after {
   content: '';
   position: absolute;
@@ -1694,38 +1578,26 @@ h1 {
   opacity: 0.85;
 }
 
-/* Le chiffre est l'élément héros : police display, corps généreux, chasse
-   resserrée et dégradé vertical qui l'éclaire par le haut. */
 .stat-tile .value {
   font-family: var(--font-display);
   font-size: 2rem;
   font-weight: 700;
   line-height: 1.05;
   letter-spacing: -0.025em;
-  /* Dégradé clair→accent appliqué au texte. Quand un composant impose une
-     couleur sémantique en ligne (vert = bon, rouge = mauvais), celle-ci
-     l'emporte et masque le dégradé, comportement voulu. L'ombre portée reste
-     donc neutre : une lueur rouge sur un chiffre vert jurerait. */
+
   background: linear-gradient(180deg, #fff 8%, var(--accent) 92%);
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
-  /* drop-shadow (et non text-shadow) : avec `color: transparent`, un
-     text-shadow peindrait des glyphes pleins visibles derrière le dégradé. */
+
   white-space: nowrap;
 }
 
-/* `color: transparent` + `background-clip: text` sur `.stat-tile .value`
-   masque aussi les glyphes couleur des emoji (rendus comme un calque à part
-   par le moteur, pas juste une couleur de texte), invisibles plutôt que
-   dégradés comme prévu. Un emoji placé devant le texte doit donc être dans
-   son propre span, hors de ce clip. */
 .stat-tile .value-icon {
   background: none;
   -webkit-background-clip: initial;
   background-clip: initial;
-  /* `initial` rendrait le glyphe en noir sur fond sombre : on repose la
-     couleur de texte du thème pour rester cohérent avec les autres icônes. */
+
   -webkit-text-fill-color: var(--text);
   color: var(--text);
   filter: none;
@@ -1781,11 +1653,6 @@ h1 {
   overflow: hidden;
 }
 
-/* Toutes les barres de progression de l'app démarrent à 0% et se remplissent
-   jusqu'à leur vraie largeur à l'apparition, plutôt que d'être déjà pleines
-   au premier rendu, @starting-style capture l'état "avant insertion dans le
-   DOM", donc ça se déclenche à chaque fois qu'un de ces éléments apparaît
-   (changement d'onglet, ouverture d'une modale...). */
 .weapon-bar-fill,
 .stat-bar-fill,
 .goal-progress-fill,
@@ -2032,9 +1899,6 @@ h1 {
   object-fit: contain;
 }
 
-/* Jauge creusée dans la surface : rail en creux (ombre interne) + remplissage
-   lumineux posé dedans. Beaucoup plus lisible qu'une barre plate, et l'échelle
-   reste perceptible même quand le remplissage est très faible. */
 .stat-bar-track {
   position: relative;
   flex: 1;
@@ -2263,9 +2127,7 @@ h1 {
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1rem;
   align-items: start;
-  /* Les cartes à l'intérieur ont leur margin-bottom mis à zéro (juste en
-     dessous) pour ne pas créer un vide vertical entre les deux colonnes,
-     mais ça ne doit pas coller ce bloc à ce qui vient juste après lui. */
+
   margin-bottom: 1.25rem;
 }
 
@@ -2334,8 +2196,6 @@ th {
   border-bottom-color: var(--border-strong);
 }
 
-/* Zébrage très léger : sur un tableau round-par-round dense, suivre une ligne
-   à l'horizontale devient nettement plus facile qu'avec de simples filets. */
 tbody tr:nth-child(even) {
   background: rgba(255, 255, 255, 0.016);
 }
@@ -2349,12 +2209,8 @@ tr.clickable:hover {
   background-color: rgba(255, 70, 85, 0.07);
 }
 
-/* En couche `base` : perd toujours face aux classes de composant. */
 @layer base {
-  /* Repli pour les <button> ecrits a la main, sans le composant Button : ils
-     prennent exactement l'aspect de la variante ghost, pour qu'un bouton
-     rende pareil qu'il passe ou non par le composant. Le composant, lui, est
-     entierement pilote par .btn et ses variantes plus bas. */
+
   button {
     background: var(--surface-alt);
     color: var(--text);
@@ -2365,21 +2221,14 @@ tr.clickable:hover {
     font-family: inherit;
     font-size: 0.9rem;
     font-weight: 600;
-    /* Sans ca un <button> ecrit a la main faisait 41px de haut contre 36px
-       pour le composant, a padding et police pourtant identiques. */
+
     line-height: 1;
-    /* `scale: 1` explicite : la valeur initiale de `scale` est `none`, qui ne
-       s'interpole pas vers un nombre — sans ca la transition part de `none`
-       et n'atteint jamais le 0.96 de l'appui (verifie au rendu). */
+
     scale: 1;
     transition: background-color var(--t-state), border-color var(--t-state), box-shadow var(--t-state),
       color var(--t-state), scale var(--t-state);
   }
 
-  /* `:not(.btn)` est ce qui rend le design system operant. Sans lui, cette
-     regle pese (0,2,1) contre (0,2,0) pour `.btn-primary:hover:not(:disabled)`
-     dans la meme couche : l'element gagnait et TOUTES les variantes viraient
-     au meme degrade gris au survol, y compris le primary rouge. */
   button:hover:not(:disabled):not(.weekly-notch):not(.btn) {
     border-color: var(--border-strong);
     background: var(--surface-hi);
@@ -2401,10 +2250,6 @@ tr.clickable:hover {
   }
 }
 
-/* Action principale : dégradé rouge avec liseré clair en haut, le bouton
-   doit lire comme une touche physique éclairée, pas comme un aplat de
-   couleur. La lueur portée reste sous le bouton (et non tout autour) pour
-   suggérer qu'il flotte au-dessus de la surface. */
 .refresh,
 form button[type='submit'] {
   background: var(--accent);
@@ -2422,9 +2267,7 @@ form button[type='submit']:hover:not(:disabled) {
 input,
 select,
 textarea {
-  /* Champ "creusé" dans la surface (ombre interne) plutôt que posé dessus,
-     l'inverse exact du traitement des boutons, ce qui rend saisie et action
-     immédiatement distinguables au premier coup d'œil. */
+
   background: #12151c;
   color: var(--text);
   border: 1px solid var(--border);
@@ -2503,7 +2346,6 @@ li {
   flex-wrap: wrap;
 }
 
-/* --- Écran d'accueil : tracker à gauche, Aim Trainer à droite ------------- */
 .greeting-screen {
   justify-content: center;
 }
@@ -2537,36 +2379,15 @@ li {
   color: var(--text-dim);
 }
 
-/* Pas de `margin-top: auto` ici : les actions sont deja poussees en bas par
-   la marge automatique du bloc qui les precede (.greeting-summary ou
-   .greeting-empty, l'un des deux est toujours rendu). En cumuler une
-   troisieme faisait partager le mou vertical en trois parts egales, ce qui
-   collait le resume trop haut (44px au-dessus, 88px en dessous). */
 .greeting-panel .riot-confirm-actions {
   margin-top: 0;
 }
 
-/* La carte de profil est calibree pour l'ecran de liaison de compte, ou elle
-   vit dans une colonne plus etroite : max-width 420px et marge verticale
-   propre. Dans ce panneau elle creait deux defauts — une largeur de 18px
-   inferieure a la grille de stats juste en dessous (donc une arete
-   d'alignement parasite face au panneau de droite, lui a fond perdu), et une
-   marge de 1rem qui s'ajoutait au gap du panneau, decalant tout le contenu
-   de gauche de 16px par rapport a celui de droite. */
 .greeting-panel .riot-preview-card {
   max-width: none;
   margin-block: 0;
 }
 
-/* Un seul gabarit de bouton sur cet ecran. Les deux actions du bas etaient a
-   trois tailles differentes (37,2px a gauche, 41,2px a droite) : c'est la
-   hauteur commune et la taille de texte qui sont unifiees, pas le padding
-   horizontal, pour que les libelles longs ne poussent pas la rangee de
-   gauche jusqu'au retour a la ligne. */
-
-/* Les actions restent collees en bas des deux panneaux (memes cotes, deja
-   le cas), mais le mou vertical se repartit autour du resume au lieu de
-   s'accumuler entierement au-dessus des boutons. */
 .greeting-summary {
   display: flex;
   flex-direction: column;
@@ -2576,16 +2397,6 @@ li {
   margin-block: auto;
 }
 
-/* Actions a fond perdu dans les DEUX panneaux : elles partagent alors la meme
-   arete que la carte de profil, la grille de stats et l'apercu de l'arene,
-   et les deux colonnes se repondent au lieu d'opposer une rangee de pastilles
-   a un bouton centre.
-   C'est aussi ce qui supprime le seul point de rupture de l'ecran : cote a
-   cote, les deux libelles ne tenaient plus sur une ligne des que le panneau
-   passait sous ~400px de contenu (la fenetre s'ouvre a 800px par defaut, ou
-   chaque panneau n'a que 299px de contenu) et la rangee se repliait en deux
-   pastilles de largeurs differentes. Un bouton pleine largeur ne se replie
-   jamais, quelle que soit la langue. */
 .greeting-panel .riot-confirm-actions {
   flex-direction: column;
   align-items: stretch;
@@ -2680,13 +2491,10 @@ li {
 }
 
 .greeting-aim-btn {
-  /* `.refresh` porte un `margin-left: auto` pour son usage dans la topbar :
-     sans le neutraliser, le bouton se colle à droite du panneau au lieu
-     d'être centré. */
+
   margin: auto auto 0;
 }
 
-/* Illustration de l'arène de tir, entièrement en CSS. */
 .aim-preview {
   position: relative;
   width: 100%;
@@ -2707,8 +2515,6 @@ li {
   background: radial-gradient(circle, rgba(255, 244, 214, 0.95), rgba(255, 232, 186, 0));
 }
 
-/* Sol en perspective : lignes de fuite obtenues par un dégradé répété
-   incliné, plutôt qu'une vraie transformation 3D. */
 .aim-preview-floor {
   position: absolute;
   left: -25%;
@@ -2780,10 +2586,6 @@ li {
   color: #fff;
 }
 
-/* --- Aim Trainer : raccourci topbar + mode d'emploi ----------------------- */
-/* Bouton d'appel principal : dégradé chaud, liseré clair sur l'arête haute et
-   reflet qui balaie, il doit se distinguer nettement des boutons neutres
-   voisins sans hurler plus fort que l'action « Rafraîchir ». */
 .aim-topbar-button {
   position: relative;
   flex-shrink: 0;
@@ -2903,7 +2705,6 @@ li {
   color: var(--text);
 }
 
-/* --- Aim Trainer : défi du jour, série, impact, classements --------------- */
 .aim-top-row {
   display: grid;
   grid-template-columns: minmax(0, 2fr) minmax(220px, 1fr);
@@ -3146,7 +2947,6 @@ li {
   font-weight: 500;
 }
 
-/* --- Aim Trainer : résumé figé du mode actif ------------------------------ */
 .aim-mode-summary {
   display: flex;
   flex-wrap: wrap;
@@ -3165,7 +2965,6 @@ li {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Fenêtre modale du mode Personnalisé ----------------------------------- */
 .custom-config-overlay {
   position: fixed;
   inset: 0;
@@ -3210,7 +3009,6 @@ li {
   margin-top: 0.5rem;
 }
 
-/* --- Aim Trainer : panneau de réglages (dans l'onglet) -------------------- */
 .aim-mode-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
@@ -3235,8 +3033,6 @@ li {
   transition: border-color var(--t-state), background-color var(--t-state);
 }
 
-/* Halo diffus dans la couleur du mode : donne son identité à chaque carte
-   sans recourir à une image de fond. */
 .aim-mode-glow {
   position: absolute;
   z-index: -1;
@@ -3493,7 +3289,6 @@ li {
   padding: 0.75rem 1.5rem;
 }
 
-/* --- Aim Trainer : fenêtre de jeu plein écran ----------------------------- */
 .aim-game {
   position: fixed;
   inset: 0;
@@ -3749,13 +3544,7 @@ li {
 }
 
 .crosshair-item {
-  /* Taille fixe, volontairement : un essai avec flex-grow (cartes qui
-     s'étirent pour combler une ligne creuse) rendait les cartes d'une
-     dernière ligne clairsemée bien plus grandes que celles des lignes
-     pleines au-dessus, plus incohérent que le vide qu'il comblait. La
-     vraie solution est de ne jamais laisser une ligne trop creuse en premier
-     lieu (voir PRO_PAGE_SIZE dans CrosshairLibrary.jsx, aligné sur le nombre
-     de colonnes réel à cette largeur de carte). */
+
   width: 160px;
   background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
   border: 1px solid var(--border);
@@ -3930,9 +3719,6 @@ li {
   margin-top: 0.5rem;
 }
 
-/* Liste d'agents en colonnes alignees : les chiffres se lisent verticalement
-   d'une ligne a l'autre. Pas de bordure ni de liseré colore par ligne, la
-   couleur du winrate porte seule l'etat. */
 .agent-table {
   --agent-cols: minmax(0, 1.6fr) 4.5rem 4.5rem 7rem 4rem minmax(0, 1fr);
   margin-top: 0.25rem;
@@ -4026,8 +3812,6 @@ li {
   color: var(--text-muted);
 }
 
-/* Sous 620 px les colonnes numeriques ne tiennent plus : on garde agent,
-   winrate et parties, le reste passe dans la modale de detail. */
 @media (max-width: 620px) {
   .agent-table {
     --agent-cols: minmax(0, 1fr) 4rem 4rem;
@@ -4092,8 +3876,7 @@ li {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  /* Flou de l'arrière-plan plutôt qu'un simple voile noir : la modale se
-     détache par la profondeur de champ, comme une mise au point optique. */
+
   background: rgba(4, 5, 8, 0.62);
   backdrop-filter: blur(10px) saturate(0.85);
   display: flex;
@@ -4318,8 +4101,6 @@ li {
   transition: background var(--t-state), border-color var(--t-state);
 }
 
-/* :not(.active) sinon le survol (specificite superieure) efface l'etat
-   selectionne du filtre. */
 .strategy-tool:hover:not(:disabled):not(.active) {
   background: var(--surface-hi);
   border-color: var(--border-strong);
@@ -4612,11 +4393,6 @@ input[type='color'] {
   object-fit: cover;
 }
 
-/* Réserve l'espace que .stats-scope-card va reprendre juste après via sa
-   marge négative (voir plus bas), sans ça, ce bandeau sticky remonte
-   par-dessus le sélecteur PC/Console au lieu de la zone vide prévue à
-   l'origine, qui n'existe que pour les comptes mono-plateforme (seul cas
-   testé quand cette astuce a été écrite). */
 .platform-filter-toggle {
   margin-bottom: 1.5rem;
 }
@@ -4649,9 +4425,7 @@ input[type='color'] {
   position: relative;
   padding: 0;
   overflow: hidden;
-  /* wideArt fait 452x128 : en `cover` sur une carte de ~1190 px il etait
-     agrandi 2,6x (donc flou) et recadre a la verticale. `auto 100%` le rend
-     a sa taille native, cale a droite, et le degrade le fond dans la carte. */
+
   background-size: auto 100%;
   background-position: right center;
   background-repeat: no-repeat;
@@ -4680,8 +4454,7 @@ input[type='color'] {
   border-radius: 12px;
   object-fit: cover;
   flex-shrink: 0;
-  /* Liseré neutre plutot qu'un anneau d'accent : la couleur d'accent veut
-     dire interactif ailleurs dans l'app. */
+
   outline: 1px solid rgba(255, 255, 255, 0.14);
   outline-offset: -1px;
 }
@@ -4760,8 +4533,6 @@ input[type='color'] {
   width: 20px;
   height: 20px;
 }
-
-/* Widget d'objectifs personnels */
 
 .goals-widget-button {
   position: fixed;
@@ -4967,8 +4738,6 @@ input[type='color'] {
   border-color: var(--accent);
   color: white;
 }
-
-/* Carte de progression hebdomadaire */
 
 .weekly-notch {
   position: fixed;
@@ -6229,8 +5998,6 @@ input[type='color'] {
   background: var(--text-muted);
 }
 
-/* Onglet Graphiques */
-
 .kpi-row {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -6271,8 +6038,6 @@ input[type='color'] {
   margin-top: 0.2rem;
 }
 
-/* align-items: start, sinon une carte réduite s'étire à la hauteur de sa
-   voisine dépliée et laisse un grand bloc vide. */
 .chart-grid-2 {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
@@ -6395,8 +6160,6 @@ input[type='color'] {
   border-radius: 3px;
   flex-shrink: 0;
 }
-
-/* Onglet Wiki */
 
 .wiki-grid {
   display: grid;
@@ -7339,15 +7102,12 @@ input[type='color'] {
   gap: 0.3rem;
 }
 
-/* Boutons message/supprimer sur la liste d'amis, agrandis pour rester bien
-   visibles (contrairement aux petites actions des demandes en attente). */
 .friend-request-actions-lg button {
   width: 38px;
   height: 38px;
   font-size: 1.05rem;
 }
 
-/* Avatar cliquable, sans style de bouton par défaut, ouvre la carte résumé. */
 .friend-avatar-button {
   background: none;
   border: none;
@@ -7361,9 +7121,6 @@ input[type='color'] {
   border-color: var(--accent);
 }
 
-/* Carte résumé d'un ami, bannière carte joueur + rang, dans la modale
-   déclenchée par clic sur l'avatar, et dans le panneau à droite d'une
-   conversation ouverte. */
 .friend-summary-modal {
   max-width: 340px;
   padding: 0;
@@ -7496,8 +7253,6 @@ input[type='color'] {
   font-size: 0.72rem;
 }
 
-/* Case dédiée à l'agent fétiche : portrait complet bien visible, séparée
-   des tuiles de stats plutôt qu'entassée dedans. */
 .friend-summary-agent-card {
   display: flex;
   flex-direction: column;
@@ -7554,8 +7309,6 @@ input[type='color'] {
   justify-content: center;
 }
 
-/* Ecran de garde : carte compacte centree, et non le shell 3 colonnes de la
-   conversation dont elle heritait un etirement pleine hauteur. */
 .messages-unlock {
   display: grid;
   place-items: center;
@@ -7597,8 +7350,6 @@ input[type='color'] {
   text-wrap: pretty;
 }
 
-/* Ecart intra-groupe 8px, inter-groupe 24px : la separation se lit par
-   l espace, sans filet. */
 .messages-unlock-form {
   display: grid;
   gap: 0.5rem;
@@ -7685,8 +7436,7 @@ input[type='color'] {
   border: 1px solid var(--border);
   border-radius: 12px 12px 12px 2px;
   padding: 0.65rem 1rem;
-  /* S'agrandit avec la largeur de fenêtre, minuscule sur un petit écran,
-     lisible confortablement une fois la fenêtre maximisée sur un grand. */
+
   font-size: clamp(0.88rem, 0.65vw + 0.65rem, 1.15rem);
   word-break: break-word;
 }
@@ -7867,18 +7617,13 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
-/* Panneau "Comment ça marche", entre la liste et le panneau promo — une
-   petite timeline verticale (numéros reliés par un trait) plutôt qu'une
-   simple liste à puces. */
 .tournaments-middle-column {
   flex: 0 0 260px;
   width: 260px;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
-  /* Même hauteur que .tournaments-promo (calc(100vh - 140px)) : "Tes
-     tournois" s'étire pour que la colonne finisse exactement au même
-     endroit que le panneau Neon, sans toucher à la colonne des cartes. */
+
   height: calc(100vh - 140px);
 }
 
@@ -8018,9 +7763,6 @@ input[type='color'] {
   line-height: 1.4;
 }
 
-/* "empty" : le bloc lui-même prend la même hauteur que les colonnes voisines
-   (Comment ça marche + Tes tournois, Neon) et centre le message dedans au
-   lieu de le laisser collé en haut avec du vide en dessous. */
 .tournaments-list-block.empty {
   display: flex;
   flex-direction: column;
@@ -8048,9 +7790,7 @@ input[type='color'] {
   color: var(--accent, #ff4655);
   filter: drop-shadow(0 0 24px rgba(255, 70, 85, 0.35));
   animation: tournamentsPromoFloat 4s ease-in-out infinite;
-  /* Décalage réglé à l'œil pour tomber au-dessus de l'espace entre
-     "TOURNOI" et "POUR" dans le titre FR — purement cosmétique, à
-     rajuster si le texte change. */
+
   margin-left: 65px;
 }
 
@@ -8080,10 +7820,6 @@ input[type='color'] {
   line-height: 1.5;
 }
 
-/* Bannière large façon affiche de tournoi esport : splash art d'une vraie
-   map Valorant en fond (assignée par tournoi, voir pickSplash), dégradé pour
-   la lisibilité, motif de lignes de bracket en filigrane — la signature
-   visuelle du module, présente même avant d'arriver sur le vrai bracket. */
 .tournament-card {
   position: relative;
   isolation: isolate;
@@ -8220,18 +7956,12 @@ input[type='color'] {
   text-shadow: 0 1px 8px rgba(0, 0, 0, 0.6);
 }
 
-/* Page tournois : liste à gauche, panneau promo décoratif à droite dans
-   l'espace qui restait vide. */
 .tournaments-page {
   display: flex;
   gap: 2rem;
   align-items: flex-start;
 }
 
-/* "Bloc" englobant les cartes de tournoi — mêmes codes visuels que les
-   panneaux voisins (bordure, fond, coins arrondis) ; en cas de liste vide,
-   c'est CE bloc qui affiche le message, pas un écran à part qui remplacerait
-   toute la page (le panneau promo et "Comment ça marche" restent visibles). */
 .tournaments-list-block {
   flex: 1 1 auto;
   min-width: 0;
@@ -8288,18 +8018,12 @@ input[type='color'] {
   color: #fff;
 }
 
-/* Panneau promo : purement décoratif, Neon en vedette (thème néon/électrique),
-   grand texte "TOURNOI" en filigrane, logo maison (pas d'assets/wordmark
-   Riot). Reste discret sur petite fenêtre : caché sous une largeur donnée. */
 .tournaments-promo {
   position: sticky;
   top: 0;
   flex: 0 0 260px;
   width: 260px;
-  /* `height` fixe (pas `min-height` + `align-self: stretch`) : une liste
-     plus longue que la fenêtre ne doit jamais étirer ce panneau avec elle,
-     juste défiler à côté de lui — VISIBLE_COUNT + "Voir plus" (côté JS)
-     s'occupent de garder la liste courte de toute façon. */
+
   align-self: flex-start;
   height: calc(100vh - 140px);
   border-radius: 18px;
@@ -8381,13 +8105,6 @@ input[type='color'] {
   }
 }
 
-/* Pas de max-width sur .tournament-detail lui-même : un enfant ne peut pas
-   dépasser la largeur de son parent juste en retirant SA propre limite — il
-   faut que le conteneur général reste libre, et brider uniquement les
-   sections qui doivent rester étroites (formulaires, listes). Le bracket a
-   besoin de toute la largeur disponible dès qu'il y a plusieurs tours
-   (chaque tour ajoute ~250px) : sur 3+ tours, 640px coupait carrément la
-   finale hors du cadre visible. */
 .tournament-registration,
 .tournament-teams-list,
 .tournament-admin-approvals,
@@ -8408,9 +8125,6 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
-/* En-tête façon bannière — même langage visuel que les cartes de la liste
-   (splash art, dégradé, motif de bracket en filigrane) pour que la page
-   détail se sente comme la suite naturelle de la liste, pas un écran à part. */
 .tournament-hero {
   position: relative;
   isolation: isolate;
@@ -8506,8 +8220,6 @@ input[type='color'] {
   transition: width 0.4s var(--ease-out, ease);
 }
 
-/* Les sections du détail parlent le même langage que .card : même surface,
-   même rayon, une bordure complète plutôt qu'un filet flottant à gauche. */
 .admin-panel,
 .tournament-registration,
 .tournament-teams-list {
@@ -8518,13 +8230,6 @@ input[type='color'] {
   animation: tournamentCardIn var(--t-view) both;
 }
 
-/* Le liseré d'accent signale "réservé à l'admin". Il était aussi posé sur
-   l'inscription et la liste d'équipes, donc sur toute la page : il ne
-   distinguait plus rien. Réservé aux 3 panneaux admin (validations, ajout
-   d'équipe, génération du bracket), il redevient lisible.
-   En ombre interne et non en `border-left` : une bordure épaisse suit la
-   courbe des angles et ressort en deux virgules détachées de part et
-   d'autre de la carte, l'ombre interne est détourée par le rayon. */
 .admin-panel {
   box-shadow: inset 3px 0 0 var(--accent);
 }
@@ -8561,9 +8266,6 @@ input[type='color'] {
   gap: 0.85rem;
 }
 
-/* Un cran au-dessus de la section qui les contient : les deux étaient sur
-   --surface, les cartes se fondaient dans leur propre liste et seul le filet
-   de bordure les séparait du fond. */
 .tournament-team-card {
   border-radius: var(--r-md);
   background: var(--surface-alt);
@@ -8574,8 +8276,6 @@ input[type='color'] {
   animation: tournamentCardIn var(--t-enter) both;
 }
 
-/* Le garde-fou doit suivre la regle qu'il neutralise : a specificite egale,
-   c'est la derniere declaration qui gagne, une media query n'y change rien. */
 @media (prefers-reduced-motion: reduce) {
   .tournament-team-card {
     animation: none;
@@ -8595,9 +8295,6 @@ input[type='color'] {
   --team-status: var(--warning);
 }
 
-/* `align-items` explicite : `.btn` centre son contenu, ce qui en colonne
-   centrait le nom de l'équipe, le chevron et la compo au milieu de la carte
-   au lieu de les aligner sur son bord gauche. */
 .tournament-team-card > button {
   width: 100%;
   text-align: left;
@@ -8628,9 +8325,6 @@ input[type='color'] {
   white-space: nowrap;
 }
 
-/* Pastilles plutôt que du texte gris posé sous le nom : "en attente" et
-   "ton équipe" sont des états de la carte, ils se lisent comme le badge de
-   statut du tournoi, pas comme une légende. */
 .tournament-team-card-tags {
   display: flex;
   flex-wrap: wrap;
@@ -8678,9 +8372,6 @@ input[type='color'] {
   color: var(--text-muted);
 }
 
-/* Une fois le bracket généré, équipes et bracket côte à côte plutôt
-   qu'empilés — le bracket est large, autant profiter de l'espace libre à
-   droite au lieu de le laisser vide en dessous de la liste d'équipes. */
 .tournament-columns {
   display: flex;
   gap: 2rem;
@@ -8731,9 +8422,6 @@ input[type='color'] {
   border: 1px solid var(--border);
 }
 
-/* Bracket : une colonne par tour, chacune centrée verticalement pour que les
-   paires convergent visuellement vers le tour suivant à mesure qu'il y a
-   moins de matchs. */
 .bracket {
   position: relative;
   display: flex;
@@ -8865,9 +8553,6 @@ input[type='color'] {
   width: 3rem;
 }
 
-/* Pas de max-width ici : la section qui contient le formulaire est déjà
-   bridée à 640px, un second plafond à 480px laissait une bande morte de
-   160px à droite, champs et boutons ne tombant plus sur le bord de la carte. */
 .team-roster-form {
   display: flex;
   flex-direction: column;
@@ -8878,18 +8563,11 @@ input[type='color'] {
   margin: 0.35rem 0 0;
 }
 
-/* Même traitement que le formulaire de création de tournoi juste à côté :
-   le bouton de validation garde sa largeur naturelle. Étiré sur toute la
-   carte, il devenait l'élément le plus lourd de la page alors qu'il passe
-   l'essentiel de son temps désactivé. */
 .team-roster-form > button[type='submit'] {
   align-self: flex-start;
   margin-top: 0.4rem;
 }
 
-/* Les 5 lignes sont des emplacements, pas une liste de contrôles posés dans
-   le vide : chacune a sa surface, et une bordure d'accent dès qu'elle est
-   remplie, pour voir d'un coup d'œil ce qu'il reste à choisir. */
 .team-roster-player-row {
   display: flex;
   align-items: center;
@@ -8965,10 +8643,6 @@ input[type='color'] {
   transition: border-color var(--t-state), background-color var(--t-state);
 }
 
-/* Survol sans transform : la règle posée avec le design system est qu'un
-   survol ne change jamais la géométrie, seulement fond, bordure ou anneau
-   (voir --hover-veil). Ce scale(1.08) était le dernier survol de la page à
-   ne pas la suivre. */
 .team-roster-agent-avatar:hover {
   border-color: var(--accent);
   background: var(--surface-hi);
@@ -9007,8 +8681,6 @@ input[type='color'] {
   margin-top: 0.75rem;
 }
 
-/* Sur une ligne de validation, les deux boutons sont à droite du nom, pas
-   en dessous : la marge d'empilement les décalait vers le bas du rang. */
 .tournament-approval-list .tournament-team-actions {
   margin-top: 0;
   flex-shrink: 0;
@@ -9019,13 +8691,8 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
-/* =========================================================================
-   SÉLECTION D'AGENT EN DIRECT (API locale du client Valorant)
-   Bandeau éphémère : n'existe que pendant la sélection, disparaît ensuite.
-   ========================================================================= */
 .agent-select {
-  /* Sibling de <main class="content">, donc ni son padding ni le plafond de
-     .content > * : les deux sont recrees ici pour un alignement identique. */
+
   max-width: min(1240px, 100% - 3rem);
   margin: 1.25rem auto;
   padding: 1rem 1.25rem 1.15rem;
@@ -9054,8 +8721,6 @@ input[type='color'] {
   color: var(--accent);
 }
 
-/* Pastille pulsante : le seul mouvement du bandeau, et il porte une
-   information, la sélection est en cours, la donnée est vivante. */
 .agent-select-dot {
   width: 8px;
   height: 8px;
@@ -9099,8 +8764,6 @@ body:not(.overlay-window) .agent-select-dot {
   transition: border-color var(--t-state), background var(--t-state);
 }
 
-/* Agent verrouillé : le choix est définitif, la carte se stabilise. Tant
-   qu'il ne l'est pas, elle reste volontairement plus discrète. */
 .agent-select-player.locked {
   border-color: var(--border-strong);
   background: var(--surface-hi);
@@ -9231,10 +8894,6 @@ body:not(.overlay-window) .agent-select-dot {
   padding: 0.15rem 0.5rem;
 }
 
-/* =========================================================================
-   OVERLAY DE SÉLECTION D'AGENT (fenêtre séparée, par-dessus Valorant)
-   Fond transparent (voir body.overlay-window) : seule la carte est visible.
-   ========================================================================= */
 .overlay-agent-select {
   margin: 10px;
   padding: 0.75rem 0.85rem 0.9rem;
@@ -9341,12 +9000,7 @@ body:not(.overlay-window) .agent-select-dot {
   border-top: none;
 }
 
-
 @layer base {
-  /* ============================================================
-     Classes réutilisables, flat, sans ombre (design system)
-     Boutons, cartes et badges partagés par les composants UI.
-     ============================================================ */
 
   .btn {
     display: inline-flex;
@@ -9362,18 +9016,13 @@ body:not(.overlay-window) .agent-select-dot {
     border: 1px solid transparent;
     cursor: pointer;
     user-select: none;
-    /* Voir la note sur `button` plus haut : `scale` doit avoir une valeur
-       numerique au repos pour que la transition vers 0.96 aboutisse. */
+
     scale: 1;
-    /* box-shadow et scale font partie de la liste : sans eux le voile d'appui
-       claquait sans transition sur les boutons du composant, alors qu'il
-       fondait sur un <button> ecrit a la main. */
+
     transition: background-color var(--t-state), border-color var(--t-state), color var(--t-state),
       box-shadow var(--t-state), filter var(--t-state), scale var(--t-state);
   }
 
-  /* Retour tactile a l'appui, identique pour toutes les variantes. Le design
-     system n'avait aucun etat :active, seul l'element en avait un. */
   .btn:active:not(:disabled) {
     box-shadow: var(--press-veil);
     scale: 0.96;
@@ -9420,10 +9069,6 @@ body:not(.overlay-window) .agent-select-dot {
     border-color: var(--accent);
   }
 
-  /* Variante reservee a l'Aim Trainer. Meme geometrie et memes etats que les
-     autres, seule la couleur change : le degrade ne s'interpole pas, c'est
-     donc `filter` qui porte le survol, comme partout ailleurs sur un fond
-     degrade. */
   .btn-accent {
     background: linear-gradient(180deg, var(--accent-warm), var(--accent-warm-mid) 55%, var(--accent-warm-deep));
     border-color: var(--accent-warm-border);
@@ -9722,9 +9367,6 @@ body:not(.overlay-window) .agent-select-dot {
   }
 }
 
-/* =========================================================================
-   ANNONCES ADMIN (écran "Content de te revoir" — AccountGreeting.jsx)
-   ========================================================================= */
 .announcement-stack {
   display: flex;
   flex-direction: column;
@@ -9803,7 +9445,6 @@ body:not(.overlay-window) .agent-select-dot {
   border: 1px solid color-mix(in srgb, var(--accent) 28%, transparent);
 }
 
-/* Pas de `text-transform` : le titre garde la casse tapée par l'auteur. */
 .announcement-card-title {
   margin: 0;
   font-family: var(--font-display);

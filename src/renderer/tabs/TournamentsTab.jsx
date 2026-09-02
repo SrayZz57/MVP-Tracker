@@ -17,14 +17,8 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
-// Nombre de cartes affichées avant "Voir plus", le panneau promo à droite a
-// une hauteur fixe (calée sur la fenêtre) : sans cette limite, une longue
-// liste l'étirerait avec elle plutôt que de simplement défiler/se replier.
 const VISIBLE_COUNT = 4;
 
-// Panneau décoratif dans l'espace vide à droite de la liste, Neon en
-// vedette (thème électrique/néon, cohérent avec l'identité du module),
-// purement visuel, ne réagit à aucune donnée.
 function TournamentsPromo() {
   const { t } = useTranslation();
   const agentPortraits = useAgentPortraits();
@@ -56,8 +50,6 @@ const HOW_IT_WORKS_STEPS = [
   { titleKey: 'tournaments.howItWorks.step4Title', textKey: 'tournaments.howItWorks.step4Text' },
 ];
 
-// Petit panneau explicatif entre la liste et le panneau promo, purement
-// informatif, ne dépend d'aucune donnée.
 function TournamentsHowItWorks() {
   const { t } = useTranslation();
 
@@ -79,9 +71,6 @@ function TournamentsHowItWorks() {
   );
 }
 
-// Sous "Comment ça marche" : accès rapide aux tournois où ce compte a une
-// équipe inscrite (n'importe quel statut sauf refusée), évite d'avoir à
-// rechercher son propre tournoi dans la liste générale.
 function TournamentsMine({ myId, onSelect }) {
   const { t } = useTranslation();
   const [mine, setMine] = useState(null);
@@ -97,9 +86,6 @@ function TournamentsMine({ myId, onSelect }) {
           setMine([]);
           return;
         }
-        // Un même compte peut avoir plusieurs équipes dans UN MÊME tournoi
-        // (le formulaire admin en ajoute autant que voulu), un seul lien
-        // par tournoi suffit ici, pas un doublon par équipe.
         const seen = new Set();
         const unique = [];
         for (const row of data ?? []) {
@@ -111,9 +97,6 @@ function TournamentsMine({ myId, onSelect }) {
       });
   }, [myId]);
 
-  // Toujours affichée, même vide, avec un message plutôt que de disparaître
-  // et casser la colonne (voir .tournaments-mine, dimensionnée pour occuper
-  // le reste de la colonne jusqu'au bas du panneau Neon).
   const list = mine ?? [];
 
   return (
@@ -139,10 +122,6 @@ function TournamentsMine({ myId, onSelect }) {
   );
 }
 
-// Liste des tournois, sert de page d'entrée pour tous les comptes connectés
-// (pas encore une vraie page publique accessible sans compte, ça viendra
-// séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
-// l'affichage + l'inscription d'équipe.
 function TournamentsTab({ myId, isAdmin }) {
   const { t } = useTranslation();
   const mapImages = useMapImages();
@@ -167,8 +146,6 @@ function TournamentsTab({ myId, isAdmin }) {
         setTournaments(data ?? []);
         setLoading(false);
 
-        // Vainqueur affiché sur les tournois terminés : le vainqueur du
-        // match du tour le plus élevé (la finale) qui en a un.
         const completedIds = (data ?? []).filter((tm) => tm.status === 'completed').map((tm) => tm.id);
         if (completedIds.length === 0) return;
 
@@ -210,10 +187,6 @@ function TournamentsTab({ myId, isAdmin }) {
 
   if (loadingGate.busy) return loadingGate.show ? <TournamentListSkeleton /> : null;
 
-  // Suppression réservée à l'admin : côté serveur (RLS), la même barrière
-  // que pour créer/modifier un tournoi (public.is_admin()), celle-ci
-  // existe déjà, aucune nouvelle policy à poser. La suppression cascade sur
-  // les équipes/matchs de ce tournoi (contrainte déjà posée sur ces tables).
   async function handleDelete(tournamentId) {
     setDeleting(true);
     await supabase.from('tournaments').delete().eq('id', tournamentId);
@@ -230,10 +203,6 @@ function TournamentsTab({ myId, isAdmin }) {
         {tournaments.length === 0 ? (
           <div className="tournaments-empty-state">
             <span className="tournaments-empty-icon" aria-hidden="true">
-              {/* Même dessin que le logo du panneau promo, mais recadré : le
-                  trophée n'occupe que le haut d'un cadre 24x24 (y de 3 à
-                  17) · laissé tel quel là où l'icône est à côté d'un texte,
-                  mais visiblement pas centré une fois seule dans son cadre. */}
               <svg viewBox="4 2 16 16" width="48" height="48">
                 <path
                   fill="currentColor"

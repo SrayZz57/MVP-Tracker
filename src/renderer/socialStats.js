@@ -4,11 +4,8 @@ const MIN_GAMES_TOGETHER = 2;
 const MIN_GAMES_FACED = 2;
 const MIN_DUELS_VS_AGENT = 5;
 
-// Coéquipiers récurrents (même équipe que le joueur suivi) : winrate et K/D
-// du joueur suivi lui-même dans les matchs joués avec chacun d'eux, pour
-// répondre à "est-ce que je joue mieux avec telle personne sur mon équipe".
 export function computeTeammateSynergy(matches, name, tag) {
-  const stats = new Map(); // puuid -> { name, tag, games, wins, kills, deaths, assists }
+  const stats = new Map();
 
   excludeDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
@@ -55,12 +52,9 @@ export function computeTeammateSynergy(matches, name, tag) {
     .sort((a, b) => b.winrate - a.winrate);
 }
 
-// Agents adverses contre lesquels le joueur suivi a le moins bon ratio
-// kills/morts, sur l'ensemble de son historique (kill_events + roster du
-// match pour retrouver l'agent joué par le puuid adverse).
 function computeAgentNemesis(matches, name, tag) {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
-  const stats = new Map(); // agent -> { kills, deaths }
+  const stats = new Map();
 
   excludeDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);
@@ -93,10 +87,8 @@ function computeAgentNemesis(matches, name, tag) {
     .sort((a, b) => a.kd - b.kd);
 }
 
-// Adversaires récurrents (croisés dans plusieurs matchs) contre qui le
-// winrate du joueur suivi est le plus faible.
 function computePlayerNemesis(matches, name, tag) {
-  const stats = new Map(); // puuid -> { name, tag, games, wins }
+  const stats = new Map();
 
   excludeDeathmatch(matches).forEach((match) => {
     const me = findMe(match, name, tag);

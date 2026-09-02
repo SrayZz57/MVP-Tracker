@@ -10,9 +10,6 @@ async function loadCompetitiveTiers() {
   tiersCache = new Map(
     latestEpisode.tiers.map((tier) => [
       tier.tier,
-      // `name` s'ajoute aux champs existants (icône, couleur) : l'API locale
-      // du client ne renvoie qu'un NUMÉRO de palier pour les coéquipiers en
-      // sélection d'agent, il faut donc pouvoir le traduire en nom lisible.
       { icon: tier.largeIcon, color: `#${tier.color.slice(0, 6)}`, name: tier.tierName },
     ]),
   );
@@ -31,8 +28,6 @@ export function useRankTiers() {
 
 let rankLadderPromise = null;
 
-// Échelle ordonnée des rangs (nom + division + icône) pour le wiki, tier 0
-// ("Sans grade") gardé, tiers < 3 (placeholders sans vraie icône) filtrés.
 function loadRankLadder() {
   if (!rankLadderPromise) {
     rankLadderPromise = fetch('https://valorant-api.com/v1/competitivetiers?language=fr-FR')
@@ -76,7 +71,6 @@ async function loadSeasonNames() {
       .map((act) => {
         const episode = byUuid.get(act.parentUuid);
         const episodeName = episode ? capitalize(episode.displayName) : '';
-        // "ACTE III" reste tel quel (chiffre romain), seule "ÉPISODE 6" est mise en forme.
         return [act.uuid, episodeName ? `${episodeName} · ${act.displayName}` : act.displayName];
       }),
   );
@@ -102,9 +96,6 @@ const EMPTY_CARD_ART = { icon: null, banner: null };
 
 let allPlayerCardsPromise = null;
 
-// Catalogue complet des cartes de joueur du jeu, sert de sélecteur de photo
-// de profil pour le compte MVP Tracker (pas de notion d'inventaire possédé
-// exposée par l'API publique, donc on propose tout le catalogue).
 function loadAllPlayerCards() {
   if (!allPlayerCardsPromise) {
     allPlayerCardsPromise = fetch('https://valorant-api.com/v1/playercards?language=fr-FR')

@@ -5,9 +5,6 @@ function sequentialColor(value) {
   return `rgba(57, 135, 229, ${alpha})`;
 }
 
-// Barres horizontales, teinte séquentielle unique (bleu) dont l'intensité
-// porte la magnitude, cohérent avec le reste de l'appli (.stat-bar-row) mais
-// avec une entrée animée et une couleur dédiée aux graphiques.
 function AnimatedBarList({ rows }) {
   const { t } = useTranslation();
   if (!rows || rows.length === 0) {

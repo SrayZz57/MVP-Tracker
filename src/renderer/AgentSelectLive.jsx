@@ -6,24 +6,6 @@ import { useAgentSelectData } from './useAgentSelectData.js';
 import { useMapUrlToName } from './mapImages.js';
 import { suggestAgents } from './agentSuggestion.js';
 
-// =============================================================================
-// SÉLECTION D'AGENT EN DIRECT, PUIS DÉBUT DE PARTIE
-//
-// Affiche le rang et l'agent choisi des autres joueurs, plus une suggestion
-// de pick pendant la sélection. Entièrement alimenté par l'API locale du
-// client Valorant (joueurs) et l'historique déjà stocké localement (stats) :
-// aucune requête HenrikDev, donc aucun quota consommé et aucune latence.
-//
-// Le bandeau n'apparaît QUE pendant la sélection ou le tout début de partie
-// et disparaît tout seul ensuite, c'est le seul moment où l'info sert.
-//
-// Deux phases, deux vues :
-//   - 'select' : sélection d'agent. Riot n'expose que MON équipe à ce
-//     stade (`EnemyTeam` est null), impossible d'y voir les adversaires.
-//   - 'game' : dès le chargement de la partie qui suit, les DEUX équipes
-//     sont exposées, on les affiche groupées, alliés puis adversaires.
-// =============================================================================
-
 function PlayerCard({ player, agentsById, rankTiers, t }) {
   const agent = player.agentId ? agentsById.get(player.agentId.toLowerCase()) : null;
   const tier = rankTiers.get(player.competitiveTier);
@@ -40,7 +22,6 @@ function PlayerCard({ player, agentsById, rankTiers, t }) {
 
         <span className="agent-select-rank">
           {tier?.icon && <img src={tier.icon} alt="" />}
-          {/* Palier 0 = non classé : afficher « Unranked » plutôt qu'un nom de rang vide. */}
           <span style={tier?.color ? { color: tier.color } : undefined}>
             {player.competitiveTier > 0 ? tier?.name ?? '–' : t('agentSelect.unranked')}
           </span>
@@ -104,11 +85,6 @@ function AgentSelectLive({ matches = [], settings = null }) {
     window.electronAPI.setAgentSelectSuggestions(suggestions);
   }, [suggestions]);
 
-  // Fenêtre principale : toujours ouverte, donc source sûre pour déclencher
-  // la création/fermeture de la fenêtre overlay (coûteuse en GPU, créée à la
-  // demande côté main.js, voir agent-select-overlay:set-visible). L'overlay
-  // elle-même ne doit jamais piloter sa propre création : tant qu'elle
-  // n'existe pas encore, rien à l'intérieur ne peut tourner pour le demander.
   const overlayVisible = data.state === 'ok' && data.players.length > 0;
   useEffect(() => {
     window.electronAPI.setAgentSelectOverlayVisible(overlayVisible);
