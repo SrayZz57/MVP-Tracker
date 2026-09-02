@@ -7,6 +7,7 @@ import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
 import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
+import { ROLE_COLORS } from './charts/RoleStackedBar.jsx';
 import { usePlayerCardArt } from './rankData.js';
 import { supabase } from './supabaseClient.js';
 import CountUp from './CountUp.jsx';
@@ -253,15 +254,28 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
           <ul className="comp-published-list">
             {publishedComps.map((comp) => (
               <li key={comp.id} className="comp-published-item">
-                {!selectedMap && <span className="comp-published-map">{comp.map}</span>}
-                <div className="comp-published-agents">
-                  {comp.agents.map((agent, i) => (
-                    <span key={i} className="comp-published-agent-icon" title={agent}>
-                      {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
-                    </span>
-                  ))}
+                <div className="comp-published-header">
+                  <span className="comp-published-map">{comp.map}</span>
+                  <span className="label comp-published-date">
+                    {new Date(comp.created_at).toLocaleDateString()}
+                  </span>
                 </div>
-                {comp.note && <p className="comp-published-note">{comp.note}</p>}
+                <div className="comp-published-agents">
+                  {comp.agents.map((agent, i) => {
+                    const role = agentRoles.get(agent)?.roleName;
+                    return (
+                      <span
+                        key={i}
+                        className="comp-published-agent-icon"
+                        style={{ '--role-color': ROLE_COLORS[role] ?? 'var(--border)' }}
+                        title={role ? `${agent} — ${role}` : agent}
+                      >
+                        {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
+                      </span>
+                    );
+                  })}
+                </div>
+                {comp.note && <p className="comp-published-note">« {comp.note} »</p>}
                 <div className="comp-published-footer">
                   <CompositionAuthor author={comp.author} />
                   {(comp.created_by === myId || isAdmin) && (
