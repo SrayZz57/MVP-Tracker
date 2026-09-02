@@ -1244,7 +1244,8 @@
     "matchHistory_other": "Historique de matchs ({{count}})",
     "allModes": "Tous les modes",
     "hitBreakdown": " · Tête {{hs}}% / Corps {{bs}}% / Jambes {{ls}}%",
-    "hsShort": "{{hs}}% tête"
+    "hsShort": "{{hs}}% tête",
+    "dayRecord": "{{wins}}V · {{losses}}D"
   },
   "days": {
     "monday": "Lundi",

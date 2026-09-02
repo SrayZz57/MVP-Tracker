@@ -1244,7 +1244,8 @@
     "matchHistory_other": "Match history ({{count}})",
     "allModes": "All modes",
     "hitBreakdown": " · Head {{hs}}% / Body {{bs}}% / Legs {{ls}}%",
-    "hsShort": "{{hs}}% head"
+    "hsShort": "{{hs}}% head",
+    "dayRecord": "{{wins}}W · {{losses}}L"
   },
   "days": {
     "monday": "Monday",

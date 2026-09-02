@@ -3673,6 +3673,37 @@ li {
   margin-top: 0.5rem;
 }
 
+.match-day {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.match-day + .match-day {
+  margin-top: 0.6rem;
+}
+
+.match-day-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0 0.2rem;
+}
+
+.match-day-date {
+  font-size: var(--fs-xs);
+  font-weight: 600;
+  color: var(--text-muted);
+  text-transform: capitalize;
+}
+
+.match-day-record {
+  font-size: var(--fs-2xs);
+  color: var(--text-dim);
+  font-variant-numeric: tabular-nums;
+}
+
 .match-row {
   display: grid;
   grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr) minmax(0, 1.1fr) 4.5rem 6rem 6.5rem 6.5rem;

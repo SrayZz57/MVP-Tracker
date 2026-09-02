@@ -35,6 +35,26 @@ import Button from '../ui/Button';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;
 
+function groupMatchesByDay(matches, settings, language) {
+  const formatter = new Intl.DateTimeFormat(language, { weekday: 'long', day: 'numeric', month: 'long' });
+  const days = [];
+  let current = null;
+  for (const match of matches) {
+    const start = match.metadata?.game_start;
+    const date = start ? new Date(start * 1000) : null;
+    const key = date ? date.toDateString() : 'unknown';
+    if (!current || current.key !== key) {
+      current = { key, label: date ? formatter.format(date) : '', matches: [], wins: 0, losses: 0 };
+      days.push(current);
+    }
+    const label = resultLabel(match, findMe(match, settings.name, settings.tag));
+    if (label === 'Victoire') current.wins += 1;
+    else if (label === 'Défaite') current.losses += 1;
+    current.matches.push(match);
+  }
+  return days;
+}
+
 const SCOPE_OPTIONS = [
   { id: '', labelKey: 'stats.scope.all' },
   { id: 'competitive', labelKey: 'stats.scope.ranked' },
@@ -168,7 +188,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
 }
 
 function StatsTab({ settings, matches, rank, loading }) {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
   const mapImages = useMapImages();
@@ -559,7 +579,21 @@ function StatsTab({ settings, matches, rank, loading }) {
           </select>
         </div>
         <div className="match-list">
-          {(showAllMatches ? filteredMatches : filteredMatches.slice(0, MATCH_HISTORY_PAGE_SIZE)).map((match) => {
+          {groupMatchesByDay(
+            showAllMatches ? filteredMatches : filteredMatches.slice(0, MATCH_HISTORY_PAGE_SIZE),
+            settings,
+            i18n.language,
+          ).map((day) => (
+            <section key={day.key} className="match-day">
+              <header className="match-day-head">
+                <span className="match-day-date">{day.label}</span>
+                {day.matches.length > 1 && (
+                  <span className="match-day-record">
+                    {t('stats.dayRecord', { wins: day.wins, losses: day.losses })}
+                  </span>
+                )}
+              </header>
+              {day.matches.map((match) => {
             const me = findMe(match, settings.name, settings.tag);
             const { hsPercent } = hitStats(me);
             const label = resultLabel(match, me);
@@ -589,9 +623,11 @@ function StatsTab({ settings, matches, rank, loading }) {
                   {hsPercent === null ? '—' : t('stats.hsShort', { hs: hsPercent.toFixed(0) })}
                 </span>
                 <span className={`result-badge ${resultClass}`}>{displayLabel}</span>
-              </button>
-            );
-          })}
+                </button>
+                );
+              })}
+            </section>
+          ))}
         </div>
         {filteredMatches.length > MATCH_HISTORY_PAGE_SIZE && (
           <Button variant="ghost" className="show-more-btn" onClick={() => setShowAllMatches(!showAllMatches)}>
