@@ -7,6 +7,7 @@ import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { computeRoleDistribution } from './performanceCharts.js';
 import { excludeDeathmatch, groupStats, overallWinrate } from './valorantStats.js';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
+import AgentDetailModal from './AgentDetailModal.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
 import { supabase } from './supabaseClient.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -35,6 +36,10 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
   const [overlayEnabled, setOverlayEnabled] = useState(true);
+  // Agent choisi depuis la carte au survol de la répartition par rôle
+  // (RoleStackedBar) — demandé sur Discord, ouvre les mêmes stats détaillées
+  // que depuis l'onglet Stats plutôt que d'en dupliquer une variante ici.
+  const [selectedAgent, setSelectedAgent] = useState(null);
   // Resynchro du Riot ID lié — pour les joueurs qui ont changé de pseudo EN
   // JEU après avoir lié leur compte (le tracker reste bloqué sur l'ancien nom
   // tant qu'on ne le met pas à jour ici, voir onUpdateRiotId dans App.jsx).
@@ -266,7 +271,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         {roleDistribution.length > 0 && (
           <>
             <h4 className="account-subsection-title">{t('account.realRoleDistribution')}</h4>
-            <RoleStackedBar rows={roleDistribution} />
+            <RoleStackedBar rows={roleDistribution} onSelectAgent={setSelectedAgent} />
           </>
         )}
       </CollapsibleCard>
@@ -407,6 +412,15 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             setAgentPickerOpen(false);
           }}
           onClose={() => setAgentPickerOpen(false)}
+        />
+      )}
+
+      {selectedAgent && (
+        <AgentDetailModal
+          character={selectedAgent}
+          matches={myMatches}
+          settings={mySettings}
+          onClose={() => setSelectedAgent(null)}
         />
       )}
     </div>

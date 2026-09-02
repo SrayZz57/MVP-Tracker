@@ -2720,6 +2720,46 @@ li {
   font-size: 0.86rem;
 }
 
+.role-bar-hover-card {
+  position: fixed;
+  z-index: 200;
+  width: 200px;
+  padding: 0.7rem;
+  border-radius: 12px;
+  background: linear-gradient(172deg, #1c212b 0%, #12151d 60%, #0d1015 100%);
+  border: 1px solid var(--border-strong);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 0.3rem;
+}
+
+.role-bar-hover-title {
+  font-weight: 700;
+  font-size: 0.82rem;
+  margin-bottom: 0.15rem;
+}
+
+.role-bar-hover-agent {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.5rem;
+  border-radius: 8px;
+  border: none;
+  background: none;
+  color: var(--text);
+  font-size: 0.82rem;
+  text-align: left;
+  cursor: pointer;
+}
+
+.role-bar-hover-agent:hover {
+  background: var(--surface-alt);
+  color: var(--accent, #ff4655);
+}
+
 .aim-board-hover-card {
   position: fixed;
   z-index: 200;
