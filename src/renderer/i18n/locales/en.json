@@ -230,7 +230,8 @@
     "publishNeedsFullSlots": "Fill all 5 slots above before publishing.",
     "loadingPublished": "Loading...",
     "noPublishedYet": "No composition published on this map yet.",
-    "deletePublished": "Delete my composition"
+    "deletePublished": "Delete my composition",
+    "deletePublishedAdmin": "Delete this composition (moderation)"
   },
   "social": {
     "you": "You",

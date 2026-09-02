@@ -230,7 +230,8 @@
     "publishNeedsFullSlots": "Remplis les 5 emplacements ci-dessus pour pouvoir publier.",
     "loadingPublished": "Chargement...",
     "noPublishedYet": "Aucune composition publiée sur cette map pour l'instant.",
-    "deletePublished": "Supprimer ma composition"
+    "deletePublished": "Supprimer ma composition",
+    "deletePublishedAdmin": "Supprimer cette composition (modération)"
   },
   "social": {
     "you": "Toi",

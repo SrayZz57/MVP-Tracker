@@ -1,6 +1,6 @@
 import CompositionBuilder from '../CompositionBuilder.jsx';
 
-function CompositionTab({ settings, matches, mySettings, myMatches, myId }) {
+function CompositionTab({ settings, matches, mySettings, myMatches, myId, isAdmin }) {
   return (
     <CompositionBuilder
       settings={settings}
@@ -8,6 +8,7 @@ function CompositionTab({ settings, matches, mySettings, myMatches, myId }) {
       mySettings={mySettings}
       myMatches={myMatches}
       myId={myId}
+      isAdmin={isAdmin}
     />
   );
 }

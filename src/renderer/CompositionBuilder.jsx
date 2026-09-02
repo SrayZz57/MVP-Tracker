@@ -44,7 +44,7 @@ function CompositionAuthor({ author }) {
   );
 }
 
-function CompositionBuilder({ settings, matches, mySettings, myMatches, myId }) {
+function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, isAdmin }) {
   const { t } = useTranslation();
   const minimaps = useMapMinimaps();
   const agentIcons = useAgentIcons();
@@ -256,11 +256,11 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId }) 
                   {comp.note && <p className="comp-published-note">{comp.note}</p>}
                   <div className="comp-published-footer">
                     <CompositionAuthor author={comp.author} />
-                    {comp.created_by === myId && (
+                    {(comp.created_by === myId || isAdmin) && (
                       <button
                         type="button"
                         className="strategy-tool icon-only danger"
-                        title={t('composition.deletePublished')}
+                        title={t(comp.created_by === myId ? 'composition.deletePublished' : 'composition.deletePublishedAdmin')}
                         onClick={() => handleDeletePublished(comp.id)}
                       >
                         <Icon icon={Trash2} size={14} />

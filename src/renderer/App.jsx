@@ -768,6 +768,7 @@ function App() {
             mySettings={mySettings}
             myMatches={myMatches}
             myId={session.user.id}
+            isAdmin={isAdmin}
           />
         );
       case 'graphiques':
