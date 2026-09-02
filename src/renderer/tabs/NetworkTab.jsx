@@ -11,6 +11,10 @@ import CollapsibleCard from '../CollapsibleCard.jsx';
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+// Ce qui a déjà été envoyé pour ce lancement, hors du composant pour survivre
+// au démontage de l'onglet.
+let lastPushed = null;
+
 function PingGauge({ percent }) {
   const { t } = useTranslation();
   const offset = CIRCUMFERENCE * (1 - percent / 100);
@@ -102,10 +106,23 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
   // qui n'a de sens que sur ce réseau précis) vers le compte, sous sa propre
   // ligne — pour additionner les totaux de tous les PCs sans qu'un appareil
   // n'écrase les chiffres d'un autre.
-  const [accountTotals, setAccountTotals] = useState(null);
+  const [accountTotals, setAccountTotals] = useState(() => (lastPushed?.userId === myId ? lastPushed.totals : null));
 
+  // L'onglet est démonté dès qu'on en change, donc chaque retour dessus
+  // relançait l'écriture puis la relecture, avec exactement les mêmes
+  // chiffres. On ne repart que quand le total local a réellement bougé, le
+  // reste du temps l'affichage repart de ce qui a déjà été lu.
   useEffect(() => {
     if (!myId || pingStats.deathsAnalyzed === 0) return;
+    if (
+      lastPushed &&
+      lastPushed.userId === myId &&
+      lastPushed.deathsAnalyzed === pingStats.deathsAnalyzed &&
+      lastPushed.deathsNearSpike === pingStats.deathsNearSpike
+    ) {
+      setAccountTotals(lastPushed.totals);
+      return;
+    }
     let cancelled = false;
 
     window.electronAPI.getDeviceId().then(async (deviceId) => {
@@ -136,6 +153,12 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
         }),
         { deathsAnalyzed: 0, deathsNearSpike: 0 },
       );
+      lastPushed = {
+        userId: myId,
+        deathsAnalyzed: pingStats.deathsAnalyzed,
+        deathsNearSpike: pingStats.deathsNearSpike,
+        totals,
+      };
       setAccountTotals(totals);
     });
 
