@@ -132,7 +132,7 @@ function SessionSummary({ summary, agentIcons, t }) {
   );
 }
 
-function PlaySessions({ settings, matches }) {
+function PlaySessions({ settings, matches, apiKey }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
   const [activeSession, setActiveSession] = useState(undefined); // undefined = pas encore chargé
@@ -142,6 +142,32 @@ function PlaySessions({ settings, matches }) {
   const [expandedId, setExpandedId] = useState(null);
   const [starting, setStarting] = useState(false);
   const [ending, setEnding] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  // Snapshot local des matchs, resynchronisé à l'ouverture de l'outil et
+  // (surtout) juste avant de calculer le résumé de fin de session — la prop
+  // `matches` vient du cache déjà en mémoire et n'est PAS rafraîchie
+  // automatiquement pendant qu'on joue : sans ce refetch explicite, les
+  // matchs joués pendant la session n'apparaissaient tout simplement pas
+  // encore dedans (signalé en vrai, "Aucun match joué pendant cette
+  // session" alors que 2 games venaient d'être jouées).
+  const [freshMatches, setFreshMatches] = useState(matches);
+  useEffect(() => setFreshMatches(matches), [matches]);
+
+  async function refreshMatches() {
+    if (!settings?.name || !apiKey) return freshMatches;
+    setRefreshing(true);
+    try {
+      const { matches: latest } = await window.electronAPI.getMatches({ ...settings, apiKey });
+      setFreshMatches(latest);
+      setRefreshing(false);
+      return latest;
+    } catch {
+      // Le résumé retombe sur ce qu'on avait déjà en mémoire plutôt que de
+      // bloquer la fin de session pour un souci réseau ponctuel.
+      setRefreshing(false);
+      return freshMatches;
+    }
+  }
 
   function loadAll() {
     window.electronAPI.getActivePlaySession().then(setActiveSession);
@@ -150,6 +176,8 @@ function PlaySessions({ settings, matches }) {
 
   useEffect(() => {
     loadAll();
+    refreshMatches();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   // Chrono affiché pendant une session en cours — juste pour l'affichage,
@@ -171,6 +199,10 @@ function PlaySessions({ settings, matches }) {
   const handleEnd = async () => {
     if (!activeSession) return;
     setEnding(true);
+    // Resynchro AVANT de figer ended_at et d'afficher le résumé : c'est le
+    // moment critique où les matchs joués pendant la session doivent être
+    // garantis présents.
+    await refreshMatches();
     await window.electronAPI.endPlaySession(activeSession.id);
     const endedAt = Date.now();
     setLastEnded({ ...activeSession, ended_at: endedAt });
@@ -181,18 +213,21 @@ function PlaySessions({ settings, matches }) {
 
   const activeSummary = useMemo(() => {
     if (!activeSession) return null;
-    return computeSessionSummary(matches, settings.name, settings.tag, activeSession.started_at, now);
-  }, [matches, settings.name, settings.tag, activeSession, now]);
+    return computeSessionSummary(freshMatches, settings.name, settings.tag, activeSession.started_at, now);
+  }, [freshMatches, settings.name, settings.tag, activeSession, now]);
 
   const lastEndedSummary = useMemo(() => {
     if (!lastEnded) return null;
-    return computeSessionSummary(matches, settings.name, settings.tag, lastEnded.started_at, lastEnded.ended_at);
-  }, [matches, settings.name, settings.tag, lastEnded]);
+    return computeSessionSummary(freshMatches, settings.name, settings.tag, lastEnded.started_at, lastEnded.ended_at);
+  }, [freshMatches, settings.name, settings.tag, lastEnded]);
 
   return (
     <div>
       <CollapsibleCard id="playSessions.current" title={t('playSessions.title')}>
         <p className="label">{t('playSessions.description')}</p>
+        <button type="button" className="account-forgot-password" onClick={refreshMatches} disabled={refreshing}>
+          {refreshing ? t('playSessions.refreshing') : t('playSessions.refreshMatches')}
+        </button>
 
         {activeSession === undefined ? (
           <p className="label">{t('auth.loading')}</p>
@@ -231,7 +266,7 @@ function PlaySessions({ settings, matches }) {
             {history.map((session) => {
               const isOpen = expandedId === session.id;
               const summary = isOpen
-                ? computeSessionSummary(matches, settings.name, settings.tag, session.started_at, session.ended_at)
+                ? computeSessionSummary(freshMatches, settings.name, settings.tag, session.started_at, session.ended_at)
                 : null;
               return (
                 <li key={session.id} className="session-history-item">

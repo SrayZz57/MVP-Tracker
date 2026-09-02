@@ -667,7 +667,9 @@
     "topWeapons": "Armes principales",
     "historyTitle": "Historique des sessions",
     "noHistoryYet": "Aucune session terminée pour l'instant.",
-    "noMatchesInWindow": "Aucun match joué pendant cette session."
+    "noMatchesInWindow": "Aucun match joué pendant cette session.",
+    "refreshMatches": "Resynchroniser mes matchs",
+    "refreshing": "Resynchronisation..."
   },
   "buySim": {
     "noRoundData": "Aucun match avec données de round en cache pour l'instant.",

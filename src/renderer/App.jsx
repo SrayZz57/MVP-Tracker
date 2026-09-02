@@ -806,7 +806,7 @@ function App() {
       case 'bets':
         return <BetsTab settings={mySettings} matches={myMatches} />;
       case 'play-sessions':
-        return <PlaySessionsTab settings={mySettings} matches={myMatches} />;
+        return <PlaySessionsTab settings={mySettings} matches={myMatches} apiKey={settings?.apiKey} />;
       case 'session':
         return <SessionGuideTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'aim-trainer':

@@ -667,7 +667,9 @@
     "topWeapons": "Top weapons",
     "historyTitle": "Session history",
     "noHistoryYet": "No completed session yet.",
-    "noMatchesInWindow": "No match played during this session."
+    "noMatchesInWindow": "No match played during this session.",
+    "refreshMatches": "Refresh my matches",
+    "refreshing": "Refreshing..."
   },
   "buySim": {
     "noRoundData": "No match with round data cached yet.",
