@@ -97,3 +97,4 @@ dist/
 # Bacs à sable de vérification visuelle (captures, pages de test)
 .motion-check/
 __skeleton_lab__/
+tools/screenshots/
