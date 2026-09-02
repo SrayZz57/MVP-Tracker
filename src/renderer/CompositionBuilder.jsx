@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, Info, CheckCircle2, Trash2 } from 'lucide-react';
 import Icon from './Icon.jsx';
-import { useMapMinimaps } from './mapImages.js';
+import { useMapMinimaps, useMapImages } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
@@ -48,6 +48,7 @@ function CompositionAuthor({ author }) {
 function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, isAdmin }) {
   const { t } = useTranslation();
   const minimaps = useMapMinimaps();
+  const mapSplashes = useMapImages();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
   const [selectedMap, setSelectedMap] = useState('');
@@ -66,10 +67,12 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState(null);
 
-  // Sans map choisie, on montre TOUTES les compositions publiées (toutes
-  // maps confondues, plafonnées pour rester raisonnable) plutôt qu'une
-  // section vide — signalé en vrai, rien ne s'affichait avant d'avoir
-  // sélectionné une map.
+  // Filtre de la LISTE, indépendant de la map du constructeur — suit la map
+  // choisie en haut par défaut (pratique), mais reste modifiable à part pour
+  // parcourir les publications sans toucher au constructeur (slots, score...).
+  // "" = toutes maps confondues, plafonné pour rester raisonnable.
+  const [publishedMapFilter, setPublishedMapFilter] = useState('');
+
   async function loadPublishedComps(map) {
     setLoadingComps(true);
     let query = supabase
@@ -83,11 +86,15 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
   }
 
   useEffect(() => {
-    loadPublishedComps(selectedMap);
+    setPublishedMapFilter(selectedMap);
     setNote('');
     setPublishError(null);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedMap]);
+
+  useEffect(() => {
+    loadPublishedComps(publishedMapFilter);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [publishedMapFilter]);
 
   const canPublish = Boolean(selectedMap) && slots.every(Boolean) && Boolean(myId);
 
@@ -107,12 +114,19 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
       return;
     }
     setNote('');
-    loadPublishedComps(selectedMap);
+    // Si le filtre de la liste pointait déjà sur cette map, changer l'état
+    // ne redéclenche pas l'effet (même valeur) — recharge explicitement pour
+    // que la composition tout juste publiée apparaisse sans attendre.
+    if (publishedMapFilter === selectedMap) {
+      loadPublishedComps(selectedMap);
+    } else {
+      setPublishedMapFilter(selectedMap);
+    }
   }
 
   async function handleDeletePublished(id) {
     await supabase.from('map_compositions').delete().eq('id', id);
-    loadPublishedComps(selectedMap);
+    loadPublishedComps(publishedMapFilter);
   }
 
   const analysis = useMemo(() => analyzeComposition(slots, agentRoles), [slots, agentRoles]);
@@ -223,9 +237,18 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
 
       <CollapsibleCard
         id="composition.published"
-        title={selectedMap ? t('composition.publishedTitle', { map: selectedMap }) : t('composition.publishedTitleAll')}
+        title={publishedMapFilter ? t('composition.publishedTitle', { map: publishedMapFilter }) : t('composition.publishedTitleAll')}
       >
         <p className="label">{selectedMap ? t('composition.publishedIntro') : t('composition.publishedIntroAll')}</p>
+
+        <div className="filter-bar">
+          <select value={publishedMapFilter} onChange={(e) => setPublishedMapFilter(e.target.value)}>
+            <option value="">{t('composition.allMaps')}</option>
+            {mapNames.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
 
         {selectedMap && (
           <>
@@ -253,7 +276,12 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
         ) : (
           <ul className="comp-published-list">
             {publishedComps.map((comp) => (
-              <li key={comp.id} className="comp-published-item">
+              <li
+                key={comp.id}
+                className="comp-published-item"
+                style={mapSplashes.get(comp.map) ? { '--map-thumb': `url(${mapSplashes.get(comp.map)})` } : undefined}
+              >
+                <div className="comp-published-thumb" aria-hidden="true" />
                 <div className="comp-published-header">
                   <span className="comp-published-map">{comp.map}</span>
                   <span className="label comp-published-date">

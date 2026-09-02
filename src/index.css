@@ -5507,6 +5507,15 @@ input[type='color'] {
   inset: 0 0 auto 0;
   height: 3px;
   background: linear-gradient(90deg, var(--accent, #ff4655), transparent 85%);
+  z-index: 1;
+}
+
+.comp-published-thumb {
+  height: 84px;
+  margin: -0.9rem -1rem 0.75rem;
+  background-image: linear-gradient(180deg, rgba(18, 21, 29, 0.15), rgba(18, 21, 29, 0.9)), var(--map-thumb, none);
+  background-size: cover;
+  background-position: center;
 }
 
 .comp-published-item:hover {
