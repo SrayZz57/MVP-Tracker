@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Gamepad2, Trophy, Swords, Target } from 'lucide-react';
 import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent } from './valorantStats.js';
@@ -20,6 +20,22 @@ function PerformanceCharts({ settings, matches, loading }) {
   const { platforms, platform, setPlatform, filteredMatches } = usePlatformFilter(matches);
   const ranked = useMemo(() => excludeDeathmatch(filteredMatches), [filteredMatches]);
 
+  // Filtre par mode de jeu, propre au graphique "Winrate par map" (demandé
+  // sur Discord) — n'affecte que ce graphique, pas les autres cartes de
+  // l'onglet, qui restent sur l'ensemble des modes classés.
+  const [mapModeFilter, setMapModeFilter] = useState('');
+  const availableMapModes = useMemo(() => {
+    const modes = new Map();
+    ranked.forEach((match) => {
+      if (match.metadata?.mode_id) modes.set(match.metadata.mode_id, match.metadata.mode ?? match.metadata.mode_id);
+    });
+    return [...modes.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [ranked]);
+  const mapModeMatches = useMemo(
+    () => (mapModeFilter ? filteredMatches.filter((match) => match.metadata?.mode_id === mapModeFilter) : filteredMatches),
+    [filteredMatches, mapModeFilter],
+  );
+
   const kpis = useMemo(() => {
     const form = formStats(ranked, settings.name, settings.tag);
     return {
@@ -31,8 +47,8 @@ function PerformanceCharts({ settings, matches, loading }) {
   }, [ranked, settings.name, settings.tag]);
 
   const mapWinrates = useMemo(
-    () => computeMapWinrates(filteredMatches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: t('charts.gamesCount', { count: r.games }) })),
-    [filteredMatches, settings.name, settings.tag, t],
+    () => computeMapWinrates(mapModeMatches, settings.name, settings.tag).map((r) => ({ key: r.key, value: r.winrate, meta: t('charts.gamesCount', { count: r.games }) })),
+    [mapModeMatches, settings.name, settings.tag, t],
   );
 
   const dayPeriodGrid = useMemo(
@@ -84,6 +100,16 @@ function PerformanceCharts({ settings, matches, loading }) {
       </div>
 
       <CollapsibleCard id="charts.mapWinrate" title={t('charts.mapWinrateTitle')}>
+        {availableMapModes.length > 1 && (
+          <div className="filter-bar">
+            <select value={mapModeFilter} onChange={(e) => setMapModeFilter(e.target.value)}>
+              <option value="">{t('stats.allModes')}</option>
+              {availableMapModes.map(([id, label]) => (
+                <option key={id} value={id}>{label}</option>
+              ))}
+            </select>
+          </div>
+        )}
         <AnimatedBarList rows={mapWinrates} />
       </CollapsibleCard>
 
