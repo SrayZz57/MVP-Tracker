@@ -44,7 +44,14 @@ export function buildSessionPlan(t, matches, name, tag) {
   const slotStats = groupStats(ranked, name, tag, (match) => timeSlot(match));
   const warmup = suggestWarmup(t, slotStats);
 
-  const targetMap = matches[0]?.metadata?.map ?? null;
+  // Skirmish n'est pas une vraie map (terrain d'entraînement Riot, pas une
+  // des maps compétitives) — l'outil Stratégie ne propose jamais d'y créer
+  // un plan, donc suggérer "aucune stratégie sauvegardée sur Skirmish E"
+  // n'a aucun sens (signalé sur Discord). On cherche le match le plus
+  // récent dont la map est une vraie map plutôt que le tout dernier match
+  // sans distinction.
+  const strategyMatch = matches.find((m) => !m.metadata?.map?.toLowerCase().startsWith('skirmish'));
+  const targetMap = strategyMatch?.metadata?.map ?? null;
 
   const hsPercent = overallHsPercent(ranked, name, tag);
   const hsTarget = hsPercent === null ? 25 : Math.ceil((hsPercent + 3) / 5) * 5;
