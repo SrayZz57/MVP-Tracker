@@ -1,3 +1,5 @@
+import { debug } from '../logger.js';
+
 // =============================================================================
 // CACHE TTL PARTAGÉ POUR LES APPELS D'API EXTERNES (HenrikDev)
 //
@@ -48,7 +50,7 @@ export function initApiCache(electronStore) {
   }
   if (pruned > 0) {
     store.set(STORE_KEY, entries);
-    console.log(`[apiCache] ${pruned} entrée(s) périmée(s) purgée(s) au démarrage`);
+    debug(`[apiCache] ${pruned} entrée(s) périmée(s) purgée(s) au démarrage`);
   }
 }
 

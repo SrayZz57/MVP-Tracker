@@ -2,6 +2,7 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { app } from 'electron';
 import { ABILITY_WEAPON_NAMES } from './matchNormalizer.js';
+import { debug } from '../logger.js';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
@@ -76,7 +77,7 @@ db.exec(`
       patched += 1;
     }
   }
-  if (patched > 0) console.log(`[db] backfillAbilityWeaponNames : ${patched} match(s) corrigé(s)`);
+  if (patched > 0) debug(`[db] backfillAbilityWeaponNames : ${patched} match(s) corrigé(s)`);
   db.exec('PRAGMA user_version = 1');
 })();
 

@@ -1,0 +1,31 @@
+# Electron Forge empaquette node_modules dans l'application : avec
+# l'arborescence symlinkée que pnpm produit par défaut, electron-packager copie
+# des liens cassés ou rate des dépendances transitives. Forge refuse d'ailleurs
+# de démarrer sans ce réglage, et il a raison : la casse n'apparaîtrait qu'au
+# `make`, jamais au `start`.
+nodeLinker: hoisted
+
+# pnpm 11 refuse par défaut qu'une dépendance de dépendance soit résolue depuis
+# un dépôt git plutôt que depuis le registre, comme garde-fou contre les
+# compromissions de chaîne d'approvisionnement. Electron Forge en tire une :
+#   @electron-forge/cli > @electron-forge/core-utils > @electron/rebuild
+#     > @electron/node-gyp  (dépôt git de l'organisation Electron)
+# C'est un fork officiel de node-gyp maintenu par Electron, pas un paquet
+# inconnu. On lève le garde-fou en connaissance de cause : npm l'installait
+# déjà, mais sans jamais le signaler.
+blockExoticSubdeps: false
+
+# pnpm 11 n'exécute plus les scripts d'installation sans autorisation explicite.
+# Chaque ligne dit pourquoi celui-ci est nécessaire, ou pourquoi il ne l'est pas.
+allowBuilds:
+  # Télécharge le binaire du navigateur. Sans lui, `electron-forge start` n'a
+  # rien à lancer.
+  electron: true
+  # Télécharge son binaire de plateforme, dont Vite dépend pour transpiler.
+  esbuild: true
+  # Construit l'installeur Squirrel, donc tout `npm run make`.
+  electron-winstaller: true
+  # Dépendance OPTIONNELLE de fabric, pour un rendu côté Node. Le tableau de
+  # stratégie dessine dans le canvas du DOM, côté Electron : compiler ce module
+  # natif ne servirait à rien.
+  canvas: false

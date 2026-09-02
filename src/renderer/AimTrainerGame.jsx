@@ -34,6 +34,7 @@ import wallRoughnessUrl from '../assets/textures/wall-roughness.jpg';
 import { saveScore } from './aimScores.js';
 import CrosshairPreview from './CrosshairPreview.jsx';
 import Button from './ui/Button';
+import { debug } from '../logger.js';
 
 // Yaw de Valorant : degrés de rotation par "compte" de mouvement souris, à
 // sensibilité 1.0. Officiel, identique à celui utilisé par les vrais
@@ -1500,7 +1501,7 @@ function AimTrainerGame({ config: rawConfig }) {
     // utilisateur difficile à objectiver.
     result
       ?.then(() => {
-        console.log('[aim-trainer] pointer lock : unadjustedMovement actif');
+        debug('[aim-trainer] pointer lock : unadjustedMovement actif');
         setRawInputActive(true);
         onLocked?.();
       })
@@ -1508,7 +1509,7 @@ function AimTrainerGame({ config: rawConfig }) {
       // Windows/Chromium), la promesse rejette : on retente sans l'option
       // plutôt que de laisser le verrouillage échouer complètement.
       .catch((err) => {
-        console.log('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans :', err?.message ?? err);
+        debug('[aim-trainer] pointer lock : unadjustedMovement refusé, repli sans :', err?.message ?? err);
         setRawInputActive(false);
         const fallback = canvas.requestPointerLock();
         fallback
@@ -1518,7 +1519,7 @@ function AimTrainerGame({ config: rawConfig }) {
             // Chromium juste après un Échap. On ne force rien ici : c'est à
             // l'appelant de décider (ex. rester en pause pour laisser un
             // nouveau clic, un vrai geste utilisateur, retenter).
-            console.log('[aim-trainer] pointer lock : repli aussi refusé :', fallbackErr?.message ?? fallbackErr);
+            debug('[aim-trainer] pointer lock : repli aussi refusé :', fallbackErr?.message ?? fallbackErr);
           });
       });
   };

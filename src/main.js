@@ -44,6 +44,7 @@ import { syncMatches } from './services/matchSync.js';
 import { updateElectronApp } from 'update-electron-app';
 import { captureEvent, captureException, shutdown as shutdownTelemetry } from './services/telemetry.js';
 import { initApiCache, remember, write, forget, ageOf, cacheStats } from './services/apiCache.js';
+import { debug } from './logger.js';
 
 // Le service réseau de Chromium plantait en boucle sur ce poste ("Unable to
 // move the cache: Accès refusé" au démarrage, cache disque probablement
@@ -265,7 +266,7 @@ function cleanupOldSquirrelVersions() {
         const staleDir = path.join(installRoot, entry.name);
         fs.rm(staleDir, { recursive: true, force: true }, (err) => {
           if (err) console.warn('[squirrel-cleanup] échec de la suppression de', staleDir, ':', err.message);
-          else console.log('[squirrel-cleanup] ancienne version supprimée :', entry.name);
+          else debug('[squirrel-cleanup] ancienne version supprimée :', entry.name);
         });
       });
   } catch (err) {
@@ -374,7 +375,7 @@ const createWindow = () => {
   });
 
   mainWindow.webContents.on('console-message', (_e, _level, message) => {
-    console.log('[renderer]', message);
+    debug('[renderer]', message);
   });
 
   // and load the index.html of the app.
@@ -446,7 +447,7 @@ ipcMain.handle('aim-trainer:open', (_event, config) => {
   // score, par exemple) sont invisibles : elles ne remontent pas dans la
   // console du process principal comme celles de la fenêtre principale.
   aimTrainerWindow.webContents.on('console-message', (_e, _level, message) => {
-    console.log('[aim-trainer]', message);
+    debug('[aim-trainer]', message);
   });
 
   aimTrainerWindow.on('closed', () => {
@@ -620,7 +621,7 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
   // ce qui absorbe les rafraîchissements en rafale (changement d'onglet,
   // retour sur un profil déjà consulté, remontage d'un composant).
   if (!force && ageOf(syncKey(account.puuid)) < SYNC_COOLDOWN_MS) {
-    console.log(`[henrikdev] synchro ignorée (moins de ${SYNC_COOLDOWN_MS / 1000}s depuis la précédente) → cache local`);
+    debug(`[henrikdev] synchro ignorée (moins de ${SYNC_COOLDOWN_MS / 1000}s depuis la précédente) → cache local`);
     return readResult();
   }
 
@@ -674,7 +675,7 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
       try {
         const page = await getMatches(account.region, candidate, name, tag, apiKey, { size: PAGE_SIZE, start });
         const fresh = page.filter((m) => !cachedIds.has(m.metadata?.matchid));
-        console.log(`[henrikdev] page ${candidate}/start=${start} → ${page.length} match(s), dont ${fresh.length} nouveau(x)`);
+        debug(`[henrikdev] page ${candidate}/start=${start} → ${page.length} match(s), dont ${fresh.length} nouveau(x)`);
         if (page.length > 0) saveMatches(account.puuid, page);
         fresh.forEach((m) => cachedIds.add(m.metadata?.matchid));
         newMatches += fresh.length;
@@ -712,7 +713,7 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
   if (!rateLimited) write(syncKey(account.puuid), Date.now());
 
   const stats = cacheStats();
-  console.log(
+  debug(
     `[henrikdev] synchro terminée · ${newMatches} nouveau(x) match(s) · requêtes évitées depuis le lancement : ${stats.saved + henrikDedupCount()}`,
   );
 
@@ -988,7 +989,7 @@ function createAgentSelectOverlay() {
   }
 
   agentSelectOverlayWindow.webContents.on('console-message', (_e, _level, message) => {
-    console.log('[agent-select-overlay]', message);
+    debug('[agent-select-overlay]', message);
   });
 
   // Affichage direct plutôt qu'en attendant 'did-finish-load' : un contenu

@@ -1,4 +1,5 @@
 import { normalizeV4Match } from './matchNormalizer.js';
+import { debug } from '../logger.js';
 
 const BASE_URL = 'https://api.henrikdev.xyz';
 
@@ -28,7 +29,7 @@ function henrikFetch(path, apiKey) {
   const pending = inFlight.get(key);
   if (pending) {
     dedupedCount += 1;
-    console.log(`[henrikdev] requête dédupliquée (déjà en vol) → ${path.split('?')[0]}`);
+    debug(`[henrikdev] requête dédupliquée (déjà en vol) → ${path.split('?')[0]}`);
     return pending;
   }
   const promise = doHenrikFetch(path, apiKey).finally(() => inFlight.delete(key));
@@ -55,7 +56,7 @@ async function doHenrikFetch(path, apiKey) {
   // s'il est présent, sans faire planter le log s'il ne l'est pas.
   const remaining = response.headers.get('x-ratelimit-remaining');
   const quotaInfo = remaining !== null ? `, quota restant: ${remaining}` : '';
-  console.log(`[henrikdev] requête #${num} → ${label} (${response.status}, ${elapsed}ms${quotaInfo})`);
+  debug(`[henrikdev] requête #${num} → ${label} (${response.status}, ${elapsed}ms${quotaInfo})`);
 
   if (!response.ok) {
     const message = body?.errors?.[0]?.message || `Erreur API (${response.status})`;
