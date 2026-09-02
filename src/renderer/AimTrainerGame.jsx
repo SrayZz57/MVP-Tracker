@@ -300,6 +300,21 @@ export const MODES = {
     lifetime: null,
     preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
   },
+  // Demandé sur Discord après les paliers de vitesse : un palier rapide qui
+  // tourne autour du joueur plutôt qu'un aller-retour horizontal — reprend
+  // le mouvement du mode Orbit existant, juste plus rapide (orbitSpeedRange
+  // paramétrable, voir makeMotion) et sans tir (passiveTrack).
+  patrolOrbit: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolOrbit',
+    descKey: 'aimTrainer.modes.patrolOrbitDesc',
+    movement: 'orbit',
+    orbitSpeedRange: [1.8, 2.6],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.3, spread: 32, duration: 60 },
+  },
   switch: {
     icon: Shuffle,
     accent: '#ffc857',
@@ -936,7 +951,12 @@ function AimTrainerGame({ config: rawConfig }) {
         driftChangeAt: performance.now() + changeMin + Math.random() * (changeMax - changeMin),
         orbitAngle: Math.random() * Math.PI * 2,
         orbitRadius: 2.2 + Math.random() * 2,
-        orbitSpeed: (0.6 + Math.random() * 0.7) * (Math.random() < 0.5 ? -1 : 1),
+        // Plage paramétrable par mode (défaut = comportement historique
+        // d'Orbit, inchangé) — ajoutée pour Patrol · Orbite (plus rapide).
+        orbitSpeed: (() => {
+          const [min, max] = mode?.orbitSpeedRange ?? [0.6, 1.3];
+          return (min + Math.random() * (max - min)) * (Math.random() < 0.5 ? -1 : 1);
+        })(),
       };
     };
 
