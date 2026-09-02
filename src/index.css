@@ -1556,8 +1556,7 @@ h1 {
 
 .stat-tiles {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 320px));
-  justify-content: start;
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
   gap: 1rem;
   margin-top: 0.5rem;
 }
