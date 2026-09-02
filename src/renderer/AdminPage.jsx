@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Trash2, Eye, EyeOff } from 'lucide-react';
 import { supabase } from './supabaseClient.js';
+import Badge from './ui/Badge';
 import Button from './ui/Button';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import { AdminTournamentsSkeleton } from './skeletons.jsx';
@@ -54,7 +55,7 @@ function TournamentCreateForm({ myId, onCreated }) {
   }
 
   return (
-    <form className="tournament-create-form" onSubmit={handleSubmit}>
+    <form className="admin-form" onSubmit={handleSubmit}>
       <label>
         {t('admin.tournaments.name')}
         <input value={name} onChange={(e) => setName(e.target.value)} required maxLength={80} />
@@ -75,28 +76,32 @@ function TournamentCreateForm({ myId, onCreated }) {
           onChange={(e) => setMaxTeams(Number(e.target.value))}
           required
         />
-      </label>
-      <p className="label">{t('admin.tournaments.maxTeamsHint')}</p>
-
-      <label>
-        {t('admin.tournaments.registrationDeadline')}
-        <input
-          type="datetime-local"
-          value={registrationDeadline}
-          onChange={(e) => setRegistrationDeadline(e.target.value)}
-        />
+        <span className="admin-form-hint">{t('admin.tournaments.maxTeamsHint')}</span>
       </label>
 
-      <label>
-        {t('admin.tournaments.startDate')}
-        <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
-      </label>
+      <div className="admin-form-row">
+        <label>
+          {t('admin.tournaments.registrationDeadline')}
+          <input
+            type="datetime-local"
+            value={registrationDeadline}
+            onChange={(e) => setRegistrationDeadline(e.target.value)}
+          />
+        </label>
+
+        <label>
+          {t('admin.tournaments.startDate')}
+          <input type="datetime-local" value={startDate} onChange={(e) => setStartDate(e.target.value)} />
+        </label>
+      </div>
 
       {error && <p className="error-banner">{error}</p>}
 
-      <Button variant="primary" type="submit" loading={saving} loadingLabel={t('admin.tournaments.creating')}>
-        {t('admin.tournaments.create')}
-      </Button>
+      <div className="admin-form-actions">
+        <Button variant="primary" type="submit" loading={saving} loadingLabel={t('admin.tournaments.creating')}>
+          {t('admin.tournaments.create')}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -105,18 +110,22 @@ function TournamentList({ tournaments }) {
   const { t } = useTranslation();
 
   if (tournaments.length === 0) {
-    return <p className="label">{t('admin.tournaments.empty')}</p>;
+    return <p className="admin-empty">{t('admin.tournaments.empty')}</p>;
   }
 
   return (
-    <ul className="tournament-admin-list">
+    <ul className="admin-list">
       {tournaments.map((tournament) => (
-        <li key={tournament.id} className="tournament-admin-item">
-          <span className="tournament-admin-name">{tournament.name}</span>
+        <li key={tournament.id} className="admin-item">
+          <div className="admin-item-main">
+            <span className="admin-item-name">{tournament.name}</span>
+            <span className="admin-item-meta">
+              {tournament.max_teams} {t('admin.tournaments.teamsUnit')}
+            </span>
+          </div>
           <span className={`tournament-status-badge ${tournament.status}`}>
             {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
           </span>
-          <span className="label">{tournament.max_teams} {t('admin.tournaments.teamsUnit')}</span>
         </li>
       ))}
     </ul>
@@ -157,7 +166,7 @@ function AnnouncementCreateForm({ myId, onCreated }) {
   }
 
   return (
-    <form className="tournament-create-form" onSubmit={handleSubmit}>
+    <form className="admin-form" onSubmit={handleSubmit}>
       <label>
         {t('admin.announcements.titleLabel')}
         <input value={title} onChange={(e) => setTitle(e.target.value)} required maxLength={80} />
@@ -176,14 +185,16 @@ function AnnouncementCreateForm({ myId, onCreated }) {
           onChange={(e) => setImageUrl(e.target.value)}
           placeholder="https://..."
         />
+        <span className="admin-form-hint">{t('admin.announcements.imageUrlHint')}</span>
       </label>
-      <p className="label">{t('admin.announcements.imageUrlHint')}</p>
 
       {error && <p className="error-banner">{error}</p>}
 
-      <button type="submit" disabled={saving}>
-        {saving ? t('admin.announcements.publishing') : t('admin.announcements.publish')}
-      </button>
+      <div className="admin-form-actions">
+        <Button variant="primary" type="submit" loading={saving} loadingLabel={t('admin.announcements.publishing')}>
+          {t('admin.announcements.publish')}
+        </Button>
+      </div>
     </form>
   );
 }
@@ -202,35 +213,47 @@ function AnnouncementList({ announcements, onChanged }) {
   }
 
   if (announcements.length === 0) {
-    return <p className="label">{t('admin.announcements.empty')}</p>;
+    return <p className="admin-empty">{t('admin.announcements.empty')}</p>;
   }
 
   return (
-    <ul className="tournament-admin-list">
-      {announcements.map((announcement) => (
-        <li key={announcement.id} className="tournament-admin-item">
-          <span className="tournament-admin-name">{announcement.title}</span>
-          <span className={`tournament-status-badge ${announcement.is_active ? 'ongoing' : ''}`}>
-            {t(announcement.is_active ? 'admin.announcements.active' : 'admin.announcements.inactive')}
-          </span>
-          <button
-            type="button"
-            className="strategy-tool icon-only"
-            title={t(announcement.is_active ? 'admin.announcements.deactivate' : 'admin.announcements.activate')}
-            onClick={() => toggleActive(announcement)}
-          >
-            <Icon icon={announcement.is_active ? EyeOff : Eye} size={16} />
-          </button>
-          <button
-            type="button"
-            className="strategy-tool icon-only danger"
-            title={t('admin.announcements.delete')}
-            onClick={() => remove(announcement.id)}
-          >
-            <Icon icon={Trash2} size={16} />
-          </button>
-        </li>
-      ))}
+    <ul className="admin-list">
+      {announcements.map((announcement) => {
+        const toggleLabel = t(
+          announcement.is_active ? 'admin.announcements.deactivate' : 'admin.announcements.activate',
+        );
+        return (
+          <li key={announcement.id} className="admin-item">
+            <div className="admin-item-main">
+              <span className="admin-item-name">{announcement.title}</span>
+            </div>
+            <span className={`tournament-status-badge ${announcement.is_active ? 'ongoing' : 'completed'}`}>
+              {t(announcement.is_active ? 'admin.announcements.active' : 'admin.announcements.inactive')}
+            </span>
+            <div className="admin-item-actions">
+              <Button
+                variant="icon"
+                type="button"
+                title={toggleLabel}
+                aria-label={toggleLabel}
+                onClick={() => toggleActive(announcement)}
+              >
+                <Icon icon={announcement.is_active ? EyeOff : Eye} size={16} />
+              </Button>
+              <Button
+                variant="icon"
+                type="button"
+                className="admin-item-delete"
+                title={t('admin.announcements.delete')}
+                aria-label={t('admin.announcements.delete')}
+                onClick={() => remove(announcement.id)}
+              >
+                <Icon icon={Trash2} size={16} />
+              </Button>
+            </div>
+          </li>
+        );
+      })}
     </ul>
   );
 }
@@ -267,37 +290,37 @@ function AdminPage({ myId }) {
 
   return (
     <div className="admin-page">
-      <h1>{t('admin.title')}</h1>
+      <div className="admin-columns">
+        <CollapsibleCard id="admin.tournamentCreate" title={t('admin.tournaments.createTitle')}>
+          <TournamentCreateForm myId={myId} onCreated={loadTournaments} />
+        </CollapsibleCard>
 
-      <CollapsibleCard
-        id="admin.tournamentCreate"
-        title={t('admin.tournaments.createTitle')}
-        className="admin-section"
-      >
-        <TournamentCreateForm myId={myId} onCreated={loadTournaments} />
-      </CollapsibleCard>
+        <CollapsibleCard
+          id="admin.tournamentList"
+          title={t('admin.tournaments.listTitle')}
+          headerExtra={loading ? null : <Badge>{tournaments.length}</Badge>}
+        >
+          <LoadingGate active={loading} fallback={<AdminTournamentsSkeleton />}>
+            <TournamentList tournaments={tournaments} />
+          </LoadingGate>
+        </CollapsibleCard>
+      </div>
 
-      <CollapsibleCard id="admin.tournamentList" title={t('admin.tournaments.listTitle')} className="admin-section">
-        <LoadingGate active={loading} fallback={<AdminTournamentsSkeleton />}>
-          <TournamentList tournaments={tournaments} />
-        </LoadingGate>
-      </CollapsibleCard>
+      <div className="admin-columns">
+        <CollapsibleCard id="admin.announcementCreate" title={t('admin.announcements.createTitle')}>
+          <AnnouncementCreateForm myId={myId} onCreated={loadAnnouncements} />
+        </CollapsibleCard>
 
-      <CollapsibleCard
-        id="admin.announcementCreate"
-        title={t('admin.announcements.createTitle')}
-        className="admin-section"
-      >
-        <AnnouncementCreateForm myId={myId} onCreated={loadAnnouncements} />
-      </CollapsibleCard>
-
-      <CollapsibleCard id="admin.announcementList" title={t('admin.announcements.listTitle')} className="admin-section">
-        {announcementsLoading ? (
-          <p className="label">{t('admin.announcements.loading')}</p>
-        ) : (
-          <AnnouncementList announcements={announcements} onChanged={loadAnnouncements} />
-        )}
-      </CollapsibleCard>
+        <CollapsibleCard
+          id="admin.announcementList"
+          title={t('admin.announcements.listTitle')}
+          headerExtra={announcementsLoading ? null : <Badge>{announcements.length}</Badge>}
+        >
+          <LoadingGate active={announcementsLoading} fallback={<AdminTournamentsSkeleton />}>
+            <AnnouncementList announcements={announcements} onChanged={loadAnnouncements} />
+          </LoadingGate>
+        </CollapsibleCard>
+      </div>
     </div>
   );
 }
