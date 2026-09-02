@@ -439,6 +439,8 @@
       "trackingMultiDesc": "Deux cibles en mouvement à la fois, viseur maintenu sur celle que tu choisis de suivre.",
       "strafe": "Strafe",
       "strafeDesc": "La cible traverse l'écran en ligne droite à vitesse constante, comme un vrai strafe — entraîne le contrôle de recul en plein mouvement.",
+      "patrol": "Patrol",
+      "patrolDesc": "Une cible qui marche de gauche à droite, sans tir — garde le viseur dessus le plus longtemps possible pour marquer des points.",
       "switchMode": "Switch",
       "switchModeDesc": "Plusieurs cibles numérotées : touche-les dans l'ordre affiché. Une erreur d'ordre compte comme un raté, même si tu touches une cible.",
       "strafeTap": "Rafale",

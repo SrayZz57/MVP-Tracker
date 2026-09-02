@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Play,
+  Footprints,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import * as THREE from 'three';
@@ -229,6 +230,27 @@ export const MODES = {
     driftChangeInterval: [999999, 999999],
     lifetime: null,
     preset: { targetCount: 1, targetSize: 0.3, spread: 30, duration: 60 },
+  },
+  // Suggéré sur Discord : une cible qui simule une personne qui marche
+  // (traversée horizontale à vitesse constante, comme Strafe ci-dessus —
+  // mêmes mécaniques de mouvement, réutilisées telles quelles) mais SANS
+  // tir : le score vient du temps passé viseur-sur-cible, comme le mode
+  // Tracking (`passiveTrack` réutilise le même échantillonnage continu que
+  // `holdTracking`, simplement sans exiger de clic maintenu — voir la
+  // boucle d'animation). Vitesse unique pour cette première version
+  // (marche/course à choisir viendront après validation).
+  patrol: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrol',
+    descKey: 'aimTrainer.modes.patrolDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.6, 1.6],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
   },
   switch: {
     icon: Shuffle,
@@ -1211,9 +1233,12 @@ function AimTrainerGame({ config: rawConfig }) {
       // 100% de précision en ne comptant jamais les ratés du reste du temps
       // — exploit remonté par des joueurs sur le classement. Ne pas tenir le
       // viseur = raté, comme dans les autres modes.
-      if (MODES[cfg.mode]?.holdTracking && phaseRef.current === 'running') {
+      // Mode Patrol (passiveTrack) : même échantillonnage continu, mais sans
+      // clic à maintenir — "held" reste vrai en permanence pendant la manche.
+      const activeTrackingMode = MODES[cfg.mode]?.holdTracking || MODES[cfg.mode]?.passiveTrack;
+      if (activeTrackingMode && phaseRef.current === 'running') {
         const TRACK_SAMPLE_INTERVAL_MS = 100;
-        const held = state.isTrackingHeld;
+        const held = MODES[cfg.mode]?.passiveTrack ? true : state.isTrackingHeld;
         let onTarget = false;
         let endPoint = null;
         if (held) {
@@ -1345,6 +1370,12 @@ function AimTrainerGame({ config: rawConfig }) {
         state.lastTrackSample = 0;
         return;
       }
+
+      // Patrol (passiveTrack) : aucun tir n'est possible, le score vient
+      // uniquement de l'échantillonnage continu ci-dessous — un clic ici
+      // tomberait sinon dans la logique de tir par défaut plus bas et
+      // compterait des touches/ratés en double avec l'échantillonneur.
+      if (MODES[configRef.current.mode]?.passiveTrack) return;
 
       const { targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
       raycaster.setFromCamera(center, camera);
@@ -1653,10 +1684,10 @@ function AimTrainerGame({ config: rawConfig }) {
   // un meilleur score qu'un joueur qui en touche 50 avec 80% de précision,
   // alors qu'il a objectivement fait beaucoup moins. Repéré via un score de
   // classement anormalement haut avec seulement 7 touchées.
-  // Exception : le mode Tracking (holdTracking) n'a pas de "cible touchée"
-  // discrète — le viseur reste maintenu en continu sur une cible en
-  // mouvement, seul le pourcentage de précision a un sens pour lui.
-  const score = MODES[config.mode]?.holdTracking
+  // Exception : les modes Tracking (holdTracking) et Patrol (passiveTrack)
+  // n'ont pas de "cible touchée" discrète — le viseur reste sur une cible en
+  // mouvement en continu, seul le pourcentage de précision a un sens.
+  const score = (MODES[config.mode]?.holdTracking || MODES[config.mode]?.passiveTrack)
     ? (accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3))
     : (total > 0 ? stats.hits : null);
 
@@ -1748,6 +1779,9 @@ function AimTrainerGame({ config: rawConfig }) {
                 {MODES[config.mode]?.holdTracking && (
                   <p className="aim-game-tip"><Icon icon={Waves} size={16} /> Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
                 )}
+                {MODES[config.mode]?.passiveTrack && (
+                  <p className="aim-game-tip"><Icon icon={Footprints} size={16} /> Pas de tir ici : garde simplement le viseur sur la cible le plus longtemps possible.</p>
+                )}
                 {MODES[config.mode]?.movement === 'switch' && (
                   <p className="aim-game-tip"><Icon icon={Shuffle} size={16} /> Touche les cibles dans l'ordre affiché — une erreur d'ordre compte comme un raté.</p>
                 )}
@@ -1759,10 +1793,12 @@ function AimTrainerGame({ config: rawConfig }) {
                   <span>
                     <kbd>Souris</kbd> viser
                   </span>
-                  <span>
-                    <kbd>{MODES[config.mode]?.holdTracking ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
-                    {MODES[config.mode]?.holdTracking ? 'suivre' : 'tirer'}
-                  </span>
+                  {!MODES[config.mode]?.passiveTrack && (
+                    <span>
+                      <kbd>{MODES[config.mode]?.holdTracking ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
+                      {MODES[config.mode]?.holdTracking ? 'suivre' : 'tirer'}
+                    </span>
+                  )}
                   <span>
                     <kbd>Échap</kbd> pause
                   </span>

@@ -439,6 +439,8 @@
       "trackingMultiDesc": "Two moving targets at once, crosshair held on whichever one you choose to follow.",
       "strafe": "Strafe",
       "strafeDesc": "The target crosses the screen in a straight line at constant speed, like a real strafe — trains recoil control while on the move.",
+      "patrol": "Patrol",
+      "patrolDesc": "A target walking left to right, no shooting — keep your crosshair on it as long as possible to score.",
       "switchMode": "Switch",
       "switchModeDesc": "Several numbered targets: hit them in the order shown. Hitting one out of order counts as a miss, even if you land the shot.",
       "strafeTap": "Burst",
