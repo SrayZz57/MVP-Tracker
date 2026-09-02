@@ -239,6 +239,28 @@ export const MODES = {
   // `holdTracking`, simplement sans exiger de clic maintenu — voir la
   // boucle d'animation). Vitesse unique pour cette première version
   // (marche/course à choisir viendront après validation).
+  // Quatre paliers de vitesse, même principe que les 4 paliers de Tracking
+  // (demandé sur Discord après le mode Patrol de base) : "patrol" garde sa
+  // clé d'origine (déjà utilisée pour d'éventuels scores enregistrés) et
+  // devient le palier "Moyen". "patrolMulti" ne fait pas suivre 2 cibles à
+  // la fois (contrairement à trackingMulti) — "alterne" fait plutôt varier
+  // la vitesse en cours de manche : driftChangeInterval réactivé (au lieu
+  // du quasi-infini des 3 autres paliers, à vitesse fixe) pour piocher une
+  // nouvelle vitesse dans la plage régulièrement, réutilisant tel quel le
+  // mécanisme déjà en place pour les modes Tracking/Drift.
+  patrolSlow: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolSlow',
+    descKey: 'aimTrainer.modes.patrolSlowDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.0, 1.0],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
   patrol: {
     icon: Footprints,
     accent: '#3ddc84',
@@ -248,6 +270,32 @@ export const MODES = {
     driftLockY: true,
     driftSpeed: [1.6, 1.6],
     driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
+  patrolFast: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolFast',
+    descKey: 'aimTrainer.modes.patrolFastDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [2.4, 2.4],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
+  patrolMulti: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolMulti',
+    descKey: 'aimTrainer.modes.patrolMultiDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.0, 2.4],
+    driftChangeInterval: [2500, 4500],
     passiveTrack: true,
     lifetime: null,
     preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },

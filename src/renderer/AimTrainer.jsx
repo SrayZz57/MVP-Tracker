@@ -54,6 +54,60 @@ function cm360(dpi, sens) {
   return (2.54 * 360) / (dpi * sens * 0.07);
 }
 
+// Fenêtre de choix pour un groupe de modes consolidés en une seule tuile
+// (Tracking, Patrol...) — reprend exactement les mêmes cartes que la grille
+// principale, juste côte à côte dans une fenêtre à part plutôt que 4
+// emplacements dans la grille (demandé sur Discord).
+function ModeGroupPicker({ titleKey, descKey, modeIds, activeModeId, personalBests, globalBests, onSelect, onClose, t }) {
+  return (
+    <div className="custom-config-overlay" onClick={onClose}>
+      <div className="custom-config-card tracking-picker-card" onClick={(e) => e.stopPropagation()}>
+        <h2>{t(titleKey)}</h2>
+        <p className="label">{t(descKey)}</p>
+        <div className="aim-mode-grid">
+          {modeIds.map((id) => {
+            const mode = MODES[id];
+            const personal = personalBests[id];
+            const global = globalBests[id];
+            const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
+            return (
+              <button
+                key={id}
+                className={id === activeModeId ? 'aim-mode-card active' : 'aim-mode-card'}
+                style={{ '--mode-accent': mode.accent }}
+                onClick={() => onSelect(id)}
+              >
+                <span className="aim-mode-glow" aria-hidden="true" />
+                <span className="aim-mode-head">
+                  <span className="aim-mode-icon"><Icon icon={mode.icon} /></span>
+                  {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}><Icon icon={Crown} size={14} /></span>}
+                </span>
+                <span className="aim-mode-name">{t(mode.labelKey)}</span>
+                <span className="aim-mode-desc">{t(mode.descKey)}</span>
+                <span className="aim-mode-records">
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value">{personal ?? '—'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.yourBest')}</span>
+                  </span>
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value aim-mode-record-global">{global ?? '—'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
+                  </span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        <div className="custom-config-actions">
+          <button className="account-forgot-password" onClick={onClose}>
+            {t('aimTrainer.customCancel')}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AimTrainer({ myId, matches, settings, apiKey }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState(loadConfig);
@@ -179,12 +233,17 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   // (Débutant/Intermédiaire/Pro/Multi) — cliquer dessus ouvre un choix de
   // palier au lieu d'encombrer la grille de 4 cartes quasi identiques.
   const TRACKING_MODE_IDS = ['trackingBeginner', 'trackingIntermediate', 'tracking', 'trackingMulti'];
+  // Même principe pour Patrol, demandé sur Discord juste après le mode de
+  // base : 4 paliers (Lent/Moyen/Rapide/Multi) consolidés en une tuile.
+  const PATROL_MODE_IDS = ['patrolSlow', 'patrol', 'patrolFast', 'patrolMulti'];
   const [showTrackingPicker, setShowTrackingPicker] = useState(false);
+  const [showPatrolPicker, setShowPatrolPicker] = useState(false);
   const allModeEntries = useMemo(
-    () => Object.entries(MODES).filter(([id]) => !TRACKING_MODE_IDS.includes(id)),
+    () => Object.entries(MODES).filter(([id]) => !TRACKING_MODE_IDS.includes(id) && !PATROL_MODE_IDS.includes(id)),
     [],
   );
   const isTrackingActive = TRACKING_MODE_IDS.includes(config.mode);
+  const isPatrolActive = PATROL_MODE_IDS.includes(config.mode);
 
   return (
     <div>
@@ -332,6 +391,20 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             </span>
             <span className="aim-mode-name">{t('aimTrainer.modes.trackingGroup')}</span>
             <span className="aim-mode-desc">{t('aimTrainer.modes.trackingGroupDesc')}</span>
+          </button>
+
+          {/* Tuile unique pour les 4 paliers de Patrol — même principe. */}
+          <button
+            className={isPatrolActive ? 'aim-mode-card active' : 'aim-mode-card'}
+            style={{ '--mode-accent': MODES.patrol.accent }}
+            onClick={() => setShowPatrolPicker(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={MODES.patrol.icon} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.modes.patrolGroup')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.modes.patrolGroupDesc')}</span>
           </button>
 
           {/* Seul mode aux réglages libres — volontairement à part des 6
@@ -586,54 +659,37 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
       </div>
 
       {showTrackingPicker && (
-        <div className="custom-config-overlay" onClick={() => setShowTrackingPicker(false)}>
-          <div className="custom-config-card tracking-picker-card" onClick={(e) => e.stopPropagation()}>
-            <h2>{t('aimTrainer.modes.trackingGroup')}</h2>
-            <p className="label">{t('aimTrainer.modes.trackingGroupDesc')}</p>
-            <div className="aim-mode-grid">
-              {TRACKING_MODE_IDS.map((id) => {
-                const mode = MODES[id];
-                const personal = personalBests[id];
-                const global = globalBests[id];
-                const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
-                return (
-                  <button
-                    key={id}
-                    className={id === config.mode ? 'aim-mode-card active' : 'aim-mode-card'}
-                    style={{ '--mode-accent': mode.accent }}
-                    onClick={() => {
-                      selectMode(id);
-                      setShowTrackingPicker(false);
-                    }}
-                  >
-                    <span className="aim-mode-glow" aria-hidden="true" />
-                    <span className="aim-mode-head">
-                      <span className="aim-mode-icon"><Icon icon={mode.icon} /></span>
-                      {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}><Icon icon={Crown} size={14} /></span>}
-                    </span>
-                    <span className="aim-mode-name">{t(mode.labelKey)}</span>
-                    <span className="aim-mode-desc">{t(mode.descKey)}</span>
-                    <span className="aim-mode-records">
-                      <span className="aim-mode-record">
-                        <span className="aim-mode-record-value">{personal ?? '—'}</span>
-                        <span className="aim-mode-record-label">{t('aimTrainer.yourBest')}</span>
-                      </span>
-                      <span className="aim-mode-record">
-                        <span className="aim-mode-record-value aim-mode-record-global">{global ?? '—'}</span>
-                        <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
-                      </span>
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="custom-config-actions">
-              <button className="account-forgot-password" onClick={() => setShowTrackingPicker(false)}>
-                {t('aimTrainer.customCancel')}
-              </button>
-            </div>
-          </div>
-        </div>
+        <ModeGroupPicker
+          titleKey="aimTrainer.modes.trackingGroup"
+          descKey="aimTrainer.modes.trackingGroupDesc"
+          modeIds={TRACKING_MODE_IDS}
+          activeModeId={config.mode}
+          personalBests={personalBests}
+          globalBests={globalBests}
+          onSelect={(id) => {
+            selectMode(id);
+            setShowTrackingPicker(false);
+          }}
+          onClose={() => setShowTrackingPicker(false)}
+          t={t}
+        />
+      )}
+
+      {showPatrolPicker && (
+        <ModeGroupPicker
+          titleKey="aimTrainer.modes.patrolGroup"
+          descKey="aimTrainer.modes.patrolGroupDesc"
+          modeIds={PATROL_MODE_IDS}
+          activeModeId={config.mode}
+          personalBests={personalBests}
+          globalBests={globalBests}
+          onSelect={(id) => {
+            selectMode(id);
+            setShowPatrolPicker(false);
+          }}
+          onClose={() => setShowPatrolPicker(false)}
+          t={t}
+        />
       )}
 
       {showCustomConfig && (
