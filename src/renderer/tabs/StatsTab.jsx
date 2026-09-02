@@ -561,32 +561,35 @@ function StatsTab({ settings, matches, rank, loading }) {
         <div className="match-list">
           {(showAllMatches ? filteredMatches : filteredMatches.slice(0, MATCH_HISTORY_PAGE_SIZE)).map((match) => {
             const me = findMe(match, settings.name, settings.tag);
-            const { hsPercent, bsPercent, lsPercent } = hitStats(me);
+            const { hsPercent } = hitStats(me);
             const label = resultLabel(match, me);
             const displayLabel = resultLabelKey(label) ? t(resultLabelKey(label)) : label;
             const score = matchScore(match, me);
             const resultClass = label === 'Victoire' ? 'match-win' : label === 'Défaite' ? 'match-loss' : '';
             return (
-              <div
+              <button
+                type="button"
                 key={match.metadata?.matchid}
                 className={`match-row ${resultClass} clickable`}
                 onClick={() => setSelectedMatch(match)}
               >
-                <span className="match-info">
-                  {match.metadata?.mode ?? '?'} · {match.metadata?.map ?? '?'} · {' '}
+                <span className="match-cell match-agent">
                   {me?.character && agentIcons.get(me.character) && (
                     <img src={agentIcons.get(me.character)} alt="" className="agent-icon" />
                   )}
-                  {me?.character ?? '?'} · {' '}
-                  {me?.stats?.kills ?? '?'}/{me?.stats?.deaths ?? '?'}/{me?.stats?.assists ?? '?'}
-                  {hsPercent !== null &&
-                    t('stats.hitBreakdown', { hs: hsPercent.toFixed(0), bs: bsPercent.toFixed(0), ls: lsPercent.toFixed(0) })}
+                  {me?.character ?? '?'}
                 </span>
-                <span className={`result-badge ${resultClass}`}>
-                  {displayLabel}
-                  {score && ` (${score})`}
+                <span className="match-cell match-map">{match.metadata?.map ?? '?'}</span>
+                <span className="match-cell match-mode">{match.metadata?.mode ?? '?'}</span>
+                <span className="match-cell match-score">{score || '—'}</span>
+                <span className="match-cell match-kda">
+                  {me?.stats?.kills ?? '?'}<i>/</i>{me?.stats?.deaths ?? '?'}<i>/</i>{me?.stats?.assists ?? '?'}
                 </span>
-              </div>
+                <span className="match-cell match-hs">
+                  {hsPercent === null ? '—' : t('stats.hsShort', { hs: hsPercent.toFixed(0) })}
+                </span>
+                <span className={`result-badge ${resultClass}`}>{displayLabel}</span>
+              </button>
             );
           })}
         </div>

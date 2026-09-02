@@ -1243,7 +1243,8 @@
     "matchHistory_one": "Historique de matchs ({{count}})",
     "matchHistory_other": "Historique de matchs ({{count}})",
     "allModes": "Tous les modes",
-    "hitBreakdown": " · Tête {{hs}}% / Corps {{bs}}% / Jambes {{ls}}%"
+    "hitBreakdown": " · Tête {{hs}}% / Corps {{bs}}% / Jambes {{ls}}%",
+    "hsShort": "{{hs}}% tête"
   },
   "days": {
     "monday": "Lundi",

@@ -3674,19 +3674,79 @@ li {
 }
 
 .match-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr) minmax(0, 1.1fr) 4.5rem 6rem 6.5rem 6.5rem;
+  align-items: center;
+  gap: 0.9rem;
+  width: 100%;
+  margin: 0;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  background: var(--surface-alt);
+  border: 1px solid var(--border);
+  border-left: 3px solid var(--border-strong);
+  border-radius: var(--r-sm);
+  padding: 0.6rem 0.9rem;
+  transition: border-color var(--t-state), background-color var(--t-state);
+}
+
+.match-row.match-win {
+  border-left-color: var(--good);
+}
+
+.match-row.match-loss {
+  border-left-color: var(--accent);
+}
+
+.match-cell {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.match-agent {
   display: flex;
   align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
-  border: 1px solid var(--border);
-  border-radius: 8px;
-  padding: 0.6rem 0.9rem;
-  transition: border-color var(--t-state), box-shadow var(--t-state);
+  gap: 0.5rem;
+  font-weight: 600;
+}
+
+.match-map {
+  color: var(--text);
+}
+
+.match-mode,
+.match-hs {
+  color: var(--text-muted);
+  font-size: var(--fs-xs);
+}
+
+.match-score,
+.match-kda {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.match-kda i {
+  font-style: normal;
+  color: var(--text-dim);
+  padding: 0 0.1rem;
 }
 
 .match-info {
   flex: 1;
+}
+
+@media (max-width: 1180px) {
+  .match-row {
+    grid-template-columns: minmax(0, 1.6fr) minmax(0, 1.1fr) 4.5rem 6rem 6.5rem;
+  }
+
+  .match-mode,
+  .match-hs {
+    display: none;
+  }
 }
 
 .result-badge {
