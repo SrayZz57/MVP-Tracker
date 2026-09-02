@@ -257,6 +257,7 @@
     "dayPeriodHint": "Winrate par créneau — plus la case est bleue, meilleur est ton winrate à ce moment-là.",
     "kdTrendTitle": "K/D sur les 20 derniers matchs",
     "winrateTrendTitle": "Winrate glissant (fenêtre de 5 matchs)",
+    "allAgents": "Tous les agents",
     "mapWinrateTitle": "Winrate par map",
     "roleDistributionTitle": "Répartition par rôle",
     "matchLabel": "Match {{n}}"

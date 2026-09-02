@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Gamepad2, Trophy, Swords, Target } from 'lucide-react';
-import { excludeDeathmatch, formStats, overallWinrate, overallHsPercent } from './valorantStats.js';
+import { excludeDeathmatch, findMe, formStats, overallWinrate, overallHsPercent } from './valorantStats.js';
 import { computeMapWinrates, computeDayPeriodGrid, computeRoleDistribution, computeTrend } from './performanceCharts.js';
 import { useAgentRoles } from './agentIcons.js';
 import KpiTile from './charts/KpiTile.jsx';
@@ -61,9 +61,39 @@ function PerformanceCharts({ settings, matches, loading }) {
     [filteredMatches, settings.name, settings.tag, agentRoles],
   );
 
+  // Filtres propres aux graphiques K/D et Winrate glissant (demandé sur
+  // Discord — pouvoir trier par mode ET par agent) — indépendants du filtre
+  // mode de "Winrate par map" ci-dessus, chaque graphique garde son propre
+  // contexte de lecture.
+  const [trendModeFilter, setTrendModeFilter] = useState('');
+  const [trendAgentFilter, setTrendAgentFilter] = useState('');
+  const availableTrendModes = useMemo(() => {
+    const modes = new Map();
+    ranked.forEach((match) => {
+      if (match.metadata?.mode_id) modes.set(match.metadata.mode_id, match.metadata.mode ?? match.metadata.mode_id);
+    });
+    return [...modes.entries()].sort((a, b) => a[1].localeCompare(b[1]));
+  }, [ranked]);
+  const availableTrendAgents = useMemo(() => {
+    const agents = new Set();
+    ranked.forEach((match) => {
+      const character = findMe(match, settings.name, settings.tag)?.character;
+      if (character) agents.add(character);
+    });
+    return [...agents].sort((a, b) => a.localeCompare(b));
+  }, [ranked, settings.name, settings.tag]);
+  const trendMatches = useMemo(() => {
+    let result = filteredMatches;
+    if (trendModeFilter) result = result.filter((match) => match.metadata?.mode_id === trendModeFilter);
+    if (trendAgentFilter) {
+      result = result.filter((match) => findMe(match, settings.name, settings.tag)?.character === trendAgentFilter);
+    }
+    return result;
+  }, [filteredMatches, trendModeFilter, trendAgentFilter, settings.name, settings.tag]);
+
   const trend = useMemo(
-    () => computeTrend(t, filteredMatches, settings.name, settings.tag, 20),
-    [t, filteredMatches, settings.name, settings.tag],
+    () => computeTrend(t, trendMatches, settings.name, settings.tag, 20),
+    [t, trendMatches, settings.name, settings.tag],
   );
 
   if (matches.length === 0) {
@@ -89,6 +119,27 @@ function PerformanceCharts({ settings, matches, loading }) {
         <p className="label">{t('charts.dayPeriodHint')}</p>
         <HeatmapGrid grid={dayPeriodGrid} />
       </CollapsibleCard>
+
+      {(availableTrendModes.length > 1 || availableTrendAgents.length > 1) && (
+        <div className="filter-bar">
+          {availableTrendModes.length > 1 && (
+            <select value={trendModeFilter} onChange={(e) => setTrendModeFilter(e.target.value)}>
+              <option value="">{t('stats.allModes')}</option>
+              {availableTrendModes.map(([id, label]) => (
+                <option key={id} value={id}>{label}</option>
+              ))}
+            </select>
+          )}
+          {availableTrendAgents.length > 1 && (
+            <select value={trendAgentFilter} onChange={(e) => setTrendAgentFilter(e.target.value)}>
+              <option value="">{t('charts.allAgents')}</option>
+              {availableTrendAgents.map((agent) => (
+                <option key={agent} value={agent}>{agent}</option>
+              ))}
+            </select>
+          )}
+        </div>
+      )}
 
       <div className="chart-grid-2">
         <CollapsibleCard id="charts.kdTrend" title={t('charts.kdTrendTitle')}>

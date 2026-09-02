@@ -257,6 +257,7 @@
     "dayPeriodHint": "Winrate per time slot — the bluer the cell, the better your winrate at that time.",
     "kdTrendTitle": "K/D over the last 20 matches",
     "winrateTrendTitle": "Rolling winrate (5-match window)",
+    "allAgents": "All agents",
     "mapWinrateTitle": "Winrate by map",
     "roleDistributionTitle": "Role distribution",
     "matchLabel": "Match {{n}}"
