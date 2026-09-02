@@ -25,6 +25,7 @@ import {
   Users,
   LogOut,
   ChevronDown,
+  History,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import useValorantData from './useValorantData.js';
@@ -46,6 +47,7 @@ import PerformanceChartsTab from './tabs/PerformanceChartsTab.jsx';
 import TeammatesRivalsTab from './tabs/TeammatesRivalsTab.jsx';
 import BuySimulatorTab from './tabs/BuySimulatorTab.jsx';
 import BetsTab from './tabs/BetsTab.jsx';
+import PlaySessionsTab from './tabs/PlaySessionsTab.jsx';
 import SessionGuideTab from './tabs/SessionGuideTab.jsx';
 import AimTrainerTab from './tabs/AimTrainerTab.jsx';
 import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
@@ -111,6 +113,7 @@ const NAV_SECTIONS = [
   {
     sectionKey: 'nav.sections.tools',
     tabs: [
+      { id: 'play-sessions', labelKey: 'nav.tabs.playSessions', icon: History },
       { id: 'crosshairs', labelKey: 'nav.tabs.crosshairs', icon: Target },
       { id: 'strategie', labelKey: 'nav.tabs.strategy', icon: Map },
       { id: 'skins', labelKey: 'nav.tabs.skins', icon: Gem },
@@ -794,6 +797,8 @@ function App() {
         return <BuySimulatorTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'bets':
         return <BetsTab settings={mySettings} matches={myMatches} />;
+      case 'play-sessions':
+        return <PlaySessionsTab settings={mySettings} matches={myMatches} />;
       case 'session':
         return <SessionGuideTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'aim-trainer':

@@ -54,6 +54,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveStrategy: (name, map, canvasJson) =>
     ipcRenderer.invoke('strategy:save', { name, map, canvasJson }),
   deleteStrategy: (id) => ipcRenderer.invoke('strategy:delete', id),
+  getActivePlaySession: () => ipcRenderer.invoke('play-session:get-active'),
+  startPlaySession: () => ipcRenderer.invoke('play-session:start'),
+  endPlaySession: (id) => ipcRenderer.invoke('play-session:end', id),
+  getPlaySessionHistory: (limit) => ipcRenderer.invoke('play-session:history', limit),
   getPendingBet: () => ipcRenderer.invoke('bet:get-pending'),
   createBet: (type, threshold, baselineMatchId) =>
     ipcRenderer.invoke('bet:create', { type, threshold, baselineMatchId }),

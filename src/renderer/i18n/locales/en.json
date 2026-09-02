@@ -152,6 +152,7 @@
       "aimTrainer": "Aim Trainer",
       "puzzle": "Daily puzzle",
       "bets": "Self bets",
+      "playSessions": "Sessions",
       "crosshairs": "Crosshairs",
       "strategy": "Strategy",
       "skins": "Skins",
@@ -646,6 +647,26 @@
       "hsPercent": "Get {{threshold}}%+ headshot accuracy",
       "win": "Win this match"
     }
+  },
+  "playSessions": {
+    "title": "Current session",
+    "description": "Start a session before you play, stop it when you're done — the summary is based on your real matches played in between.",
+    "startSession": "Start a session",
+    "starting": "Starting...",
+    "endSession": "End session",
+    "ending": "Ending...",
+    "liveSince": "Session running for {{duration}}",
+    "justEnded": "Session summary",
+    "gamesPlayed": "Games",
+    "winrate": "Winrate",
+    "kd": "K/D",
+    "precision": "Headshot accuracy",
+    "kda": "K/D/A",
+    "agentsPlayed": "Agents played",
+    "topWeapons": "Top weapons",
+    "historyTitle": "Session history",
+    "noHistoryYet": "No completed session yet.",
+    "noMatchesInWindow": "No match played during this session."
   },
   "buySim": {
     "noRoundData": "No match with round data cached yet.",

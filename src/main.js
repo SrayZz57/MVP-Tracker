@@ -34,6 +34,10 @@ import {
   resolveBet,
   getBetHistory,
   getTotalBetPoints,
+  getActivePlaySession,
+  startPlaySession,
+  endPlaySession,
+  getPlaySessionHistory,
   backfillLegacyPuuid,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
@@ -915,6 +919,18 @@ ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
   store.set(key, next);
   return next;
 });
+
+ipcMain.handle('play-session:get-active', () => (currentPuuid() ? getActivePlaySession(currentPuuid()) : null));
+
+ipcMain.handle('play-session:start', () => (currentPuuid() ? startPlaySession(currentPuuid()) : null));
+
+ipcMain.handle('play-session:end', (_event, id) => {
+  if (currentPuuid()) endPlaySession(currentPuuid(), id);
+});
+
+ipcMain.handle('play-session:history', (_event, limit) =>
+  currentPuuid() ? getPlaySessionHistory(currentPuuid(), limit ?? 30) : [],
+);
 
 ipcMain.handle('bet:get-pending', () => (currentPuuid() ? getPendingBet(currentPuuid()) : null));
 

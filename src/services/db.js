@@ -112,6 +112,22 @@ db.exec(`
   )
 `);
 
+// Outil "Sessions" (Outils) — pas à confondre avec "Session guidée"
+// (checklist d'échauffement, table weekly_narratives/etc.) : ici, une
+// session = une plage horaire (démarrée/arrêtée à la main) sur laquelle on
+// résume ensuite les vraies stats des matchs joués entre les deux, tirées du
+// cache local déjà là (aucune donnée supplémentaire stockée par match — le
+// résumé se recalcule à la demande à partir de started_at/ended_at).
+// ended_at NULL = session en cours.
+db.exec(`
+  CREATE TABLE IF NOT EXISTS play_sessions (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    puuid TEXT NOT NULL DEFAULT '',
+    started_at INTEGER NOT NULL,
+    ended_at INTEGER
+  )
+`);
+
 db.exec(`
   CREATE TABLE IF NOT EXISTS bets (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -375,6 +391,33 @@ export function getStrategiesForMap(puuid, map) {
 
 export function deleteStrategy(puuid, id) {
   db.prepare('DELETE FROM strategies WHERE id = ? AND puuid = ?').run(id, puuid);
+}
+
+export function getActivePlaySession(puuid) {
+  return (
+    db.prepare('SELECT * FROM play_sessions WHERE puuid = ? AND ended_at IS NULL ORDER BY started_at DESC LIMIT 1').get(puuid) ??
+    null
+  );
+}
+
+export function startPlaySession(puuid) {
+  // Referme toute session déjà active pour ce compte avant d'en ouvrir une
+  // nouvelle — ne devrait jamais arriver via l'UI normale (le bouton
+  // "Démarrer" est caché tant qu'une session tourne), mais évite un doublon
+  // silencieux si l'app a été fermée en plein milieu d'une session passée.
+  db.prepare('UPDATE play_sessions SET ended_at = ? WHERE puuid = ? AND ended_at IS NULL').run(Date.now(), puuid);
+  db.prepare('INSERT INTO play_sessions (puuid, started_at) VALUES (?, ?)').run(puuid, Date.now());
+  return getActivePlaySession(puuid);
+}
+
+export function endPlaySession(puuid, id) {
+  db.prepare('UPDATE play_sessions SET ended_at = ? WHERE id = ? AND puuid = ?').run(Date.now(), id, puuid);
+}
+
+export function getPlaySessionHistory(puuid, limit = 30) {
+  return db
+    .prepare('SELECT * FROM play_sessions WHERE puuid = ? AND ended_at IS NOT NULL ORDER BY started_at DESC LIMIT ?')
+    .all(puuid, limit);
 }
 
 export function getPendingBet(puuid) {

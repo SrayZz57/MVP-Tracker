@@ -152,6 +152,7 @@
       "aimTrainer": "Aim Trainer",
       "puzzle": "Puzzle du jour",
       "bets": "Paris perso",
+      "playSessions": "Sessions",
       "crosshairs": "Crosshairs",
       "strategy": "Stratégie",
       "skins": "Skins",
@@ -646,6 +647,26 @@
       "hsPercent": "Avoir {{threshold}}%+ de précision tête",
       "win": "Gagner ce match"
     }
+  },
+  "playSessions": {
+    "title": "Session en cours",
+    "description": "Démarre une session avant de jouer, arrête-la à la fin — le résumé se base sur tes vrais matchs joués entre les deux.",
+    "startSession": "Démarrer une session",
+    "starting": "Démarrage...",
+    "endSession": "Terminer la session",
+    "ending": "Fin en cours...",
+    "liveSince": "Session en cours depuis {{duration}}",
+    "justEnded": "Résumé de la session",
+    "gamesPlayed": "Parties",
+    "winrate": "Winrate",
+    "kd": "K/D",
+    "precision": "Précision tête",
+    "kda": "K/D/A",
+    "agentsPlayed": "Agents joués",
+    "topWeapons": "Armes principales",
+    "historyTitle": "Historique des sessions",
+    "noHistoryYet": "Aucune session terminée pour l'instant.",
+    "noMatchesInWindow": "Aucun match joué pendant cette session."
   },
   "buySim": {
     "noRoundData": "Aucun match avec données de round en cache pour l'instant.",
