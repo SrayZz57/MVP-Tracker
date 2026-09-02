@@ -1026,6 +1026,12 @@ app.whenReady().then(() => {
       // d'accueil) référencent une image par URL externe collée à la main
       // (Discord CDN, Imgur...), pas d'upload intégré — voir AdminPage.jsx.
       "img-src 'self' data: https:",
+      // Les vidéos de skins (SkinDetailModal.jsx, `skin.video` = le champ
+      // streamedVideo de valorant-api.com) n'ont jamais eu de directive ici
+      // — sans media-src, elles retombent sur default-src 'self' et sont
+      // bloquées en build packagé (jamais remarqué avant, la CSP ne
+      // s'applique pas en dev). Même largeur que img-src ci-dessus.
+      "media-src 'self' https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
       "object-src 'none'",
