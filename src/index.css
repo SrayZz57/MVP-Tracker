@@ -4275,6 +4275,8 @@ input[type='color'] {
 
 .skin-card {
   position: relative;
+  display: flex;
+  flex-direction: column;
   width: 170px;
   background: var(--surface-alt);
   border: 1px solid var(--border);
@@ -4344,7 +4346,8 @@ input[type='color'] {
 
 .skin-card-price {
   display: inline-block;
-  margin: 0.3rem 0;
+  align-self: center;
+  margin: auto 0 0;
   font-weight: 700;
   font-size: var(--fs-xs);
   color: var(--accent);
