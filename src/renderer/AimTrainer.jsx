@@ -175,7 +175,16 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
   const activeModeAccent = MODES[config.mode]?.accent ?? '#8a8f9c';
 
-  const allModeEntries = useMemo(() => Object.entries(MODES), []);
+  // Demandé sur Discord : une seule tuile "Tracking" plutôt que 4 séparées
+  // (Débutant/Intermédiaire/Pro/Multi) — cliquer dessus ouvre un choix de
+  // palier au lieu d'encombrer la grille de 4 cartes quasi identiques.
+  const TRACKING_MODE_IDS = ['trackingBeginner', 'trackingIntermediate', 'tracking', 'trackingMulti'];
+  const [showTrackingPicker, setShowTrackingPicker] = useState(false);
+  const allModeEntries = useMemo(
+    () => Object.entries(MODES).filter(([id]) => !TRACKING_MODE_IDS.includes(id)),
+    [],
+  );
+  const isTrackingActive = TRACKING_MODE_IDS.includes(config.mode);
 
   return (
     <div>
@@ -309,6 +318,21 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               </button>
             );
           })}
+
+          {/* Tuile unique pour les 4 paliers de Tracking — cliquer ouvre un
+              choix plutôt que d'occuper 4 emplacements dans la grille. */}
+          <button
+            className={isTrackingActive ? 'aim-mode-card active' : 'aim-mode-card'}
+            style={{ '--mode-accent': MODES.tracking.accent }}
+            onClick={() => setShowTrackingPicker(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={MODES.tracking.icon} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.modes.trackingGroup')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.modes.trackingGroupDesc')}</span>
+          </button>
 
           {/* Seul mode aux réglages libres — volontairement à part des 6
               autres : ceux-là doivent rester identiques pour tout le monde,
@@ -560,6 +584,52 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
           )}
         </CollapsibleCard>
       </div>
+
+      {showTrackingPicker && (
+        <div className="custom-config-overlay" onClick={() => setShowTrackingPicker(false)}>
+          <div className="custom-config-card" onClick={(e) => e.stopPropagation()}>
+            <h2>{t('aimTrainer.modes.trackingGroup')}</h2>
+            <p className="label">{t('aimTrainer.modes.trackingGroupDesc')}</p>
+            <ul className="custom-preset-list">
+              {TRACKING_MODE_IDS.map((id) => {
+                const mode = MODES[id];
+                const personal = personalBests[id];
+                const global = globalBests[id];
+                const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
+                return (
+                  <li key={id} className="custom-preset-item">
+                    <button
+                      type="button"
+                      className="tracking-picker-row"
+                      onClick={() => {
+                        selectMode(id);
+                        setShowTrackingPicker(false);
+                      }}
+                    >
+                      <span className="aim-mode-icon"><Icon icon={mode.icon} /></span>
+                      <span className="custom-preset-info">
+                        <strong>
+                          {t(mode.labelKey)}
+                          {holdsRecord && <Icon icon={Crown} size={14} />}
+                        </strong>
+                        <span className="label">{t(mode.descKey)}</span>
+                      </span>
+                      <span className="label">
+                        {t('aimTrainer.yourBest')} {personal ?? '—'} · {t('aimTrainer.globalBest')} {global ?? '—'}
+                      </span>
+                    </button>
+                  </li>
+                );
+              })}
+            </ul>
+            <div className="custom-config-actions">
+              <button className="account-forgot-password" onClick={() => setShowTrackingPicker(false)}>
+                {t('aimTrainer.customCancel')}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {showCustomConfig && (
         <CustomModeConfig

@@ -437,6 +437,8 @@
       "peekDesc": "Une cible sort de derrière une box, à droite ou à gauche, à la vitesse de strafe de Valorant. Seule la tête compte.",
       "trackingMulti": "Tracking · Multi",
       "trackingMultiDesc": "Deux cibles en mouvement à la fois, viseur maintenu sur celle que tu choisis de suivre.",
+      "trackingGroup": "Tracking",
+      "trackingGroupDesc": "Choisis ton palier de difficulté.",
       "strafe": "Strafe",
       "strafeDesc": "La cible traverse l'écran en ligne droite à vitesse constante, comme un vrai strafe — entraîne le contrôle de recul en plein mouvement.",
       "patrol": "Patrol",

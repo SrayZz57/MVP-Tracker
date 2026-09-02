@@ -3030,6 +3030,29 @@ li {
   flex-shrink: 0;
 }
 
+.tracking-picker-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--text);
+  text-align: left;
+  cursor: pointer;
+}
+
+.tracking-picker-row .custom-preset-info strong {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.tracking-picker-row:hover {
+  color: var(--accent, #ff4655);
+}
+
 .playlist-preset-picker {
   display: flex;
   flex-wrap: wrap;

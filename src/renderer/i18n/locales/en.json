@@ -437,6 +437,8 @@
       "peekDesc": "A target peeks out from behind cover, left or right, at Valorant's real strafe speed. Only the head counts.",
       "trackingMulti": "Tracking · Multi",
       "trackingMultiDesc": "Two moving targets at once, crosshair held on whichever one you choose to follow.",
+      "trackingGroup": "Tracking",
+      "trackingGroupDesc": "Pick your difficulty tier.",
       "strafe": "Strafe",
       "strafeDesc": "The target crosses the screen in a straight line at constant speed, like a real strafe — trains recoil control while on the move.",
       "patrol": "Patrol",
