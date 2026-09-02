@@ -224,6 +224,8 @@
     },
     "publishedTitle": "Published compositions on {{map}}",
     "publishedIntro": "Share your comp with the community, or get inspired by ones already published.",
+    "publishedTitleAll": "Compositions published by the community",
+    "publishedIntroAll": "Pick a map above to publish yours — meanwhile, here are the latest published, across every map.",
     "notePlaceholder": "A note explaining your comp (optional)...",
     "publish": "Publish this composition",
     "publishing": "Publishing...",

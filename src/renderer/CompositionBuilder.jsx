@@ -65,17 +65,18 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
   const [publishing, setPublishing] = useState(false);
   const [publishError, setPublishError] = useState(null);
 
+  // Sans map choisie, on montre TOUTES les compositions publiées (toutes
+  // maps confondues, plafonnées pour rester raisonnable) plutôt qu'une
+  // section vide — signalé en vrai, rien ne s'affichait avant d'avoir
+  // sélectionné une map.
   async function loadPublishedComps(map) {
-    if (!map) {
-      setPublishedComps([]);
-      return;
-    }
     setLoadingComps(true);
-    const { data, error } = await supabase
+    let query = supabase
       .from('map_compositions')
-      .select('id, agents, note, created_at, created_by, author:profiles(display_name, riot_name, riot_tag, avatar_card_uuid)')
-      .eq('map', map)
+      .select('id, map, agents, note, created_at, created_by, author:profiles(display_name, riot_name, riot_tag, avatar_card_uuid)')
       .order('created_at', { ascending: false });
+    query = map ? query.eq('map', map) : query.limit(30);
+    const { data, error } = await query;
     if (!error) setPublishedComps(data ?? []);
     setLoadingComps(false);
   }
@@ -219,60 +220,66 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, is
         )}
       </CollapsibleCard>
 
-      {selectedMap && (
-        <CollapsibleCard id="composition.published" title={t('composition.publishedTitle', { map: selectedMap })}>
-          <p className="label">{t('composition.publishedIntro')}</p>
+      <CollapsibleCard
+        id="composition.published"
+        title={selectedMap ? t('composition.publishedTitle', { map: selectedMap }) : t('composition.publishedTitleAll')}
+      >
+        <p className="label">{selectedMap ? t('composition.publishedIntro') : t('composition.publishedIntroAll')}</p>
 
-          <div className="comp-publish-form">
-            <textarea
-              className="comp-publish-note"
-              placeholder={t('composition.notePlaceholder')}
-              value={note}
-              maxLength={280}
-              onChange={(e) => setNote(e.target.value)}
-            />
-            <button className="refresh" onClick={handlePublish} disabled={!canPublish || publishing}>
-              {publishing ? t('composition.publishing') : t('composition.publish')}
-            </button>
-          </div>
-          {!slots.every(Boolean) && <p className="label">{t('composition.publishNeedsFullSlots')}</p>}
-          {publishError && <p className="warning">{publishError}</p>}
+        {selectedMap && (
+          <>
+            <div className="comp-publish-form">
+              <textarea
+                className="comp-publish-note"
+                placeholder={t('composition.notePlaceholder')}
+                value={note}
+                maxLength={280}
+                onChange={(e) => setNote(e.target.value)}
+              />
+              <button className="refresh" onClick={handlePublish} disabled={!canPublish || publishing}>
+                {publishing ? t('composition.publishing') : t('composition.publish')}
+              </button>
+            </div>
+            {!slots.every(Boolean) && <p className="label">{t('composition.publishNeedsFullSlots')}</p>}
+            {publishError && <p className="warning">{publishError}</p>}
+          </>
+        )}
 
-          {loadingComps ? (
-            <p className="label">{t('composition.loadingPublished')}</p>
-          ) : publishedComps.length === 0 ? (
-            <p className="label">{t('composition.noPublishedYet')}</p>
-          ) : (
-            <ul className="comp-published-list">
-              {publishedComps.map((comp) => (
-                <li key={comp.id} className="comp-published-item">
-                  <div className="comp-published-agents">
-                    {comp.agents.map((agent, i) => (
-                      <span key={i} className="comp-published-agent-icon" title={agent}>
-                        {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
-                      </span>
-                    ))}
-                  </div>
-                  {comp.note && <p className="comp-published-note">{comp.note}</p>}
-                  <div className="comp-published-footer">
-                    <CompositionAuthor author={comp.author} />
-                    {(comp.created_by === myId || isAdmin) && (
-                      <button
-                        type="button"
-                        className="strategy-tool icon-only danger"
-                        title={t(comp.created_by === myId ? 'composition.deletePublished' : 'composition.deletePublishedAdmin')}
-                        onClick={() => handleDeletePublished(comp.id)}
-                      >
-                        <Icon icon={Trash2} size={14} />
-                      </button>
-                    )}
-                  </div>
-                </li>
-              ))}
-            </ul>
-          )}
-        </CollapsibleCard>
-      )}
+        {loadingComps ? (
+          <p className="label">{t('composition.loadingPublished')}</p>
+        ) : publishedComps.length === 0 ? (
+          <p className="label">{t('composition.noPublishedYet')}</p>
+        ) : (
+          <ul className="comp-published-list">
+            {publishedComps.map((comp) => (
+              <li key={comp.id} className="comp-published-item">
+                {!selectedMap && <span className="comp-published-map">{comp.map}</span>}
+                <div className="comp-published-agents">
+                  {comp.agents.map((agent, i) => (
+                    <span key={i} className="comp-published-agent-icon" title={agent}>
+                      {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
+                    </span>
+                  ))}
+                </div>
+                {comp.note && <p className="comp-published-note">{comp.note}</p>}
+                <div className="comp-published-footer">
+                  <CompositionAuthor author={comp.author} />
+                  {(comp.created_by === myId || isAdmin) && (
+                    <button
+                      type="button"
+                      className="strategy-tool icon-only danger"
+                      title={t(comp.created_by === myId ? 'composition.deletePublished' : 'composition.deletePublishedAdmin')}
+                      onClick={() => handleDeletePublished(comp.id)}
+                    >
+                      <Icon icon={Trash2} size={14} />
+                    </button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </CollapsibleCard>
 
       {score && (
         <div className="card comp-score-card">

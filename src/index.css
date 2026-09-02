@@ -5495,6 +5495,17 @@ input[type='color'] {
   background: var(--surface-alt);
 }
 
+.comp-published-map {
+  display: inline-block;
+  margin-bottom: 0.5rem;
+  padding: 0.15rem 0.55rem;
+  border-radius: 999px;
+  background: var(--surface);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-muted);
+}
+
 .comp-published-agents {
   display: flex;
   gap: 0.4rem;
