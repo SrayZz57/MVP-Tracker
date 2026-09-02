@@ -451,8 +451,6 @@
       "patrolFastDesc": "Une cible qui court de gauche à droite, sans tir — le palier le plus exigeant en vitesse constante.",
       "patrolMulti": "Patrol · Multi",
       "patrolMultiDesc": "La vitesse (et parfois la direction) change en cours de manche — impossible d'anticiper un rythme fixe.",
-      "patrolOrbit": "Patrol · Orbite",
-      "patrolOrbitDesc": "La cible tourne rapidement autour de toi, sans tir — un défi de rotation plutôt qu'un aller-retour.",
       "switchMode": "Switch",
       "switchModeDesc": "Plusieurs cibles numérotées : touche-les dans l'ordre affiché. Une erreur d'ordre compte comme un raté, même si tu touches une cible.",
       "strafeTap": "Rafale",

@@ -451,8 +451,6 @@
       "patrolFastDesc": "A target running left to right, no shooting — the most demanding constant-speed tier.",
       "patrolMulti": "Patrol · Multi",
       "patrolMultiDesc": "Speed (and sometimes direction) changes mid-session — no fixed rhythm to anticipate.",
-      "patrolOrbit": "Patrol · Orbit",
-      "patrolOrbitDesc": "The target circles quickly around you, no shooting — a rotation challenge rather than a back-and-forth.",
       "switchMode": "Switch",
       "switchModeDesc": "Several numbered targets: hit them in the order shown. Hitting one out of order counts as a miss, even if you land the shot.",
       "strafeTap": "Burst",

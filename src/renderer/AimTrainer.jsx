@@ -235,7 +235,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const TRACKING_MODE_IDS = ['trackingBeginner', 'trackingIntermediate', 'tracking', 'trackingMulti'];
   // Même principe pour Patrol, demandé sur Discord juste après le mode de
   // base : 4 paliers (Lent/Moyen/Rapide/Multi) consolidés en une tuile.
-  const PATROL_MODE_IDS = ['patrolSlow', 'patrol', 'patrolFast', 'patrolMulti', 'patrolOrbit'];
+  const PATROL_MODE_IDS = ['patrolSlow', 'patrol', 'patrolFast', 'patrolMulti'];
   const [showTrackingPicker, setShowTrackingPicker] = useState(false);
   const [showPatrolPicker, setShowPatrolPicker] = useState(false);
   const allModeEntries = useMemo(
