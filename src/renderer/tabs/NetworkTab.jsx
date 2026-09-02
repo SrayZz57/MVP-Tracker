@@ -13,6 +13,8 @@ import CollapsibleCard from '../CollapsibleCard.jsx';
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;
 
+let lastPushed = null;
+
 function PingGauge({ percent }) {
   const { t } = useTranslation();
   const offset = CIRCUMFERENCE * (1 - percent / 100);
@@ -96,10 +98,19 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
 
   const percent = pingStats.deathsAnalyzed > 0 ? (pingStats.deathsNearSpike / pingStats.deathsAnalyzed) * 100 : 0;
 
-  const [accountTotals, setAccountTotals] = useState(null);
+  const [accountTotals, setAccountTotals] = useState(() => (lastPushed?.userId === myId ? lastPushed.totals : null));
 
   useEffect(() => {
     if (!myId || pingStats.deathsAnalyzed === 0) return;
+    if (
+      lastPushed &&
+      lastPushed.userId === myId &&
+      lastPushed.deathsAnalyzed === pingStats.deathsAnalyzed &&
+      lastPushed.deathsNearSpike === pingStats.deathsNearSpike
+    ) {
+      setAccountTotals(lastPushed.totals);
+      return;
+    }
     let cancelled = false;
 
     window.electronAPI.getDeviceId().then(async (deviceId) => {
@@ -130,6 +141,12 @@ function NetworkTab({ settings, matches, pingSamples, myId }) {
         }),
         { deathsAnalyzed: 0, deathsNearSpike: 0 },
       );
+      lastPushed = {
+        userId: myId,
+        deathsAnalyzed: pingStats.deathsAnalyzed,
+        deathsNearSpike: pingStats.deathsNearSpike,
+        totals,
+      };
       setAccountTotals(totals);
     });
 
