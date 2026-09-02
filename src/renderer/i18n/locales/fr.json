@@ -221,7 +221,16 @@
       "noDuelist": "Aucun duelliste : possible manque de prise d'espace/d'entrée.",
       "tooManyDuelists": "Beaucoup de duellistes : bonne pression, mais attention au manque d'info/soutien.",
       "balanced": "Les 4 rôles sont couverts — base de compo équilibrée."
-    }
+    },
+    "publishedTitle": "Compositions publiées sur {{map}}",
+    "publishedIntro": "Partage ta compo avec la communauté, ou pioche l'inspiration dans celles déjà publiées.",
+    "notePlaceholder": "Une note pour expliquer ta compo (optionnel)...",
+    "publish": "Publier cette composition",
+    "publishing": "Publication...",
+    "publishNeedsFullSlots": "Remplis les 5 emplacements ci-dessus pour pouvoir publier.",
+    "loadingPublished": "Chargement...",
+    "noPublishedYet": "Aucune composition publiée sur cette map pour l'instant.",
+    "deletePublished": "Supprimer ma composition"
   },
   "social": {
     "you": "Toi",

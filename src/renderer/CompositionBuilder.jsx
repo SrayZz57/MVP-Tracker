@@ -1,12 +1,14 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, Trash2 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { useMapMinimaps } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
 import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
+import { usePlayerCardArt } from './rankData.js';
+import { supabase } from './supabaseClient.js';
 import CountUp from './CountUp.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
@@ -22,7 +24,27 @@ function scoreColor(value) {
   return 'var(--accent)';
 }
 
-function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
+// Même schéma que l'auteur des annonces admin (AccountGreeting.jsx) — avatar
+// + nom réel du compte MVP Tracker qui a publié, pas un pseudo saisi à la main.
+function CompositionAuthor({ author }) {
+  const avatarArt = usePlayerCardArt(author?.avatar_card_uuid);
+  if (!author) return null;
+  const name = author.display_name || (author.riot_name ? `${author.riot_name}#${author.riot_tag}` : null);
+  if (!name) return null;
+
+  return (
+    <span className="comp-published-author">
+      {avatarArt.icon ? (
+        <img src={avatarArt.icon} alt="" className="comp-published-author-avatar" />
+      ) : (
+        <span className="comp-published-author-avatar comp-published-author-fallback">{name.charAt(0)}</span>
+      )}
+      {name}
+    </span>
+  );
+}
+
+function CompositionBuilder({ settings, matches, mySettings, myMatches, myId }) {
   const { t } = useTranslation();
   const minimaps = useMapMinimaps();
   const agentIcons = useAgentIcons();
@@ -33,6 +55,63 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
 
   const mapNames = useMemo(() => [...minimaps.keys()].sort(), [minimaps]);
   const agentNames = useMemo(() => [...agentIcons.keys()].sort(), [agentIcons]);
+
+  // Compositions publiées par la communauté pour la map choisie — demandé
+  // sur Discord. Rechargées à chaque changement de map, jamais toutes en
+  // mémoire d'un coup (pourrait grossir sans limite avec le temps).
+  const [publishedComps, setPublishedComps] = useState([]);
+  const [loadingComps, setLoadingComps] = useState(false);
+  const [note, setNote] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
+
+  async function loadPublishedComps(map) {
+    if (!map) {
+      setPublishedComps([]);
+      return;
+    }
+    setLoadingComps(true);
+    const { data, error } = await supabase
+      .from('map_compositions')
+      .select('id, agents, note, created_at, created_by, author:profiles(display_name, riot_name, riot_tag, avatar_card_uuid)')
+      .eq('map', map)
+      .order('created_at', { ascending: false });
+    if (!error) setPublishedComps(data ?? []);
+    setLoadingComps(false);
+  }
+
+  useEffect(() => {
+    loadPublishedComps(selectedMap);
+    setNote('');
+    setPublishError(null);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedMap]);
+
+  const canPublish = Boolean(selectedMap) && slots.every(Boolean) && Boolean(myId);
+
+  async function handlePublish() {
+    if (!canPublish) return;
+    setPublishing(true);
+    setPublishError(null);
+    const { error } = await supabase.from('map_compositions').insert({
+      map: selectedMap,
+      agents: slots,
+      note: note.trim() || null,
+      created_by: myId,
+    });
+    setPublishing(false);
+    if (error) {
+      setPublishError(error.message);
+      return;
+    }
+    setNote('');
+    loadPublishedComps(selectedMap);
+  }
+
+  async function handleDeletePublished(id) {
+    await supabase.from('map_compositions').delete().eq('id', id);
+    loadPublishedComps(selectedMap);
+  }
 
   const analysis = useMemo(() => analyzeComposition(slots, agentRoles), [slots, agentRoles]);
   const score = useMemo(
@@ -139,6 +218,61 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
           </div>
         )}
       </CollapsibleCard>
+
+      {selectedMap && (
+        <CollapsibleCard id="composition.published" title={t('composition.publishedTitle', { map: selectedMap })}>
+          <p className="label">{t('composition.publishedIntro')}</p>
+
+          <div className="comp-publish-form">
+            <textarea
+              className="comp-publish-note"
+              placeholder={t('composition.notePlaceholder')}
+              value={note}
+              maxLength={280}
+              onChange={(e) => setNote(e.target.value)}
+            />
+            <button className="refresh" onClick={handlePublish} disabled={!canPublish || publishing}>
+              {publishing ? t('composition.publishing') : t('composition.publish')}
+            </button>
+          </div>
+          {!slots.every(Boolean) && <p className="label">{t('composition.publishNeedsFullSlots')}</p>}
+          {publishError && <p className="warning">{publishError}</p>}
+
+          {loadingComps ? (
+            <p className="label">{t('composition.loadingPublished')}</p>
+          ) : publishedComps.length === 0 ? (
+            <p className="label">{t('composition.noPublishedYet')}</p>
+          ) : (
+            <ul className="comp-published-list">
+              {publishedComps.map((comp) => (
+                <li key={comp.id} className="comp-published-item">
+                  <div className="comp-published-agents">
+                    {comp.agents.map((agent, i) => (
+                      <span key={i} className="comp-published-agent-icon" title={agent}>
+                        {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
+                      </span>
+                    ))}
+                  </div>
+                  {comp.note && <p className="comp-published-note">{comp.note}</p>}
+                  <div className="comp-published-footer">
+                    <CompositionAuthor author={comp.author} />
+                    {comp.created_by === myId && (
+                      <button
+                        type="button"
+                        className="strategy-tool icon-only danger"
+                        title={t('composition.deletePublished')}
+                        onClick={() => handleDeletePublished(comp.id)}
+                      >
+                        <Icon icon={Trash2} size={14} />
+                      </button>
+                    )}
+                  </div>
+                </li>
+              ))}
+            </ul>
+          )}
+        </CollapsibleCard>
+      )}
 
       {score && (
         <div className="card comp-score-card">

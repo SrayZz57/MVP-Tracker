@@ -762,7 +762,13 @@ function App() {
         return <AnalyseTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'composition':
         return (
-          <CompositionTab settings={settings} matches={data.matches} mySettings={mySettings} myMatches={myMatches} />
+          <CompositionTab
+            settings={settings}
+            matches={data.matches}
+            mySettings={mySettings}
+            myMatches={myMatches}
+            myId={session.user.id}
+          />
         );
       case 'graphiques':
         return <PerformanceChartsTab settings={settings} matches={data.matches} loading={data.loading} />;

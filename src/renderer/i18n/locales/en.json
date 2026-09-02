@@ -221,7 +221,16 @@
       "noDuelist": "No duelist: possible lack of space-taking/entry power.",
       "tooManyDuelists": "Lots of duelists: good pressure, but watch out for a lack of info/support.",
       "balanced": "All 4 roles are covered — a balanced composition base."
-    }
+    },
+    "publishedTitle": "Published compositions on {{map}}",
+    "publishedIntro": "Share your comp with the community, or get inspired by ones already published.",
+    "notePlaceholder": "A note explaining your comp (optional)...",
+    "publish": "Publish this composition",
+    "publishing": "Publishing...",
+    "publishNeedsFullSlots": "Fill all 5 slots above before publishing.",
+    "loadingPublished": "Loading...",
+    "noPublishedYet": "No composition published on this map yet.",
+    "deletePublished": "Delete my composition"
   },
   "social": {
     "you": "You",
