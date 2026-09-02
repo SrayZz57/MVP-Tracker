@@ -26,6 +26,7 @@ import {
   LogOut,
   ChevronDown,
   History,
+  Search,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import useValorantData from './useValorantData.js';
@@ -70,6 +71,7 @@ import FriendsTab from './tabs/FriendsTab.jsx';
 import { supabase } from './supabaseClient.js';
 import { useOnlinePresence } from './presence.js';
 import { useRankTiers, usePlayerCardArt } from './rankData.js';
+import { normalizeRiotIdPart } from './valorantStats.js';
 import logo from '../assets/logo.png';
 
 // `labelKey` plutôt que du texte en dur — cette structure est au niveau
@@ -234,6 +236,12 @@ function App() {
   const { lock: lockMessagingKey, tryAutoUnlock: tryAutoUnlockMessagingKey } = useE2EE();
   const sidebarNavRef = useRef(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false });
+  // Recherche d'onglet dans la barre latérale — demandé sur Discord. Pendant
+  // une recherche, chaque section ignore son état replié (sinon un onglet
+  // qui correspond resterait invisible si sa section était repliée) et ne
+  // garde que ses onglets qui matchent, section masquée si aucun ne matche.
+  const [navSearch, setNavSearch] = useState('');
+  const navQuery = normalizeRiotIdPart(navSearch);
   // Ami à ouvrir en conversation dès l'arrivée sur l'onglet Messages, posé
   // par le bouton "💬" de la page Amis — one-shot, consommé au montage.
   const [pendingOpenFriendId, setPendingOpenFriendId] = useState(null);
@@ -872,6 +880,16 @@ function App() {
           <span>MVP Tracker</span>
         </div>
 
+        <div className="sidebar-search">
+          <Icon icon={Search} size={15} />
+          <input
+            type="text"
+            value={navSearch}
+            onChange={(e) => setNavSearch(e.target.value)}
+            placeholder={t('nav.searchPlaceholder')}
+          />
+        </div>
+
         <div className="sidebar-nav" ref={sidebarNavRef}>
           <div
             className="sidebar-active-indicator"
@@ -882,7 +900,11 @@ function App() {
             }}
           />
           {(isAdmin ? [...NAV_SECTIONS, ADMIN_SECTION] : NAV_SECTIONS).map((section) => {
-            const collapsed = collapsedSections.has(section.sectionKey);
+            const matchingTabs = navQuery
+              ? section.tabs.filter((tab) => normalizeRiotIdPart(t(tab.labelKey)).includes(navQuery))
+              : section.tabs;
+            if (navQuery && matchingTabs.length === 0) return null;
+            const collapsed = !navQuery && collapsedSections.has(section.sectionKey);
             return (
               <div key={section.sectionKey} className="sidebar-section">
                 <button
@@ -893,11 +915,14 @@ function App() {
                   <span className="sidebar-section-chevron"><Icon icon={ChevronDown} size={14} /></span>
                 </button>
                 {!collapsed &&
-                  section.tabs.map((tab) => (
+                  matchingTabs.map((tab) => (
                     <button
                       key={tab.id}
                       className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setNavSearch('');
+                      }}
                       style={{ '--tab-color': tab.color }}
                     >
                       <span className="sidebar-link-icon">
