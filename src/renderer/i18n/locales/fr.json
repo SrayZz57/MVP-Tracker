@@ -478,6 +478,7 @@
     "targetColorLabel": "Couleur des cibles",
     "fovLabel": "Champ de vision : {{fov}}°",
     "showWeaponLabel": "Afficher l'arme et les mains",
+    "darkThemeLabel": "Salle sombre (sans ciel bleu ni sol clair)",
     "crosshairSection": "Crosshair",
     "crosshairEmpty": "Aucun crosshair dans ta bibliothèque — ajoutes-en un dans l'onglet Crosshairs.",
     "crosshairDefault": "Croix par défaut",

@@ -478,6 +478,7 @@
     "targetColorLabel": "Target color",
     "fovLabel": "Field of view: {{fov}}°",
     "showWeaponLabel": "Show weapon and hands",
+    "darkThemeLabel": "Dark room (no blue sky or bright floor)",
     "crosshairSection": "Crosshair",
     "crosshairEmpty": "No crosshair in your library yet — add one from the Crosshairs tab.",
     "crosshairDefault": "Default cross",

@@ -522,6 +522,18 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
               />
               <span>{t('aimTrainer.showWeaponLabel')}</span>
             </label>
+            {/* Suggéré sur Discord : une salle sombre plutôt que le ciel
+                bleu/sol clair par défaut, pour s'entraîner sans distraction
+                visuelle. Version simple pour l'instant (teintes assombries,
+                pas encore un vrai plafond) — voir DEFAULT_CONFIG.theme. */}
+            <label className="aim-config-check">
+              <input
+                type="checkbox"
+                checked={config.theme === 'dark'}
+                onChange={(e) => set({ theme: e.target.checked ? 'dark' : 'day' })}
+              />
+              <span>{t('aimTrainer.darkThemeLabel')}</span>
+            </label>
             <button className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
               {t('aimTrainer.resetDefaults')}
             </button>

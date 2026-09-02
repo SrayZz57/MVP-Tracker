@@ -385,6 +385,11 @@ export const DEFAULT_CONFIG = {
   spread: 28,
   fov: 103,
   showWeapon: true,
+  // 'day' (défaut, ciel + sol clair) ou 'dark' (suggéré sur Discord — salle
+  // fermée, sans ciel bleu ni sol blanc). Version simple validée avec
+  // l'utilisateur : teintes assombries + ciel remplacé par une couleur
+  // unie, pas encore un vrai plafond en dur.
+  theme: 'day',
   // Code de la bibliothèque de crosshairs à afficher pendant la session ;
   // null = croix blanche par défaut (voir .aim-trainer-crosshair).
   crosshairCode: null,
@@ -754,11 +759,17 @@ function AimTrainerGame({ config: rawConfig }) {
     const mount = mountRef.current;
     if (!mount) return undefined;
 
+    // Lu une seule fois au montage (comme le reste de la config initiale
+    // de cette scène) — pas besoin de réagir à un changement en cours de
+    // session, l'utilisateur choisit le thème avant de lancer.
+    const isDark = config.theme === 'dark';
+
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9dc2e0);
-    // Brouillard léger, teinté comme l'horizon du ciel : fond la limite de
-    // l'arène dans le décor au lieu d'une coupure nette.
-    scene.fog = new THREE.FogExp2(0xa8cbe8, 0.008);
+    scene.background = new THREE.Color(isDark ? 0x0b0d12 : 0x9dc2e0);
+    // Brouillard léger, teinté comme l'horizon du ciel (ou la pénombre en
+    // thème sombre) : fond la limite de l'arène dans le décor au lieu
+    // d'une coupure nette.
+    scene.fog = new THREE.FogExp2(isDark ? 0x0b0d12 : 0xa8cbe8, isDark ? 0.02 : 0.008);
 
     const initialAspect = window.innerWidth / window.innerHeight;
     const camera = new THREE.PerspectiveCamera(
@@ -780,15 +791,18 @@ function AimTrainerGame({ config: rawConfig }) {
 
     // --- Éclairage ----------------------------------------------------------
     // Ciel/sol : donne une base lumineuse partout, sans zone totalement noire.
-    scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x3a4152, 1.5));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    // Réduit en thème sombre pour une vraie ambiance de salle fermée plutôt
+    // que la même scène juste teintée — les deux accents rouge/bleu plus bas
+    // restent inchangés, ils font tout le travail d'atmosphère là-dedans.
+    scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x3a4152, isDark ? 0.5 : 1.5));
+    scene.add(new THREE.AmbientLight(0xffffff, isDark ? 0.15 : 0.45));
 
     // "Soleil" principal, chaud et franc, avec sa lumière de contre-jour.
-    const sun = new THREE.DirectionalLight(0xfff2dc, 2.6);
+    const sun = new THREE.DirectionalLight(0xfff2dc, isDark ? 0.6 : 2.6);
     sun.position.set(8, 16, 6);
     scene.add(sun);
 
-    const backLight = new THREE.DirectionalLight(0xa8c4ff, 0.9);
+    const backLight = new THREE.DirectionalLight(0xa8c4ff, isDark ? 0.3 : 0.9);
     backLight.position.set(-6, 8, -10);
     scene.add(backLight);
 
@@ -808,12 +822,16 @@ function AimTrainerGame({ config: rawConfig }) {
 
     // --- Ciel ---------------------------------------------------------------
     // Grande sphère texturée vue de l'intérieur : l'arène est à ciel ouvert,
-    // donc le ciel est visible au-dessus des murs.
-    const sky = new THREE.Mesh(
-      new THREE.SphereGeometry(120, 40, 24),
-      new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false, depthWrite: false }),
-    );
-    scene.add(sky);
+    // donc le ciel est visible au-dessus des murs. En thème sombre, la
+    // couleur de fond de la scène (déjà posée plus haut) suffit à donner une
+    // pénombre uniforme au-dessus des murs — pas besoin de cette sphère.
+    if (!isDark) {
+      const sky = new THREE.Mesh(
+        new THREE.SphereGeometry(120, 40, 24),
+        new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false, depthWrite: false }),
+      );
+      scene.add(sky);
+    }
 
     // --- Arène -------------------------------------------------------------
     const arena = new THREE.Group();
@@ -824,7 +842,9 @@ function AimTrainerGame({ config: rawConfig }) {
       loadPbrMaterial(
         { color: floorColorUrl, normal: floorNormalUrl, roughness: floorRoughnessUrl },
         [18, 18],
-        { metalness: 0.05 },
+        // `color` multiplie la texture (blanc = inchangé) : simple façon
+        // d'assombrir le sol clair existant en thème sombre sans nouvel asset.
+        { metalness: 0.05, color: isDark ? 0x3a3f4a : 0xffffff },
       ),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -842,7 +862,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const wallMat = loadPbrMaterial(
       { color: wallColorUrl, normal: wallNormalUrl, roughness: wallRoughnessUrl },
       [8, 2],
-      { metalness: 0.45, side: THREE.DoubleSide },
+      { metalness: 0.45, side: THREE.DoubleSide, color: isDark ? 0x3a3f4a : 0xffffff },
     );
     const WALL_HEIGHT = 7;
     const WALL_HALF = 24;
