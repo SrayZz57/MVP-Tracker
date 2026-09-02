@@ -8326,6 +8326,17 @@ input[type='color'] {
   color: var(--accent, #ff4655);
 }
 
+.tournament-detail-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.tournament-detail-toolbar .link-back {
+  margin-bottom: 0;
+}
+
 /* Positionné en coin plutôt qu'inline : évite de casser la mise en page
    centrée de l'écran de liaison de compte (welcome-screen), qui n'a par
    ailleurs aucun autre élément en haut à gauche. */

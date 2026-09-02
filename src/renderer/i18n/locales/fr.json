@@ -64,6 +64,8 @@
       "step4Text": "Résultats et progression mis à jour au fil du tournoi."
     },
     "back": "Retour",
+    "share": "Partager",
+    "sharing": "Export en cours…",
     "teamsCount": "{{count}}/{{max}} équipes",
     "registeredTeams": "Équipes inscrites",
     "noTeamsYet": "Aucune équipe inscrite pour l'instant.",

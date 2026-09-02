@@ -64,6 +64,8 @@
       "step4Text": "Results and progress update as the tournament unfolds."
     },
     "back": "Back",
+    "share": "Share",
+    "sharing": "Exporting…",
     "teamsCount": "{{count}}/{{max}} teams",
     "registeredTeams": "Registered teams",
     "noTeamsYet": "No team registered yet.",
