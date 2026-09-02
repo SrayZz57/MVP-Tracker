@@ -426,30 +426,15 @@ function App() {
   // Confort d'affichage uniquement — voir le commentaire sur ADMIN_SECTION.
   const isAdmin = profile?.role === 'admin';
 
-  // Synchro vers Supabase (résumés + détail des 50 plus récents) — voir
-  // matchSync.js. Se redéclenche à chaque nouveau chargement de myMatches
-  // (cache initial ou vrai rafraîchissement) ; le module lui-même ne
-  // ré-uploade jamais ce qui est déjà là, donc les appels redondants sont
-  // sans frais réels, juste un aller-retour de vérification.
-  useEffect(() => {
-    if (!session || myMatches.length === 0 || !mySettings?.name) return;
-    // `session.access_token` peut dater : le rafraîchissement en tâche de
-    // fond de Supabase se met en pause si la fenêtre reste longtemps non
-    // visible, et un token expiré fait échouer Storage silencieusement
-    // (RLS refuse tout, sans distinguer "expiré" de "vraiment pas autorisé").
-    // `getSession()` revérifie et rafraîchit au besoin avant qu'on l'utilise.
-    supabase.auth.getSession().then(({ data: { session: fresh } }) => {
-      if (!fresh) return;
-      window.electronAPI.syncMatches({
-        matches: myMatches,
-        name: mySettings.name,
-        tag: mySettings.tag,
-        userId: fresh.user.id,
-        accessToken: fresh.access_token,
-      });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myMatches]);
+  // Synchro vers Supabase (résumés + détail des 50 plus récents, voir
+  // matchSync.js) COUPÉE le 2 septembre 2026 : la table match_summaries
+  // spammait le dashboard Postgres d'erreurs "permission denied" pour tous
+  // les comptes (GRANT + policy UPDATE corrigés côté SQL, mais l'erreur
+  // persistait encore sur certaines requêtes — cause exacte pas encore
+  // confirmée). Rien dans l'app actuelle ne LIT cette table (préparée pour
+  // un futur client mobile qui n'existe pas encore), donc couper l'appel ne
+  // change rien pour les utilisateurs — à réactiver une fois la vraie cause
+  // trouvée.
 
   // Même principe que pour les matchs : le rang stocké localement ne l'était
   // que pour "le dernier profil consulté", pas par compte — on le relit
