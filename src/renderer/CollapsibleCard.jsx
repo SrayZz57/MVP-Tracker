@@ -17,7 +17,13 @@ function CollapsibleCard({ id, title, className = '', headerExtra, collapsible =
           <div className="collapsible-card-header-actions">
             {headerExtra}
             {collapsible && (
-              <Button variant="ghost" type="button" className="collapsible-card-toggle" onClick={() => toggle(id)}>
+              <Button
+                variant="ghost"
+                type="button"
+                className="collapsible-card-toggle"
+                aria-expanded={!isCollapsed}
+                onClick={() => toggle(id)}
+              >
                 <span className="collapsible-card-chevron"><Icon icon={ChevronDown} size={16} /></span>
                 {isCollapsed ? t('collapsible.expand') : t('collapsible.collapse')}
               </Button>

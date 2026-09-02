@@ -11,8 +11,8 @@
   --border-strong: #343a48;
 
   --text: #edeef2;
-  --text-muted: #8b909d;
-  --text-dim: #5f6572;
+  --text-muted: #a7aab4;
+  --text-dim: #9096a2;
 
   --accent: #ff4655;
   --accent-hover: #ff6472;
@@ -43,6 +43,10 @@
   --r-md: 12px;
   --r-lg: 16px;
   --r-xl: 20px;
+
+  --card-pad: 1.15rem 1.35rem;
+  --card-pad-sm: 0.85rem 1rem;
+  --card-pad-lg: 1.6rem;
 
   --control-h: 42px;
 
@@ -1300,7 +1304,7 @@ h1 {
   width: 100%;
   max-width: 420px;
   margin: 1rem 0;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   background-size: cover;
   background-position: center;
@@ -1503,7 +1507,7 @@ h1 {
   background: var(--surface);
   border: 1px solid var(--border);
   border-radius: var(--r-lg);
-  padding: 1.15rem 1.35rem;
+  padding: var(--card-pad);
   margin-bottom: 1.25rem;
   transition: border-color var(--t-state), background-color var(--t-state);
 }
@@ -2810,7 +2814,7 @@ li {
   z-index: 200;
   width: 220px;
   padding: 0.85rem;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   background: linear-gradient(172deg, #1c212b 0%, #12151d 60%, #0d1015 100%);
   border: 1px solid var(--border-strong);
   display: flex;
@@ -2985,8 +2989,8 @@ li {
   display: flex;
   flex-direction: column;
   gap: 1rem;
-  padding: 1.5rem;
-  border-radius: var(--r-lg, 18px);
+  padding: var(--card-pad-lg);
+  border-radius: var(--r-lg);
   border: 1px solid var(--border);
   background: var(--surface);
 }
@@ -3026,9 +3030,9 @@ li {
   text-align: left;
   overflow: hidden;
   isolation: isolate;
-  border-radius: 16px;
-  border: 1.5px solid var(--border);
-  background: linear-gradient(165deg, rgba(38, 43, 56, 0.75), var(--surface) 55%, #12151d);
+  border-radius: var(--r-lg);
+  border: 1px solid var(--border);
+  background: var(--surface);
   cursor: pointer;
   transition: border-color var(--t-state), background-color var(--t-state);
 }
@@ -3826,7 +3830,7 @@ li {
 .map-card {
   position: relative;
   height: 130px;
-  border-radius: 10px;
+  border-radius: var(--r-md);
   background-size: cover;
   background-position: center;
   background-color: var(--surface-alt);
@@ -3895,7 +3899,7 @@ li {
   border-radius: var(--r-xl);
   width: 100%;
   max-width: 900px;
-  padding: 1.6rem;
+  padding: var(--card-pad-lg);
   position: relative;
 }
 
@@ -4259,9 +4263,9 @@ input[type='color'] {
 .skin-card {
   position: relative;
   width: 170px;
-  background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
+  background: var(--surface-alt);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--r-md);
   padding: 0.75rem;
   text-align: center;
   cursor: pointer;
@@ -4402,12 +4406,12 @@ input[type='color'] {
   align-items: center;
   gap: 0.85rem;
   flex-wrap: wrap;
-  padding: 0.7rem 1rem;
+  padding: var(--card-pad-sm);
   position: sticky;
   top: -1.5rem;
   margin-top: -1.5rem;
   z-index: 5;
-  background: linear-gradient(180deg, var(--surface) 0%, #191c23 100%);
+  background: var(--surface);
 }
 
 .stats-scope-label {
@@ -4451,7 +4455,7 @@ input[type='color'] {
 .profile-card-icon {
   width: 76px;
   height: 76px;
-  border-radius: 12px;
+  border-radius: var(--r-md);
   object-fit: cover;
   flex-shrink: 0;
 
@@ -4922,7 +4926,7 @@ input[type='color'] {
 .weekly-recap-card {
   width: 300px;
   min-height: 420px;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   position: relative;
   background-size: cover;
@@ -5569,7 +5573,7 @@ input[type='color'] {
 .trophy-card {
   position: relative;
   min-height: 360px;
-  border-radius: 16px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   background-color: var(--surface);
   background-size: contain;
@@ -6174,11 +6178,11 @@ input[type='color'] {
 }
 
 .wiki-card {
-  padding: 1rem;
-  border-radius: 12px;
+  padding: var(--card-pad-sm);
+  border-radius: var(--r-md);
   text-align: center;
   cursor: pointer;
-  background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
+  background: var(--surface-alt);
   border: 1px solid var(--border);
   transition: border-color var(--t-state), box-shadow var(--t-state);
 }
@@ -6202,7 +6206,7 @@ input[type='color'] {
 .wiki-agent-card {
   position: relative;
   height: 280px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   overflow: hidden;
   cursor: pointer;
   background-color: var(--surface-alt);
@@ -6283,7 +6287,7 @@ input[type='color'] {
 .wiki-map-card {
   position: relative;
   height: 220px;
-  border-radius: 14px;
+  border-radius: var(--r-md);
   overflow: hidden;
   cursor: pointer;
   background-color: var(--surface-alt);
@@ -7486,7 +7490,7 @@ input[type='color'] {
 
 .card-picker-item {
   padding: 0;
-  border-radius: 8px;
+  border-radius: var(--r-sm);
   overflow: hidden;
   border: 1.5px solid var(--border);
   background: var(--surface-alt);
@@ -7831,7 +7835,7 @@ input[type='color'] {
   text-align: left;
   min-height: 280px;
   padding: 2rem;
-  border-radius: 14px;
+  border-radius: var(--r-lg);
   overflow: hidden;
   background-size: cover;
   background-position: center;
@@ -9514,4 +9518,11 @@ body:not(.overlay-window) .agent-select-dot {
   font-weight: 600;
   letter-spacing: 0.07em;
   text-transform: uppercase;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .collapsible-card-body,
+  .modal-overlay {
+    animation: none;
+  }
 }
