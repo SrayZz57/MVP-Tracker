@@ -1895,7 +1895,6 @@ h1 {
   align-items: center;
   gap: 0.75rem;
   margin-bottom: 0.6rem;
-  max-width: 920px;
 }
 
 .stat-bar-label {
@@ -3530,8 +3529,8 @@ li {
 }
 
 .crosshair-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
   gap: 1rem;
 }
 
@@ -3561,7 +3560,7 @@ li {
 
 .crosshair-item {
 
-  width: 160px;
+  min-width: 0;
   background: linear-gradient(160deg, var(--surface-alt) 0%, #1d2028 100%);
   border: 1px solid var(--border);
   border-radius: 12px;
@@ -3826,6 +3825,10 @@ li {
   margin-top: 0.5rem;
 }
 
+.map-card-list > .map-card:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
 .agent-table {
   --agent-cols: minmax(0, 1.6fr) 4.5rem 4.5rem 7rem 4rem minmax(0, 1fr);
   margin-top: 0.25rem;
@@ -3932,6 +3935,7 @@ li {
 
 .map-card {
   position: relative;
+  min-width: 0;
   height: 130px;
   border-radius: var(--r-md);
   background-size: cover;
@@ -4357,8 +4361,8 @@ input[type='color'] {
 }
 
 .skin-grid {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
   gap: 1rem;
   margin-top: 0.75rem;
 }
@@ -4367,7 +4371,7 @@ input[type='color'] {
   position: relative;
   display: flex;
   flex-direction: column;
-  width: 170px;
+  min-width: 0;
   background: var(--surface-alt);
   border: 1px solid var(--border);
   border-radius: var(--r-md);
@@ -5222,7 +5226,8 @@ input[type='color'] {
   flex-direction: column;
   align-items: center;
   gap: 0.5rem;
-  width: 130px;
+  flex: 1 1 130px;
+  min-width: 0;
 }
 
 .comp-slot-icon {
@@ -5670,14 +5675,27 @@ input[type='color'] {
 
 .trophy-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 1.25rem;
   margin-top: 1.25rem;
   margin-bottom: 1.25rem;
 }
 
+@media (max-width: 1380px) {
+  .trophy-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 900px) {
+  .trophy-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .trophy-card {
   position: relative;
+  min-width: 0;
   min-height: 360px;
   border-radius: var(--r-lg);
   overflow: hidden;
