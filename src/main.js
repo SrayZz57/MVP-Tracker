@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen, autoUpdater } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -183,7 +183,39 @@ process.on('unhandledRejection', (reason) => {
 // Vérifie les GitHub Releases au démarrage puis toutes les 10 minutes
 // (valeur par défaut de update-electron-app) ; ne fait rien en dev (app pas
 // empaquetée), donc sûr à laisser tel quel.
-updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
+// `notifyUser: false` coupe la boîte de dialogue native que la lib affiche
+// par défaut au-dessus de tout (y compris un jeu en plein écran) dès qu'une
+// mise à jour est prête — signalé sur Discord par un joueur sorti de sa
+// partie Valorant en pleine game à cause de cette popup. On écoute
+// nous-mêmes 'update-downloaded' sur l'autoUpdater d'Electron (le même
+// utilisé en interne par la lib) pour proposer la mise à jour dans l'app à
+// la place, sans jamais voler le focus.
+updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client', notifyUser: false });
+
+let pendingUpdate = null;
+
+autoUpdater.on('update-downloaded', (_event, releaseNotes, releaseName) => {
+  pendingUpdate = { releaseName };
+  mainWindow?.webContents.send('app-update:ready', pendingUpdate);
+});
+
+ipcMain.handle('app-update:get-status', () => pendingUpdate);
+ipcMain.handle('app-update:install', () => autoUpdater.quitAndInstall());
+
+// Si le joueur ferme l'app sans avoir cliqué sur le bouton "Redémarrer" (ex.
+// il ferme juste sa session de jeu), on applique quand même la mise à jour
+// déjà téléchargée à ce moment-là plutôt que de laisser traîner l'ancienne
+// version indéfiniment — quitAndInstall() fait quitter puis relance l'app
+// avec la nouvelle version, donc `installingUpdate` évite une boucle avec le
+// 'before-quit' que cet appel redéclenche lui-même.
+let installingUpdate = false;
+app.on('before-quit', (event) => {
+  if (pendingUpdate && !installingUpdate) {
+    event.preventDefault();
+    installingUpdate = true;
+    autoUpdater.quitAndInstall();
+  }
+});
 
 // Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
 // version dans son propre dossier `app-<version>` et supprime normalement
@@ -289,6 +321,10 @@ const createWindow = () => {
     // de la fenêtre à sa petite taille par défaut avant l'agrandissement.
     show: false,
     autoHideMenuBar: true,
+    // Pas de barre de titre native (Windows) — l'app dessine sa propre barre
+    // (bouton fermer inclus) dans le renderer, voir TitleBar.jsx.
+    frame: false,
+    backgroundColor: '#0a0c10',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
     },
@@ -298,6 +334,9 @@ const createWindow = () => {
     mainWindow.maximize();
     mainWindow.show();
   });
+
+  mainWindow.on('maximize', () => mainWindow.webContents.send('window:maximized-change', true));
+  mainWindow.on('unmaximize', () => mainWindow.webContents.send('window:maximized-change', false));
 
   // `Menu.setApplicationMenu(null)` ci-dessous supprime aussi le raccourci
   // DevTools par défaut (Ctrl+Maj+I) — celui-ci le restitue via F12, pour
@@ -322,6 +361,15 @@ const createWindow = () => {
 };
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
+
+ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+ipcMain.handle('window:toggle-maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+ipcMain.handle('window:close', () => mainWindow?.close());
+ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 
 // Relais des événements/erreurs du renderer vers PostHog — le renderer n'a
 // pas accès direct au SDK (voir services/telemetry.js), il passe par ici.

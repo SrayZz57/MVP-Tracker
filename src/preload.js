@@ -101,4 +101,20 @@ contextBridge.exposeInMainWorld('electronAPI', {
       stack: error?.stack,
       context,
     }),
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+  isWindowMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  onWindowMaximizedChange: (callback) => {
+    const listener = (_event, maximized) => callback(maximized);
+    ipcRenderer.on('window:maximized-change', listener);
+    return () => ipcRenderer.removeListener('window:maximized-change', listener);
+  },
+  getUpdateStatus: () => ipcRenderer.invoke('app-update:get-status'),
+  installUpdate: () => ipcRenderer.invoke('app-update:install'),
+  onUpdateReady: (callback) => {
+    const listener = (_event, update) => callback(update);
+    ipcRenderer.on('app-update:ready', listener);
+    return () => ipcRenderer.removeListener('app-update:ready', listener);
+  },
 });

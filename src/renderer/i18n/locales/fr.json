@@ -176,7 +176,8 @@
     "linkingInProgress": "Liaison de ton compte en cours...",
     "unreadMessages": "Messages",
     "friendsTitle": "Amis",
-    "discordTitle": "Rejoindre le Discord"
+    "discordTitle": "Rejoindre le Discord",
+    "updateReady": "Mise à jour prête — Redémarrer"
   },
   "common": {
     "language": "Langue",
@@ -1457,6 +1458,41 @@
       "balancedPlayer": {
         "title": "Joueur équilibré",
         "text": "Rien ne ressort fortement dans un sens ou l'autre pour l'instant — un profil stable, sans excès ni faiblesse marquée sur les axes suivis."
+      }
+    },
+    "weakness": {
+      "open": "Voir mes points à travailler",
+      "title": "Points à travailler",
+      "none": "Rien à signaler pour l'instant — ton profil est équilibré sur tous les axes suivis.",
+      "aggression": {
+        "title": "Agressivité",
+        "text": "Tu prends peu de premiers duels. Le mode Peek de l'Aim Trainer entraîne exactement ça : sortir et engager vite un adversaire qui apparaît.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "stability": {
+        "title": "Stabilité mentale",
+        "text": "Tes perfs se dégradent souvent après une défaite ou une série de morts. Le mode Precision de l'Aim Trainer travaille le calme et la précision, utile pour ne pas paniquer.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "versatility": {
+        "title": "Polyvalence",
+        "text": "Tu joues un nombre limité d'agents. L'outil Composition permet d'explorer d'autres rôles et de préparer un agent de secours.",
+        "action": "Ouvrir Composition"
+      },
+      "clutch": {
+        "title": "Clutch factor",
+        "text": "Tu gagnes peu de situations à 1 contre plusieurs. Le mode Snap & Hold de l'Aim Trainer entraîne à viser vite puis tenir sa position, utile en clutch.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "aim": {
+        "title": "Précision",
+        "text": "Ton pourcentage de headshots est bas. Le mode Micro de l'Aim Trainer force à viser des cibles minuscules, exactement le geste qu'il faut pour toucher plus souvent à la tête.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "positioning": {
+        "title": "Positionnement",
+        "text": "Tu meurs souvent dans les toutes premières secondes du round. Le mode Reflex de l'Aim Trainer entraîne à réagir et neutraliser vite dès qu'un adversaire apparaît.",
+        "action": "Ouvrir l'Aim Trainer"
       }
     }
   },

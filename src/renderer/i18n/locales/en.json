@@ -176,7 +176,8 @@
     "linkingInProgress": "Linking your account...",
     "unreadMessages": "Messages",
     "friendsTitle": "Friends",
-    "discordTitle": "Join the Discord"
+    "discordTitle": "Join the Discord",
+    "updateReady": "Update ready — Restart"
   },
   "common": {
     "language": "Language",
@@ -1457,6 +1458,41 @@
       "balancedPlayer": {
         "title": "Balanced player",
         "text": "Nothing stands out strongly either way for now — a stable profile, with no glaring excess or weakness on the axes tracked."
+      }
+    },
+    "weakness": {
+      "open": "See what to work on",
+      "title": "Points to work on",
+      "none": "Nothing to flag for now — your profile is balanced across every tracked axis.",
+      "aggression": {
+        "title": "Aggression",
+        "text": "You win few first duels. The Aim Trainer's Peek mode trains exactly that: pushing out and engaging fast on a target that appears.",
+        "action": "Open Aim Trainer"
+      },
+      "stability": {
+        "title": "Mental stability",
+        "text": "Your performance often drops after a loss or a death streak. The Aim Trainer's Precision mode trains calm, controlled aim, useful for not tilting.",
+        "action": "Open Aim Trainer"
+      },
+      "versatility": {
+        "title": "Versatility",
+        "text": "You play a limited pool of agents. The Composition tool lets you explore other roles and prep a backup agent.",
+        "action": "Open Composition"
+      },
+      "clutch": {
+        "title": "Clutch factor",
+        "text": "You win few 1-vs-multiple situations. The Aim Trainer's Snap & Hold mode trains snapping onto a target then holding position, useful in clutches.",
+        "action": "Open Aim Trainer"
+      },
+      "aim": {
+        "title": "Precision",
+        "text": "Your headshot percentage is low. The Aim Trainer's Micro mode forces you to hit tiny targets — exactly the aim it takes to land more headshots.",
+        "action": "Open Aim Trainer"
+      },
+      "positioning": {
+        "title": "Positioning",
+        "text": "You often die in the very first seconds of the round. The Aim Trainer's Reflex mode trains reacting and neutralizing fast as soon as an opponent appears.",
+        "action": "Open Aim Trainer"
       }
     }
   },

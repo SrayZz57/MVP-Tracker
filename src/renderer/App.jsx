@@ -252,6 +252,14 @@ function App() {
   // session de récupération active — force l'écran de nouveau mot de passe
   // avant tout le reste, peu importe l'état de connexion en cours.
   const [recoveryPending, setRecoveryPending] = useState(false);
+  // Mise à jour prête à installer — signalée dans l'app plutôt que par une
+  // popup Windows qui vole le focus (voir main.js, notifyUser: false).
+  const [pendingUpdate, setPendingUpdate] = useState(null);
+
+  useEffect(() => {
+    window.electronAPI.getUpdateStatus().then(setPendingUpdate);
+    return window.electronAPI.onUpdateReady(setPendingUpdate);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = window.electronAPI.onRecoveryDeepLink(async ({ accessToken, refreshToken }) => {
@@ -756,7 +764,15 @@ function App() {
   const renderValorantTab = () => {
     switch (activeTab) {
       case 'stats':
-        return <StatsTab settings={settings} matches={data.matches} rank={data.rank} loading={data.loading} />;
+        return (
+          <StatsTab
+            settings={settings}
+            matches={data.matches}
+            rank={data.rank}
+            loading={data.loading}
+            onNavigate={setActiveTab}
+          />
+        );
       case 'forme':
         return <FormTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'reseau':
@@ -998,6 +1014,15 @@ function App() {
           <button onClick={data.refresh} disabled={data.loading} className="refresh">
             {data.loading ? t('nav.loading') : t('nav.refresh')}
           </button>
+          {pendingUpdate && (
+            <button
+              className="update-ready-button"
+              title={pendingUpdate.releaseName || ''}
+              onClick={() => window.electronAPI.installUpdate()}
+            >
+              {t('nav.updateReady')}
+            </button>
+          )}
           <button
             className="discord-button"
             title={t('nav.discordTitle')}
