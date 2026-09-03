@@ -27,12 +27,14 @@ import {
   ChevronDown,
   History,
   Search,
+  Compass,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import useValorantData from './useValorantData.js';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import { useE2EE } from './E2EEContext.jsx';
 import StatsTab from './tabs/StatsTab.jsx';
+import WeaknessTab from './tabs/WeaknessTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
 import NetworkTab from './tabs/NetworkTab.jsx';
 import TiltTab from './tabs/TiltTab.jsx';
@@ -94,7 +96,7 @@ const NAV_SECTIONS = [
     sectionKey: 'nav.sections.myAccount',
     tabs: [
       { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: Trophy },
-      { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: Handshake },
+      { id: 'my-weakness', labelKey: 'nav.tabs.myWeakness', icon: Compass },
       { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: Gem },
       { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: Angry },
       { id: 'reseau', labelKey: 'nav.tabs.network', icon: Signal },
@@ -770,7 +772,6 @@ function App() {
             matches={data.matches}
             rank={data.rank}
             loading={data.loading}
-            onNavigate={setActiveTab}
           />
         );
       case 'forme':
@@ -815,10 +816,8 @@ function App() {
         );
       case 'my-hall-of-fame':
         return <HallOfFameTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
-      case 'my-social':
-        return (
-          <TeammatesRivalsTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />
-        );
+      case 'my-weakness':
+        return <WeaknessTab settings={mySettings} matches={myMatches} onNavigate={setActiveTab} />;
       case 'my-skins-collection':
         return <MySkinsCollectionTab myId={session.user.id} />;
       case 'buy-simulator':

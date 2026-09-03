@@ -145,7 +145,7 @@
       "social": "Teammates & Rivals",
       "graphiques": "Charts",
       "myHallOfFame": "My Hall of Fame",
-      "mySocial": "My teammates & rivals",
+      "myWeakness": "Points to work on",
       "myCollection": "My collection",
       "network": "Network",
       "session": "Guided session",
@@ -1461,7 +1461,6 @@
       }
     },
     "weakness": {
-      "open": "See what to work on",
       "title": "Points to work on",
       "none": "Nothing to flag for now — your profile is balanced across every tracked axis.",
       "aggression": {
@@ -1688,6 +1687,8 @@
     "apiKeyMissing": "Not set",
     "agentSelectOverlayLabel": "Agent select window over the game",
     "agentSelectOverlayHint": "Shows a small window over Valorant during agent select and the start of a match (ranks, suggestions). Turn it off if you never want an extra window on top of the game.",
+    "autoLaunchLabel": "Launch MVP Tracker at Windows startup",
+    "autoLaunchHint": "The app launches in the background when your PC starts, minimized to the system tray (icon near the clock) — ping and tilt detection keep running without a window open.",
     "signOut": "Sign out",
     "replayOnboarding": "Replay the tutorial",
     "forgotPassword": "Forgot your password?",

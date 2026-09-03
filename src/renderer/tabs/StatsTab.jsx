@@ -168,7 +168,7 @@ function MapCards({ rows, mapImages, onRowClick }) {
   );
 }
 
-function StatsTab({ settings, matches, rank, loading, onNavigate }) {
+function StatsTab({ settings, matches, rank, loading }) {
   const { t } = useTranslation();
   const agentIcons = useAgentIcons();
   const agentPortraits = useAgentPortraits();
@@ -449,7 +449,7 @@ function StatsTab({ settings, matches, rank, loading, onNavigate }) {
         </div>
       </div>
 
-      <PlayerProfileCard settings={settings} matches={scopedMatches} onNavigate={onNavigate} />
+      <PlayerProfileCard settings={settings} matches={scopedMatches} />
       <RankMomentumCard settings={settings} matches={scopedMatches} />
 
       <CollapsibleCard id="stats.kdProgression" title={t('stats.kdProgressionTitle', { count: kdProgression.length })}>

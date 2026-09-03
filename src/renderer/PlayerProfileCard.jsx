@@ -1,9 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Swords, Scale, RefreshCw, Target, Compass } from 'lucide-react';
-import { computePlayerProfile, getWeaknesses } from './playerProfile.js';
+import { Swords, Scale, RefreshCw, Target } from 'lucide-react';
+import { computePlayerProfile } from './playerProfile.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
-import WeaknessModal from './WeaknessModal.jsx';
 import Icon from './Icon.jsx';
 
 const SCORE_ICONS = {
@@ -20,16 +19,11 @@ function scoreColor(value) {
   return 'var(--accent)';
 }
 
-function PlayerProfileCard({ settings, matches, onNavigate }) {
+function PlayerProfileCard({ settings, matches }) {
   const { t } = useTranslation();
-  const [showWeaknesses, setShowWeaknesses] = useState(false);
   const profile = useMemo(
     () => computePlayerProfile(matches, settings.name, settings.tag),
     [matches, settings.name, settings.tag],
-  );
-  const weaknesses = useMemo(
-    () => (profile.ready ? getWeaknesses(profile.scores) : []),
-    [profile],
   );
 
   if (!profile.ready) {
@@ -75,18 +69,6 @@ function PlayerProfileCard({ settings, matches, onNavigate }) {
           clutches: profile.clutchAttempts,
         })}
       </p>
-
-      <button type="button" className="profile-weakness-btn" onClick={() => setShowWeaknesses(true)}>
-        <Icon icon={Compass} size={16} /> {t('profile.weakness.open')}
-      </button>
-
-      {showWeaknesses && (
-        <WeaknessModal
-          weaknesses={weaknesses}
-          onClose={() => setShowWeaknesses(false)}
-          onNavigate={onNavigate}
-        />
-      )}
     </CollapsibleCard>
   );
 }

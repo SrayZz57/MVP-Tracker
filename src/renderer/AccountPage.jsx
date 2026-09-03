@@ -36,6 +36,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
   const [overlayEnabled, setOverlayEnabled] = useState(true);
+  const [autoLaunchEnabled, setAutoLaunchEnabled] = useState(true);
   // Agent choisi depuis la carte au survol de la répartition par rôle
   // (RoleStackedBar) — demandé sur Discord, ouvre les mêmes stats détaillées
   // que depuis l'onglet Stats plutôt que d'en dupliquer une variante ici.
@@ -51,12 +52,19 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
 
   useEffect(() => {
     window.electronAPI.getAgentSelectOverlayEnabled().then(setOverlayEnabled);
+    window.electronAPI.getAutoLaunch().then(setAutoLaunchEnabled);
   }, []);
 
   const handleToggleOverlay = () => {
     const next = !overlayEnabled;
     setOverlayEnabled(next);
     window.electronAPI.setAgentSelectOverlayEnabled(next);
+  };
+
+  const handleToggleAutoLaunch = () => {
+    const next = !autoLaunchEnabled;
+    setAutoLaunchEnabled(next);
+    window.electronAPI.setAutoLaunch(next);
   };
 
   const avatarCardUuid = profile.avatar_card_uuid ?? myRank?.cardUuid;
@@ -369,6 +377,16 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           </span>
         </label>
         <p className="label account-toggle-hint">{t('account.agentSelectOverlayHint')}</p>
+        <label className="account-email-row account-toggle-row">
+          <span className="account-tile-label">{t('account.autoLaunchLabel')}</span>
+          <span className={`switch ${autoLaunchEnabled ? 'on' : ''}`}>
+            <input type="checkbox" checked={autoLaunchEnabled} onChange={handleToggleAutoLaunch} />
+            <span className="switch-track">
+              <span className="switch-thumb" />
+            </span>
+          </span>
+        </label>
+        <p className="label account-toggle-hint">{t('account.autoLaunchHint')}</p>
         <div className="account-settings-actions">
           <button className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}

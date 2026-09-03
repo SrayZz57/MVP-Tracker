@@ -5,6 +5,10 @@ module.exports = {
   packagerConfig: {
     asar: true,
     icon: 'src/assets/icon',
+    // Icône de la tray système, lue au runtime par main.js — src/assets/
+    // n'est pas traité par le build Vite du process principal, donc elle ne
+    // finirait pas dans le paquet sans être copiée explicitement ici.
+    extraResource: ['src/assets/icon.ico'],
   },
   rebuildConfig: {},
   makers: [

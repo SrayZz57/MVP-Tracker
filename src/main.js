@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen, autoUpdater } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen, autoUpdater, Tray } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
@@ -217,6 +217,16 @@ app.on('before-quit', (event) => {
   }
 });
 
+// Lancement automatique au démarrage de Windows — activé par défaut pour
+// coller au comportement des autres trackers (demandé sur Discord, adri1_v :
+// "qu'elle se lance au démarrage etc, qu'on y pense pas"). Le flag
+// `autoLaunchInitialized` évite de le réimposer à chaque lancement si
+// l'utilisateur le désactive ensuite depuis les réglages du compte.
+ipcMain.handle('app-startup:get', () => app.getLoginItemSettings().openAtLogin);
+ipcMain.handle('app-startup:set', (_event, enabled) => {
+  app.setLoginItemSettings({ openAtLogin: enabled });
+});
+
 // Squirrel.Windows (le moteur derrière update-electron-app) installe chaque
 // version dans son propre dossier `app-<version>` et supprime normalement
 // les anciennes une fois la mise à jour appliquée — mais seulement s'il a pu
@@ -263,6 +273,52 @@ Menu.setApplicationMenu(null);
 const DEEP_LINK_SCHEME = 'mvptracker';
 
 let mainWindow = null;
+let tray = null;
+// true uniquement pour un vrai arrêt (menu "Quitter" de la tray, ou
+// quitAndInstall d'une mise à jour) — sinon fermer la fenêtre la réduit juste
+// dans la barre système (voir mainWindow.on('close', ...) plus bas).
+let isQuitting = false;
+
+// Copié dans les ressources du paquet via `extraResource` (forge.config.js) —
+// src/assets/ n'est pas traité par le build Vite du process principal, donc
+// ce chemin ne serait pas valide une fois empaqueté sans ça.
+const trayIconPath = app.isPackaged
+  ? path.join(process.resourcesPath, 'icon.ico')
+  : path.join(__dirname, '..', '..', 'src', 'assets', 'icon.ico');
+
+function createTray() {
+  if (tray) return;
+  tray = new Tray(trayIconPath);
+  tray.setToolTip('MVP Tracker');
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Ouvrir MVP Tracker',
+        click: () => {
+          if (!mainWindow) return;
+          mainWindow.show();
+          mainWindow.focus();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quitter',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]),
+  );
+  tray.on('click', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isVisible()) mainWindow.hide();
+    else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
 
 // En dev (app pas empaquetée), il faut préciser explicitement l'exécutable
 // et le script à relancer, sinon l'enregistrement du protocole ne pointe pas
@@ -307,6 +363,7 @@ if (!gotSingleInstanceLock) {
     if (deepLink) handleDeepLink(deepLink);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
     }
   });
@@ -337,6 +394,17 @@ const createWindow = () => {
 
   mainWindow.on('maximize', () => mainWindow.webContents.send('window:maximized-change', true));
   mainWindow.on('unmaximize', () => mainWindow.webContents.send('window:maximized-change', false));
+
+  // Fermer réduit dans la barre système au lieu de vraiment quitter — demandé
+  // sur Discord (adri1_v) pour laisser tourner juste le ping/la détection de
+  // tilt en arrière-plan pendant une game sans garder la fenêtre ouverte
+  // (comme les autres trackers). `isQuitting` distingue cette fermeture-là
+  // d'un vrai "Quitter" (menu de la tray, ou quitAndInstall d'une mise à jour).
+  mainWindow.on('close', (event) => {
+    if (isQuitting) return;
+    event.preventDefault();
+    mainWindow.hide();
+  });
 
   // `Menu.setApplicationMenu(null)` ci-dessous supprime aussi le raccourci
   // DevTools par défaut (Ctrl+Maj+I) — celui-ci le restitue via F12, pour
@@ -1119,7 +1187,13 @@ app.whenReady().then(() => {
     });
   });
 
+  if (app.isPackaged && !store.get('autoLaunchInitialized')) {
+    app.setLoginItemSettings({ openAtLogin: true });
+    store.set('autoLaunchInitialized', true);
+  }
+
   createWindow();
+  createTray();
 
   // Sert de base au calcul PostHog des utilisateurs actifs (DAU/WAU/MAU) —
   // distinctId pas encore connu ici (compte pas forcément lié à ce stade),

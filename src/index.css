@@ -5831,29 +5831,6 @@ input[type='color'] {
   margin-top: 0.75rem;
 }
 
-.profile-weakness-btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.4rem;
-  margin-top: 1rem;
-  padding: 0.55rem 1rem;
-  border-radius: 10px;
-  border: 1px solid var(--accent);
-  background: rgba(255, 70, 85, 0.1);
-  color: var(--text);
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s ease;
-}
-
-.profile-weakness-btn:hover {
-  background: rgba(255, 70, 85, 0.2);
-}
-
-.weakness-modal {
-  max-width: 480px;
-}
-
 .weakness-list {
   display: flex;
   flex-direction: column;
