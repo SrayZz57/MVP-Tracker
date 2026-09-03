@@ -45,6 +45,17 @@ const brotliCompress = promisify(zlib.brotliCompress);
 // en pleine session. Le détail complet reste donc pour l'instant
 // indisponible ; l'échec est isolé (catch dans la boucle) pour ne PAS
 // empêcher la synchro des résumés, qui elle fonctionne bien.
+//
+// (2026-09-02) Ce que cet isolement coûtait vraiment : un match dont l'upload
+// échoue garde has_full_detail=false, donc il repartait à l'upload à CHAQUE
+// synchro, soit jusqu'à 50 requêtes vouées à échouer par rafraîchissement et
+// par utilisateur. Plus une lecture de match_summaries refusée (42501, GRANT
+// manquant sur la table) qui, elle, faisait échouer la synchro entière et
+// repartait tout aussi souvent. Relevé sur le tableau de bord Supabase :
+// ~1500 avertissements Storage et ~1600 erreurs Postgres en une heure, aucune
+// visible dans l'appli et aucune utile. D'où les coupe-circuits ci-dessous :
+// un refus côté serveur ne se règle pas en réessayant, on arrête d'insister
+// pendant un temps au lieu de marteler.
 // =============================================================================
 
 const SUMMARY_COUNT = 100;
@@ -57,6 +68,51 @@ const RESULT_CODES = {
   'Match nul': 'draw',
   'Sans équipe': 'noteam',
 };
+
+// Assez long pour que le quota respire, assez court pour que la synchro
+// reparte d'elle-même une fois le problème réglé côté Supabase, sans que
+// l'utilisateur ait à relancer l'appli.
+const BREAKER_COOLDOWN_MS = 30 * 60 * 1000;
+// Un échec isolé peut être réseau. Trois d'affilée dans la même série, non.
+const DETAIL_FAILURE_STREAK = 3;
+
+// Refus qui ne bougeront pas tant que rien ne change côté serveur : droits
+// manquants sur la table (42501), table absente (42P01), jeton rejeté
+// (PGRST301). Le message est testé en plus du code parce que Storage répond en
+// HTTP brut, sans code Postgres.
+const DENIED_CODES = new Set(['42501', '42P01', 'PGRST301']);
+const DENIED_PATTERN = /permission denied|row-level security|JWT/i;
+
+function isDenial(err) {
+  return DENIED_CODES.has(err?.code) || DENIED_PATTERN.test(err?.message ?? '');
+}
+
+const openUntil = { summaries: 0, details: 0 };
+
+function isTripped(name) {
+  return Date.now() < openUntil[name];
+}
+
+function trip(name, reason) {
+  if (!isTripped(name)) {
+    console.error(
+      `[matchSync] ${name} : refusé côté serveur (${reason}), suspendu ${BREAKER_COOLDOWN_MS / 60000} min`,
+    );
+  }
+  openUntil[name] = Date.now() + BREAKER_COOLDOWN_MS;
+}
+
+// Dernière synchro aboutie. Le renderer en relance une à chaque chargement de
+// myMatches (cache local au démarrage, puis vrai rafraîchissement), et un
+// rafraîchissement qui ne ramène aucun match referait exactement le travail
+// d'il y a une minute. `pendingDetails` évite de figer un état incomplet :
+// tant qu'il reste des détails à envoyer, on repasse quand même.
+let lastRun = null;
+
+// Deux appels concurrents sur le même compte (montage de l'app pendant qu'un
+// rafraîchissement tourne) partagent la même synchro, même logique que
+// matchSyncInFlight côté main.js.
+const inFlight = new Map();
 
 function authedClient(accessToken) {
   return createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
@@ -93,10 +149,20 @@ async function removeFromStorage(accessToken, paths) {
  * Ne lève jamais d'exception vers l'appelant — un souci réseau ponctuel ne
  * doit pas faire échouer le rafraîchissement des matchs qui a déclenché ça.
  */
-export async function syncMatches({ matches, name, tag, userId, accessToken }) {
-  try {
-    const client = authedClient(accessToken);
+export function syncMatches(payload) {
+  const key = payload?.userId ?? 'anon';
+  const pending = inFlight.get(key);
+  if (pending) return pending;
 
+  const promise = runSync(payload).finally(() => inFlight.delete(key));
+  inFlight.set(key, promise);
+  return promise;
+}
+
+async function runSync({ matches, name, tag, userId, accessToken }) {
+  if (isTripped('summaries')) return { skipped: 'summaries-suspendu' };
+
+  try {
     const sorted = [...matches]
       .filter((m) => m.metadata?.matchid && m.metadata?.game_start)
       .sort((a, b) => b.metadata.game_start - a.metadata.game_start);
@@ -104,17 +170,30 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
     const toSummarize = sorted.slice(0, SUMMARY_COUNT);
     const detailWanted = new Set(sorted.slice(0, FULL_DETAIL_COUNT).map((m) => m.metadata.matchid));
 
+    // Comparé AVANT la première requête : sur une synchro identique à la
+    // précédente, on ne consomme rien du tout.
+    const signature = `${userId}|${toSummarize.map((m) => m.metadata.matchid).join(',')}`;
+    if (lastRun?.signature === signature && (lastRun.pendingDetails === 0 || isTripped('details'))) {
+      return { skipped: 'inchangé' };
+    }
+
+    const client = authedClient(accessToken);
+
     const { data: existing, error: readError } = await client
       .from('match_summaries')
       .select('match_id, has_full_detail')
       .eq('user_id', userId);
-    if (readError) throw readError;
+    if (readError) {
+      if (isDenial(readError)) trip('summaries', readError.message);
+      throw readError;
+    }
 
     const existingIds = new Set((existing ?? []).map((r) => r.match_id));
     const existingWithDetail = new Set((existing ?? []).filter((r) => r.has_full_detail).map((r) => r.match_id));
 
     const rows = [];
     let detailFailures = 0;
+    let failureStreak = 0;
     for (const match of toSummarize) {
       const matchId = match.metadata.matchid;
       const me = findMe(match, name, tag);
@@ -125,17 +204,21 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
       // On ne recompresse/ré-uploade jamais un match déjà présent : un match
       // terminé ne change plus, inutile de repayer le travail à chaque sync.
       // Un échec d'upload (voir note en tête de fichier) ne doit PAS priver
-      // le résumé léger, qui lui fonctionne — juste noter que le détail
-      // complet n'est pas dispo pour ce match.
-      if (wantsDetail && !alreadyHasDetail) {
+      // le résumé léger, qui lui fonctionne, juste noter que le détail
+      // complet n'est pas dispo pour ce match. En revanche on ne s'acharne
+      // plus : trois échecs de suite et on laisse tomber les 47 restants.
+      if (wantsDetail && !alreadyHasDetail && !isTripped('details')) {
         try {
           const compressed = await brotliCompress(Buffer.from(JSON.stringify(match)), {
             params: { [zlib.constants.BROTLI_PARAM_QUALITY]: 11 },
           });
           await uploadToStorage(accessToken, `${userId}/${matchId}.json.br`, compressed);
           uploadedDetail = true;
-        } catch {
+          failureStreak = 0;
+        } catch (err) {
           detailFailures += 1;
+          failureStreak += 1;
+          if (failureStreak >= DETAIL_FAILURE_STREAK) trip('details', err.message);
         }
       }
 
@@ -155,11 +238,24 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
       });
     }
 
-    if (rows.length > 0) {
+    // N'écrit que ce qui manque ou ce qui a changé, au lieu de réécrire les
+    // 100 lignes à chaque passage : le contenu d'un match terminé est figé,
+    // seul has_full_detail peut encore basculer (quand le détail finit par
+    // partir). Corollaire à connaître : une modification de la façon dont ces
+    // colonnes sont calculées ne se propagera pas toute seule aux lignes déjà
+    // en base, il faudra les supprimer pour forcer la réécriture.
+    const changed = rows.filter(
+      (r) => !existingIds.has(r.match_id) || existingWithDetail.has(r.match_id) !== r.has_full_detail,
+    );
+
+    if (changed.length > 0) {
       const { error: upsertError } = await client
         .from('match_summaries')
-        .upsert(rows, { onConflict: 'match_id,user_id' });
-      if (upsertError) throw upsertError;
+        .upsert(changed, { onConflict: 'match_id,user_id' });
+      if (upsertError) {
+        if (isDenial(upsertError)) trip('summaries', upsertError.message);
+        throw upsertError;
+      }
     }
 
     // Purge : ne garder que les 100 résumés (et donc, parmi eux, au plus 50
@@ -180,7 +276,10 @@ export async function syncMatches({ matches, name, tag, userId, accessToken }) {
       await client.from('match_summaries').delete().eq('user_id', userId).in('match_id', toDelete);
     }
 
-    return { synced: rows.length, deleted: toDelete.length, detailFailures };
+    const pendingDetails = rows.filter((r) => detailWanted.has(r.match_id) && !r.has_full_detail).length;
+    lastRun = { signature, pendingDetails };
+
+    return { synced: changed.length, deleted: toDelete.length, detailFailures, pendingDetails };
   } catch (err) {
     return { error: err.message };
   }
