@@ -3060,6 +3060,70 @@ li {
   max-width: 900px;
 }
 
+.onboarding-tour {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+}
+
+.onboarding-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(6, 8, 12, 0.72);
+}
+
+/* Effet "spotlight" : le trou est le rect lui-même, tout le reste de
+   l'écran est assombri via une ombre géante qui déborde du rect. */
+.onboarding-spotlight {
+  position: fixed;
+  border-radius: 12px;
+  box-shadow: 0 0 0 9999px rgba(6, 8, 12, 0.72);
+  pointer-events: none;
+  transition: top 0.25s ease, left 0.25s ease, width 0.25s ease, height 0.25s ease;
+}
+
+.onboarding-card {
+  position: fixed;
+  width: 300px;
+  padding: 1.1rem 1.2rem;
+  border-radius: 14px;
+  border: 1px solid var(--border-strong, var(--border));
+  background: linear-gradient(165deg, rgba(38, 43, 56, 0.9), var(--surface) 55%, #12151d);
+  box-shadow: var(--elev-2, 0 20px 50px -20px rgba(0, 0, 0, 0.85));
+}
+
+.onboarding-card h3 {
+  margin: 0 0 0.5rem;
+  padding-right: 1.5rem;
+}
+
+.onboarding-close {
+  position: absolute;
+  top: 0.8rem;
+  right: 0.8rem;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.onboarding-close:hover {
+  color: var(--accent, #ff4655);
+}
+
+.onboarding-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.6rem;
+  margin-top: 1rem;
+}
+
+.onboarding-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
 .playlist-preset-picker {
   display: flex;
   flex-wrap: wrap;

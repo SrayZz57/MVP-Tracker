@@ -64,6 +64,7 @@ import AccountGreeting from './AccountGreeting.jsx';
 import AccountAuth from './AccountAuth.jsx';
 import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
 import AccountPage from './AccountPage.jsx';
+import OnboardingTour from './OnboardingTour.jsx';
 import AdminPage from './AdminPage.jsx';
 import TournamentsTab from './tabs/TournamentsTab.jsx';
 import MessagesTab from './tabs/MessagesTab.jsx';
@@ -380,6 +381,24 @@ function App() {
     document.body.classList.toggle('in-app', enteredApp);
     return () => document.body.classList.remove('in-app');
   }, [enteredApp]);
+
+  // Tour guidé (demandé sur Discord) : affiché une seule fois, au premier
+  // vrai passage dans l'app — jamais revu ensuite sauf via le bouton dédié
+  // dans Mon compte. Petit délai avant de le montrer pour laisser la sidebar
+  // finir de se peindre (sinon les mesures de position des sections seraient
+  // prises avant que leur layout final ne soit stable).
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (!enteredApp) return undefined;
+    if (localStorage.getItem('mvptracker-onboarding-done')) return undefined;
+    const id = setTimeout(() => setShowOnboarding(true), 300);
+    return () => clearTimeout(id);
+  }, [enteredApp]);
+
+  const closeOnboarding = () => {
+    localStorage.setItem('mvptracker-onboarding-done', '1');
+    setShowOnboarding(false);
+  };
 
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
@@ -841,6 +860,7 @@ function App() {
             onUpdateApiKey={updateApiKey}
             onUpdateRiotId={updateRiotId}
             onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
+            onReplayOnboarding={() => setShowOnboarding(true)}
           />
         );
       default:
@@ -865,7 +885,7 @@ function App() {
           <span>MVP Tracker</span>
         </div>
 
-        <div className="sidebar-search">
+        <div className="sidebar-search" data-tour="sidebar-search">
           <Icon icon={Search} size={15} />
           <input
             type="text"
@@ -891,7 +911,7 @@ function App() {
             if (navQuery && matchingTabs.length === 0) return null;
             const collapsed = !navQuery && collapsedSections.has(section.sectionKey);
             return (
-              <div key={section.sectionKey} className="sidebar-section">
+              <div key={section.sectionKey} className="sidebar-section" data-tour-section={section.sectionKey}>
                 <button
                   className={collapsed ? 'sidebar-section-label collapsed' : 'sidebar-section-label'}
                   onClick={() => toggleSection(section.sectionKey)}
@@ -1052,6 +1072,7 @@ function App() {
       <GoalsWidget matches={myMatches} settings={mySettings} myId={session.user.id} />
       <WeeklyRecapCard matches={myMatches} settings={mySettings} rank={myRank} />
       {isViewingSelf && <PostMortemModal matches={myMatches} settings={mySettings} />}
+      {showOnboarding && <OnboardingTour onClose={closeOnboarding} />}
     </div>
   );
 }

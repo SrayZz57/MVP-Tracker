@@ -24,7 +24,7 @@ function formatMemberSince(isoDate, locale) {
   return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onUpdateRiotId, onSignOut }) {
+function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onUpdateRiotId, onSignOut, onReplayOnboarding }) {
   const { t, i18n } = useTranslation();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
@@ -375,6 +375,9 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           </button>
           <button className="account-forgot-password" onClick={handleForgotPassword} disabled={resetStatus === 'sending'}>
             {resetStatus === 'sending' ? t('account.forgotPasswordSending') : t('account.forgotPassword')}
+          </button>
+          <button className="account-forgot-password" onClick={onReplayOnboarding}>
+            {t('account.replayOnboarding')}
           </button>
         </div>
         {resetStatus === 'sent' && <p className="label account-reset-status">{t('account.forgotPasswordSent')}</p>}

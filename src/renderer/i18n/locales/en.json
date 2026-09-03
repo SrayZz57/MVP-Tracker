@@ -1653,6 +1653,7 @@
     "agentSelectOverlayLabel": "Agent select window over the game",
     "agentSelectOverlayHint": "Shows a small window over Valorant during agent select and the start of a match (ranks, suggestions). Turn it off if you never want an extra window on top of the game.",
     "signOut": "Sign out",
+    "replayOnboarding": "Replay the tutorial",
     "forgotPassword": "Forgot your password?",
     "forgotPasswordSending": "Sending...",
     "forgotPasswordSent": "Email sent — check your inbox to reset your password.",
@@ -1751,5 +1752,27 @@
     "suggestPersonal": "{{winrate}}% win rate for you ({{games}} games)",
     "suggestCommunity": "community pick",
     "suggestFillsGap": "missing role"
+  },
+  "onboarding": {
+    "welcomeTitle": "Welcome to MVP Tracker!",
+    "welcomeText": "Quick tour to show you where to find the main features — 30 seconds, you can skip anytime.",
+    "searchTitle": "Tab search",
+    "searchText": "Type here to jump straight to any tab, no need to dig through the menu.",
+    "performanceTitle": "Performance",
+    "performanceText": "Your gameplay stats: match history, recent form, death/kill heatmap, tactical analysis, charts...",
+    "myAccountTitle": "My account",
+    "myAccountText": "Your Hall of Fame, skin collection, tilt tracking, and network monitoring — everything specific to you.",
+    "tournamentsTitle": "Tournaments",
+    "tournamentsText": "Register for community tournaments and follow ongoing brackets.",
+    "trainingTitle": "Training",
+    "trainingText": "3D Aim Trainer (several modes), guided warmup session, daily tactical puzzle, self bets on your next game.",
+    "toolsTitle": "Tools",
+    "toolsText": "Sessions, crosshair library, strategy board, skin catalog, team compositions, buy simulator, wiki.",
+    "endTitle": "That's it!",
+    "endText": "You can replay this tour anytime from My Account, right at the bottom of the page.",
+    "previous": "← Previous",
+    "next": "Next →",
+    "finish": "Finish",
+    "skip": "Skip"
   }
 }

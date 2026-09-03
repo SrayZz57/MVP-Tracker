@@ -1653,6 +1653,7 @@
     "agentSelectOverlayLabel": "Fenêtre de sélection d'agent par-dessus le jeu",
     "agentSelectOverlayHint": "Affiche une petite fenêtre par-dessus Valorant pendant la sélection d'agent et le début de partie (rangs, suggestions). Désactive-la si tu ne veux jamais de fenêtre supplémentaire par-dessus le jeu.",
     "signOut": "Se déconnecter",
+    "replayOnboarding": "Revoir le tutoriel",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordSending": "Envoi en cours...",
     "forgotPasswordSent": "Email envoyé — vérifie ta boîte de réception pour réinitialiser ton mot de passe.",
@@ -1751,5 +1752,27 @@
     "suggestPersonal": "{{winrate}}% de victoires avec toi ({{games}} matchs)",
     "suggestCommunity": "recommandé par la communauté",
     "suggestFillsGap": "rôle manquant"
+  },
+  "onboarding": {
+    "welcomeTitle": "Bienvenue sur MVP Tracker !",
+    "welcomeText": "Petit tour rapide pour te montrer où trouver les grandes fonctionnalités — 30 secondes, tu peux passer à tout moment.",
+    "searchTitle": "Recherche d'onglet",
+    "searchText": "Tape ici pour retrouver n'importe quel onglet directement, sans fouiller dans le menu.",
+    "performanceTitle": "Performance",
+    "performanceText": "Tes stats de jeu : historique de matchs, forme récente, heatmap des morts/kills, analyse tactique, graphiques...",
+    "myAccountTitle": "Mon compte",
+    "myAccountText": "Ton Hall of Fame, ta collection de skins, le suivi du tilt et ton monitoring réseau — tout ce qui te concerne toi, spécifiquement.",
+    "tournamentsTitle": "Tournois",
+    "tournamentsText": "Inscris-toi aux tournois communautaires et suis les brackets en cours.",
+    "trainingTitle": "Entraînement",
+    "trainingText": "Aim Trainer 3D (plusieurs modes), session guidée d'échauffement, puzzle tactique du jour, paris perso sur ta prochaine game.",
+    "toolsTitle": "Outils",
+    "toolsText": "Sessions, bibliothèque de crosshairs, tableau de stratégie, catalogue de skins, compositions d'équipe, simulateur d'achat, wiki.",
+    "endTitle": "C'est tout !",
+    "endText": "Tu peux revoir ce tutoriel à tout moment depuis Mon compte, tout en bas de la page.",
+    "previous": "← Précédent",
+    "next": "Suivant →",
+    "finish": "Terminer",
+    "skip": "Passer"
   }
 }
