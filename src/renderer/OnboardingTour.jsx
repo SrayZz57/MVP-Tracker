@@ -60,13 +60,24 @@ function OnboardingTour({ onClose }) {
       setRect(null);
       return undefined;
     }
-    const update = () => {
-      const el = document.querySelector(step.target);
-      setRect(el ? el.getBoundingClientRect() : null);
-    };
-    update();
+    const el = document.querySelector(step.target);
+    if (!el) {
+      setRect(null);
+      return undefined;
+    }
+    const update = () => setRect(el.getBoundingClientRect());
+    // La sidebar défile (.sidebar-nav a overflow-y: auto) — les dernières
+    // sections (Outils) peuvent être hors champ tant qu'on ne les fait pas
+    // défiler jusqu'à l'écran, sinon le spotlight pointait dans le vide.
+    // Mesure prise APRÈS le scroll (delay calé sur sa durée), sinon on
+    // récupère encore l'ancienne position d'avant le défilement.
+    el.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    const id = setTimeout(update, 350);
     window.addEventListener('resize', update);
-    return () => window.removeEventListener('resize', update);
+    return () => {
+      clearTimeout(id);
+      window.removeEventListener('resize', update);
+    };
   }, [step.target]);
 
   const isLast = stepIndex === STEPS.length - 1;
