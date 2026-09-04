@@ -1,5 +1,6 @@
 import { useEffect, useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
+import { Lock } from 'lucide-react';
 import { useAgentsById, useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { useRankTiers } from './rankData.js';
 import { useAgentSelectData } from './useAgentSelectData.js';
@@ -22,14 +23,19 @@ function PlayerCard({ player, agentsById, rankTiers, t }) {
 
         <span className="agent-select-rank">
           {tier?.icon && <img src={tier.icon} alt="" />}
-          <span style={tier?.color ? { color: tier.color } : undefined}>
+          <span
+            className="agent-select-rank-name"
+            style={tier?.color ? { color: tier.color } : undefined}
+          >
             {player.competitiveTier > 0 ? tier?.name ?? '–' : t('agentSelect.unranked')}
           </span>
         </span>
       </div>
 
       {player.isMe && <span className="agent-select-you">{t('agentSelect.you')}</span>}
-      {locked && !player.isMe && <span className="agent-select-lock">{t('agentSelect.locked')}</span>}
+      {locked && !player.isMe && (
+        <Lock className="agent-select-lock" role="img" aria-label={t('agentSelect.locked')} />
+      )}
     </div>
   );
 }
