@@ -9625,6 +9625,7 @@ body:not(.overlay-window) .agent-select-dot {
 
 .agent-select-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.15rem;
   min-width: 0;
@@ -9642,8 +9643,15 @@ body:not(.overlay-window) .agent-select-dot {
   display: flex;
   align-items: center;
   gap: 0.35rem;
+  min-width: 0;
   font-size: var(--fs-2xs);
   color: var(--text-muted);
+}
+
+.agent-select-rank-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .agent-select-rank img {
@@ -9656,13 +9664,15 @@ body:not(.overlay-window) .agent-select-dot {
 .agent-select-lock {
   margin-left: auto;
   flex-shrink: 0;
-  font-size: var(--fs-2xs);
-  letter-spacing: 0.09em;
-  text-transform: uppercase;
+  width: 15px;
+  height: 15px;
   color: var(--text-dim);
 }
 
 .agent-select-you {
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
   color: var(--accent);
   font-weight: 700;
 }
@@ -9786,6 +9796,7 @@ body:not(.overlay-window) .agent-select-dot {
 
 .overlay-agent-select-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
   gap: 0.1rem;
   min-width: 0;
@@ -9800,6 +9811,9 @@ body:not(.overlay-window) .agent-select-dot {
 }
 
 .overlay-agent-select-rank {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
   font-size: var(--fs-2xs);
   color: var(--text-muted);
 }
