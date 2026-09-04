@@ -1,4 +1,4 @@
-import PerformanceCharts from '../PerformanceCharts.jsx';
+import PerformanceCharts from '../stats/PerformanceCharts.jsx';
 
 function PerformanceChartsTab({ settings, matches, loading }) {
   return <PerformanceCharts settings={settings} matches={matches} loading={loading} />;

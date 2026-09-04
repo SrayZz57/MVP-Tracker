@@ -1,4 +1,4 @@
-import FriendsPage from '../FriendsPage.jsx';
+import FriendsPage from '../social/FriendsPage.jsx';
 
 function FriendsTab({ myId, onlineFriendIds, onOpenConversation, apiKey }) {
   return (

@@ -2,23 +2,6 @@ import fs from 'node:fs';
 import path from 'node:path';
 import https from 'node:https';
 
-// =============================================================================
-// API LOCALE DE VALORANT
-//
-// Contrairement à HenrikDev (service tiers, quota de requêtes, données à
-// quelques minutes de décalage), cette API est celle du client Valorant qui
-// tourne sur la machine. Elle donne l'état EN DIRECT — notamment la sélection
-// d'agent, que rien d'autre ne permet de voir.
-//
-// Contraintes qui en découlent :
-//   - ne marche que sur le PC qui joue, client Riot lancé
-//   - tout passe par le process principal : lecture de fichiers (lockfile,
-//     log) et certificat auto-signé, deux choses impossibles depuis le
-//     renderer (et que la CSP bloquerait de toute façon)
-//   - API non officielle : les endpoints peuvent changer sans préavis, donc
-//     chaque échec doit être silencieux côté interface, jamais bloquant
-// =============================================================================
-
 const LOCKFILE = path.join(
   process.env.LOCALAPPDATA ?? '',
   'Riot Games',
@@ -35,21 +18,9 @@ const SHOOTER_LOG = path.join(
   'ShooterGame.log',
 );
 
-// En-tête d'identification du client attendu par les serveurs Riot. C'est la
-// valeur canonique utilisée par le client PC (base64 d'un petit JSON décrivant
-// la plateforme). Elle est figée volontairement : la ré-encoder soi-même
-// change les octets (espaces, retours ligne) et Riot rejette la requête.
 const CLIENT_PLATFORM =
   'ew0KCSJwbGF0Zm9ybVR5cGUiOiAiUEMiLA0KCSJwbGF0Zm9ybU9TIjogIldpbmRvd3MiLA0KCSJwbGF0Zm9ybU9TVmVyc2lvbiI6ICIxMC4wLjE5MDQyLjEuMjU2LjY0Yml0IiwNCgkicGxhdGZvcm1DaGlwc2V0IjogIlVua25vd24iDQp9';
 
-// Le client local présente un certificat auto-signé : sans exception, la
-// requête échoue. L'exception est limitée à CE module et à 127.0.0.1 — on ne
-// touche jamais à NODE_TLS_REJECT_UNAUTHORIZED, qui désactiverait la
-// vérification pour toutes les requêtes de l'app (Supabase, HenrikDev...).
-//
-// On passe par https.request plutôt que fetch : le fetch intégré à Node
-// (undici) ignore l'option `agent`, qui vient de node-fetch. Le certificat
-// auto-signé serait donc refusé malgré le réglage.
 function localRequest(url, headers) {
   return new Promise((resolve, reject) => {
     const req = https.request(
@@ -68,7 +39,6 @@ function localRequest(url, headers) {
   });
 }
 
-/** Lit le lockfile écrit par le client Riot au démarrage. */
 export function readLockfile() {
   if (!fs.existsSync(LOCKFILE)) return null;
   const parts = fs.readFileSync(LOCKFILE, 'utf8').trim().split(':');
@@ -77,19 +47,9 @@ export function readLockfile() {
   return { port, password, protocol };
 }
 
-// Le jeton local reste valide largement plus longtemps que l'intervalle de
-// poll (4s, voir useAgentSelectData.js) — le redemander à chaque poll faisait
-// un aller-retour HTTPS complet (avec le certificat auto-signé) pour rien à
-// chaque tour. Cache court, invalidé si le lockfile change (relance du
-// client Riot = nouveau mot de passe).
-let authCache = null; // { password, auth, expiresAt }
+let authCache = null;
 const AUTH_CACHE_MS = 5 * 60 * 1000;
 
-/**
- * Jetons d'accès, obtenus auprès du client local.
- * `subject` est le puuid du joueur connecté — pas besoin de le demander
- * ailleurs ni de le faire saisir.
- */
 async function getLocalAuth(lock) {
   if (authCache && authCache.password === lock.password && authCache.expiresAt > Date.now()) {
     return authCache.auth;
@@ -106,22 +66,8 @@ async function getLocalAuth(lock) {
   return auth;
 }
 
-// Cette URL ne change jamais en cours de session (elle est écrite une fois
-// par le client, tôt dans ShooterGame.log, au moment du routing régional) —
-// mais ce log grossit tout au long de la session de jeu (pas par match, tout
-// le log du client). Le relire en entier + regex dessus à chaque poll (4s,
-// voir useAgentSelectData.js) devenait de plus en plus coûteux à mesure que
-// le fichier grandissait pendant une longue session, un vrai souci de CPU
-// constaté chez un testeur. Mis en cache après la première lecture réussie,
-// comme versionCache juste en dessous.
 let glzBaseCache = null;
 
-/**
- * Base des serveurs de jeu (glz), lue dans le log du jeu.
- * La doc ne décrit pas comment dériver le couple région/shard, et le déduire
- * de la seule région est faux pour les comptes créés dans une autre zone. Le
- * log, lui, contient l'URL réellement utilisée par le client.
- */
 export function readGlzBase() {
   if (glzBaseCache) return glzBaseCache;
   if (!fs.existsSync(SHOOTER_LOG)) return null;
@@ -133,7 +79,6 @@ export function readGlzBase() {
 
 let versionCache = null;
 
-/** Version du client, exigée en en-tête. Mise en cache pour la session. */
 async function getClientVersion() {
   if (versionCache) return versionCache;
   const res = await fetch('https://valorant-api.com/v1/version');
@@ -152,23 +97,12 @@ function glzHeaders(auth, version) {
   };
 }
 
-// pregame/core-game vivent sur les serveurs "glz" (par région de partie),
-// mais le rang classé d'un joueur, lui, vit sur "pd" (par shard du compte,
-// peu importe la partie) — même hôte que glz, sans le préfixe régional.
-// ex. glz-eu-1.eu.a.pvp.net -> pd.eu.a.pvp.net
 function pdBaseFromGlz(glz) {
   const match = glz.match(/^https:\/\/glz-[a-z0-9-]+\.([a-z0-9-]+)\.a\.pvp\.net$/i);
   return match ? `https://pd.${match[1]}.a.pvp.net` : null;
 }
 
-// CompetitiveTier dans pregame/core-game ne reflète que le classement DE LA
-// PARTIE EN COURS — vide (0) hors file Compétitive. L'endpoint MMR, lui,
-// donne le rang classé du joueur indépendamment du mode actuellement joué
-// (c'est ce que font les trackers tiers pour afficher un rang même en Spike
-// Rush) — voir player-mmr sur valapidocs.techchrism.me. Un cache court évite
-// de le refaire à chaque poll (4s) pour les mêmes joueurs pendant un même
-// pregame/partie.
-const mmrCache = new Map(); // puuid -> { tier, expiresAt }
+const mmrCache = new Map();
 const MMR_CACHE_MS = 5 * 60 * 1000;
 
 async function fetchMmrTier(pdBase, headers, puuid) {
@@ -190,14 +124,6 @@ async function fetchMmrTier(pdBase, headers, puuid) {
   }
 }
 
-// Uniquement hors Compétitif : en vrai classé, le rang embarqué (pregame/
-// core-game) est déjà la bonne valeur en direct. Un rang à 0 y est un signe
-// fiable de "non classé cette saison", jamais un vide à combler — l'appeler
-// quand même y a déjà provoqué une régression réelle (rang d'ACTE affiché à
-// la place du rang courant en Compétitif) : QueueSkills.competitive côté MMR
-// s'indexe par LatestCompetitiveUpdate.SeasonID, qui pointe vers la saison du
-// DERNIER match classé joué — un ancien acte si le rang courant n'était pas
-// encore remonté côté embarqué au moment de l'appel.
 async function fillMissingRanks(pdBase, headers, players, mode) {
   if (mode === 'competitive') return players;
   await Promise.all(
@@ -209,8 +135,6 @@ async function fillMissingRanks(pdBase, headers, players, mode) {
   return players;
 }
 
-// Sélection d'agent ('pregame') : seule MON équipe est exposée par Riot à ce
-// stade en classé (`EnemyTeam` est null) — rien à faire côté adversaires ici.
 async function fetchPregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/pregame/v1/players/${puuid}`, { headers });
   if (playerRes.status === 404) return null;
@@ -225,11 +149,8 @@ async function fetchPregame(glz, pdBase, headers, puuid) {
 
   const players = (match.AllyTeam?.Players ?? []).map((p) => ({
     puuid: p.Subject,
-    // Numéro de palier ; la conversion en nom et en icône se fait côté
-    // interface, avec la table déjà utilisée pour le rang du joueur.
     competitiveTier: p.CompetitiveTier ?? 0,
     agentId: p.CharacterID || null,
-    // '' | 'selected' | 'locked'
     selectionState: p.CharacterSelectionState ?? '',
     accountLevel: p.PlayerIdentity?.AccountLevel ?? null,
     incognito: p.PlayerIdentity?.Incognito ?? false,
@@ -242,9 +163,6 @@ async function fetchPregame(glz, pdBase, headers, puuid) {
   return { state: 'ok', phase: 'select', matchId, mapId: match.MapID ?? null, mode: match.QueueID ?? null, players };
 }
 
-// Partie en cours ('core-game'), à partir du chargement juste après la
-// sélection : contrairement au pregame, LES DEUX équipes sont exposées ici —
-// c'est ce qui permet d'afficher enfin les adversaires.
 async function fetchCoregame(glz, pdBase, headers, puuid) {
   const playerRes = await fetch(`${glz}/core-game/v1/players/${puuid}`, { headers });
   if (playerRes.status === 404) return null;
@@ -261,8 +179,6 @@ async function fetchCoregame(glz, pdBase, headers, puuid) {
 
   const players = (match.Players ?? []).map((p) => ({
     puuid: p.Subject,
-    // Rang vit sous un autre nom que côté pregame (`SeasonalBadgeInfo.Rank`
-    // plutôt que `CompetitiveTier`), même numéro de palier en dessous.
     competitiveTier: p.SeasonalBadgeInfo?.Rank ?? 0,
     agentId: p.CharacterID || null,
     selectionState: 'locked',
@@ -277,20 +193,6 @@ async function fetchCoregame(glz, pdBase, headers, puuid) {
   return { state: 'ok', phase: 'game', matchId, mapId: match.MapID ?? null, mode: match.ModeID ?? null, players };
 }
 
-/**
- * État de la sélection d'agent, puis de la partie qui suit (chargement +
- * début de match), en direct.
- *
- * Renvoie toujours un objet avec un `state`, jamais une exception : cette
- * fonction est appelée en boucle par l'interface, et « le joueur n'est ni en
- * sélection ni en partie » est le cas NORMAL, pas une erreur.
- *
- *   'idle'        — ni en sélection ni en partie (cas courant)
- *   'unavailable' — client fermé, log absent, ou API injoignable
- *   'ok'          — `players` renseigné, `phase` distingue 'select' (agents
- *                    alliés uniquement) de 'game' (alliés + adversaires,
- *                    `team` sur chaque joueur)
- */
 export async function getAgentSelect() {
   try {
     const lock = readLockfile();
@@ -312,8 +214,6 @@ export async function getAgentSelect() {
 
     return { state: 'idle' };
   } catch (err) {
-    // Réseau coupé, client fermé en cours de route, endpoint modifié par
-    // Riot... Rien de tout ça ne doit remonter jusqu'à l'interface.
     return { state: 'unavailable', reason: err.message };
   }
 }

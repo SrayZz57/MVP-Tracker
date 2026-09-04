@@ -1,4 +1,4 @@
-import TeammatesRivals from '../TeammatesRivals.jsx';
+import TeammatesRivals from '../stats/TeammatesRivals.jsx';
 
 function TeammatesRivalsTab({ settings, matches, loading, myPuuid }) {
   return <TeammatesRivals settings={settings} matches={matches} loading={loading} myPuuid={myPuuid} />;

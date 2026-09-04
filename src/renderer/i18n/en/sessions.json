@@ -1,0 +1,645 @@
+{
+  "hallOfFame": {
+    "title": "Hall of Fame",
+    "description": "Your best personal records, automatically detected in your match history, updated the moment a new record falls.",
+    "noneUnlockedYet": "Not unlocked yet. Keep playing.",
+    "bestAce": "Best ace",
+    "killsInRound": "kills in one round",
+    "longestWinStreak": "Longest win streak",
+    "winsInARow": "wins in a row",
+    "bestClutch": "Best clutch",
+    "won": "won",
+    "bestKdaMatch": "Best KDA in a match",
+    "achievementsTitle": "Achievements ({{unlocked}}/{{total}})",
+    "achievementsHint": "Unlocked automatically as soon as you hit the threshold, from the same data as the records above.",
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "roundLabel": "round {{n}}",
+    "streakRange": "From {{start}} to {{end}}",
+    "kdaExtra": "KDA {{value}}",
+    "distanceExtra": "{{distance}}m · {{weapon}}",
+    "longRangeDuelContext": "{{percent}}% winrate over {{count}} long-range duels",
+    "veryLongRangeDuelContext": "{{percent}}% winrate over {{count}} very-long-range duels",
+    "careerHsContext": "{{percent}}% career average",
+    "agentsPlayedContext": "{{count}} distinct agent(s) played",
+    "mapsPlayedContext": "{{count}} distinct map(s) played",
+    "modesPlayedContext": "{{count}} distinct mode(s) tried",
+    "matchesTotalContext": "{{count}} matches total",
+    "winsTotalContext": "{{count}} wins total",
+    "killsTotalContext": "{{count}} kills total",
+    "hoursTotalContext": "{{hours}}h total",
+    "agentKillsContext": "{{count}} kills with {{agent}}",
+    "agentGamesContext": "{{count}} games with {{agent}}",
+    "weaponKillsContext": "{{count}} kills with {{weapon}}",
+    "clutchesContext": "{{count}} clutch(es) won total",
+    "firstBloodContext": "{{count}} first blood(s) total",
+    "plantsContext": "{{count}} plant(s) total",
+    "defusesContext": "{{count}} defuse(s) total",
+    "overtimeContext": "{{rounds}} rounds · {{map}}, {{date}}",
+    "groups": {
+      "multiKills": {
+        "label": "Multi-kills",
+        "items": {
+          "triple": {
+            "title": "Triple kill",
+            "description": "3 kills in a single round"
+          },
+          "quadra": {
+            "title": "Quadra kill",
+            "description": "4 kills in a single round"
+          },
+          "ace": {
+            "title": "Ace",
+            "description": "5 kills in a single round"
+          }
+        }
+      },
+      "winStreaks": {
+        "label": "Win streaks",
+        "items": {
+          "streak3": {
+            "title": "3-win streak",
+            "description": "3 wins in a row"
+          },
+          "streak5": {
+            "title": "5-win streak",
+            "description": "5 wins in a row"
+          },
+          "streak8": {
+            "title": "8-win streak",
+            "description": "8 wins in a row"
+          }
+        }
+      },
+      "clutches": {
+        "label": "Clutches",
+        "items": {
+          "clutch1": {
+            "title": "1v1 clutch",
+            "description": "Win a round in a 1v1 disadvantage"
+          },
+          "clutch2": {
+            "title": "1v2 clutch",
+            "description": "Win a round in a 1v2 disadvantage"
+          },
+          "clutch3": {
+            "title": "1v3 clutch",
+            "description": "Win a round in a 1v3 disadvantage"
+          },
+          "clutch4": {
+            "title": "Legendary clutch",
+            "description": "Win a round in a 1v4 disadvantage or worse"
+          }
+        }
+      },
+      "kdaMatch": {
+        "label": "KDA in a match",
+        "items": {
+          "kda2": {
+            "title": "KDA 2.0+",
+            "description": "(kills + assists) / deaths ≥ 2 in a match"
+          },
+          "kda3": {
+            "title": "KDA 3.0+",
+            "description": "(kills + assists) / deaths ≥ 3 in a match"
+          },
+          "kda4": {
+            "title": "KDA 4.0+",
+            "description": "(kills + assists) / deaths ≥ 4 in a match"
+          },
+          "kda5": {
+            "title": "KDA 5.0+",
+            "description": "(kills + assists) / deaths ≥ 5 in a match"
+          }
+        }
+      },
+      "accuracy": {
+        "label": "Accuracy",
+        "items": {
+          "hs30": {
+            "title": "30% headshot accuracy",
+            "description": "30%+ headshots in a match"
+          },
+          "longrangeduel": {
+            "title": "Occasional sniper",
+            "description": "≥ 50% winrate in your long-range duels (20-35m), over at least 5 duels"
+          },
+          "verylongrangeduel": {
+            "title": "Elite sniper",
+            "description": "≥ 60% winrate in your very-long-range duels (35m+), over at least 5 duels"
+          },
+          "careerHs20": {
+            "title": "20% headshot accuracy (career)",
+            "description": "Headshot accuracy average ≥ 20% across your whole history"
+          },
+          "careerHs28": {
+            "title": "28% headshot accuracy (career)",
+            "description": "Headshot accuracy average ≥ 28% across your whole history"
+          }
+        }
+      },
+      "killsPerMatch": {
+        "label": "Kills in a match",
+        "items": {
+          "kills20": {
+            "title": "20+ kills",
+            "description": "20 kills or more in a single match"
+          },
+          "kills25": {
+            "title": "25+ kills",
+            "description": "25 kills or more in a single match"
+          },
+          "kills30": {
+            "title": "30+ kills",
+            "description": "30 kills or more in a single match"
+          }
+        }
+      },
+      "distance": {
+        "label": "Distance",
+        "items": {
+          "dist30": {
+            "title": "30m+ kill",
+            "description": "A kill at 30 meters or more"
+          },
+          "dist45": {
+            "title": "45m+ kill",
+            "description": "A kill at 45 meters or more"
+          },
+          "dist60": {
+            "title": "60m+ kill",
+            "description": "A kill from 60 metres or more, nearly the width of a map"
+          }
+        }
+      },
+      "versatility": {
+        "label": "Versatility",
+        "items": {
+          "agents5": {
+            "title": "5 agents played",
+            "description": "5 distinct agents in your history"
+          },
+          "agents10": {
+            "title": "10 agents played",
+            "description": "10 distinct agents in your history"
+          },
+          "agents15": {
+            "title": "15 agents played",
+            "description": "15 distinct agents in your history"
+          },
+          "maps5": {
+            "title": "5 different maps",
+            "description": "5 different maps in your history"
+          },
+          "maps8": {
+            "title": "8 different maps",
+            "description": "8 different maps in your history"
+          },
+          "modes3": {
+            "title": "3 game modes",
+            "description": "3 different game modes tried"
+          },
+          "modes5": {
+            "title": "5 game modes",
+            "description": "5 different game modes tried"
+          }
+        }
+      },
+      "perfection": {
+        "label": "Perfection",
+        "items": {
+          "perfect": {
+            "title": "Perfect match",
+            "description": "Win a match without dying once"
+          }
+        }
+      },
+      "matchVolume": {
+        "label": "Match volume",
+        "items": {
+          "matches10": {
+            "title": "10 matches played",
+            "description": "10 matches in your history"
+          },
+          "matches50": {
+            "title": "50 matches played",
+            "description": "50 matches in your history"
+          },
+          "matches100": {
+            "title": "100 matches played",
+            "description": "100 matches in your history"
+          },
+          "matches250": {
+            "title": "250 matches played",
+            "description": "250 matches in your history"
+          },
+          "matches500": {
+            "title": "500 matches played",
+            "description": "500 matches in your history"
+          }
+        }
+      },
+      "totalWins": {
+        "label": "Cumulative wins",
+        "items": {
+          "wins10": {
+            "title": "10 wins",
+            "description": "10 matches won total"
+          },
+          "wins50": {
+            "title": "50 wins",
+            "description": "50 matches won total"
+          },
+          "wins100": {
+            "title": "100 wins",
+            "description": "100 matches won total"
+          },
+          "wins250": {
+            "title": "250 wins",
+            "description": "250 matches won total"
+          }
+        }
+      },
+      "totalKills": {
+        "label": "Cumulative kills",
+        "items": {
+          "totalkills100": {
+            "title": "100 kills",
+            "description": "100 kills total across your whole history"
+          },
+          "totalkills500": {
+            "title": "500 kills",
+            "description": "500 kills total across your whole history"
+          },
+          "totalkills1000": {
+            "title": "1000 kills",
+            "description": "1000 kills total across your whole history"
+          },
+          "totalkills2500": {
+            "title": "2500 kills",
+            "description": "2500 kills total across your whole history"
+          },
+          "totalkills5000": {
+            "title": "5000 kills",
+            "description": "5000 kills total across your whole history"
+          }
+        }
+      },
+      "playtime": {
+        "label": "Playtime",
+        "items": {
+          "hours10": {
+            "title": "10 hours played",
+            "description": "10 hours accumulated in your history"
+          },
+          "hours50": {
+            "title": "50 hours played",
+            "description": "50 hours accumulated in your history"
+          },
+          "hours100": {
+            "title": "100 hours played",
+            "description": "100 hours accumulated in your history"
+          },
+          "hours250": {
+            "title": "250 hours played",
+            "description": "250 hours accumulated in your history"
+          }
+        }
+      },
+      "agentMastery": {
+        "label": "Agent mastery",
+        "items": {
+          "agentkills100": {
+            "title": "100 kills with an agent",
+            "description": "100 kills accumulated with your most-played agent"
+          },
+          "agentkills500": {
+            "title": "500 kills with an agent",
+            "description": "500 kills accumulated with your most-played agent"
+          },
+          "agentkills1000": {
+            "title": "1000 kills with an agent",
+            "description": "1000 kills accumulated with your most-played agent"
+          },
+          "agentgames10": {
+            "title": "Favorite agent",
+            "description": "10 games with the same agent"
+          },
+          "agentgames50": {
+            "title": "Main agent",
+            "description": "50 games with the same agent"
+          },
+          "agentgames100": {
+            "title": "Signature agent",
+            "description": "100 games with the same agent"
+          }
+        }
+      },
+      "weaponMastery": {
+        "label": "Weapon mastery",
+        "items": {
+          "weaponkills50": {
+            "title": "50 kills with a weapon",
+            "description": "50 kills accumulated with your most-used weapon"
+          },
+          "weaponkills150": {
+            "title": "150 kills with a weapon",
+            "description": "150 kills accumulated with your most-used weapon"
+          },
+          "weaponkills300": {
+            "title": "300 kills with a weapon",
+            "description": "300 kills accumulated with your most-used weapon"
+          }
+        }
+      },
+      "composure": {
+        "label": "Composure",
+        "items": {
+          "clutches1": {
+            "title": "First clutch",
+            "description": "Win your first round in a clutch"
+          },
+          "clutches5": {
+            "title": "5 clutches won",
+            "description": "5 rounds won in a clutch total"
+          },
+          "clutches15": {
+            "title": "15 clutches won",
+            "description": "15 rounds won in a clutch total"
+          },
+          "clutches30": {
+            "title": "30 clutches won",
+            "description": "30 rounds won in a clutch total"
+          }
+        }
+      },
+      "firstBlood": {
+        "label": "First blood",
+        "items": {
+          "firstblood10": {
+            "title": "10 first bloods",
+            "description": "First kill of the round, 10 times total"
+          },
+          "firstblood50": {
+            "title": "50 first bloods",
+            "description": "First kill of the round, 50 times total"
+          },
+          "firstblood150": {
+            "title": "150 first bloods",
+            "description": "First kill of the round, 150 times total"
+          }
+        }
+      },
+      "spike": {
+        "label": "Spike",
+        "items": {
+          "plants10": {
+            "title": "10 spikes planted",
+            "description": "Plant the spike, 10 times total"
+          },
+          "plants50": {
+            "title": "50 spikes planted",
+            "description": "Plant the spike, 50 times total"
+          },
+          "plants150": {
+            "title": "150 spikes planted",
+            "description": "Plant the spike, 150 times total"
+          },
+          "defuses5": {
+            "title": "5 spikes defused",
+            "description": "Defuse the spike, 5 times total"
+          },
+          "defuses25": {
+            "title": "25 spikes defused",
+            "description": "Defuse the spike, 25 times total"
+          },
+          "defuses75": {
+            "title": "75 spikes defused",
+            "description": "Defuse the spike, 75 times total"
+          }
+        }
+      },
+      "endurance": {
+        "label": "Endurance",
+        "items": {
+          "overtime": {
+            "title": "Overtime",
+            "description": "Play a match that goes to overtime (16 rounds or more)"
+          },
+          "doubleovertime": {
+            "title": "Double overtime",
+            "description": "Play a 24-round match or more"
+          }
+        }
+      }
+    }
+  },
+  "session": {
+    "title": "Guided session",
+    "description": "Generates a session plan based on your real stats: current time slot, latest strategy saved on your recent map, and your current form/tilt state.",
+    "newSession": "New session",
+    "launch": "Launch my session",
+    "checklistTitle": "Session checklist",
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "warmupTitle_one": "{{count}} minute of warm-up",
+    "warmupTitle_other": "{{count}} minutes of warm-up",
+    "strategyReviewTitle": "Review the \"{{name}}\" strategy on {{map}}",
+    "strategyReviewDetail": "Head to the Strategy tab to check it before starting your matches.",
+    "noStrategyTitle": "No strategy saved on {{map}}",
+    "noStrategyDetail": "A chance to create one in the Strategy tab before playing.",
+    "tiltedTitle": "Signs of tilt detected recently",
+    "tiltedDetail_one": "Reduced goal for today. Take a break after {{count}} match if it doesn't get better.",
+    "tiltedDetail_other": "Reduced goal for today. Take a break after {{count}} matches if it doesn't get better.",
+    "calmTitle": "No sign of tilt",
+    "calmDetail": "You can keep playing your matches normally.",
+    "objectiveTitle": "Today's goal",
+    "warmupNoData": "Not enough data on this time slot yet ({{slot}}), standard warm-up.",
+    "warmupGood": "You perform well in this time slot ({{slot}}, {{percent}}% winrate), a short warm-up is enough.",
+    "warmupBad": "Your winrate is lower in this time slot ({{slot}}, {{percent}}%). Take more time to warm up before queuing ranked.",
+    "objectiveWithMap_one": "{{count}} match on {{map}}, aim for {{hsTarget}}%+ headshot accuracy",
+    "objectiveWithMap_other": "{{count}} matches on {{map}}, aim for {{hsTarget}}%+ headshot accuracy",
+    "objectiveNoMap_one": "{{count}} match, aim for {{hsTarget}}%+ headshot accuracy",
+    "objectiveNoMap_other": "{{count}} matches, aim for {{hsTarget}}%+ headshot accuracy"
+  },
+  "playSessions": {
+    "title": "Current session",
+    "description": "Start a session before you play, stop it when you're done. The summary is based on your real matches played in between.",
+    "startSession": "Start a session",
+    "starting": "Starting...",
+    "endSession": "End session",
+    "ending": "Ending...",
+    "liveSince": "Session running for {{duration}}",
+    "justEnded": "Session summary",
+    "gamesPlayed": "Games",
+    "winrate": "Winrate",
+    "kd": "K/D",
+    "precision": "Headshot accuracy",
+    "kda": "K/D/A",
+    "agentsPlayed": "Agents played",
+    "topWeapons": "Top weapons",
+    "historyTitle": "Session history",
+    "noHistoryYet": "No completed session yet.",
+    "noMatchesInWindow": "No match played during this session.",
+    "refreshMatches": "Refresh my matches",
+    "refreshing": "Refreshing..."
+  },
+  "goals": {
+    "widgetTitle": "Personal goals",
+    "panelTitle": "Goals",
+    "noActiveGoals": "No active goal. Add a suggestion below.",
+    "markReached": "Mark reached",
+    "delete": "Delete",
+    "doneCount_one": "{{count}} goal done",
+    "doneCount_other": "{{count}} goals done",
+    "suggestionsTitle": "Suggestions based on your stats",
+    "suggestionDetail": " · currently {{baseline}}, aim for {{target}}",
+    "addSuggestion": "+ Add",
+    "customPlaceholder": "E.g.: Improve my defensive positioning",
+    "cancel": "Cancel",
+    "add": "Add",
+    "addCustomGoal": "+ Free-text goal",
+    "suggestion": {
+      "hsPercent": "Headshot accuracy (overall)",
+      "winrate": "Overall winrate",
+      "kd": "Overall K/D",
+      "mapWinrate": "Winrate on {{map}}",
+      "agentWinrate": "Winrate with {{agent}}"
+    }
+  },
+  "puzzle": {
+    "options": {
+      "duelEarly": "Look for the duel from the start of the round",
+      "rushSite": "Rush a site with the team",
+      "waitInfo": "Play patient, wait for info before engaging",
+      "save": "Save, don't risk the loadout"
+    },
+    "reveal": {
+      "noAction": "You neither killed nor died that round (or it happened very late), a quiet round for you.",
+      "firstKillAt": "You got your first kill at {{seconds}}s into the round.",
+      "diedAt": "You died at {{seconds}}s into the round.",
+      "roundWon": "The round was won.",
+      "roundLost": "The round was lost."
+    },
+    "title": "Daily tactical puzzle",
+    "description": "A real situation pulled from one of your matches, without the outcome. Pick what you would have done, then find out what actually happened. And whether it matches how you play.",
+    "notEnoughMatches": "Not enough cached ranked matches yet to generate a puzzle. Come back after a few more games.",
+    "roundLabel": "Round {{n}}",
+    "scoreBefore": "Score before this round (you - them)",
+    "myEconomy": "Your economy",
+    "enemyEconomy": "Enemy economy (average)",
+    "sideLabel": "Side",
+    "sideAttack": "Attack",
+    "sideDefense": "Defense",
+    "sideUnknown": "?",
+    "question": "Given this context, what would you have done this round?",
+    "matchesReveal": "That matches what you did",
+    "notMatchReveal": "You played differently that round",
+    "choiceWas": "Your choice ({{choice}}) was classed as \"{{bucket}}\", your actual play that round was \"{{actual}}\".",
+    "bucketAggressive": "aggressive",
+    "bucketPatient": "patient",
+    "bucketAggressiveFem": "aggressive",
+    "bucketPatientFem": "patient",
+    "historyTitle": "History",
+    "successRate": "Correct-decision rate",
+    "puzzlesSolved": "Puzzles solved",
+    "noHistory": "No puzzle solved yet.",
+    "notAnsweredYet": "Not answered yet",
+    "goodIntuition": "Good intuition",
+    "missed": "Missed"
+  },
+  "bets": {
+    "title": "Self bets",
+    "pointsUnit": "pts",
+    "accumulatedPoints": "Points accumulated",
+    "description": "Before starting a session, bet virtually on your performance. The bet resolves itself as soon as your next match shows up in your history.",
+    "currentBetTitle": "Active bet",
+    "waitingNextMatch": "Waiting for your next match to resolve automatically.",
+    "cancelBet": "Cancel bet",
+    "placeBetTitle": "Place a bet",
+    "placeBetBtn": "Place bet",
+    "historyTitle": "Bet history",
+    "noHistory": "No bet resolved yet.",
+    "wonPoints": "+{{points}} pts",
+    "lostPoints": "0 pt",
+    "types": {
+      "kills": "Get X+ kills",
+      "duelWinrate": "Win more than X% of my duels",
+      "hsPercent": "Get X%+ headshot accuracy",
+      "win": "Win this match"
+    },
+    "describe": {
+      "kills": "Get {{threshold}}+ kills",
+      "duelWinrate": "Win more than {{threshold}}% of my duels",
+      "hsPercent": "Get {{threshold}}%+ headshot accuracy",
+      "win": "Win this match"
+    }
+  },
+  "weekly": {
+    "widgetTitle": "Your week",
+    "notchLabel": "WEEK",
+    "title": "LAST WEEK",
+    "noMatches": "No matches last week, the wrap-up will fill in starting next Monday.",
+    "gamesPlayed": "games played",
+    "winrate": "Winrate",
+    "kdAverage": "Average K/D",
+    "hsPrecision": "Headshot accuracy",
+    "mostPlayed": "Most played: {{agent}} ({{count}} games)",
+    "bestMap": "Best map: {{map}} ({{percent}}% winrate)",
+    "bestKd": "Best K/D: {{kd}}",
+    "exportBtn": "Export as image",
+    "exporting": "Exporting...",
+    "narrativeTitle": "Your week in review",
+    "hint": "Every Monday, this wrap-up resets and recaps the previous 7 days. Come back here at the start of the week to see your summary and share it if you want.",
+    "previousWeeks": "Previous weeks",
+    "weekOf": "Week of {{date}}",
+    "narrative": {
+      "gamesThisWeek_one": "{{count}} match this week",
+      "gamesThisWeek_other": "{{count}} matches this week",
+      "overviewNoWinrate": "{{gamesText}}, without enough decisive rounds to get a real winrate, a week mostly spent exploring or on side modes.",
+      "overviewGreat": "Big week: {{gamesText}}, with {{winrate}}% wins. That kind of run doesn't happen by accident, enjoy it.",
+      "overviewBalanced": "Balanced week: {{gamesText}}, {{winrate}}% wins. No dramatic swing either way, just solid play.",
+      "overviewHard": "Tougher week: {{gamesText}}, only {{winrate}}% wins. It happens, the important thing is getting back to basics.",
+      "mostPlayedAgent": "You mostly played {{agent}} ({{count}} games)",
+      "bestMapText": "your best map was {{map}} with {{percent}}% winrate",
+      "worstMapText": "{{map}} was tougher ({{percent}}%)",
+      "bestKdText": "with a peak of {{kd}} K/D in your best match",
+      "rankFirstSnapshot": "Rank-wise, you're currently {{current}}, first snapshot recorded, we'll be able to compare next week.",
+      "rankUnchanged": "Your rank didn't move this week: still {{current}}.",
+      "rankUp": "You're climbing: from {{previous}} to {{current}}.",
+      "rankDown": "Small step back this week: from {{previous}} to {{current}}. Nothing irreversible."
+    }
+  },
+  "postmortem": {
+    "promptTitle": "Post-match double check",
+    "promptSubtitle": "{{map}}, before you see your real stats, quickly answer these 3 questions.",
+    "later": "Later",
+    "seeResult": "See the result",
+    "resultTitle": "Perception vs reality",
+    "resultHeading": "{{question}} › you answered “{{answer}}”",
+    "close": "Close",
+    "questions": {
+      "overall": "Do you think you played well this match?",
+      "duels": "Do you think you won your duels?",
+      "aim": "Do you think you had good (head) accuracy?"
+    },
+    "answers": {
+      "yes": "Yes",
+      "average": "Average",
+      "no": "No"
+    },
+    "comparison": {
+      "notEnoughData": "Not enough data to compare on this question.",
+      "overall": "K/D for this match: {{matchKd}}, your overall average is {{overallKd}}.",
+      "duels": "{{kills}} kills for {{deaths}} deaths this match.",
+      "aim": "Headshot accuracy this match: {{hsPercent}}, your average is {{overallHs}}."
+    }
+  },
+  "postmortemHistory": {
+    "title": "Post-match self-assessment",
+    "noneYet": "No double check answered yet, the popup appears after a new match until you close it.",
+    "hint": "Compare how you felt after a match to what your stats actually showed.",
+    "overallAccuracy_one": "Overall accuracy ({{count}} match assessed)",
+    "overallAccuracy_other": "Overall accuracy ({{count}} matches assessed)",
+    "last5": "Over the last 5",
+    "correctCount": "{{correct}}/{{total}} correct"
+  }
+}

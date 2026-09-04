@@ -69,7 +69,15 @@ function LineChart({ data, color = '#ff4655', unit = '' }) {
 
         {points.map((p, i) => (
           <g key={i}>
-            <circle cx={p.x} cy={p.y} r={hovered === i ? 5.5 : 3.5} fill={color} />
+            <circle
+              cx={p.x}
+              cy={p.y}
+              r="7"
+              fill={color}
+              className="line-chart-point-halo"
+              style={{ opacity: hovered === i ? 0.28 : 0 }}
+            />
+            <circle cx={p.x} cy={p.y} r="3.5" fill={color} />
             <circle
               cx={p.x}
               cy={p.y}

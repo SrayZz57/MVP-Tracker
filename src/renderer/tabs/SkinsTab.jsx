@@ -1,4 +1,4 @@
-import SkinsCatalog from '../SkinsCatalog.jsx';
+import SkinsCatalog from '../collection/SkinsCatalog.jsx';
 
 function SkinsTab({ myId }) {
   return <SkinsCatalog myId={myId} />;

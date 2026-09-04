@@ -2,14 +2,10 @@ import { DatabaseSync } from 'node:sqlite';
 import path from 'node:path';
 import { app } from 'electron';
 import { ABILITY_WEAPON_NAMES } from './matchNormalizer.js';
+import { debug } from '../logger.js';
 
 const db = new DatabaseSync(path.join(app.getPath('userData'), 'matches.db'));
 
-// PRIMARY KEY composite (match_id, puuid) — pas juste match_id : deux joueurs
-// suivis qui jouent ENSEMBLE partagent le même match_id (Riot en assigne un
-// seul par partie), donc une clé sur match_id seul ne permettait d'enregistrer
-// ce match que pour le premier des deux consulté, le second se le voyait
-// silencieusement ignoré (INSERT OR IGNORE) et donc invisible dans son historique.
 db.exec(`
   CREATE TABLE IF NOT EXISTS matches (
     match_id TEXT NOT NULL,
@@ -20,8 +16,6 @@ db.exec(`
   )
 `);
 
-// Migration pour les bases créées avant ce correctif — même schéma visé,
-// juste appliqué a posteriori sans perdre les matchs déjà en cache.
 (function migrateMatchesPrimaryKey() {
   const existingSql = db.prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'matches'`).get()?.sql;
   if (!existingSql || existingSql.includes('PRIMARY KEY (match_id, puuid)')) return;
@@ -41,13 +35,6 @@ db.exec(`
   db.exec('DROP TABLE matches_legacy');
 })();
 
-// Correctif rétroactif (une seule fois, via PRAGMA user_version comme
-// marqueur) : avant l'ajout d'ABILITY_WEAPON_NAMES dans matchNormalizer.js,
-// les kills au pistolet Headhunter et à l'ult Tour De Force de Chamber
-// étaient stockés avec un nom d'arme vide (HenrikDev ne renvoie pas leur nom,
-// seulement leur id) et donc invisibles dans les stats par arme. L'id, lui,
-// était bien conservé — on répare les matchs déjà en cache directement,
-// sans devoir tout re-télécharger depuis HenrikDev.
 (function backfillAbilityWeaponNames() {
   const userVersion = db.prepare('PRAGMA user_version').get().user_version;
   if (userVersion >= 1) return;
@@ -76,7 +63,7 @@ db.exec(`
       patched += 1;
     }
   }
-  if (patched > 0) console.log(`[db] backfillAbilityWeaponNames : ${patched} match(s) corrigé(s)`);
+  if (patched > 0) debug(`[db] backfillAbilityWeaponNames : ${patched} match(s) corrigé(s)`);
   db.exec('PRAGMA user_version = 1');
 })();
 
@@ -112,13 +99,6 @@ db.exec(`
   )
 `);
 
-// Outil "Sessions" (Outils) — pas à confondre avec "Session guidée"
-// (checklist d'échauffement, table weekly_narratives/etc.) : ici, une
-// session = une plage horaire (démarrée/arrêtée à la main) sur laquelle on
-// résume ensuite les vraies stats des matchs joués entre les deux, tirées du
-// cache local déjà là (aucune donnée supplémentaire stockée par match — le
-// résumé se recalcule à la demande à partir de started_at/ended_at).
-// ended_at NULL = session en cours.
 db.exec(`
   CREATE TABLE IF NOT EXISTS play_sessions (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -145,10 +125,6 @@ db.exec(`
   )
 `);
 
-// UNIQUE(match_id, puuid) — pas match_id seul : un match partagé entre deux
-// comptes suivis (ou une simple re-tentative) faisait échouer silencieusement
-// l'enregistrement dès qu'une ligne existait déjà pour ce match_id, peu importe
-// le compte (même bug de fond que celui corrigé sur la table matches).
 db.exec(`
   CREATE TABLE IF NOT EXISTS match_assessments (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -162,7 +138,6 @@ db.exec(`
   )
 `);
 
-// Migration pour les bases créées avant ce correctif.
 (function migrateAssessmentsUnique() {
   const existingSql = db
     .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = 'match_assessments'`)
@@ -215,26 +190,13 @@ db.exec(`
   )
 `);
 
-// Migration légère pour les bases déjà créées avant l'ajout de ces colonnes.
 try {
   db.exec('ALTER TABLE crosshairs ADD COLUMN color TEXT');
-} catch {
-  // colonne déjà présente
-}
+} catch {}
 try {
   db.exec('ALTER TABLE crosshairs ADD COLUMN image TEXT');
-} catch {
-  // colonne déjà présente
-}
+} catch {}
 
-// Scoping par compte (2026-08-18) : ajoute `puuid` aux tables qui n'en avaient
-// pas encore, pour que consulter le tracker d'un autre joueur sur la même
-// machine ne mélange plus ses données avec les tiennes. `puzzles` et
-// `weekly_narratives` avaient une contrainte UNIQUE sur une seule colonne
-// (date / week_start) — SQLite ne permet pas de la transformer en UNIQUE
-// composite via ALTER TABLE, donc ces deux tables sont recréées avec le bon
-// schéma si elles existent encore sous l'ancienne forme (détecté via absence
-// de la colonne puuid), en conservant les lignes existantes.
 function tableHasColumn(table, column) {
   return db
     .prepare(`PRAGMA table_info(${table})`)
@@ -256,8 +218,6 @@ addPuuidColumn('ping_samples');
 
 function recreateWithCompositeUnique(table, columns, uniqueCols) {
   if (tableHasColumn(table, 'puuid')) {
-    // Colonne déjà là : soit table neuve (CREATE TABLE ci-dessus l'a posée),
-    // soit déjà migrée lors d'un lancement précédent — rien à faire.
     const hadUniqueAlready = db
       .prepare(`SELECT sql FROM sqlite_master WHERE type = 'table' AND name = ?`)
       .get(table)?.sql;
@@ -307,8 +267,6 @@ recreateWithCompositeUnique(
   ['puuid', 'week_start'],
 );
 
-// Attribue les lignes créées avant ce scoping (puuid = '') au compte
-// actuellement configuré, pour ne pas perdre l'historique déjà là.
 export function backfillLegacyPuuid(puuid) {
   if (!puuid) return;
   ['strategies', 'crosshairs', 'bets', 'match_assessments', 'puzzles', 'weekly_narratives', 'ping_samples'].forEach((table) => {
@@ -316,15 +274,16 @@ export function backfillLegacyPuuid(puuid) {
   });
 }
 
+const parsedMatchesCache = new Map();
+
+function invalidateMatchCache(puuid) {
+  parsedMatchesCache.delete(puuid);
+}
+
 export function saveMatches(puuid, matches) {
   const insert = db.prepare(
     'INSERT OR IGNORE INTO matches (match_id, puuid, game_start, data) VALUES (?, ?, ?, ?)',
   );
-  // HenrikDev renvoie parfois une entrée null/incomplète dans la liste (match
-  // corrompu de leur côté) — on l'ignore plutôt que de planter dessus. Logué
-  // (pas juste silencieusement ignoré) pour pouvoir diagnostiquer un compte
-  // dont AUCUN match n'arrive jamais en cache malgré une requête HenrikDev
-  // réussie — sinon ce cas précis est indiscernable d'un simple 0 match.
   let skipped = 0;
   for (const match of matches) {
     if (!match?.metadata?.matchid) {
@@ -334,15 +293,35 @@ export function saveMatches(puuid, matches) {
     insert.run(match.metadata.matchid, puuid, match.metadata.game_start, JSON.stringify(match));
   }
   if (skipped > 0) {
-    console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) — metadata.matchid manquant`);
+    console.error(`[db] saveMatches (puuid=${puuid}) : ${skipped}/${matches.length} match(s) ignoré(s) · metadata.matchid manquant`);
   }
+  invalidateMatchCache(puuid);
 }
 
 export function getCachedMatches(puuid) {
+  const memo = parsedMatchesCache.get(puuid);
+  if (memo) return memo;
+
   const rows = db
     .prepare('SELECT data FROM matches WHERE puuid = ? ORDER BY game_start DESC')
     .all(puuid);
-  return rows.map((row) => JSON.parse(row.data));
+  const parsed = rows.map((row) => JSON.parse(row.data));
+  parsedMatchesCache.set(puuid, parsed);
+  return parsed;
+}
+
+export function getCachedMatchIds(puuid) {
+  return db
+    .prepare('SELECT match_id FROM matches WHERE puuid = ?')
+    .all(puuid)
+    .map((row) => row.match_id);
+}
+
+export function getLatestCachedMatchId(puuid) {
+  const row = db
+    .prepare('SELECT match_id FROM matches WHERE puuid = ? ORDER BY game_start DESC LIMIT 1')
+    .get(puuid);
+  return row?.match_id ?? null;
 }
 
 export function savePingSample(puuid, latencyMs) {
@@ -401,10 +380,6 @@ export function getActivePlaySession(puuid) {
 }
 
 export function startPlaySession(puuid) {
-  // Referme toute session déjà active pour ce compte avant d'en ouvrir une
-  // nouvelle — ne devrait jamais arriver via l'UI normale (le bouton
-  // "Démarrer" est caché tant qu'une session tourne), mais évite un doublon
-  // silencieux si l'app a été fermée en plein milieu d'une session passée.
   db.prepare('UPDATE play_sessions SET ended_at = ? WHERE puuid = ? AND ended_at IS NULL').run(Date.now(), puuid);
   db.prepare('INSERT INTO play_sessions (puuid, started_at) VALUES (?, ?)').run(puuid, Date.now());
   return getActivePlaySession(puuid);

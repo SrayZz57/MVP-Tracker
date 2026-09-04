@@ -90,4 +90,14 @@ typings/
 
 # Electron-Forge
 out/
+
+# Vite renderer build output
 dist/
+
+# Bacs à sable de vérification visuelle (captures, pages de test)
+.motion-check/
+__skeleton_lab__/
+tools/screenshots/
+
+# Scripts jetables : voir CLAUDE.md, un essai temporaire ne vit pas dans le depot.
+tmp-*

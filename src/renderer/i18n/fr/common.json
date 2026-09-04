@@ -1,0 +1,102 @@
+{
+  "common": {
+    "language": "Langue",
+    "searchPlaceholder": "Rechercher...",
+    "fetchingData": "Récupération des données…",
+    "economyTiers": {
+      "eco": "Éco",
+      "semi": "Semi-buy",
+      "full": "Full buy"
+    },
+    "loadingContent": "Chargement du contenu"
+  },
+  "nav": {
+    "sections": {
+      "performance": "Performance",
+      "myAccount": "Mon compte",
+      "tournaments": "Tournois",
+      "training": "Entraînement",
+      "tools": "Outils",
+      "admin": "Administration"
+    },
+    "tabs": {
+      "admin": "Administration",
+      "tournaments": "Tournois",
+      "stats": "Stats",
+      "form": "Perf & Forme",
+      "tilt": "Tilt",
+      "heatmap": "Heatmap",
+      "analyse": "Analyse",
+      "social": "Coéquipiers & Rivaux",
+      "graphiques": "Graphiques",
+      "myHallOfFame": "Mon Hall of Fame",
+      "myWeakness": "Points à travailler",
+      "myCollection": "Ma collection",
+      "network": "Réseau",
+      "session": "Session guidée",
+      "aimTrainer": "Aim Trainer",
+      "puzzle": "Puzzle du jour",
+      "bets": "Paris perso",
+      "playSessions": "Sessions",
+      "crosshairs": "Crosshairs",
+      "strategy": "Stratégie",
+      "skins": "Skins",
+      "composition": "Composition",
+      "buySimulator": "Simulation d'achat",
+      "wiki": "Wiki",
+      "messages": "Messages",
+      "friends": "Amis",
+      "account": "Mon compte"
+    },
+    "rankUnavailable": "Rang indisponible",
+    "searchPlaceholder": "Chercher un onglet...",
+    "myAccountTitle": "Mon compte",
+    "signOut": "Se déconnecter du compte",
+    "loading": "Chargement...",
+    "refresh": "Rafraîchir",
+    "error": "Erreur : {{message}}",
+    "rateLimited": "Trop de requêtes ont été effectuées à l'API cette minute. Réessaie dans moins d'une minute.",
+    "riotIdOutdated": "Ton Riot ID lié ne répond plus. Tu as peut-être changé de pseudo en jeu ?",
+    "riotIdOutdatedLink": "Mets-le à jour dans Mon compte →",
+    "linkingInProgress": "Liaison de ton compte en cours...",
+    "unreadMessages": "Messages",
+    "friendsTitle": "Amis",
+    "discordTitle": "Rejoindre le Discord",
+    "updateReady": "Mise à jour prête · Redémarrer",
+    "languageLabel": "Langue du site",
+    "languages": {
+      "fr": "Français",
+      "en": "English"
+    }
+  },
+  "days": {
+    "monday": "Lundi",
+    "tuesday": "Mardi",
+    "wednesday": "Mercredi",
+    "thursday": "Jeudi",
+    "friday": "Vendredi",
+    "saturday": "Samedi",
+    "sunday": "Dimanche"
+  },
+  "titleBar": {
+    "minimize": "Réduire",
+    "maximize": "Agrandir",
+    "restore": "Restaurer",
+    "close": "Fermer"
+  },
+  "collapsible": {
+    "collapse": "Réduire",
+    "expand": "Agrandir"
+  },
+  "platformFilter": {
+    "all": "Tout",
+    "pc": "PC",
+    "console": "Console"
+  },
+  "result": {
+    "win": "Victoire",
+    "loss": "Défaite",
+    "draw": "Match nul",
+    "noTeam": "Sans équipe"
+  }
+}

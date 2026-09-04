@@ -4,18 +4,15 @@ const { FuseV1Options, FuseVersion } = require('@electron/fuses');
 module.exports = {
   packagerConfig: {
     asar: true,
-    icon: 'src/assets/icon',
-    // Icône de la tray système, lue au runtime par main.js — src/assets/
-    // n'est pas traité par le build Vite du process principal, donc elle ne
-    // finirait pas dans le paquet sans être copiée explicitement ici.
-    extraResource: ['src/assets/icon.ico'],
+    icon: 'src/assets/favicon',
+    extraResource: ['src/assets/favicon.ico'],
   },
   rebuildConfig: {},
   makers: [
     {
       name: '@electron-forge/maker-squirrel',
       config: {
-        setupIcon: 'src/assets/icon.ico',
+        setupIcon: 'src/assets/favicon.ico',
       },
     },
   ],
@@ -35,11 +32,8 @@ module.exports = {
     {
       name: '@electron-forge/plugin-vite',
       config: {
-        // `build` can specify multiple entry builds, which can be Main process, Preload scripts, Worker process, etc.
-        // If you are familiar with Vite configuration, it will look really familiar.
         build: [
           {
-            // `entry` is just an alias for `build.lib.entry` in the corresponding file of `config`.
             entry: 'src/main.js',
             config: 'vite.main.config.mjs',
             target: 'main',
@@ -58,8 +52,6 @@ module.exports = {
         ],
       },
     },
-    // Fuses are used to enable/disable various Electron functionality
-    // at package time, before code signing the application
     new FusesPlugin({
       version: FuseVersion.V1,
       [FuseV1Options.RunAsNode]: false,

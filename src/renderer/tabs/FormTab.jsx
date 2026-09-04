@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, PartyPopper, Sunrise, Sun, Sunset, Moon, Flame, TrendingDown, Clock } from 'lucide-react';
-import Icon from '../Icon.jsx';
+import Icon from '../ui/Icon.jsx';
 import {
   groupStats,
   excludeDeathmatch,
@@ -12,11 +12,12 @@ import {
   TIME_SLOT_ORDER,
   WEEK_ORDER,
   formStats,
-} from '../valorantStats.js';
-import LoadingState from '../LoadingState.jsx';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+} from '../stats/valorantStats.js';
+import { FormTabSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 
 const WEEKDAY_ICONS = {
   Lundi: Calendar, Mardi: Calendar, Mercredi: Calendar, Jeudi: Calendar, Vendredi: Calendar, Samedi: PartyPopper, Dimanche: PartyPopper,
@@ -30,8 +31,6 @@ function timeSlotIcon(key) {
   return Moon;
 }
 
-// Fonction utilitaire (pas un composant) : reçoit `t` et une fonction de
-// traduction de la clé de ligne (les jours sont en français en interne).
 function renderStatBars(t, id, title, rows, icon, rowIcon, rowLabel) {
   return (
     <CollapsibleCard id={id} title={<><Icon icon={icon} size={16} /> {title}</>}>
@@ -51,7 +50,7 @@ function renderStatBars(t, id, title, rows, icon, rowIcon, rowLabel) {
             </span>
             <span className="stat-bar-value">{row.winrate === null ? '?' : `${row.winrate.toFixed(0)}%`}</span>
             <span className="stat-bar-meta">
-              {t('form.gamesCount', { count: row.games })} — K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
+              {t('form.gamesCount', { count: row.games })} · K/D/A {row.avgKills.toFixed(1)}/{row.avgDeaths.toFixed(1)}/{row.avgAssists.toFixed(1)}
             </span>
           </div>
         ))
@@ -94,10 +93,9 @@ function FormTab({ settings, matches, loading }) {
   const bestTimeSlot = useMemo(() => bestEntry(timeSlotStats), [timeSlotStats]);
   const bestDay = useMemo(() => bestEntry(dayOfWeekStats), [dayOfWeekStats]);
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('stats.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <FormTabSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('stats.noMatchesYet')}</p>;
 
   const streakTypeLabel = form.streakType ? t(resultLabelKey(form.streakType)) : t('form.noStreak');
   const dayLabel = (key) => (dayLabelKey(key) ? t(dayLabelKey(key)) : key);
@@ -106,7 +104,7 @@ function FormTab({ settings, matches, loading }) {
     <div>
       <PlatformFilterToggle platforms={platforms} platform={platform} onChange={setPlatform} />
 
-      <CollapsibleCard id="form.recentForm" title={t('form.recentForm')}>
+      <CollapsibleCard collapsible={false} id="form.recentForm" title={t('form.recentForm')}>
         <div className="stat-tiles">
           <div className="stat-tile">
             {form.streakType === null ? (
@@ -130,7 +128,7 @@ function FormTab({ settings, matches, loading }) {
       </CollapsibleCard>
 
       {(bestTimeSlot || bestDay) && (
-        <CollapsibleCard id="form.bestTimeToPlay" title={t('form.bestTimeToPlay')} className="highlight-card">
+        <CollapsibleCard collapsible={false} id="form.bestTimeToPlay" title={t('form.bestTimeToPlay')} className="highlight-card">
           <div className="stat-tiles">
             {bestTimeSlot && (
               <div className="stat-tile">

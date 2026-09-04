@@ -1,4 +1,4 @@
-import MySkinsCollection from '../MySkinsCollection.jsx';
+import MySkinsCollection from '../collection/MySkinsCollection.jsx';
 
 function MySkinsCollectionTab({ myId }) {
   return <MySkinsCollection myId={myId} />;

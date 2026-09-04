@@ -1,0 +1,26 @@
+import { useEffect, useState } from 'react';
+import { supabase } from '../account/supabaseClient.js';
+
+export function useOnlinePresence(myId) {
+  const [onlineIds, setOnlineIds] = useState(new Set());
+
+  useEffect(() => {
+    if (!myId) return undefined;
+
+    const channel = supabase.channel('online-users', { config: { presence: { key: myId } } });
+
+    channel.on('presence', { event: 'sync' }, () => {
+      setOnlineIds(new Set(Object.keys(channel.presenceState())));
+    });
+
+    channel.subscribe(async (status) => {
+      if (status === 'SUBSCRIBED') {
+        await channel.track({ online_at: new Date().toISOString() });
+      }
+    });
+
+    return () => supabase.removeChannel(channel);
+  }, [myId]);
+
+  return onlineIds;
+}

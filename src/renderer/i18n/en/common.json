@@ -1,0 +1,102 @@
+{
+  "common": {
+    "language": "Language",
+    "searchPlaceholder": "Search...",
+    "fetchingData": "Fetching data…",
+    "economyTiers": {
+      "eco": "Eco",
+      "semi": "Semi-buy",
+      "full": "Full buy"
+    },
+    "loadingContent": "Loading content"
+  },
+  "nav": {
+    "sections": {
+      "performance": "Performance",
+      "myAccount": "My account",
+      "tournaments": "Tournaments",
+      "training": "Training",
+      "tools": "Tools",
+      "admin": "Administration"
+    },
+    "tabs": {
+      "admin": "Administration",
+      "tournaments": "Tournaments",
+      "stats": "Stats",
+      "form": "Perf & Form",
+      "tilt": "Tilt",
+      "heatmap": "Heatmap",
+      "analyse": "Analysis",
+      "social": "Teammates & Rivals",
+      "graphiques": "Charts",
+      "myHallOfFame": "My Hall of Fame",
+      "myWeakness": "Points to work on",
+      "myCollection": "My collection",
+      "network": "Network",
+      "session": "Guided session",
+      "aimTrainer": "Aim Trainer",
+      "puzzle": "Daily puzzle",
+      "bets": "Self bets",
+      "playSessions": "Sessions",
+      "crosshairs": "Crosshairs",
+      "strategy": "Strategy",
+      "skins": "Skins",
+      "composition": "Composition",
+      "buySimulator": "Buy simulator",
+      "wiki": "Wiki",
+      "messages": "Messages",
+      "friends": "Friends",
+      "account": "My account"
+    },
+    "rankUnavailable": "Rank unavailable",
+    "searchPlaceholder": "Search a tab...",
+    "myAccountTitle": "My account",
+    "signOut": "Sign out",
+    "loading": "Loading...",
+    "refresh": "Refresh",
+    "error": "Error: {{message}}",
+    "rateLimited": "Too many requests were sent to the API this minute. Try again in less than a minute.",
+    "riotIdOutdated": "Your linked Riot ID isn't responding anymore. Did you change your in-game username?",
+    "riotIdOutdatedLink": "Update it in My Account →",
+    "linkingInProgress": "Linking your account...",
+    "unreadMessages": "Messages",
+    "friendsTitle": "Friends",
+    "discordTitle": "Join the Discord",
+    "updateReady": "Update ready · Restart",
+    "languageLabel": "Site language",
+    "languages": {
+      "fr": "Français",
+      "en": "English"
+    }
+  },
+  "days": {
+    "monday": "Monday",
+    "tuesday": "Tuesday",
+    "wednesday": "Wednesday",
+    "thursday": "Thursday",
+    "friday": "Friday",
+    "saturday": "Saturday",
+    "sunday": "Sunday"
+  },
+  "titleBar": {
+    "minimize": "Minimize",
+    "maximize": "Maximize",
+    "restore": "Restore",
+    "close": "Close"
+  },
+  "collapsible": {
+    "collapse": "Collapse",
+    "expand": "Expand"
+  },
+  "platformFilter": {
+    "all": "All",
+    "pc": "PC",
+    "console": "Console"
+  },
+  "result": {
+    "win": "Win",
+    "loss": "Loss",
+    "draw": "Draw",
+    "noTeam": "No team"
+  }
+}

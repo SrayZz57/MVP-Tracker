@@ -1,6 +1,3 @@
-// Monitoring PostHog (crashs + utilisateurs actifs + usage) — uniquement dans
-// le process principal (Node), pas de SDK côté renderer : le renderer envoie
-// ses événements ici via IPC (voir main.js), même schéma que syncMatches.
 import { PostHog } from 'posthog-node';
 import { POSTHOG_API_KEY, POSTHOG_HOST } from '../posthogConfig.js';
 

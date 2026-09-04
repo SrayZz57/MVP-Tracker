@@ -1,0 +1,18 @@
+{
+  "agentSelect": {
+    "title": "Sélection d’agent en cours",
+    "titleGame": "Chargement de la partie",
+    "hint": "Rang de tes coéquipiers, en direct depuis ton client",
+    "hintGame": "Les deux équipes, en direct depuis ton client",
+    "choosing": "Choisit…",
+    "locked": "Verrouillé",
+    "unranked": "Non classé",
+    "you": "Toi",
+    "allies": "Alliés",
+    "enemies": "Adversaires",
+    "suggestTitle": "Suggestion pour cette map",
+    "suggestPersonal": "{{winrate}}% de victoires avec toi ({{games}} matchs)",
+    "suggestCommunity": "recommandé par la communauté",
+    "suggestFillsGap": "rôle manquant"
+  }
+}

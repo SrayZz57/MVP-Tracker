@@ -1,4 +1,4 @@
-import CrosshairLibrary from '../CrosshairLibrary.jsx';
+import CrosshairLibrary from '../collection/CrosshairLibrary.jsx';
 
 function CrosshairsTab() {
   return <CrosshairLibrary />;

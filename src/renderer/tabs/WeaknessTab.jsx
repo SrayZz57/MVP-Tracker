@@ -1,13 +1,9 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { computePlayerProfile, getWeaknesses } from '../playerProfile.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+import { computePlayerProfile, getWeaknesses } from '../stats/playerProfile.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
+import Button from '../ui/Button';
 
-// Onglet dédié dans "Mon compte" — auparavant un bouton sur la carte ADN de
-// l'onglet Stats, qui pouvait donc afficher les points faibles de N'IMPORTE
-// QUEL profil consulté (settings = celui recherché, pas forcément le sien).
-// Ici settings/matches viennent toujours de mySettings/myMatches côté
-// App.jsx : uniquement les points à travailler du compte connecté.
 function WeaknessTab({ settings, matches, onNavigate }) {
   const { t } = useTranslation();
   const profile = useMemo(
@@ -36,9 +32,9 @@ function WeaknessTab({ settings, matches, onNavigate }) {
                 <div className="weakness-item-title">{t(`profile.weakness.${w.key}.title`)}</div>
                 <p className="label">{t(`profile.weakness.${w.key}.text`)}</p>
               </div>
-              <button className="refresh" onClick={() => onNavigate(w.tab)}>
+              <Button variant="primary" size="sm" onClick={() => onNavigate(w.tab)}>
                 {t(`profile.weakness.${w.key}.action`)}
-              </button>
+              </Button>
             </div>
           ))}
         </div>

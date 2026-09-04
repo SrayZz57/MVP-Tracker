@@ -1,33 +1,7 @@
-// Traduit un match au format v4 de HenrikDev (seul format qui gère
-// correctement les comptes console — v3 renvoie silencieusement 0 résultat
-// pour eux, vérifié en conditions réelles) vers exactement la même forme que
-// l'ancien format v3 déjà utilisé partout ailleurs dans l'app (Stats,
-// Heatmap, Analyse tactique, Tilt, Hall of Fame, corrélation Aim Trainer...).
-//
-// Le but : que RIEN d'autre dans le code n'ait besoin de changer. Cette
-// fonction est le seul endroit qui connaît la différence entre les deux
-// formats.
-//
-// Champs volontairement absents de v4 et non reconstruits (jamais lus nulle
-// part dans l'app, vérifié par recherche exhaustive du code) : les URLs
-// d'assets (cartes/agents/armes — l'app les résout elle-même via
-// valorant-api.com), le détail des dégâts encaissés par round, l'économie
-// "spent" par round (approximée par loadout_value, voir plus bas).
-
 function playerName(p) {
   return p ? `${p.name}#${p.tag}` : null;
 }
 
-// HenrikDev renvoie `weapon.id` mais pas `weapon.name` pour les "armes" qui
-// sont en réalité des compétences équipables — le pistolet Headhunter et
-// l'ult Tour De Force de Chamber — car elles n'existent pas dans son
-// catalogue d'armes achetables. Sans ce repli, `damage_weapon_name` était
-// vide et ces kills disparaissaient purement et simplement des stats par
-// arme (filtrées par `weaponKillsFor` et consorts, qui exigent un nom non
-// vide). IDs confirmés en croisant leur fréquence d'apparition sur tout
-// l'historique local en cache : Headhunter revient plusieurs fois par
-// partie (arme secondaire réutilisable), Tour De Force beaucoup plus
-// rarement (dépend de la charge d'ult) — cohérent avec leur rôle respectif.
 export const ABILITY_WEAPON_NAMES = {
   '856d9a7e-4b06-dc37-15dc-9d809c37cb90': 'Headhunter',
   '39099fb5-4293-def4-1e09-2e9080ce7456': 'Tour De Force',
@@ -69,8 +43,6 @@ function normalizePlayer(p) {
     currenttier: p.tier?.id ?? null,
     currenttier_patched: p.tier?.name ?? null,
     party_id: p.party_id,
-    // Trois compteurs (kills/deaths/assists/headshots/bodyshots/legshots/score)
-    // déjà nommés à l'identique entre v3 et v4 — aucune traduction requise.
     stats: p.stats,
     ability_casts: p.ability_casts,
     behavior: p.behavior,
@@ -96,10 +68,6 @@ function normalizeRoundStat(s, killsThisRound) {
       ? {
           loadout_value: s.economy.loadout_value,
           remaining: s.economy.remaining,
-          // v4 ne renvoie pas "spent" au niveau du round (seulement
-          // loadout_value/remaining) — loadout_value reste la meilleure
-          // approximation disponible plutôt que 0, qui fausserait le calcul
-          // du budget total dans le simulateur d'achat.
           spent: s.economy.loadout_value,
           weapon: s.economy.weapon,
           armor: s.economy.armor,

@@ -1,18 +1,20 @@
 import { useEffect, useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Minus, Square, Copy, X } from 'lucide-react';
 import logo from '../assets/logo.png';
-import Icon from './Icon.jsx';
+import Icon from './ui/Icon.jsx';
+import Button from './ui/Button';
 
-// Fenêtre principale ouverte sans cadre natif (frame: false côté main.js) —
-// cette barre remplace celle de Windows, boutons compris, pour que l'app
-// garde son propre style au lieu de la barre blanche par défaut.
 function TitleBar() {
+  const { t } = useTranslation();
   const [maximized, setMaximized] = useState(false);
 
   useEffect(() => {
     window.electronAPI.isWindowMaximized().then(setMaximized);
     return window.electronAPI.onWindowMaximizedChange(setMaximized);
   }, []);
+
+  const maximizeLabel = maximized ? t('titleBar.restore') : t('titleBar.maximize');
 
   return (
     <div className="title-bar">
@@ -21,19 +23,33 @@ function TitleBar() {
         <span>MVP Tracker</span>
       </div>
       <div className="title-bar-controls">
-        <button className="title-bar-btn" onClick={() => window.electronAPI.minimizeWindow()} title="Réduire">
+        <Button
+          variant="icon"
+          className="title-bar-btn"
+          onClick={() => window.electronAPI.minimizeWindow()}
+          title={t('titleBar.minimize')}
+          aria-label={t('titleBar.minimize')}
+        >
           <Icon icon={Minus} size={15} />
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="icon"
           className="title-bar-btn"
           onClick={() => window.electronAPI.toggleMaximizeWindow()}
-          title={maximized ? 'Restaurer' : 'Agrandir'}
+          title={maximizeLabel}
+          aria-label={maximizeLabel}
         >
           <Icon icon={maximized ? Copy : Square} size={13} />
-        </button>
-        <button className="title-bar-btn close" onClick={() => window.electronAPI.closeWindow()} title="Fermer">
+        </Button>
+        <Button
+          variant="icon"
+          className="title-bar-btn close"
+          onClick={() => window.electronAPI.closeWindow()}
+          title={t('titleBar.close')}
+          aria-label={t('titleBar.close')}
+        >
           <Icon icon={X} size={16} />
-        </button>
+        </Button>
       </div>
     </div>
   );

@@ -1,13 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, Circle } from 'lucide-react';
-import Icon from '../Icon.jsx';
-import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
-import CountUp from '../CountUp.jsx';
-import LoadingState from '../LoadingState.jsx';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+import Icon from '../ui/Icon.jsx';
+import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../stats/valorantStats.js';
+import CountUp from '../ui/CountUp.jsx';
+import { TiltTabSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 
@@ -43,10 +44,9 @@ function TiltTab({ settings, matches, loading }) {
     [filteredMatches, settings.name, settings.tag],
   );
 
-  if (matches.length === 0) {
-    if (loading) return <LoadingState />;
-    return <p>{t('tilt.noMatchesYet')}</p>;
-  }
+  const loadingGate = useLoadingGate(loading && matches.length === 0);
+  if (loadingGate.busy) return loadingGate.show ? <TiltTabSkeleton /> : null;
+  if (matches.length === 0) return <p>{t('tilt.noMatchesYet')}</p>;
 
   return (
     <div>
@@ -71,13 +71,13 @@ function TiltTab({ settings, matches, loading }) {
         </div>
       </div>
 
-      <CollapsibleCard id="tilt.recentResults" title={t('tilt.recentResults')}>
+      <CollapsibleCard collapsible={false} id="tilt.recentResults" title={t('tilt.recentResults')}>
         <div className="streak-dots">
           {recentResults.map((r) => (
             <span
               key={r.id}
               className={`streak-dot ${r.label === 'Victoire' ? 'win' : r.label === 'Défaite' ? 'loss' : 'neutral'}`}
-              title={`${r.map ?? '?'} — ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
+              title={`${r.map ?? '?'} · ${resultLabelKey(r.label) ? t(resultLabelKey(r.label)) : r.label}`}
             />
           ))}
         </div>
@@ -86,7 +86,7 @@ function TiltTab({ settings, matches, loading }) {
         </p>
       </CollapsibleCard>
 
-      <CollapsibleCard id="tilt.frequency" title={t('tilt.frequencyTitle')}>
+      <CollapsibleCard collapsible={false} id="tilt.frequency" title={t('tilt.frequencyTitle')}>
         {frequency.total === 0 ? (
           <p className="label">{t('tilt.notEnoughMatches')}</p>
         ) : (
@@ -114,7 +114,7 @@ function TiltTab({ settings, matches, loading }) {
         )}
       </CollapsibleCard>
 
-      <CollapsibleCard id="tilt.whatIsWatched" title={t('tilt.whatIsWatched')}>
+      <CollapsibleCard collapsible={false} id="tilt.whatIsWatched" title={t('tilt.whatIsWatched')}>
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className="value" style={{ color: tilt.lossStreakTilt ? 'var(--accent)' : undefined }}>

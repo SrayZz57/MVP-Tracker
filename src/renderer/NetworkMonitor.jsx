@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import CollapsibleCard from './CollapsibleCard.jsx';
+import Skeleton, { SkeletonText } from './ui/Skeleton.jsx';
+import LoadingGate from './ui/LoadingGate.jsx';
+import CollapsibleCard from './ui/CollapsibleCard.jsx';
 
 function NetworkMonitor() {
   const { t } = useTranslation();
@@ -16,7 +18,7 @@ function NetworkMonitor() {
   const pingClass = status.latestPing === null ? '' : status.latestPing < 60 ? 'good' : status.latestPing < 120 ? 'mid' : 'bad';
 
   return (
-    <CollapsibleCard id="network.status" title={t('network.status')}>
+    <CollapsibleCard collapsible={false} id="network.status" title={t('network.status')}>
       <div className={`network-status-banner ${status.valorantRunning ? 'online' : ''}`}>
         <span className="status-dot-lg" />
         {status.valorantRunning ? t('network.detected') : t('network.notDetected')}
@@ -25,7 +27,12 @@ function NetworkMonitor() {
         <div className="stat-tiles">
           <div className="stat-tile">
             <div className={`ping-value ${pingClass}`}>
-              {status.latestPing === null ? '...' : `${status.latestPing} ms`}
+              <LoadingGate
+                active={status.latestPing === null}
+                fallback={<Skeleton><SkeletonText>000 ms</SkeletonText></Skeleton>}
+              >
+                {`${status.latestPing} ms`}
+              </LoadingGate>
             </div>
             <div className="label">{t('network.pingGeneral')}</div>
           </div>

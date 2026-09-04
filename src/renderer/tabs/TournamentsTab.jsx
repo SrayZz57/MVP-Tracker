@@ -1,12 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trophy } from 'lucide-react';
-import Icon from '../Icon.jsx';
-import { supabase } from '../supabaseClient.js';
-import { useMapImages } from '../mapImages.js';
-import { useAgentPortraits } from '../agentIcons.js';
-import { pickSplash } from '../tournamentVisuals.js';
-import TournamentDetail from '../TournamentDetail.jsx';
+import Icon from '../ui/Icon.jsx';
+import { supabase } from '../account/supabaseClient.js';
+import { useMapImages } from '../data/mapImages.js';
+import { useAgentPortraits } from '../data/agentIcons.js';
+import { pickSplash } from '../tournaments/tournamentVisuals.js';
+import TournamentDetail from '../tournaments/TournamentDetail.jsx';
+import Button from '../ui/Button';
+import { TournamentListSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',
@@ -14,14 +17,8 @@ const STATUS_LABELS = {
   completed: 'tournaments.status.completed',
 };
 
-// Nombre de cartes affichées avant "Voir plus" — le panneau promo à droite a
-// une hauteur fixe (calée sur la fenêtre) : sans cette limite, une longue
-// liste l'étirerait avec elle plutôt que de simplement défiler/se replier.
 const VISIBLE_COUNT = 4;
 
-// Panneau décoratif dans l'espace vide à droite de la liste — Neon en
-// vedette (thème électrique/néon, cohérent avec l'identité du module),
-// purement visuel, ne réagit à aucune donnée.
 function TournamentsPromo() {
   const { t } = useTranslation();
   const agentPortraits = useAgentPortraits();
@@ -53,8 +50,6 @@ const HOW_IT_WORKS_STEPS = [
   { titleKey: 'tournaments.howItWorks.step4Title', textKey: 'tournaments.howItWorks.step4Text' },
 ];
 
-// Petit panneau explicatif entre la liste et le panneau promo — purement
-// informatif, ne dépend d'aucune donnée.
 function TournamentsHowItWorks() {
   const { t } = useTranslation();
 
@@ -63,7 +58,7 @@ function TournamentsHowItWorks() {
       <h2 className="tournaments-how-title">{t('tournaments.howItWorks.title')}</h2>
       <ol className="tournaments-how-steps">
         {HOW_IT_WORKS_STEPS.map((step, index) => (
-          <li key={step.titleKey} className="tournaments-how-step" style={{ '--i': index }}>
+          <li key={step.titleKey} className="tournaments-how-step">
             <span className="tournaments-how-step-number">{index + 1}</span>
             <div>
               <p className="tournaments-how-step-title">{t(step.titleKey)}</p>
@@ -76,9 +71,6 @@ function TournamentsHowItWorks() {
   );
 }
 
-// Sous "Comment ça marche" : accès rapide aux tournois où ce compte a une
-// équipe inscrite (n'importe quel statut sauf refusée) — évite d'avoir à
-// rechercher son propre tournoi dans la liste générale.
 function TournamentsMine({ myId, onSelect }) {
   const { t } = useTranslation();
   const [mine, setMine] = useState(null);
@@ -94,9 +86,6 @@ function TournamentsMine({ myId, onSelect }) {
           setMine([]);
           return;
         }
-        // Un même compte peut avoir plusieurs équipes dans UN MÊME tournoi
-        // (le formulaire admin en ajoute autant que voulu) — un seul lien
-        // par tournoi suffit ici, pas un doublon par équipe.
         const seen = new Set();
         const unique = [];
         for (const row of data ?? []) {
@@ -108,9 +97,6 @@ function TournamentsMine({ myId, onSelect }) {
       });
   }, [myId]);
 
-  // Toujours affichée — même vide, avec un message plutôt que de disparaître
-  // et casser la colonne (voir .tournaments-mine, dimensionnée pour occuper
-  // le reste de la colonne jusqu'au bas du panneau Neon).
   const list = mine ?? [];
 
   return (
@@ -122,12 +108,12 @@ function TournamentsMine({ myId, onSelect }) {
         <ul className="tournaments-mine-list">
           {list.map((row) => (
             <li key={row.tournaments.id}>
-              <button onClick={() => onSelect(row.tournaments.id)}>
+              <Button variant="ghost" onClick={() => onSelect(row.tournaments.id)}>
                 <span className="tournaments-mine-name">{row.tournaments.name}</span>
                 <span className={`tournament-status-badge ${row.tournaments.status}`}>
                   {t(STATUS_LABELS[row.tournaments.status] ?? row.tournaments.status)}
                 </span>
-              </button>
+              </Button>
             </li>
           ))}
         </ul>
@@ -136,10 +122,6 @@ function TournamentsMine({ myId, onSelect }) {
   );
 }
 
-// Liste des tournois — sert de page d'entrée pour tous les comptes connectés
-// (pas encore une vraie page publique accessible sans compte, ça viendra
-// séparément si besoin). Cliquer un tournoi ouvre TournamentDetail, qui gère
-// l'affichage + l'inscription d'équipe.
 function TournamentsTab({ myId, isAdmin }) {
   const { t } = useTranslation();
   const mapImages = useMapImages();
@@ -164,8 +146,6 @@ function TournamentsTab({ myId, isAdmin }) {
         setTournaments(data ?? []);
         setLoading(false);
 
-        // Vainqueur affiché sur les tournois terminés : le vainqueur du
-        // match du tour le plus élevé (la finale) qui en a un.
         const completedIds = (data ?? []).filter((tm) => tm.status === 'completed').map((tm) => tm.id);
         if (completedIds.length === 0) return;
 
@@ -199,16 +179,14 @@ function TournamentsTab({ myId, isAdmin }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  const loadingGate = useLoadingGate(loading);
+
   if (selectedId) {
     return <TournamentDetail tournamentId={selectedId} myId={myId} isAdmin={isAdmin} onBack={() => setSelectedId(null)} />;
   }
 
-  if (loading) return <p className="label">{t('tournaments.loading')}</p>;
+  if (loadingGate.busy) return loadingGate.show ? <TournamentListSkeleton /> : null;
 
-  // Suppression réservée à l'admin : côté serveur (RLS), la même barrière
-  // que pour créer/modifier un tournoi (public.is_admin()) — celle-ci
-  // existe déjà, aucune nouvelle policy à poser. La suppression cascade sur
-  // les équipes/matchs de ce tournoi (contrainte déjà posée sur ces tables).
   async function handleDelete(tournamentId) {
     setDeleting(true);
     await supabase.from('tournaments').delete().eq('id', tournamentId);
@@ -225,10 +203,6 @@ function TournamentsTab({ myId, isAdmin }) {
         {tournaments.length === 0 ? (
           <div className="tournaments-empty-state">
             <span className="tournaments-empty-icon" aria-hidden="true">
-              {/* Même dessin que le logo du panneau promo, mais recadré : le
-                  trophée n'occupe que le haut d'un cadre 24x24 (y de 3 à
-                  17) — laissé tel quel là où l'icône est à côté d'un texte,
-                  mais visiblement pas centré une fois seule dans son cadre. */}
               <svg viewBox="4 2 16 16" width="48" height="48">
                 <path
                   fill="currentColor"
@@ -241,7 +215,7 @@ function TournamentsTab({ myId, isAdmin }) {
           </div>
         ) : (
           <div className="tournaments-list">
-            {visibleTournaments.map((tournament, index) => {
+            {visibleTournaments.map((tournament) => {
               const splash = pickSplash(tournament.id, mapImages);
               const winner = winnerNames.get(tournament.id);
               const confirming = confirmDeleteId === tournament.id;
@@ -251,7 +225,7 @@ function TournamentsTab({ myId, isAdmin }) {
                   className="tournament-card"
                   role="button"
                   tabIndex={0}
-                  style={{ '--i': index, ...(splash ? { backgroundImage: `url(${splash})` } : null) }}
+                  style={splash ? { backgroundImage: `url(${splash})` } : undefined}
                   onClick={() => setSelectedId(tournament.id)}
                   onKeyDown={(e) => e.key === 'Enter' && setSelectedId(tournament.id)}
                 >
@@ -259,25 +233,28 @@ function TournamentsTab({ myId, isAdmin }) {
                     <div className="tournament-card-admin-actions" onClick={(e) => e.stopPropagation()}>
                       {confirming ? (
                         <>
-                          <button
+                          <Button
+                            variant="danger"
                             className="tournament-card-delete-confirm"
-                            disabled={deleting}
+                            loading={deleting}
+                            loadingLabel={t('tournaments.saving')}
                             onClick={() => handleDelete(tournament.id)}
                           >
-                            {deleting ? t('tournaments.saving') : t('tournaments.confirmDelete')}
-                          </button>
-                          <button className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
+                            {t('tournaments.confirmDelete')}
+                          </Button>
+                          <Button variant="ghost" className="tournament-card-delete-cancel" onClick={() => setConfirmDeleteId(null)}>
                             {t('tournaments.cancel')}
-                          </button>
+                          </Button>
                         </>
                       ) : (
-                        <button
+                        <Button
+                          variant="icon"
                           className="tournament-card-delete"
                           title={t('tournaments.deleteTournament')}
                           onClick={() => setConfirmDeleteId(tournament.id)}
                         >
                           <Icon icon={X} size={14} />
-                        </button>
+                        </Button>
                       )}
                     </div>
                   )}
@@ -297,9 +274,9 @@ function TournamentsTab({ myId, isAdmin }) {
               );
             })}
             {!showAll && tournaments.length > VISIBLE_COUNT && (
-              <button className="tournaments-show-more" onClick={() => setShowAll(true)}>
+              <Button variant="ghost" className="tournaments-show-more" onClick={() => setShowAll(true)}>
                 {t('tournaments.showMore', { count: tournaments.length - VISIBLE_COUNT })}
-              </button>
+              </Button>
             )}
           </div>
         )}
