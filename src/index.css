@@ -7438,9 +7438,8 @@ input[type='color'] {
 }
 
 .account-toggle-row {
+  flex-direction: row;
   justify-content: space-between;
-  align-self: stretch;
-  width: 100%;
   gap: 1.5rem;
   cursor: pointer;
 }
