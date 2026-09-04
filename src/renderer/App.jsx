@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import FlagFR from 'country-flag-icons/react/3x2/FR';
-import FlagGB from 'country-flag-icons/react/3x2/GB';
 import {
   BarChart3,
   AlarmClock,
@@ -65,6 +63,7 @@ import SearchBar from './ui/SearchBar.jsx';
 import AgentSelectLive from './overlay/AgentSelectLive.jsx';
 import { DISCORD_INVITE } from './data/links.js';
 import { isLang } from './i18n/config.js';
+import LangSwitcher from './ui/LangSwitcher.jsx';
 import WelcomeScreen from './account/WelcomeScreen.jsx';
 import LinkRiotAccount from './account/LinkRiotAccount.jsx';
 import AccountGreeting from './account/AccountGreeting.jsx';
@@ -197,25 +196,6 @@ function TopbarAccountButton({ profile, myRank, active, onClick }) {
       ) : (
         <span>{(profile?.display_name || profile?.riot_name || '?').charAt(0)}</span>
       )}
-    </Button>
-  );
-}
-
-function LanguageToggle() {
-  const { i18n } = useTranslation();
-  const next = i18n.language === 'fr' ? 'en' : 'fr';
-  const NextFlag = next === 'en' ? FlagGB : FlagFR;
-  const title = next === 'en' ? 'English version' : 'Version française';
-
-  const switchLanguage = () => {
-    i18n.changeLanguage(next);
-    window.electronAPI.saveLanguage(next);
-  };
-
-  return (
-    <Button variant="ghost" className="topbar-lang" onClick={switchLanguage} title={title}>
-      <NextFlag className="flag-icon" title={title} />
-      <span className="topbar-lang-label">{next.toUpperCase()}</span>
     </Button>
   );
 }
@@ -944,7 +924,7 @@ function App() {
               </svg>
               <span>Discord</span>
             </Button>
-            <LanguageToggle />
+            <LangSwitcher />
           </div>
 
           <div className="topbar-group">

@@ -62,7 +62,12 @@
     "unreadMessages": "Messages",
     "friendsTitle": "Amis",
     "discordTitle": "Rejoindre le Discord",
-    "updateReady": "Mise à jour prête · Redémarrer"
+    "updateReady": "Mise à jour prête · Redémarrer",
+    "languageLabel": "Langue du site",
+    "languages": {
+      "fr": "Français",
+      "en": "English"
+    }
   },
   "days": {
     "monday": "Lundi",

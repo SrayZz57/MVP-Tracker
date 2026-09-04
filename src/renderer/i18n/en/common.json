@@ -62,7 +62,12 @@
     "unreadMessages": "Messages",
     "friendsTitle": "Friends",
     "discordTitle": "Join the Discord",
-    "updateReady": "Update ready · Restart"
+    "updateReady": "Update ready · Restart",
+    "languageLabel": "Site language",
+    "languages": {
+      "fr": "Français",
+      "en": "English"
+    }
   },
   "days": {
     "monday": "Monday",

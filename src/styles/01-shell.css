@@ -794,7 +794,7 @@ h1 {
   border-radius: var(--r-md);
 }
 
-.topbar .btn:not(.topbar-icon-button):not(.topbar-lang):not(.topbar-account-button) {
+.topbar .btn:not(.topbar-icon-button):not(.topbar-account-button) {
   padding-inline: 1.1rem;
 }
 
@@ -812,19 +812,80 @@ h1 {
   margin-inline-start: 0;
 }
 
-.topbar-lang {
-  display: flex;
+.lang-switch { position: relative; }
+
+.lang-switch-button {
+  display: inline-flex;
   align-items: center;
   gap: 0.45rem;
+  height: var(--control-h);
   padding-inline: 0.7rem;
   border: 1.5px solid var(--border);
+  border-radius: var(--r-sm);
   background: var(--surface-alt);
   color: var(--text);
+  font: inherit;
+  font-size: var(--fs-xs);
+  font-weight: 700;
+  letter-spacing: 0.03em;
+  line-height: 1;
+  cursor: pointer;
+  transition: border-color var(--t-state), background var(--t-state);
 }
 
-.topbar-lang:hover {
+.lang-switch-button:hover {
   border-color: var(--accent);
+  background: var(--surface-hi);
 }
+
+.lang-switch-caret {
+  color: var(--text-dim);
+  transition: rotate var(--t-state);
+}
+
+.lang-switch-button[aria-expanded='true'] .lang-switch-caret { rotate: 180deg; }
+
+.lang-switch-menu {
+  position: absolute;
+  top: calc(100% + 0.4rem);
+  inset-inline-end: 0;
+  z-index: 60;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 11rem;
+  padding: 4px;
+  border: 1px solid var(--border-strong);
+  border-radius: var(--r-md);
+  background: var(--surface);
+  box-shadow: 0 18px 40px -16px rgba(0, 0, 0, 0.85);
+}
+
+.lang-switch-item {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  min-height: 40px;
+  padding-inline: 0.6rem;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text-muted);
+  font: inherit;
+  text-align: start;
+  cursor: pointer;
+  transition: color var(--t-state), background var(--t-state);
+}
+
+.lang-switch-item:hover { color: var(--text); background: var(--surface-alt); }
+
+.lang-switch-item.is-current {
+  color: var(--text);
+  background: var(--surface-hi);
+  cursor: default;
+}
+
+.lang-switch-check { margin-inline-start: auto; color: var(--accent); }
 
 .flag-icon {
   width: 1.35em;
