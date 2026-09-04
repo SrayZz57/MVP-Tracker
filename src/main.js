@@ -13,33 +13,6 @@ import {
   getLatestCachedMatchId,
   savePingSample,
   getAllPingSamples,
-  saveCrosshair,
-  getCrosshairs,
-  deleteCrosshair,
-  saveStrategy,
-  getStrategiesForMap,
-  deleteStrategy,
-  getPuzzleByDate,
-  savePuzzle,
-  answerPuzzle,
-  getPuzzleHistory,
-  getNarrativeForWeek,
-  getPreviousNarrative,
-  saveNarrative,
-  getNarrativeHistory,
-  getAssessmentForMatch,
-  saveAssessment,
-  getAssessmentHistory,
-  getPendingBet,
-  createBet,
-  cancelBet,
-  resolveBet,
-  getBetHistory,
-  getTotalBetPoints,
-  getActivePlaySession,
-  startPlaySession,
-  endPlaySession,
-  getPlaySessionHistory,
   backfillLegacyPuuid,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
@@ -49,6 +22,9 @@ import { updateElectronApp } from 'update-electron-app';
 import { captureEvent, captureException, shutdown as shutdownTelemetry } from './services/telemetry.js';
 import { initApiCache, remember, write, forget, ageOf, cacheStats } from './services/apiCache.js';
 import { debug } from './logger.js';
+import { register as registerLibraryIpc } from './ipc/library.js';
+import { register as registerPreferencesIpc } from './ipc/preferences.js';
+import { register as registerJournalIpc } from './ipc/journal.js';
 
 app.commandLine.appendSwitch('disable-http-cache');
 
@@ -839,180 +815,13 @@ ipcMain.handle('agent-select-overlay:set-suggestions', (_event, suggestions) => 
 
 ipcMain.handle('sync:matches', (_event, payload) => syncMatches(payload));
 
-ipcMain.handle('crosshair:list', () => (currentPuuid() ? getCrosshairs(currentPuuid()) : []));
+registerLibraryIpc({ currentPuuid });
+registerPreferencesIpc({ currentPuuid, store });
+registerJournalIpc({ currentPuuid });
 
-ipcMain.handle('crosshair:save', (_event, { name, code, color, image }) =>
-  saveCrosshair(currentPuuid(), name, code, color, image),
-);
 
-ipcMain.handle('crosshair:delete', (_event, id) => deleteCrosshair(currentPuuid(), id));
 
-ipcMain.handle('strategy:list', (_event, map) => (currentPuuid() ? getStrategiesForMap(currentPuuid(), map) : []));
 
-ipcMain.handle('strategy:save', (_event, { name, map, canvasJson }) =>
-  saveStrategy(currentPuuid(), name, map, canvasJson),
-);
-
-ipcMain.handle('strategy:delete', (_event, id) => deleteStrategy(currentPuuid(), id));
-
-function scopedKey(base) {
-  const puuid = currentPuuid();
-  return puuid ? `${base}:${puuid}` : null;
-}
-
-ipcMain.handle('ui:get-collapsed-blocks', () => {
-  const key = scopedKey('collapsedBlocks');
-  return key ? store.get(key) || [] : [];
-});
-
-ipcMain.handle('ui:toggle-collapsed-block', (_event, blockId) => {
-  const key = scopedKey('collapsedBlocks');
-  if (!key) return [];
-  const collapsed = store.get(key) || [];
-  const next = collapsed.includes(blockId) ? collapsed.filter((id) => id !== blockId) : [...collapsed, blockId];
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('skins:get-wishlist', () => {
-  const key = scopedKey('skinsWishlist');
-  return key ? store.get(key) || [] : [];
-});
-
-ipcMain.handle('skins:toggle-wishlist', (_event, uuid) => {
-  const key = scopedKey('skinsWishlist');
-  if (!key) return [];
-  const wishlist = store.get(key) || [];
-  const next = wishlist.includes(uuid) ? wishlist.filter((id) => id !== uuid) : [...wishlist, uuid];
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('skins:get-collection', () => {
-  const key = scopedKey('skinsCollection');
-  return key ? store.get(key) || [] : [];
-});
-
-ipcMain.handle('skins:toggle-collection', (_event, { uuid, defaultPriceVp }) => {
-  const key = scopedKey('skinsCollection');
-  if (!key) return [];
-  const collection = store.get(key) || [];
-  const exists = collection.some((entry) => entry.uuid === uuid);
-  const next = exists
-    ? collection.filter((entry) => entry.uuid !== uuid)
-    : [...collection, { uuid, priceVp: defaultPriceVp }];
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
-  const key = scopedKey('skinsCollection');
-  if (!key) return [];
-  const collection = store.get(key) || [];
-  const next = collection.map((entry) => (entry.uuid === uuid ? { ...entry, priceVp } : entry));
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('play-session:get-active', () => (currentPuuid() ? getActivePlaySession(currentPuuid()) : null));
-
-ipcMain.handle('play-session:start', () => (currentPuuid() ? startPlaySession(currentPuuid()) : null));
-
-ipcMain.handle('play-session:end', (_event, id) => {
-  if (currentPuuid()) endPlaySession(currentPuuid(), id);
-});
-
-ipcMain.handle('play-session:history', (_event, limit) =>
-  currentPuuid() ? getPlaySessionHistory(currentPuuid(), limit ?? 30) : [],
-);
-
-ipcMain.handle('bet:get-pending', () => (currentPuuid() ? getPendingBet(currentPuuid()) : null));
-
-ipcMain.handle('bet:create', (_event, { type, threshold, baselineMatchId }) =>
-  createBet(currentPuuid(), type, threshold, baselineMatchId),
-);
-
-ipcMain.handle('bet:cancel', (_event, id) => cancelBet(currentPuuid(), id));
-
-ipcMain.handle('bet:resolve', (_event, { id, resolvedMatchId, actualValue, won, points }) =>
-  resolveBet(currentPuuid(), id, resolvedMatchId, actualValue, won, points),
-);
-
-ipcMain.handle('bet:history', (_event, limit) => (currentPuuid() ? getBetHistory(currentPuuid(), limit ?? 30) : []));
-
-ipcMain.handle('bet:total-points', () => (currentPuuid() ? getTotalBetPoints(currentPuuid()) : 0));
-
-ipcMain.handle('assessment:get', (_event, matchId) =>
-  currentPuuid() ? getAssessmentForMatch(currentPuuid(), matchId) : null,
-);
-
-ipcMain.handle('assessment:save', (_event, { matchId, date, map, answersJson }) =>
-  saveAssessment(currentPuuid(), matchId, date, map, answersJson),
-);
-
-ipcMain.handle('assessment:history', (_event, limit) =>
-  currentPuuid() ? getAssessmentHistory(currentPuuid(), limit ?? 30) : [],
-);
-
-ipcMain.handle('narrative:get', (_event, weekStart) =>
-  currentPuuid() ? getNarrativeForWeek(currentPuuid(), weekStart) : null,
-);
-
-ipcMain.handle('narrative:get-previous', (_event, weekStart) =>
-  currentPuuid() ? getPreviousNarrative(currentPuuid(), weekStart) : null,
-);
-
-ipcMain.handle('narrative:save', (_event, { weekStart, recapJson, rankJson, narrativeJson }) =>
-  saveNarrative(currentPuuid(), weekStart, recapJson, rankJson, narrativeJson),
-);
-
-ipcMain.handle('narrative:history', (_event, limit) =>
-  currentPuuid() ? getNarrativeHistory(currentPuuid(), limit ?? 20) : [],
-);
-
-ipcMain.handle('puzzle:get', (_event, date) => (currentPuuid() ? getPuzzleByDate(currentPuuid(), date) : null));
-
-ipcMain.handle('puzzle:save', (_event, { date, situationJson }) =>
-  savePuzzle(currentPuuid(), date, situationJson),
-);
-
-ipcMain.handle('puzzle:answer', (_event, { date, choice, correct }) =>
-  answerPuzzle(currentPuuid(), date, choice, correct),
-);
-
-ipcMain.handle('puzzle:history', (_event, limit) => (currentPuuid() ? getPuzzleHistory(currentPuuid(), limit ?? 30) : []));
-
-ipcMain.handle('goals:get', () => {
-  const key = scopedKey('personalGoals');
-  return key ? store.get(key) || [] : [];
-});
-
-ipcMain.handle('goals:add', (_event, goal) => {
-  const key = scopedKey('personalGoals');
-  if (!key) return [];
-  const goals = store.get(key) || [];
-  const next = [...goals, { ...goal, id: `g-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`, done: false, createdAt: Date.now() }];
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('goals:toggle-done', (_event, id) => {
-  const key = scopedKey('personalGoals');
-  if (!key) return [];
-  const goals = store.get(key) || [];
-  const next = goals.map((goal) => (goal.id === id ? { ...goal, done: !goal.done } : goal));
-  store.set(key, next);
-  return next;
-});
-
-ipcMain.handle('goals:delete', (_event, id) => {
-  const key = scopedKey('personalGoals');
-  if (!key) return [];
-  const goals = store.get(key) || [];
-  const next = goals.filter((goal) => goal.id !== id);
-  store.set(key, next);
-  return next;
-});
 
 app.whenReady().then(() => {
   cleanupOldSquirrelVersions();
