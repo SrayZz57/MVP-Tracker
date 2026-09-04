@@ -7428,7 +7428,15 @@ input[type='color'] {
 
 .account-toggle-row {
   justify-content: space-between;
+  align-self: stretch;
+  width: 100%;
+  gap: 1.5rem;
   cursor: pointer;
+}
+
+.account-toggle-row .account-tile-label {
+  font-size: var(--fs-md);
+  color: var(--text);
 }
 
 .account-toggle-hint {
@@ -7473,14 +7481,14 @@ input[type='color'] {
 }
 
 .switch.on .switch-track {
-  background: color-mix(in srgb, var(--accent) 35%, var(--surface-hi));
+  background: var(--accent);
   border-color: var(--accent);
+  box-shadow: none;
 }
 
 .switch.on .switch-thumb {
-  transform: translateX(18px);
-  background: var(--accent);
-  box-shadow: 0 0 8px color-mix(in srgb, var(--accent) 70%, transparent), 0 1px 3px rgba(0, 0, 0, 0.5);
+  transform: translateX(20px);
+  background: #fff;
 }
 
 .switch input:focus-visible ~ .switch-track {
