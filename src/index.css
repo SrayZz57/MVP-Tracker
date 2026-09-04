@@ -4863,8 +4863,7 @@ input[type='color'] {
   flex-wrap: wrap;
   padding: var(--card-pad-sm);
   position: sticky;
-  top: -1.5rem;
-  margin-top: -1.5rem;
+  top: 0;
   z-index: 5;
   background: var(--surface);
 }
