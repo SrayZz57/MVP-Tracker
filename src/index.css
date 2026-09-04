@@ -4028,18 +4028,13 @@ li {
 .match-list {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: 1.5rem;
   margin-top: 0.5rem;
 }
 
 .match-day {
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
-}
-
-.match-day + .match-day {
-  margin-top: 0.6rem;
 }
 
 .match-day-head {
@@ -4047,7 +4042,8 @@ li {
   align-items: baseline;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0 0.2rem;
+  padding: 0 0.6rem 0.5rem;
+  border-bottom: 1px solid var(--border-strong);
 }
 
 .match-day-date {
@@ -4073,21 +4069,20 @@ li {
   font: inherit;
   color: inherit;
   text-align: left;
-  background: var(--surface-alt);
-  border: 1px solid var(--border);
-  border-left: 3px solid var(--border-strong);
-  border-radius: var(--r-sm);
-  padding: 0.6rem 0.9rem;
-  transition: border-color var(--t-state), background-color var(--t-state);
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+  padding: 0.65rem 0.6rem;
+  transition: background-color var(--t-state);
 }
 
-.match-row.match-win {
-  border-left-color: var(--good);
+.match-day .match-row:last-child {
+  border-bottom: 0;
 }
 
-.match-row.match-loss {
-  border-left-color: var(--accent);
-}
+.match-row.match-win .match-score { color: var(--good); }
+.match-row.match-loss .match-score { color: var(--accent); }
 
 .match-cell {
   overflow: hidden;
@@ -4140,26 +4135,16 @@ li {
 }
 
 .result-badge {
-  flex-shrink: 0;
-  padding: 0.3rem 0.8rem;
-  border-radius: 6px;
-  font-weight: 600;
-  font-size: var(--fs-sm);
-  border: 1px solid var(--border);
-  color: var(--text-muted);
+  justify-self: end;
+  font-weight: 700;
+  font-size: var(--fs-2xs);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-dim);
 }
 
-.result-badge.match-win {
-  color: #3ddc84;
-  border-color: #3ddc84;
-  background: rgba(61, 220, 132, 0.12);
-}
-
-.result-badge.match-loss {
-  color: var(--accent);
-  border-color: var(--accent);
-  background: rgba(255, 70, 85, 0.12);
-}
+.result-badge.match-win { color: var(--good); }
+.result-badge.match-loss { color: var(--accent); }
 
 .weapon-icon {
   width: 28px;
@@ -4341,8 +4326,7 @@ li {
 }
 
 .match-row.clickable:hover {
-  border-color: var(--accent);
-  box-shadow: inset 0 0 0 999px var(--hover-veil);
+  background: var(--surface-alt);
 }
 
 .modal-overlay {
@@ -5930,8 +5914,7 @@ input[type='color'] {
 .weakness-list {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
-  margin-top: 0.75rem;
+  margin-top: 0.5rem;
 }
 
 .weakness-item {
@@ -5939,10 +5922,25 @@ input[type='color'] {
   align-items: center;
   justify-content: space-between;
   gap: 0.75rem;
-  padding: 0.75rem 0.9rem;
-  border-radius: 10px;
-  border-left: 3px solid var(--accent);
-  background: var(--surface-alt);
+  padding: 0.75rem 0.6rem;
+  background: transparent;
+  border: 0;
+  border-bottom: 1px solid var(--border);
+  border-radius: 0;
+}
+
+.weakness-list > .weakness-item:last-child {
+  border-bottom: 0;
+}
+
+.weakness-item > div {
+  flex: 1;
+  min-width: 0;
+}
+
+.weakness-item .btn {
+  flex-shrink: 0;
+  white-space: nowrap;
 }
 
 .weakness-item-title {
