@@ -1847,10 +1847,10 @@
     "toolsTitle": "Tools",
     "toolsText": "Sessions, crosshair library, strategy board, skin catalog, team compositions, buy simulator, wiki.",
     "endTitle": "That's it!",
-    "endText": "You can replay this tour anytime from My Account, right at the bottom of the page.",
-    "previous": "← Previous",
-    "next": "Next →",
+    "endText": "You can replay it anytime from My Account, in the account settings.",
+    "previous": "Previous",
+    "next": "Next",
     "finish": "Finish",
-    "skip": "Skip"
+    "skip": "Skip the tour"
   }
 }

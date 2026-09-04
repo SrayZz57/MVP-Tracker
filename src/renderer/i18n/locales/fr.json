@@ -1847,10 +1847,10 @@
     "toolsTitle": "Outils",
     "toolsText": "Sessions, bibliothèque de crosshairs, tableau de stratégie, catalogue de skins, compositions d'équipe, simulateur d'achat, wiki.",
     "endTitle": "C'est tout !",
-    "endText": "Tu peux revoir ce tutoriel à tout moment depuis Mon compte, tout en bas de la page.",
-    "previous": "← Précédent",
-    "next": "Suivant →",
+    "endText": "Tu peux le revoir quand tu veux depuis Mon compte, dans les réglages du compte.",
+    "previous": "Précédent",
+    "next": "Suivant",
     "finish": "Terminer",
-    "skip": "Passer"
+    "skip": "Passer le tutoriel"
   }
 }

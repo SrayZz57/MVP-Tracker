@@ -41,8 +41,9 @@ const STEPS = [
   { id: 'end', target: null, titleKey: 'onboarding.endTitle', textKey: 'onboarding.endText' },
 ];
 
-const CARD_WIDTH = 300;
+const CARD_WIDTH = 420;
 const MARGIN = 16;
+const CARD_MIN_HEIGHT = 240;
 
 function OnboardingTour({ onClose }) {
   const { t } = useTranslation();
@@ -71,6 +72,14 @@ function OnboardingTour({ onClose }) {
     };
   }, [step.target]);
 
+  useEffect(() => {
+    const onKeyDown = (e) => {
+      if (e.key === 'Escape') onClose();
+    };
+    window.addEventListener('keydown', onKeyDown);
+    return () => window.removeEventListener('keydown', onKeyDown);
+  }, [onClose]);
+
   const isLast = stepIndex === STEPS.length - 1;
   const isFirst = stepIndex === 0;
 
@@ -79,11 +88,11 @@ function OnboardingTour({ onClose }) {
 
   const cardStyle = rect
     ? {
-        top: Math.min(Math.max(rect.top, MARGIN), window.innerHeight - 220),
+        top: Math.min(Math.max(rect.top, MARGIN), window.innerHeight - CARD_MIN_HEIGHT - MARGIN),
         left: Math.min(rect.right + MARGIN, window.innerWidth - CARD_WIDTH - MARGIN),
       }
     : {
-        top: window.innerHeight / 2 - 110,
+        top: window.innerHeight / 2 - CARD_MIN_HEIGHT / 2,
         left: window.innerWidth / 2 - CARD_WIDTH / 2,
       };
 
@@ -116,14 +125,21 @@ function OnboardingTour({ onClose }) {
         <h3>{t(step.titleKey)}</h3>
         <p className="label">{t(step.textKey)}</p>
         <div className="onboarding-footer">
-          <span className="label">{stepIndex + 1}/{STEPS.length}</span>
+          <div className="onboarding-progress">
+            <span className="onboarding-step-count">
+              {stepIndex + 1}/{STEPS.length}
+            </span>
+            <Button variant="ghost" size="sm" className="onboarding-skip" onClick={onClose}>
+              {t('onboarding.skip')}
+            </Button>
+          </div>
           <div className="onboarding-actions">
             {!isFirst && (
-              <Button variant="ghost" className="account-forgot-password" onClick={prev}>
+              <Button variant="ghost" size="sm" className="account-forgot-password" onClick={prev}>
                 {t('onboarding.previous')}
               </Button>
             )}
-            <Button variant="primary" className="refresh" onClick={next}>
+            <Button variant="primary" size="sm" className="refresh" onClick={next}>
               {isLast ? t('onboarding.finish') : t('onboarding.next')}
             </Button>
           </div>

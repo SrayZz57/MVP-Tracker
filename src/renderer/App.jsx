@@ -993,7 +993,7 @@ function App() {
 
       <GoalsWidget matches={myMatches} settings={mySettings} myId={session.user.id} />
       <WeeklyRecapCard matches={myMatches} settings={mySettings} rank={myRank} />
-      {isViewingSelf && <PostMortemModal matches={myMatches} settings={mySettings} />}
+      {isViewingSelf && !showOnboarding && <PostMortemModal matches={myMatches} settings={mySettings} />}
       {showOnboarding && <OnboardingTour onClose={closeOnboarding} />}
     </div>
   );
