@@ -326,7 +326,20 @@ const createWindow = () => {
   }
 };
 
-ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
+const ALLOWED_PERMISSIONS = new Set(['pointerLock', 'notifications', 'clipboard-sanitized-write']);
+
+const EXTERNAL_PROTOCOLS = new Set(['https:', 'http:']);
+
+ipcMain.handle('shell:open-external', (_event, url) => {
+  let parsed;
+  try {
+    parsed = new URL(String(url));
+  } catch {
+    return;
+  }
+  if (!EXTERNAL_PROTOCOLS.has(parsed.protocol)) return;
+  return shell.openExternal(parsed.href);
+});
 
 ipcMain.handle('window:minimize', () => mainWindow?.minimize());
 ipcMain.handle('window:toggle-maximize', () => {
@@ -840,6 +853,14 @@ app.whenReady().then(() => {
       "object-src 'none'",
       "base-uri 'self'",
     ].join('; ');
+    session.defaultSession.setPermissionRequestHandler((_contents, permission, callback) =>
+      callback(ALLOWED_PERMISSIONS.has(permission)),
+    );
+
+    session.defaultSession.setPermissionCheckHandler((_contents, permission) =>
+      ALLOWED_PERMISSIONS.has(permission),
+    );
+
     session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
       callback({ responseHeaders: { ...details.responseHeaders, 'Content-Security-Policy': [csp] } });
     });

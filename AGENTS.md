@@ -105,6 +105,17 @@ clé, un token ou un PUUID complet est un incident.
 Un composant du renderer n'appelle jamais une URL externe directement : ça passe
 par `src/services/`.
 
+**Ce qui vient du renderer est de l'entrée non fiable, même isolé.**
+`shell:open-external` n'accepte que `https:` et `http:` : sans ce filtre, une XSS
+dans le renderer devient un lancement de programme via `file://` ou un
+gestionnaire de protocole Windows. Toute nouvelle capacité du preload qui touche
+au système valide son entrée côté main, jamais côté appelant.
+
+Les permissions web sont refusées par défaut. `ALLOWED_PERMISSIONS` n'en ouvre
+que trois : `pointerLock` pour l'Aim Trainer, `notifications` pour les messages,
+`clipboard-sanitized-write` pour la copie de crosshairs. En ajouter une demande
+de savoir quel écran en a besoin.
+
 ## La feuille de style
 
 `src/index.css` ne porte que `@layer base` et la liste des imports. Le contenu
