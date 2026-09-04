@@ -1,203 +1,182 @@
 # MVP Tracker — application desktop
 
 Tracker Valorant qui croise performance, réseau et rythme de jeu. Electron 43 +
-React 19, JavaScript (pas de TypeScript), Vite via Electron Forge, distribué en
-installeur Squirrel Windows publié sur les releases GitHub.
+React 19, JavaScript, Vite via Electron Forge, installeur Squirrel Windows.
 
-Ce fichier est la source des règles du projet. `CLAUDE.md` y renvoie. Les règles
-communes aux trois dépôts MVP Tracker vivent dans le `CLAUDE.md` du dossier
-parent.
+Source des règles du projet. `CLAUDE.md` y renvoie. Les règles communes aux trois
+dépôts sont dans le `CLAUDE.md` du dossier parent.
 
 ## Démarrer
 
 ```bash
-corepack enable
 pnpm install
-pnpm start        # lance l'app en développement
+pnpm start     # dev
 pnpm lint
-pnpm make         # construit l'installeur Windows dans out/
+pnpm make      # installeur dans out/
 ```
 
-Il n'y a pas de typecheck : le projet est en JavaScript. Le seul filet
-automatique est ESLint, donc lancer l'app et parcourir l'écran modifié fait
-partie du travail, pas du confort.
+Pas de typecheck, le projet est en JavaScript : ESLint est le seul filet
+automatique, donc lancer l'app et parcourir l'écran modifié fait partie du
+travail.
 
-Pour vérifier qu'un changement compile sans construire l'installeur :
+Vérifier qu'un changement compile, en 4 secondes :
 
 ```bash
-npx vite build --config vite.renderer.config.mjs --outDir /tmp/check
+npx vite build --config vite.renderer.config.mjs --outDir .tmp-check
 ```
+
+`pnpm package` et `pnpm make` **vident `out/`** : ne pas les lancer pour une
+simple vérification.
 
 ## Où vit quoi
 
 ```
-src/main.js          processus principal : cycle de vie, fenêtres, tray, mises à jour
-src/preload.js       le pont, seule surface exposée au renderer
-src/ipc/             handlers IPC adossés au stockage
-  library.js         crosshairs et stratégies
-  preferences.js     état d'interface, skins, objectifs
-  journal.js         sessions de jeu, paris, bilans, récits, puzzles
-src/services/        travail hors interface, appelé depuis le main
-  henrikdev.js       API Valorant
-  db.js              Supabase
-  valorantLocal.js   client Valorant local
-  network.js         monitoring de ping
-  apiCache.js        cache des réponses
-src/renderer/        l'interface React, sans accès Node
-  App.jsx TitleBar.jsx NetworkMonitor.jsx    la coquille de l'app
-  ui/                primitives partagées : Button, Card, Icon, Skeleton…
-  hooks/             hooks partagés
-  data/              catalogues : icônes d'agents, de maps, d'armes, rangs
-  tabs/              un onglet = un fichier
-  charts/            graphiques
-  i18n/locales/      fr.json et en.json
+src/main.js       cycle de vie, fenêtres, tray, mises à jour
+src/preload.js    le pont, seule surface exposée au renderer
+src/ipc/          handlers IPC adossés au stockage
+src/services/     henrikdev (API Valorant) · db (SQLite local) · valorantLocal
+                  network (ping) · apiCache · matchSync · telemetry
+src/styles/       la feuille de style, 14 fichiers
+src/logger.js     unique point de journalisation
+src/renderer/
+  App · TitleBar · NetworkMonitor      la coquille
+  ui/ hooks/ data/                     primitives, hooks, catalogues
+  i18n/  config.js + fr/ + en/         11 fichiers par langue
+  tabs/ charts/
   account/ aim/ collection/ overlay/ sessions/ social/ stats/
-  strategy/ tournaments/ wiki/               une fonctionnalité par dossier
-src/styles/          la feuille de style, découpée par domaine
-src/logger.js        unique point de journalisation
+  strategy/ tournaments/ wiki/         une fonctionnalité par dossier
 ```
 
 Un composant vit dans un fichier à son nom, dans le dossier de sa
-fonctionnalité. S'il sert à plusieurs fonctionnalités, il va dans `ui/`.
+fonctionnalité. S'il sert à plusieurs, il va dans `ui/`.
 
-### Ajouter un écran
+**Ajouter un écran** : le composant dans son dossier, un fichier dans `tabs/`
+qui l'enveloppe, l'entrée dans `NAV_SECTIONS` en tête de `App.jsx`.
 
-1. Le composant dans le dossier de sa fonctionnalité.
-2. Un fichier dans `tabs/` qui l'enveloppe.
-3. L'entrée dans `NAV_SECTIONS`, en tête de `App.jsx`.
+## La frontière entre les processus prime
 
-## La frontière entre les processus est la règle qui prime
+`contextIsolation` actif, fuses Electron verrouillés : `RunAsNode` désactivé,
+chargement depuis l'asar uniquement, intégrité de l'asar validée, inspection Node
+coupée. On n'en desserre aucun.
 
-`contextIsolation` est actif et les fuses Electron sont verrouillés :
-`RunAsNode` désactivé, chargement depuis l'asar uniquement, intégrité de l'asar
-validée, arguments d'inspection Node coupés. On ne desserre aucun de ces
-réglages.
+Le renderer n'a ni `require`, ni `fs`, ni `net`. Il ne connaît du monde que ce
+que `preload.js` lui donne. Une capacité nouvelle, c'est trois ajouts
+indissociables : `ipcMain.handle` côté main, une méthode nommée dans
+`preload.js`, l'appel côté renderer.
 
-**Le renderer n'a pas de `require`, pas de `fs`, pas de `net`.** Il ne connaît du
-monde extérieur que ce que `preload.js` lui donne. Un besoin nouveau côté
-interface, c'est trois ajouts qui vont ensemble :
+Un handler adossé au stockage va dans `src/ipc/` : chaque module y expose un
+`register()` qui reçoit ses dépendances plutôt que de fermer sur l'état du
+processus principal.
 
-1. Un `ipcMain.handle` dans `main.js`.
-2. Une méthode nommée dans `preload.js`.
-3. L'appel côté renderer.
-
-Un handler adossé au stockage va dans `src/ipc/`, pas dans `main.js` : chaque
-module y expose un `register()` qui reçoit ses dépendances (`currentPuuid`,
-parfois `store`) plutôt que de fermer sur l'état du processus principal.
-`main.js` garde ce qui touche aux fenêtres, au tray et au cycle de vie.
-
-`preload.js` expose déjà une soixantaine de méthodes. On ne l'élargit pas avec
-une méthode générique qui prendrait un canal en paramètre : chaque capacité a
-son nom et sa signature, c'est ce qui borne la surface d'attaque.
+`preload.js` expose une soixantaine de méthodes. **Pas de méthode générique
+prenant un canal en paramètre** : chaque capacité a son nom et sa signature,
+c'est ce qui borne la surface d'attaque.
 
 ## L'overlay n'est jamais une injection
 
-L'overlay de sélection d'agent est une fenêtre Electron posée à côté du jeu, qui
-lit l'état via le client Valorant local. **Ce n'est pas une injection et ça ne
-doit jamais le devenir.** Rien qui lise ou écrive dans la mémoire du jeu, rien
-qui s'accroche à son processus, rien qui automatise une action en partie.
+L'overlay de sélection d'agent est une fenêtre posée à côté du jeu, qui lit
+l'état via le client Valorant local. Rien qui lise ou écrive dans la mémoire du
+jeu, rien qui s'accroche à son processus, rien qui automatise une action en
+partie.
 
-C'est la ligne qui sépare l'outil autorisé du logiciel banni, et elle
-conditionne la candidature à l'API Riot.
+C'est la ligne entre l'outil autorisé et le logiciel banni, et elle conditionne
+la candidature à l'API Riot.
 
 ## Secrets et données joueur
 
-La clé API Henrik, les identifiants Supabase et le PUUID lié ne transitent pas
-par le renderer autrement que sous forme de résultats. Le stockage passe par
-`electron-store`, jamais par `localStorage`.
+**La clé Supabase de `supabaseConfig.js` n'est pas un secret.** C'est la clé
+`anon`, publique par conception, présente dans le bundle de toute app Supabase.
+La masquer n'apporte rien.
 
-La messagerie est chiffrée de bout en bout (`tweetnacl`) : les clés privées ne
-quittent pas la machine et ne sont jamais journalisées. Une trace de débogage
-qui affiche une clé, un token ou un PUUID complet est un incident, pas un oubli.
+Ce qui protège les données, c'est **RLS**. Une quinzaine de tables sont
+joignables avec cette clé — `profiles`, `friendships`, `messages`,
+`personal_goals`, `skin_collection`, `tournament_*`… Chaque nouvelle table part
+avec ses politiques, sinon elle est ouverte à tous.
+
+**Une clé `service_role` ne va jamais dans ce dépôt**, ni dans le code, ni dans
+un `.env` suivi, ni dans un message de commit. Elle contourne RLS.
+
+La clé API Henrik et le PUUID lié ne transitent par le renderer que sous forme de
+résultats ; le stockage passe par `electron-store`, jamais `localStorage`. La
+messagerie est chiffrée de bout en bout (`tweetnacl`) : les clés privées ne
+quittent pas la machine et ne sont jamais journalisées. Une trace qui affiche une
+clé, un token ou un PUUID complet est un incident.
 
 Un composant du renderer n'appelle jamais une URL externe directement : ça passe
 par `src/services/`.
 
 ## La feuille de style
 
-`src/index.css` ne contient que la déclaration `@layer base` et la liste des
-imports. Le vrai contenu est dans `src/styles/`, en quatorze fichiers numérotés.
+`src/index.css` ne porte que `@layer base` et la liste des imports. Le contenu
+est dans `src/styles/`, en quatorze fichiers numérotés.
 
-**L'ordre des imports est l'ordre de la cascade.** Les fichiers sont des tranches
-contiguës de l'ancien fichier unique, pas des regroupements thématiques : deux
-règles du même composant peuvent vivre dans deux fichiers. Chercher par `grep`
-sur tout `src/styles/`, jamais en supposant le fichier.
+**L'ordre des imports est l'ordre de la cascade.** Ce sont des tranches contiguës
+de l'ancien fichier unique, pas des regroupements thématiques : deux règles d'un
+même composant peuvent vivre dans deux fichiers. Chercher par `grep` sur tout
+`src/styles/`, jamais en supposant le fichier. Poser une règle dans le fichier
+dont le numéro correspond au poids voulu dans la cascade, pas dans celui dont le
+nom ressemble le plus.
 
-Ajouter une règle : la poser dans le fichier dont le numéro correspond à
-l'endroit où elle doit peser dans la cascade, pas dans celui dont le nom
-ressemble le plus.
+Les tokens de `:root` (`01-shell.css`) avant toute valeur en dur : `--fs-*`,
+`--r-*`, `--ease-*`, `--t-*`. Une valeur qui sert deux fois devient un token.
 
-**Les tokens de `:root` avant toute valeur en dur** (`01-shell.css`) : couleurs,
-tailles de texte `--fs-*`, rayons `--r-*`, courbes et durées `--ease-*` et
-`--t-*`. Une valeur qui sert deux fois devient un token.
+**Trois pièges vérifiés :**
 
-**Deux pièges de cascade connus.** Le fichier est plat et long, donc une règle
-générale gagne facilement contre une règle plus spécifique en intention mais pas
-en poids : vérifier ce qui l'emporte plutôt qu'ajouter un `!important`. Et
-`label { display: flex; flex-direction: column }` est déclaré globalement : tout
-`<label>` qu'on veut mettre en ligne doit redéclarer `flex-direction: row`.
-
-**Une media query qui change la disposition change `display` aussi.** Poser des
-propriétés flex sur un conteneur resté en `grid` ne fait rien du tout, et le bug
-est invisible à la lecture.
+- Le fichier est plat et long : une règle générale gagne facilement contre une
+  règle plus spécifique en intention mais pas en poids. Vérifier ce qui l'emporte
+  plutôt qu'ajouter un `!important`.
+- `label { display: flex; flex-direction: column }` est global. Tout `<label>`
+  qu'on veut en ligne doit redéclarer `flex-direction: row`.
+- Une media query qui change la disposition doit changer `display` aussi. Des
+  propriétés flex sur un conteneur resté en `grid` ne font rien, et ça ne se voit
+  pas à la lecture.
 
 ## Les textes
 
-`react-i18next`, avec `src/renderer/i18n/locales/fr.json` et `en.json`. Aucune
-chaîne visible en dur dans un composant, et les deux fichiers se modifient
-ensemble. Une clé qui n'existe que dans une langue affiche la clé brute à
-l'écran.
+`react-i18next`. `i18n/config.js` porte `LANGS`, `DEFAULT_LANG`, `isLang`,
+`HTML_LANG` ; les dictionnaires sont découpés par domaine dans `i18n/fr/` et
+`i18n/en/`, comme sur le site.
 
-Une URL externe qui sert deux fois vit dans `src/renderer/data/links.js`.
+Aucune chaîne visible en dur dans un composant. Les deux langues se modifient
+ensemble : une clé absente d'un côté affiche la clé brute à l'écran.
+
+Une URL externe qui sert deux fois vit dans `renderer/data/links.js`.
 
 ## Règles de code
 
-**Pas de commentaires.** Ni en tête de fichier, ni en tête de fonction, ni en fin
-de ligne, ni JSDoc. Si un bout de code a besoin d'être expliqué, c'est le code
-qu'il faut reprendre. Les seules exceptions sont les directives que l'outillage
-lit (`eslint-disable`, pragmas). Ce qui doit être expliqué se met dans le message
-de commit ou ici.
+**Pas de commentaires.** Ni en tête de fichier, ni de fonction, ni en fin de
+ligne, ni JSDoc. Si un bout de code a besoin d'être expliqué, c'est le code qu'il
+faut reprendre. Seules exceptions : les directives que l'outillage lit. Ce qui
+doit être expliqué va dans le message de commit ou ici.
 
-**`no-console` est une erreur de lint**, `warn` et `error` exceptés.
-`src/logger.js` est l'unique point de journalisation. On ne désactive pas la
-règle pour déboguer, on retire les traces avant de finir.
+**`no-console` est une erreur**, `warn` et `error` exceptés. `src/logger.js` est
+l'unique point de journalisation.
 
-**Les variables inutilisées sont un avertissement**, sauf préfixées par `_`.
+**Variables inutilisées : avertissement**, sauf préfixées par `_`.
 
-**`react-hooks/rules-of-hooks` est une erreur**, `exhaustive-deps` un
-avertissement : on corrige la dépendance manquante plutôt que de la faire taire.
+**`react-hooks/rules-of-hooks` est une erreur.** On corrige la dépendance
+manquante plutôt que de la faire taire.
 
-**Nettoyer ce qu'on branche.** Tout `addEventListener`, `IntersectionObserver`,
-`ResizeObserver`, `requestAnimationFrame` ou timer se défait dans le retour du
-`useEffect` correspondant.
+**Nettoyer ce qu'on branche** : tout `addEventListener`, observer, `rAF` ou timer
+se défait dans le retour du `useEffect`.
 
-**Grouper les écritures DOM sur une frame.** Un handler de `mousemove`, de
-`scroll` ou de `resize` calcule, puis passe l'écriture à un
-`requestAnimationFrame`. Et il ne lit jamais une propriété qui force un calcul de
-layout (`scrollHeight`, `getBoundingClientRect`) à chaque événement.
+**Grouper les écritures DOM sur une frame.** Un handler de `mousemove`, `scroll`
+ou `resize` calcule, puis passe l'écriture à un `requestAnimationFrame`, et ne
+lit jamais une propriété qui force un layout à chaque événement.
 
-**Pas de fichiers de brouillon.** `tmp-*` est ignoré par git. Un essai temporaire
-ne vit pas dans le dépôt.
+**Pas de brouillons** : `tmp-*` est ignoré par git.
 
 ## Accessibilité
 
-Ce sont des seuils, pas des préférences.
+Des seuils, pas des préférences. Élément natif d'abord (`<button>`, `<a href>`,
+jamais `<div onClick>`). Nom accessible sur tout contrôle à icône seule. Tout ce
+qui s'atteint à la souris s'atteint au clavier, avec `:focus-visible`. L'état ne
+passe jamais par la couleur seule. Animation encadrée par
+`prefers-reduced-motion`. Cible 44×44px au toucher, 40×40px au pointeur.
 
-- Élément natif d'abord : `<button>` pour une action, `<a href>` pour une
-  navigation. Pas de `<div onClick>`, pas d'ARIA là où le HTML fait le travail.
-- Tout contrôle à icône seule porte un nom accessible.
-- Tout ce qui s'atteint à la souris s'atteint au clavier, avec un anneau de focus
-  visible. `:focus-visible`, jamais `:focus` nu.
-- L'état ne passe jamais par la couleur seule : une icône, un texte ou une
-  bordure l'accompagne.
-- Toute animation est encadrée par `prefers-reduced-motion`.
-- Cible de 44×44px au toucher, 40×40px au pointeur.
+## Sans demander
 
-## Ce qu'on ne fait pas sans demander
-
-- Commiter ou pousser.
-- Ajouter une dépendance.
-- Changer une version majeure, ou toucher à `pnpm-lock.yaml` autrement que par un
-  `pnpm install` normal.
-- Desserrer un fuse Electron ou élargir la surface du preload.
-- Introduire une nouvelle surface d'interface visible sans validation visuelle.
+Commiter ou pousser · ajouter une dépendance · changer une version majeure ou
+toucher au lockfile hors `pnpm install` · desserrer un fuse ou élargir le preload
+· lancer une commande qui écrit dans `out/` · introduire une surface d'interface
+visible sans validation.
