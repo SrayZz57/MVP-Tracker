@@ -31,27 +31,40 @@ npx vite build --config vite.renderer.config.mjs --outDir /tmp/check
 ## Où vit quoi
 
 ```
-src/main.js          processus principal : fenêtres, IPC, disque, réseau
+src/main.js          processus principal : cycle de vie, fenêtres, tray, mises à jour
 src/preload.js       le pont, seule surface exposée au renderer
-src/renderer/        l'interface React, sans accès Node
-  tabs/              un onglet = un fichier
-  ui/                primitives partagées (Button…)
-  charts/            graphiques
-  i18n/locales/      fr.json et en.json
+src/ipc/             handlers IPC adossés au stockage
+  library.js         crosshairs et stratégies
+  preferences.js     état d'interface, skins, objectifs
+  journal.js         sessions de jeu, paris, bilans, récits, puzzles
 src/services/        travail hors interface, appelé depuis le main
   henrikdev.js       API Valorant
   db.js              Supabase
   valorantLocal.js   client Valorant local
   network.js         monitoring de ping
   apiCache.js        cache des réponses
+src/renderer/        l'interface React, sans accès Node
+  App.jsx TitleBar.jsx NetworkMonitor.jsx    la coquille de l'app
+  ui/                primitives partagées : Button, Card, Icon, Skeleton…
+  hooks/             hooks partagés
+  data/              catalogues : icônes d'agents, de maps, d'armes, rangs
+  tabs/              un onglet = un fichier
+  charts/            graphiques
+  i18n/locales/      fr.json et en.json
+  account/ aim/ collection/ overlay/ sessions/ social/ stats/
+  strategy/ tournaments/ wiki/               une fonctionnalité par dossier
 src/styles/          la feuille de style, découpée par domaine
 src/logger.js        unique point de journalisation
 ```
 
-`src/renderer/` est plat : une centaine de composants à la racine. C'est dense,
-mais la convention tient en une phrase — un composant vit dans un fichier à son
-nom. Un composant réutilisable va dans `ui/`, un onglet dans `tabs/`, un
-graphique dans `charts/`.
+Un composant vit dans un fichier à son nom, dans le dossier de sa
+fonctionnalité. S'il sert à plusieurs fonctionnalités, il va dans `ui/`.
+
+### Ajouter un écran
+
+1. Le composant dans le dossier de sa fonctionnalité.
+2. Un fichier dans `tabs/` qui l'enveloppe.
+3. L'entrée dans `NAV_SECTIONS`, en tête de `App.jsx`.
 
 ## La frontière entre les processus est la règle qui prime
 
@@ -67,6 +80,11 @@ interface, c'est trois ajouts qui vont ensemble :
 1. Un `ipcMain.handle` dans `main.js`.
 2. Une méthode nommée dans `preload.js`.
 3. L'appel côté renderer.
+
+Un handler adossé au stockage va dans `src/ipc/`, pas dans `main.js` : chaque
+module y expose un `register()` qui reçoit ses dépendances (`currentPuuid`,
+parfois `store`) plutôt que de fermer sur l'état du processus principal.
+`main.js` garde ce qui touche aux fenêtres, au tray et au cycle de vie.
 
 `preload.js` expose déjà une soixantaine de méthodes. On ne l'élargit pas avec
 une méthode générique qui prendrait un canal en paramètre : chaque capacité a
