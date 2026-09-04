@@ -1,4 +1,4 @@
-import BuySimulator from '../BuySimulator.jsx';
+import BuySimulator from '../collection/BuySimulator.jsx';
 
 function BuySimulatorTab({ settings, matches, loading }) {
   return <BuySimulator settings={settings} matches={matches} loading={loading} />;

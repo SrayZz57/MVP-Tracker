@@ -1,4 +1,4 @@
-import useLoadingGate from '../useLoadingGate.js';
+import useLoadingGate from '../hooks/useLoadingGate.js';
 
 export default function Button({
   variant = 'ghost',

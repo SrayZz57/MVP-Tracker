@@ -1,15 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { X, Trophy } from 'lucide-react';
-import Icon from '../Icon.jsx';
-import { supabase } from '../supabaseClient.js';
-import { useMapImages } from '../mapImages.js';
-import { useAgentPortraits } from '../agentIcons.js';
-import { pickSplash } from '../tournamentVisuals.js';
-import TournamentDetail from '../TournamentDetail.jsx';
+import Icon from '../ui/Icon.jsx';
+import { supabase } from '../account/supabaseClient.js';
+import { useMapImages } from '../data/mapImages.js';
+import { useAgentPortraits } from '../data/agentIcons.js';
+import { pickSplash } from '../tournaments/tournamentVisuals.js';
+import TournamentDetail from '../tournaments/TournamentDetail.jsx';
 import Button from '../ui/Button';
-import { TournamentListSkeleton } from '../skeletons.jsx';
-import useLoadingGate from '../useLoadingGate.js';
+import { TournamentListSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
 
 const STATUS_LABELS = {
   registration: 'tournaments.status.registration',

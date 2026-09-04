@@ -5,7 +5,7 @@ import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches, getMmr, henrikDedupCount } from './services/henrikdev.js';
-import { excludeDeathmatch, formStats, tiltStatus, patchSelfIdentity } from './renderer/valorantStats.js';
+import { excludeDeathmatch, formStats, tiltStatus, patchSelfIdentity } from './renderer/stats/valorantStats.js';
 import {
   saveMatches,
   getCachedMatches,

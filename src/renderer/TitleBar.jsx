@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Minus, Square, Copy, X } from 'lucide-react';
 import logo from '../assets/logo.png';
-import Icon from './Icon.jsx';
+import Icon from './ui/Icon.jsx';
 import Button from './ui/Button';
 
 function TitleBar() {

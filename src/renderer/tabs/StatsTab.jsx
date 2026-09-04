@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import { TrendingUp, TrendingDown } from 'lucide-react';
-import Icon from '../Icon.jsx';
+import Icon from '../ui/Icon.jsx';
 import {
   findMe,
   resultLabel,
@@ -13,24 +13,24 @@ import {
   excludeDeathmatch,
   weaponKillsForAgent,
   agentTotalKills,
-} from '../valorantStats.js';
-import { useAgentIcons, useAgentRoles } from '../agentIcons.js';
-import { useMapImages } from '../mapImages.js';
-import { useWeaponIcons } from '../weaponIcons.js';
-import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../rankData.js';
-import PlayerProfileCard from '../PlayerProfileCard.jsx';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
-import RankMomentumCard from '../RankMomentumCard.jsx';
-import MatchDetailModal from '../MatchDetailModal.jsx';
-import MapDetailModal from '../MapDetailModal.jsx';
-import AgentDetailModal from '../AgentDetailModal.jsx';
-import WeaponDetailModal from '../WeaponDetailModal.jsx';
+} from '../stats/valorantStats.js';
+import { useAgentIcons, useAgentRoles } from '../data/agentIcons.js';
+import { useMapImages } from '../data/mapImages.js';
+import { useWeaponIcons } from '../data/weaponIcons.js';
+import { useRankTiers, usePlayerCardArt, useSeasonNames } from '../data/rankData.js';
+import PlayerProfileCard from '../stats/PlayerProfileCard.jsx';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
+import RankMomentumCard from '../stats/RankMomentumCard.jsx';
+import MatchDetailModal from '../stats/MatchDetailModal.jsx';
+import MapDetailModal from '../stats/MapDetailModal.jsx';
+import AgentDetailModal from '../stats/AgentDetailModal.jsx';
+import WeaponDetailModal from '../stats/WeaponDetailModal.jsx';
 import LineChart from '../charts/LineChart.jsx';
-import CountUp from '../CountUp.jsx';
-import { StatsTabSkeleton } from '../skeletons.jsx';
-import useLoadingGate from '../useLoadingGate.js';
+import CountUp from '../ui/CountUp.jsx';
+import { StatsTabSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
 import Button from '../ui/Button';
 
 const MATCH_HISTORY_PAGE_SIZE = 10;

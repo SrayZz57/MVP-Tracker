@@ -1,4 +1,4 @@
-import StrategyBoard from '../StrategyBoard.jsx';
+import StrategyBoard from '../strategy/StrategyBoard.jsx';
 
 function StrategyTab() {
   return <StrategyBoard />;

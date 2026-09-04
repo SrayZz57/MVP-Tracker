@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { Calendar, PartyPopper, Sunrise, Sun, Sunset, Moon, Flame, TrendingDown, Clock } from 'lucide-react';
-import Icon from '../Icon.jsx';
+import Icon from '../ui/Icon.jsx';
 import {
   groupStats,
   excludeDeathmatch,
@@ -12,12 +12,12 @@ import {
   TIME_SLOT_ORDER,
   WEEK_ORDER,
   formStats,
-} from '../valorantStats.js';
-import { FormTabSkeleton } from '../skeletons.jsx';
-import useLoadingGate from '../useLoadingGate.js';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+} from '../stats/valorantStats.js';
+import { FormTabSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 
 const WEEKDAY_ICONS = {
   Lundi: Calendar, Mardi: Calendar, Mercredi: Calendar, Jeudi: Calendar, Vendredi: Calendar, Samedi: PartyPopper, Dimanche: PartyPopper,

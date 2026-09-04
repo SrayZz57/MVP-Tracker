@@ -1,4 +1,4 @@
-import Heatmap from '../Heatmap.jsx';
+import Heatmap from '../stats/Heatmap.jsx';
 
 function HeatmapTab({ settings, matches }) {
   return <Heatmap settings={settings} matches={matches} />;

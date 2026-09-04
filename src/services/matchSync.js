@@ -2,7 +2,7 @@ import zlib from 'node:zlib';
 import { promisify } from 'node:util';
 import { createClient } from '@supabase/supabase-js';
 import { SUPABASE_URL, SUPABASE_ANON_KEY } from '../supabaseConfig.js';
-import { findMe, resultLabel, matchScore } from '../renderer/valorantStats.js';
+import { findMe, resultLabel, matchScore } from '../renderer/stats/valorantStats.js';
 
 const brotliCompress = promisify(zlib.brotliCompress);
 

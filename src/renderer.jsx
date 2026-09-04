@@ -8,10 +8,10 @@ import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App.jsx';
 import TitleBar from './renderer/TitleBar.jsx';
-import AimTrainerGame from './renderer/AimTrainerGame.jsx';
-import AgentSelectOverlay from './renderer/AgentSelectOverlay.jsx';
-import { CollapsedBlocksProvider } from './renderer/CollapsedBlocksContext.jsx';
-import { E2EEProvider } from './renderer/E2EEContext.jsx';
+import AimTrainerGame from './renderer/aim/AimTrainerGame.jsx';
+import AgentSelectOverlay from './renderer/overlay/AgentSelectOverlay.jsx';
+import { CollapsedBlocksProvider } from './renderer/ui/CollapsedBlocksContext.jsx';
+import { E2EEProvider } from './renderer/social/E2EEContext.jsx';
 
 window.addEventListener('error', (e) => {
   console.error('window error', e.message, e.filename);

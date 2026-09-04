@@ -31,11 +31,11 @@ import {
   Search,
   Compass,
 } from 'lucide-react';
-import Icon from './Icon.jsx';
+import Icon from './ui/Icon.jsx';
 import Button from './ui/Button';
-import useValorantData from './useValorantData.js';
-import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
-import { useE2EE } from './E2EEContext.jsx';
+import useValorantData from './hooks/useValorantData.js';
+import { useCollapsedBlocks } from './ui/CollapsedBlocksContext.jsx';
+import { useE2EE } from './social/E2EEContext.jsx';
 import StatsTab from './tabs/StatsTab.jsx';
 import WeaknessTab from './tabs/WeaknessTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
@@ -58,31 +58,31 @@ import SessionGuideTab from './tabs/SessionGuideTab.jsx';
 import AimTrainerTab from './tabs/AimTrainerTab.jsx';
 import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
 import WikiTab from './tabs/WikiTab.jsx';
-import GoalsWidget from './GoalsWidget.jsx';
-import WeeklyRecapCard from './WeeklyRecapCard.jsx';
-import PostMortemModal from './PostMortemModal.jsx';
-import SearchBar from './SearchBar.jsx';
-import AgentSelectLive from './AgentSelectLive.jsx';
-import { DISCORD_INVITE } from './links.js';
-import WelcomeScreen from './WelcomeScreen.jsx';
-import LinkRiotAccount from './LinkRiotAccount.jsx';
-import AccountGreeting from './AccountGreeting.jsx';
-import AccountAuth from './AccountAuth.jsx';
-import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
-import AccountPage from './AccountPage.jsx';
-import OnboardingTour from './OnboardingTour.jsx';
-import AdminPage from './AdminPage.jsx';
+import GoalsWidget from './sessions/GoalsWidget.jsx';
+import WeeklyRecapCard from './sessions/WeeklyRecapCard.jsx';
+import PostMortemModal from './sessions/PostMortemModal.jsx';
+import SearchBar from './ui/SearchBar.jsx';
+import AgentSelectLive from './overlay/AgentSelectLive.jsx';
+import { DISCORD_INVITE } from './data/links.js';
+import WelcomeScreen from './account/WelcomeScreen.jsx';
+import LinkRiotAccount from './account/LinkRiotAccount.jsx';
+import AccountGreeting from './account/AccountGreeting.jsx';
+import AccountAuth from './account/AccountAuth.jsx';
+import SetNewPasswordScreen from './account/SetNewPasswordScreen.jsx';
+import AccountPage from './account/AccountPage.jsx';
+import OnboardingTour from './account/OnboardingTour.jsx';
+import AdminPage from './account/AdminPage.jsx';
 import TournamentsTab from './tabs/TournamentsTab.jsx';
 import MessagesTab from './tabs/MessagesTab.jsx';
 import FriendsTab from './tabs/FriendsTab.jsx';
-import { supabase } from './supabaseClient.js';
-import LoadingState from './LoadingState.jsx';
-import { AppShellSkeleton } from './skeletons.jsx';
-import useLoadingGate from './useLoadingGate.js';
-import { useOnlinePresence } from './presence.js';
-import { useRankTiers, usePlayerCardArt } from './rankData.js';
+import { supabase } from './account/supabaseClient.js';
+import LoadingState from './ui/LoadingState.jsx';
+import { AppShellSkeleton } from './ui/skeletons.jsx';
+import useLoadingGate from './hooks/useLoadingGate.js';
+import { useOnlinePresence } from './social/presence.js';
+import { useRankTiers, usePlayerCardArt } from './data/rankData.js';
 import logoText from '../assets/logo-text.png';
-import { normalizeRiotIdPart } from './valorantStats.js';
+import { normalizeRiotIdPart } from './stats/valorantStats.js';
 
 const NAV_SECTIONS = [
   {

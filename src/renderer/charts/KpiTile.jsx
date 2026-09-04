@@ -1,5 +1,5 @@
-import Icon from '../Icon.jsx';
-import CountUp from '../CountUp.jsx';
+import Icon from '../ui/Icon.jsx';
+import CountUp from '../ui/CountUp.jsx';
 
 function KpiTile({ label, value, suffix = '', decimals = 0, icon }) {
   return (

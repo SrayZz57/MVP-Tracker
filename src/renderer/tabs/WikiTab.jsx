@@ -1,4 +1,4 @@
-import Wiki from '../Wiki.jsx';
+import Wiki from '../wiki/Wiki.jsx';
 
 function WikiTab() {
   return <Wiki />;

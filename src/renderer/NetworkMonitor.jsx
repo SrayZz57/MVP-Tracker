@@ -1,8 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import Skeleton, { SkeletonText } from './Skeleton.jsx';
-import LoadingGate from './LoadingGate.jsx';
-import CollapsibleCard from './CollapsibleCard.jsx';
+import Skeleton, { SkeletonText } from './ui/Skeleton.jsx';
+import LoadingGate from './ui/LoadingGate.jsx';
+import CollapsibleCard from './ui/CollapsibleCard.jsx';
 
 function NetworkMonitor() {
   const { t } = useTranslation();

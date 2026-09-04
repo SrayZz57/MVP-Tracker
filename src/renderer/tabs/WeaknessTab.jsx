@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
-import { computePlayerProfile, getWeaknesses } from '../playerProfile.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+import { computePlayerProfile, getWeaknesses } from '../stats/playerProfile.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 import Button from '../ui/Button';
 
 function WeaknessTab({ settings, matches, onNavigate }) {

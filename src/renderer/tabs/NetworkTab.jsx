@@ -1,14 +1,14 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
 import NetworkMonitor from '../NetworkMonitor.jsx';
-import { pingCorrelation } from '../valorantStats.js';
-import CountUp from '../CountUp.jsx';
-import { supabase } from '../supabaseClient.js';
-import Skeleton, { SkeletonText } from '../Skeleton.jsx';
-import LoadingGate from '../LoadingGate.jsx';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+import { pingCorrelation } from '../stats/valorantStats.js';
+import CountUp from '../ui/CountUp.jsx';
+import { supabase } from '../account/supabaseClient.js';
+import Skeleton, { SkeletonText } from '../ui/Skeleton.jsx';
+import LoadingGate from '../ui/LoadingGate.jsx';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 
 const RADIUS = 52;
 const CIRCUMFERENCE = 2 * Math.PI * RADIUS;

@@ -1,14 +1,14 @@
 import { useMemo } from 'react';
 import { useTranslation } from 'react-i18next';
 import { AlertTriangle, CheckCircle2, Circle } from 'lucide-react';
-import Icon from '../Icon.jsx';
-import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../valorantStats.js';
-import CountUp from '../CountUp.jsx';
-import { TiltTabSkeleton } from '../skeletons.jsx';
-import useLoadingGate from '../useLoadingGate.js';
-import PlatformFilterToggle from '../PlatformFilterToggle.jsx';
-import usePlatformFilter from '../usePlatformFilter.js';
-import CollapsibleCard from '../CollapsibleCard.jsx';
+import Icon from '../ui/Icon.jsx';
+import { findMe, resultLabel, resultLabelKey, formStats, tiltStatus, tiltFrequency, excludeDeathmatch } from '../stats/valorantStats.js';
+import CountUp from '../ui/CountUp.jsx';
+import { TiltTabSkeleton } from '../ui/skeletons.jsx';
+import useLoadingGate from '../hooks/useLoadingGate.js';
+import PlatformFilterToggle from '../ui/PlatformFilterToggle.jsx';
+import usePlatformFilter from '../hooks/usePlatformFilter.js';
+import CollapsibleCard from '../ui/CollapsibleCard.jsx';
 
 const STREAK_DOTS_COUNT = 10;
 

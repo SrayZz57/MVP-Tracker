@@ -1,4 +1,4 @@
-import MessagesPage from '../MessagesPage.jsx';
+import MessagesPage from '../social/MessagesPage.jsx';
 
 function MessagesTab({ myId, onlineFriendIds, initialFriendId, onConsumedInitialFriendId, apiKey }) {
   return (

@@ -1,4 +1,4 @@
-import CompositionBuilder from '../CompositionBuilder.jsx';
+import CompositionBuilder from '../strategy/CompositionBuilder.jsx';
 
 function CompositionTab({ settings, matches, mySettings, myMatches, myId, isAdmin }) {
   return (

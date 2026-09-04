@@ -1,8 +1,8 @@
 import { useTranslation } from 'react-i18next';
 import { Star } from 'lucide-react';
-import Icon from '../Icon.jsx';
-import { PERIODS } from '../performanceCharts.js';
-import { dayLabelKey } from '../valorantStats.js';
+import Icon from '../ui/Icon.jsx';
+import { PERIODS } from '../stats/performanceCharts.js';
+import { dayLabelKey } from '../stats/valorantStats.js';
 
 function sequentialColor(value) {
   const alpha = 0.18 + (Math.min(100, Math.max(0, value)) / 100) * 0.72;
