@@ -284,14 +284,15 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
 
       <CollapsibleCard collapsible={false} id="account.settings" title={t('account.settingsTitle')}>
         <p className="label">{t('account.settingsHint')}</p>
-        {email && (
-          <p className="account-email-row">
-            <span className="account-tile-label">{t('account.emailLabel')}</span>
-            <span>{email}</span>
-          </p>
-        )}
-        <div className="account-email-row">
-          <span className="account-tile-label">{t('account.riotIdLabel')}</span>
+        <div className="account-info-grid">
+          {email && (
+            <>
+              <span className="account-info-label">{t('account.emailLabel')}</span>
+              <span className="account-info-value">{email}</span>
+            </>
+          )}
+
+          <span className="account-info-label">{t('account.riotIdLabel')}</span>
           {editingRiotId ? (
             <div className="account-name-edit-row">
               <input
@@ -338,11 +339,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
               <span className="account-name-pencil"><Icon icon={Pencil} size={14} /></span>
             </span>
           )}
-        </div>
-        {riotIdError && <p className="warning">{riotIdError}</p>}
-        <p className="label account-toggle-hint">{t('account.riotIdHint')}</p>
-        <div className="account-email-row">
-          <span className="account-tile-label">{t('account.apiKeyLabel')}</span>
+
+          {riotIdError && <p className="warning account-info-note">{riotIdError}</p>}
+          <p className="label account-info-note">{t('account.riotIdHint')}</p>
+
+          <span className="account-info-label">{t('account.apiKeyLabel')}</span>
           {editingApiKey ? (
             <div className="account-name-edit-row">
               <input
@@ -381,8 +382,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             </span>
           )}
         </div>
-        <label className="account-email-row account-toggle-row">
-          <span className="account-tile-label">{t('account.agentSelectOverlayLabel')}</span>
+        <label className="account-toggle-row">
+          <span className="account-toggle-text">
+            <span className="account-toggle-title">{t('account.agentSelectOverlayLabel')}</span>
+            <span className="label">{t('account.agentSelectOverlayHint')}</span>
+          </span>
           <span className={`switch ${overlayEnabled ? 'on' : ''}`}>
             <input type="checkbox" checked={overlayEnabled} onChange={handleToggleOverlay} />
             <span className="switch-track">
@@ -390,9 +394,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             </span>
           </span>
         </label>
-        <p className="label account-toggle-hint">{t('account.agentSelectOverlayHint')}</p>
-        <label className="account-email-row account-toggle-row">
-          <span className="account-tile-label">{t('account.autoLaunchLabel')}</span>
+        <label className="account-toggle-row">
+          <span className="account-toggle-text">
+            <span className="account-toggle-title">{t('account.autoLaunchLabel')}</span>
+            <span className="label">{t('account.autoLaunchHint')}</span>
+          </span>
           <span className={`switch ${autoLaunchEnabled ? 'on' : ''}`}>
             <input type="checkbox" checked={autoLaunchEnabled} onChange={handleToggleAutoLaunch} />
             <span className="switch-track">
@@ -400,7 +406,6 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             </span>
           </span>
         </label>
-        <p className="label account-toggle-hint">{t('account.autoLaunchHint')}</p>
         <div className="account-settings-actions">
           <Button variant="ghost" className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}
