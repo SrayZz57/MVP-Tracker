@@ -98,3 +98,6 @@ dist/
 .motion-check/
 __skeleton_lab__/
 tools/screenshots/
+
+# Scripts jetables : voir CLAUDE.md, un essai temporaire ne vit pas dans le depot.
+tmp-*
