@@ -148,7 +148,7 @@ chaîne visible en dur dans un composant, et les deux fichiers se modifient
 ensemble. Une clé qui n'existe que dans une langue affiche la clé brute à
 l'écran.
 
-Une URL externe qui sert deux fois vit dans `src/renderer/links.js`.
+Une URL externe qui sert deux fois vit dans `src/renderer/data/links.js`.
 
 ## Règles de code
 
