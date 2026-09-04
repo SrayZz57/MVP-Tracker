@@ -1,0 +1,34 @@
+{
+  "wiki": {
+    "title": "Wiki Valorant",
+    "description": "Toutes les infos de référence, agents, armes, maps et rangs, pour découvrir ou revoir les bases sans sortir de l'appli.",
+    "categories": {
+      "agents": "Agents",
+      "weapons": "Armes",
+      "maps": "Maps",
+      "ranks": "Rangs"
+    },
+    "close": "Fermer",
+    "abilities": "Capacités",
+    "weaponCategories": {
+      "Pistols": "Pistolets",
+      "SMGs": "Mitraillettes",
+      "Shotguns": "Fusils à pompe",
+      "Rifles": "Fusils d'assaut",
+      "Sniper Rifles": "Fusils de précision",
+      "Heavy Weapons": "Armes lourdes"
+    },
+    "credits": "{{cost}} crédits",
+    "fireRate": "Cadence de tir (coups/s)",
+    "magazineSize": "Taille du chargeur",
+    "reloadTime": "Temps de rechargement",
+    "damageByDistance": "Dégâts par distance",
+    "distance": "Distance",
+    "head": "Tête",
+    "body": "Corps",
+    "legs": "Jambes",
+    "noWeaponStats": "Pas de statistiques détaillées pour cette arme.",
+    "minimap": "Minimap",
+    "ranksHint": "Du plus haut au plus bas."
+  }
+}

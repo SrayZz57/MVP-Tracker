@@ -1,0 +1,34 @@
+{
+  "wiki": {
+    "title": "Valorant Wiki",
+    "description": "All the reference info, agents, weapons, maps and ranks, to learn or brush up on the basics without leaving the app.",
+    "categories": {
+      "agents": "Agents",
+      "weapons": "Weapons",
+      "maps": "Maps",
+      "ranks": "Ranks"
+    },
+    "close": "Close",
+    "abilities": "Abilities",
+    "weaponCategories": {
+      "Pistols": "Pistols",
+      "SMGs": "SMGs",
+      "Shotguns": "Shotguns",
+      "Rifles": "Rifles",
+      "Sniper Rifles": "Sniper Rifles",
+      "Heavy Weapons": "Heavy Weapons"
+    },
+    "credits": "{{cost}} credits",
+    "fireRate": "Fire rate (rounds/s)",
+    "magazineSize": "Magazine size",
+    "reloadTime": "Reload time",
+    "damageByDistance": "Damage by distance",
+    "distance": "Distance",
+    "head": "Head",
+    "body": "Body",
+    "legs": "Legs",
+    "noWeaponStats": "No detailed stats for this weapon.",
+    "minimap": "Minimap",
+    "ranksHint": "From highest to lowest."
+  }
+}

@@ -64,6 +64,7 @@ import PostMortemModal from './sessions/PostMortemModal.jsx';
 import SearchBar from './ui/SearchBar.jsx';
 import AgentSelectLive from './overlay/AgentSelectLive.jsx';
 import { DISCORD_INVITE } from './data/links.js';
+import { isLang } from './i18n/config.js';
 import WelcomeScreen from './account/WelcomeScreen.jsx';
 import LinkRiotAccount from './account/LinkRiotAccount.jsx';
 import AccountGreeting from './account/AccountGreeting.jsx';
@@ -384,7 +385,7 @@ function App() {
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
     window.electronAPI.getLanguage().then((lang) => {
-      if (lang && lang !== i18n.language) i18n.changeLanguage(lang);
+      if (isLang(lang) && lang !== i18n.language) i18n.changeLanguage(lang);
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);

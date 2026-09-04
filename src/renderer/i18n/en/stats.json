@@ -1,0 +1,381 @@
+{
+  "stats": {
+    "scopeLabel": "View stats on this page for:",
+    "scope": {
+      "all": "All",
+      "ranked": "Ranked",
+      "unrated": "Unrated"
+    },
+    "allActs": "All acts",
+    "matchesCount_one": "{{count}} match",
+    "matchesCount_other": "{{count}} matches",
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "peak": "Peak {{tier}}",
+    "kdProgressionTitle_one": "K/D progression ({{count}} last match)",
+    "kdProgressionTitle_other": "K/D progression (last {{count}} matches)",
+    "kdAvg": "Average K/D",
+    "bestMatch": "Best match",
+    "worstMatch": "Worst match",
+    "trend": "Trend (2nd half vs 1st)",
+    "periodRecap": "Period recap",
+    "draws_one": "({{count}} draw)",
+    "draws_other": "({{count}} draws)",
+    "winPercentage": "{{percent}} winrate",
+    "periodHint": "Oldest (left) to most recent (right)",
+    "globalStatsTitle_one": "Overall stats ({{count}} match)",
+    "globalStatsTitle_other": "Overall stats ({{count}} matches)",
+    "head": "Head",
+    "body": "Body",
+    "legs": "Legs",
+    "topWeapons": "Most used weapons",
+    "noWeaponData": "No weapon data yet.",
+    "killsCount_one": "{{count}} kill",
+    "killsCount_other": "{{count}} kills",
+    "statsByAgent": "Stats by agent",
+    "noDataYet": "No data yet.",
+    "gamesCount_one": "{{count}} game",
+    "gamesCount_other": "{{count}} games",
+    "favoriteWeapon": "favorite weapon: {{weapon}}",
+    "showLess": "Show less",
+    "showMore": "Show more ({{count}})",
+    "statsByMap": "Stats by map",
+    "winrateLabel": "winrate",
+    "colAgent": "Agent",
+    "colWinrate": "Winrate",
+    "colGames": "Games",
+    "colKda": "K/D/A",
+    "colKills": "Kills",
+    "colWeapon": "Weapon",
+    "statsByRole": "Stats by role",
+    "statsByMode": "Stats by mode",
+    "matchHistory_one": "Match history ({{count}})",
+    "matchHistory_other": "Match history ({{count}})",
+    "allModes": "All modes",
+    "hitBreakdown": " · Head {{hs}}% / Body {{bs}}% / Legs {{ls}}%",
+    "hsShort": "{{hs}}% head",
+    "dayRecord": "{{wins}}W · {{losses}}L"
+  },
+  "profile": {
+    "cardTitle": "DNA Profile",
+    "notReady_one": "{{count}} more ranked match needed before your player profile can be generated.",
+    "notReady_other": "{{count}} more ranked matches needed before your player profile can be generated.",
+    "scores": {
+      "aggression": "Aggression",
+      "stability": "Mental stability",
+      "versatility": "Versatility",
+      "clutch": "Clutch factor"
+    },
+    "basedOn": "Based on {{matches}} ranked matches, {{agents}} distinct agent(s), {{firstBloods}} first blood(s), {{clutches}} clutch situation(s).",
+    "archetypes": {
+      "duelistImpulsive": {
+        "title": "Impulsive duelist",
+        "text": "You take the initiative first in most rounds, but bad patches send you off the rails fast. A real aggression engine, as long as you know when to pump the brakes after a losing streak."
+      },
+      "clutchFragger": {
+        "title": "Clutch fragger",
+        "text": "You open rounds and close out tight situations: a rare combination of aggression and composure late in the round."
+      },
+      "entryFragger": {
+        "title": "Entry fragger",
+        "text": "You're often the first into contact, whether that means opening space for your team or dying first. A demanding role that carries a lot of weight early in the round."
+      },
+      "aggressivePolyvalent": {
+        "title": "Versatile fragger",
+        "text": "You play aggressive AND rotate through a lot of different agents, a rare combination of a player who takes the initiative without ever leaning on a single kit."
+      },
+      "clutchAllrounder": {
+        "title": "Complete all-rounder",
+        "text": "Lots of agents, few losing streaks, and solid clutch numbers: the most complete profile tracked here, with no glaring weakness."
+      },
+      "quietFlexible": {
+        "title": "Quiet flexible",
+        "text": "You switch agents easily and take bad streaks in stride, but you're not the one looking for first contact. A profile that adapts to the team rather than the ego."
+      },
+      "versatileTactician": {
+        "title": "Versatile tactician",
+        "text": "You move from one agent to another without losing consistency, and you take bad streaks in stride. The flexible profile of a player who adapts to the team."
+      },
+      "unstableCloser": {
+        "title": "Unstable but clutch",
+        "text": "Your losing streaks snowball easily, but when it really matters (one-versus-multiple), you show up more often than average. An interesting contrast to watch alongside the Tilt module."
+      },
+      "inconsistentPlayer": {
+        "title": "Streaky player",
+        "text": "Your losing streaks tend to snowball and weigh on your performance. The Tilt module can help you spot the right moment to take a break."
+      },
+      "clutchSpecialist": {
+        "title": "Clutch specialist",
+        "text": "You stick to a small core of agents, but you're dangerous in clutch situations. Focused expertise that pays off exactly when it counts."
+      },
+      "closer": {
+        "title": "Closer",
+        "text": "You might not dominate the start of rounds, but you're clutch: you convert an above-average number of one-versus-multiple situations."
+      },
+      "quietSpecialist": {
+        "title": "Quiet specialist",
+        "text": "Few agents played, little first initiative taken, a composed profile that would rather play its hand than force situations."
+      },
+      "specialist": {
+        "title": "Specialist",
+        "text": "You stick to a small core of agents rather than rotating. Focused expertise, at the cost of a bit of flexibility when a switch is needed."
+      },
+      "steadyPillar": {
+        "title": "Steady pillar",
+        "text": "You don't look for first contact, but you absorb bad streaks very well. The kind of teammate the squad can count on without thinking twice."
+      },
+      "balancedPlayer": {
+        "title": "Balanced player",
+        "text": "Nothing stands out strongly either way for now, a stable profile, with no glaring excess or weakness on the axes tracked."
+      }
+    },
+    "weakness": {
+      "title": "Points to work on",
+      "none": "Nothing to flag for now, your profile is balanced across every tracked axis.",
+      "aggression": {
+        "title": "Aggression",
+        "text": "You win few first duels. The Aim Trainer's Peek mode trains exactly that: pushing out and engaging fast on a target that appears.",
+        "action": "Open Aim Trainer"
+      },
+      "stability": {
+        "title": "Mental stability",
+        "text": "Your performance often drops after a loss or a death streak. The Aim Trainer's Precision mode trains calm, controlled aim, useful for not tilting.",
+        "action": "Open Aim Trainer"
+      },
+      "versatility": {
+        "title": "Versatility",
+        "text": "You play a limited pool of agents. The Composition tool lets you explore other roles and prep a backup agent.",
+        "action": "Open Composition"
+      },
+      "clutch": {
+        "title": "Clutch factor",
+        "text": "You win few 1-vs-multiple situations. The Aim Trainer's Snap & Hold mode trains snapping onto a target then holding position, useful in clutches.",
+        "action": "Open Aim Trainer"
+      },
+      "aim": {
+        "title": "Precision",
+        "text": "Your headshot percentage is low. The Aim Trainer's Micro mode forces you to hit tiny targets: exactly the aim it takes to land more headshots.",
+        "action": "Open Aim Trainer"
+      },
+      "positioning": {
+        "title": "Positioning",
+        "text": "You often die in the very first seconds of the round. The Aim Trainer's Reflex mode trains reacting and neutralizing fast as soon as an opponent appears.",
+        "action": "Open Aim Trainer"
+      }
+    }
+  },
+  "analyse": {
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "timingTitle_one": "Death timing ({{count}} death analyzed)",
+    "timingTitle_other": "Death timing ({{count}} deaths analyzed)",
+    "noDataYet": "No data yet.",
+    "deathsCount_one": "{{count}} death",
+    "deathsCount_other": "{{count}} deaths",
+    "timingHint": "Lots of early deaths (0-20s) = you take the initiative early (sometimes too much). Lots of late-round deaths = you hold your positions but might get caught out as time runs low.",
+    "distanceTitle": "Duels by distance",
+    "notEnoughData": "Not enough data yet.",
+    "avgKillDistance": "Average distance of your kills",
+    "avgDeathDistance": "Average distance of your deaths",
+    "winrateGap": "Winrate gap, short → long range",
+    "killsDeathsMeta": "{{kills}} kill(s) / {{deaths}} death(s)",
+    "distanceHint": "Riot doesn't expose missed shots, so a true accuracy figure isn't possible. What's shown here is your duel win rate (your kills vs your deaths) based on the distance to your opponent at the moment of the kill. The best honest proxy available to see if your aim holds up at range. Distance is approximate (based on in-engine units, ≈ 1 unit = 1 cm).",
+    "clutchTitle": "Clutches",
+    "noClutch": "No clutch situation detected yet.",
+    "clutchWinrate": "Clutch winrate",
+    "attempts": "Attempts",
+    "wins": "Won",
+    "clutchHint": "A clutch is when you're the last teammate alive while at least one opponent is still alive.",
+    "economyTitle": "Economy impact",
+    "roundsMeta_one": "{{count}} round",
+    "roundsMeta_other": "{{count}} rounds",
+    "timingBuckets": {
+      "early": "Entry (0-20s)",
+      "mid": "Mid-round (20-60s)",
+      "late": "Late round (60s+)"
+    },
+    "distanceBuckets": {
+      "close": "Close (< 8m)",
+      "mid": "Medium (8-20m)",
+      "long": "Long (20-35m)",
+      "verylong": "Very long (35m+)"
+    }
+  },
+  "detail": {
+    "close": "Close",
+    "gamesPlayed": "Games played",
+    "winrate": "Winrate",
+    "avgKda": "Average K/D/A",
+    "playtimeKills": "Playtime ({{count}} kills)",
+    "mostUsedWeapons": "Most used weapons",
+    "noData": "No data.",
+    "killsCount": "{{count}} kills",
+    "winrateByMap": "Winrate by map",
+    "gamesKda_one": "{{count}} game · {{k}}/{{d}}/{{a}}",
+    "gamesKda_other": "{{count}} games · {{k}}/{{d}}/{{a}}",
+    "assistNote": "Note: the API doesn't distinguish assists made via an ability from those made with a weapon. Only the total assist count is available, already shown elsewhere in the app.",
+    "totalKills": "Total kills",
+    "avgKillDistance": "Average kill distance",
+    "killsByMap": "Kills by map",
+    "killsByAgent": "Kills by agent",
+    "weaponHitNote": "Riot doesn't tie hit locations (head/body/legs) to a specific weapon, only overall accuracy across all weapons is available (already shown in \"Overall stats\").",
+    "attackDefense": "Attack / Defense",
+    "attackWinrate_one": "Attack winrate ({{count}} round)",
+    "attackWinrate_other": "Attack winrate ({{count}} rounds)",
+    "defenseWinrate_one": "Defense winrate ({{count}} round)",
+    "defenseWinrate_other": "Defense winrate ({{count}} rounds)",
+    "unknownRounds_one": "{{count}} round couldn't be determined (no spike plant or time-out end).",
+    "unknownRounds_other": "{{count}} rounds couldn't be determined (no spike plant or time-out end).",
+    "agentsOnMap": "Agents played on this map",
+    "agentUsageLine": "{{percent}}% ({{count}} matches)",
+    "killsByWeaponOnMap": "Kills by weapon on this map",
+    "players": "Players",
+    "redTeam": "Red Team",
+    "blueTeam": "Blue Team",
+    "myKillsByWeapon": "My kills by weapon this match",
+    "noKillsRecorded": "No kill recorded.",
+    "roundByRound": "Round by round",
+    "result": "Result",
+    "end": "End",
+    "myKills": "My kills",
+    "damage": "Damage",
+    "score": "Score",
+    "died": "Died?",
+    "myEconomy": "My economy",
+    "won": "Won",
+    "lost": "Lost",
+    "yes": "Yes",
+    "no": "No",
+    "pointsAbbr": "pts"
+  },
+  "heatmap": {
+    "title": "Heatmap",
+    "description": "Visualize where you die (or get kills) most often on each map, based on all your cached matches.",
+    "modes": {
+      "deaths": "Where I die",
+      "kills": "Where I kill"
+    },
+    "sides": {
+      "all": "All sides",
+      "attack": "Attack",
+      "defense": "Defense"
+    },
+    "roundTypes": {
+      "all": "All rounds",
+      "gun": "Pistol round",
+      "full": "Full buy",
+      "eco": "Eco"
+    },
+    "allWeapons": "All weapons",
+    "rotate": "Rotate 90°",
+    "pointsAnalyzed_one": "{{count}} point analyzed",
+    "pointsAnalyzed_other": "{{count}} points analyzed",
+    "legendLow": "low",
+    "legendHigh": "high",
+    "periods": {
+      "morning": "Morning",
+      "afternoon": "Afternoon",
+      "evening": "Evening",
+      "night": "Night"
+    },
+    "grid": {
+      "gamesCount_one": "{{count}} game",
+      "gamesCount_other": "{{count}} games",
+      "winrateSuffix": " · {{percent}}% winrate",
+      "peakSuffix": " · your best time slot",
+      "noData": "No data"
+    }
+  },
+  "tilt": {
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "tiltedTitle": "Signs of tilt detected",
+    "calmTitle": "No sign of tilt",
+    "lossStreak": "{{count}} losses in a row. ",
+    "perfDegradation": "Performance dropping over the last 3 matches (K/D {{recentKd}} vs average {{overallKd}}). ",
+    "breakSuggestion": "A break might help.",
+    "allGood": "Keep it up, nothing to report right now.",
+    "recentResults": "Recent results",
+    "dotsHint": "Most recent (left) to oldest (right), green = win, red = loss.",
+    "frequencyTitle": "Tilt frequency (history)",
+    "notEnoughMatches": "Not enough matches yet to compute a frequency.",
+    "tiltedMatchesPercent": "of your matches tilted",
+    "matchesInTiltStreak": "matches within a tilt streak",
+    "totalMatchesAnalyzed": "total matches analyzed",
+    "frequencyHint": "A match counts as \"tilted\" if it's part of a streak of 3 or more consecutive losses, across your whole cached history. Not just the current situation.",
+    "whatIsWatched": "What's being watched",
+    "lossStreakLabel": "Losses in a row (threshold: 3)",
+    "last3Kd": "K/D over the last 3 matches",
+    "ofOverallAverage": "...of your overall average (threshold: 70%)",
+    "howItWorks": "How it works",
+    "howItWorksIntro": "A tilt sign is detected if either of these two conditions is true:",
+    "rule1": "3 or more losses in a row",
+    "rule2": "K/D over the last 3 matches below 70% of your overall average"
+  },
+  "form": {
+    "noDataYet": "No data yet.",
+    "gamesCount_one": "{{count}} game",
+    "gamesCount_other": "{{count}} games",
+    "recentForm": "Recent form",
+    "notEnoughData": "Not enough data",
+    "currentStreak": "Current streak ({{type}})",
+    "noStreak": "None",
+    "kdRecent_one": "K/D over last {{count}} match",
+    "kdRecent_other": "K/D over last {{count}} matches",
+    "kdOverall": "Overall average K/D",
+    "bestTimeToPlay": "Best time to play",
+    "winratePlays_one": "{{percent}}% winrate ({{count}} game)",
+    "winratePlays_other": "{{percent}}% winrate ({{count}} games)",
+    "bestMomentHint": "Computed on time slots/days with at least 2 games played.",
+    "statsByTimeSlot": "Stats by time slot",
+    "statsByWeekday": "Stats by day of the week"
+  },
+  "rankMomentum": {
+    "title": "Momentum",
+    "notReady_one": "{{count}} more ranked match needed before comparing your recent form to your usual level.",
+    "notReady_other": "{{count}} more ranked matches needed before comparing your recent form to your usual level.",
+    "trending": "Your performances have clearly exceeded your usual average for a while, you might be ready to rank up.",
+    "stable": "Your recent form is in line with your usual average.",
+    "kdVsUsual": "Recent vs usual K/D",
+    "winrateVsUsual": "Recent vs usual winrate",
+    "accuracyVsUsual": "Recent vs usual accuracy",
+    "vs": "vs {{value}}",
+    "hint": "Comparison of your last 10 ranked matches vs the ones before that, no average across players of your rank (that data isn't publicly available), just you compared to yourself."
+  },
+  "network": {
+    "status": "Status",
+    "detected": "Valorant detected",
+    "notDetected": "Valorant not detected",
+    "pingGeneral": "Ping (general connection)",
+    "pingHistory": "Recent ping history",
+    "notEnoughReadings": "Not enough recent readings yet to draw a chart.",
+    "recentReadings_one": "last {{count}} reading",
+    "recentReadings_other": "last {{count}} readings",
+    "sparklineMeta": "avg. {{avg}} ms · min {{min}} · max {{max}}",
+    "deathCorrelation": "Ping / deaths correlation",
+    "notEnoughNetworkData": "Not enough network data during your matches yet to compute a correlation (the app needs to be open while you play).",
+    "deathsInSpike": "deaths during a spike",
+    "totalDeathsAnalyzed": "Total deaths analyzed",
+    "duringPingSpike": "During a ping spike",
+    "correlationSummary": "That's {{percent}}% of your analyzed deaths that happened during a ping spike (ping 30% above the match average).",
+    "accountTotal": "Across all your devices: {{nearSpike}} deaths during a ping spike out of {{analyzed}} analyzed."
+  },
+  "charts": {
+    "noMatchesYet": "No cached matches yet. Click \"Refresh\".",
+    "notEnoughData": "Not enough data yet.",
+    "notEnoughDataForChart": "Not enough data for a chart yet.",
+    "gamesCount_one": "{{count}} game",
+    "gamesCount_other": "{{count}} games",
+    "title": "Charts",
+    "description": "A visual summary of your stats, computed from your cached history.",
+    "rankedMatches": "Ranked matches",
+    "globalWinrate": "Overall winrate",
+    "avgKd": "Average K/D",
+    "hsAccuracy": "Headshot accuracy",
+    "dayPeriodTitle": "Performance by day and time of day",
+    "dayPeriodHint": "Winrate per time slot, the bluer the cell, the better your winrate at that time.",
+    "kdTrendTitle": "K/D over the last 20 matches",
+    "winrateTrendTitle": "Rolling winrate (5-match window)",
+    "allAgents": "All agents",
+    "mapWinrateTitle": "Winrate by map",
+    "roleDistributionTitle": "Role distribution",
+    "matchLabel": "Match {{n}}"
+  }
+}
