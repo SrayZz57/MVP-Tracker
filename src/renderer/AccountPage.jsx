@@ -1,7 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Pencil, Check, X, Mail } from 'lucide-react';
+import { Pencil, Check, X, MessageCircle } from 'lucide-react';
 import Icon from './Icon.jsx';
+import { DISCORD_INVITE } from './links.js';
 import { usePlayerCardArt, useAllPlayerCards } from './rankData.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { computeRoleDistribution } from './performanceCharts.js';
@@ -13,7 +14,6 @@ import { supabase } from './supabaseClient.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import Button from './ui/Button';
 
-const CONTACT_EMAIL = 'mvptracker.app@gmail.com';
 
 const ROLES = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
 
@@ -424,11 +424,11 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
       <CollapsibleCard collapsible={false} id="account.contact" title={t('account.contactTitle')}>
         <p className="label">{t('account.contactHint')}</p>
         <Button
-          variant="ghost"
+          variant="primary"
           className="account-contact-button"
-          onClick={() => window.electronAPI.openExternal(`mailto:${CONTACT_EMAIL}`)}
+          onClick={() => window.electronAPI.openExternal(DISCORD_INVITE)}
         >
-          <Icon icon={Mail} size={16} /> {CONTACT_EMAIL}
+          <Icon icon={MessageCircle} size={16} /> {t('account.contactCta')}
         </Button>
       </CollapsibleCard>
 

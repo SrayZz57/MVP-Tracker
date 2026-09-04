@@ -1737,7 +1737,8 @@
     "forgotPasswordSent": "Email sent. Check your inbox to reset your password.",
     "forgotPasswordError": "Failed to send. Try again in a moment.",
     "contactTitle": "Contact us",
-    "contactHint": "An issue, a suggestion, a question? Write to us directly.",
+    "contactHint": "An issue, a suggestion, a question? Discord is the fastest, we answer there every day.",
+    "contactCta": "Join the Discord",
     "choosePhoto": "Choose a profile photo",
     "chooseFavoriteAgent": "Choose your favorite agent"
   },

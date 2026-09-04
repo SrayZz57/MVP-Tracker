@@ -63,6 +63,7 @@ import WeeklyRecapCard from './WeeklyRecapCard.jsx';
 import PostMortemModal from './PostMortemModal.jsx';
 import SearchBar from './SearchBar.jsx';
 import AgentSelectLive from './AgentSelectLive.jsx';
+import { DISCORD_INVITE } from './links.js';
 import WelcomeScreen from './WelcomeScreen.jsx';
 import LinkRiotAccount from './LinkRiotAccount.jsx';
 import AccountGreeting from './AccountGreeting.jsx';
@@ -932,7 +933,7 @@ function App() {
               variant="ghost"
               className="discord-button"
               title={t('nav.discordTitle')}
-              onClick={() => window.electronAPI.openExternal('https://discord.gg/NyZbTsM7D2')}
+              onClick={() => window.electronAPI.openExternal(DISCORD_INVITE)}
             >
               <svg viewBox="0 0 127.14 96.36" width="18" height="18" aria-hidden="true">
                 <path
