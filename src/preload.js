@@ -51,6 +51,10 @@ contextBridge.exposeInMainWorld('electronAPI', {
   saveStrategy: (name, map, canvasJson) =>
     ipcRenderer.invoke('strategy:save', { name, map, canvasJson }),
   deleteStrategy: (id) => ipcRenderer.invoke('strategy:delete', id),
+  getActivePlaySession: () => ipcRenderer.invoke('play-session:get-active'),
+  startPlaySession: () => ipcRenderer.invoke('play-session:start'),
+  endPlaySession: (id) => ipcRenderer.invoke('play-session:end', id),
+  getPlaySessionHistory: (limit) => ipcRenderer.invoke('play-session:history', limit),
   getPendingBet: () => ipcRenderer.invoke('bet:get-pending'),
   createBet: (type, threshold, baselineMatchId) =>
     ipcRenderer.invoke('bet:create', { type, threshold, baselineMatchId }),
@@ -94,4 +98,22 @@ contextBridge.exposeInMainWorld('electronAPI', {
       stack: error?.stack,
       context,
     }),
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  toggleMaximizeWindow: () => ipcRenderer.invoke('window:toggle-maximize'),
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+  isWindowMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  onWindowMaximizedChange: (callback) => {
+    const listener = (_event, maximized) => callback(maximized);
+    ipcRenderer.on('window:maximized-change', listener);
+    return () => ipcRenderer.removeListener('window:maximized-change', listener);
+  },
+  getUpdateStatus: () => ipcRenderer.invoke('app-update:get-status'),
+  installUpdate: () => ipcRenderer.invoke('app-update:install'),
+  getAutoLaunch: () => ipcRenderer.invoke('app-startup:get'),
+  setAutoLaunch: (enabled) => ipcRenderer.invoke('app-startup:set', enabled),
+  onUpdateReady: (callback) => {
+    const listener = (_event, update) => callback(update);
+    ipcRenderer.on('app-update:ready', listener);
+    return () => ipcRenderer.removeListener('app-update:ready', listener);
+  },
 });

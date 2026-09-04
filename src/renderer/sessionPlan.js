@@ -35,7 +35,8 @@ export function buildSessionPlan(t, matches, name, tag) {
   const slotStats = groupStats(ranked, name, tag, (match) => timeSlot(match));
   const warmup = suggestWarmup(t, slotStats);
 
-  const targetMap = matches[0]?.metadata?.map ?? null;
+  const strategyMatch = matches.find((m) => !m.metadata?.map?.toLowerCase().startsWith('skirmish'));
+  const targetMap = strategyMatch?.metadata?.map ?? null;
 
   const hsPercent = overallHsPercent(ranked, name, tag);
   const hsTarget = hsPercent === null ? 25 : Math.ceil((hsPercent + 3) / 5) * 5;

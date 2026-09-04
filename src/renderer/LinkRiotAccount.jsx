@@ -19,7 +19,7 @@ function WelcomeOrbs() {
   );
 }
 
-function LinkRiotAccount({ onConfirmed, linkError }) {
+function LinkRiotAccount({ onConfirmed, linkError, onSignOut }) {
   const { t } = useTranslation();
   const [name, setName] = useState('');
   const [tag, setTag] = useState('');
@@ -62,6 +62,11 @@ function LinkRiotAccount({ onConfirmed, linkError }) {
       <WelcomeOrbs />
       <img src={logo} alt="MVP Tracker" className="welcome-logo" />
       <h1>{t('linkRiot.title')}</h1>
+      {onSignOut && (
+        <Button variant="ghost" type="button" className="link-back link-riot-back" onClick={onSignOut}>
+          {t('linkRiot.backToLogin')}
+        </Button>
+      )}
 
       {step === 'search' && (
         <>

@@ -1,11 +1,11 @@
-import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen } from 'electron';
+import { app, BrowserWindow, ipcMain, shell, Menu, Notification, session, safeStorage, screen, autoUpdater, Tray } from 'electron';
 import path from 'node:path';
 import fs from 'node:fs';
 import crypto from 'node:crypto';
 import started from 'electron-squirrel-startup';
 import Store from 'electron-store';
 import { getAccount, getMatches, getMmr, henrikDedupCount } from './services/henrikdev.js';
-import { excludeDeathmatch, formStats, tiltStatus } from './renderer/valorantStats.js';
+import { excludeDeathmatch, formStats, tiltStatus, patchSelfIdentity } from './renderer/valorantStats.js';
 import {
   saveMatches,
   getCachedMatches,
@@ -36,6 +36,10 @@ import {
   resolveBet,
   getBetHistory,
   getTotalBetPoints,
+  getActivePlaySession,
+  startPlaySession,
+  endPlaySession,
+  getPlaySessionHistory,
   backfillLegacyPuuid,
 } from './services/db.js';
 import { isValorantRunning, pingOnce } from './services/network.js';
@@ -159,7 +163,31 @@ process.on('unhandledRejection', (reason) => {
   captureException(currentPuuid(), reason instanceof Error ? reason : new Error(String(reason)));
 });
 
-updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client' });
+updateElectronApp({ repo: 'SrayZz57/mvp-tracker-client', notifyUser: false });
+
+let pendingUpdate = null;
+
+autoUpdater.on('update-downloaded', (_event, releaseNotes, releaseName) => {
+  pendingUpdate = { releaseName };
+  mainWindow?.webContents.send('app-update:ready', pendingUpdate);
+});
+
+ipcMain.handle('app-update:get-status', () => pendingUpdate);
+ipcMain.handle('app-update:install', () => autoUpdater.quitAndInstall());
+
+let installingUpdate = false;
+app.on('before-quit', (event) => {
+  if (pendingUpdate && !installingUpdate) {
+    event.preventDefault();
+    installingUpdate = true;
+    autoUpdater.quitAndInstall();
+  }
+});
+
+ipcMain.handle('app-startup:get', () => app.getLoginItemSettings().openAtLogin);
+ipcMain.handle('app-startup:set', (_event, enabled) => {
+  app.setLoginItemSettings({ openAtLogin: enabled });
+});
 
 function cleanupOldSquirrelVersions() {
   if (!app.isPackaged || process.platform !== 'win32') return;
@@ -189,6 +217,46 @@ Menu.setApplicationMenu(null);
 const DEEP_LINK_SCHEME = 'mvptracker';
 
 let mainWindow = null;
+let tray = null;
+let isQuitting = false;
+
+const trayIconPath = app.isPackaged
+  ? path.join(process.resourcesPath, 'favicon.ico')
+  : path.join(__dirname, '..', '..', 'src', 'assets', 'favicon.ico');
+
+function createTray() {
+  if (tray) return;
+  tray = new Tray(trayIconPath);
+  tray.setToolTip('MVP Tracker');
+  tray.setContextMenu(
+    Menu.buildFromTemplate([
+      {
+        label: 'Ouvrir MVP Tracker',
+        click: () => {
+          if (!mainWindow) return;
+          mainWindow.show();
+          mainWindow.focus();
+        },
+      },
+      { type: 'separator' },
+      {
+        label: 'Quitter',
+        click: () => {
+          isQuitting = true;
+          app.quit();
+        },
+      },
+    ]),
+  );
+  tray.on('click', () => {
+    if (!mainWindow) return;
+    if (mainWindow.isVisible()) mainWindow.hide();
+    else {
+      mainWindow.show();
+      mainWindow.focus();
+    }
+  });
+}
 
 if (process.defaultApp) {
   if (process.argv.length >= 2) {
@@ -224,6 +292,7 @@ if (!gotSingleInstanceLock) {
     if (deepLink) handleDeepLink(deepLink);
     if (mainWindow) {
       if (mainWindow.isMinimized()) mainWindow.restore();
+      if (!mainWindow.isVisible()) mainWindow.show();
       mainWindow.focus();
     }
   });
@@ -236,6 +305,8 @@ const createWindow = () => {
     show: false,
     autoHideMenuBar: true,
     icon: MAIN_WINDOW_VITE_DEV_SERVER_URL ? path.join(app.getAppPath(), 'src/assets/favicon.ico') : undefined,
+    frame: false,
+    backgroundColor: '#0a0c11',
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       contextIsolation: true,
@@ -249,6 +320,15 @@ const createWindow = () => {
   mainWindow.once('ready-to-show', () => {
     mainWindow.maximize();
     mainWindow.show();
+  });
+
+  mainWindow.on('maximize', () => mainWindow.webContents.send('window:maximized-change', true));
+  mainWindow.on('unmaximize', () => mainWindow.webContents.send('window:maximized-change', false));
+
+  mainWindow.on('close', (event) => {
+    if (isQuitting) return;
+    event.preventDefault();
+    mainWindow.hide();
   });
 
   mainWindow.webContents.on('before-input-event', (_event, input) => {
@@ -269,6 +349,15 @@ const createWindow = () => {
 };
 
 ipcMain.handle('shell:open-external', (_event, url) => shell.openExternal(url));
+
+ipcMain.handle('window:minimize', () => mainWindow?.minimize());
+ipcMain.handle('window:toggle-maximize', () => {
+  if (!mainWindow) return;
+  if (mainWindow.isMaximized()) mainWindow.unmaximize();
+  else mainWindow.maximize();
+});
+ipcMain.handle('window:close', () => mainWindow?.close());
+ipcMain.handle('window:is-maximized', () => mainWindow?.isMaximized() ?? false);
 
 ipcMain.handle('telemetry:capture-event', (_event, { distinctId, event, properties }) => {
   captureEvent(distinctId, event, properties);
@@ -442,7 +531,7 @@ async function syncAndReadMatches({ name, tag, apiKey, force = false }) {
   setValorantSettings({ name, tag, apiKey, puuid: account.puuid });
 
   const readResult = () => ({
-    matches: getCachedMatches(account.puuid),
+    matches: patchSelfIdentity(getCachedMatches(account.puuid), account.puuid, name, tag),
     rank: store.get(`valorantRank:${account.puuid}`) || null,
   });
 
@@ -519,11 +608,15 @@ ipcMain.handle('valorant:get-rank-for', (_event, puuid) => {
 ipcMain.handle('valorant:get-cached-matches', () => {
   const settings = getValorantSettings();
   if (!settings?.puuid) return [];
-  return getCachedMatches(settings.puuid);
+  return patchSelfIdentity(getCachedMatches(settings.puuid), settings.puuid, settings.name, settings.tag);
 });
 
 ipcMain.handle('valorant:get-cached-matches-for', (_event, puuid) => {
   if (!puuid) return [];
+  const settings = store.get('valorantSettings');
+  if (settings?.puuid === puuid) {
+    return patchSelfIdentity(getCachedMatches(puuid), puuid, settings.name, settings.tag);
+  }
   return getCachedMatches(puuid);
 });
 
@@ -821,6 +914,18 @@ ipcMain.handle('skins:set-collection-price', (_event, { uuid, priceVp }) => {
   return next;
 });
 
+ipcMain.handle('play-session:get-active', () => (currentPuuid() ? getActivePlaySession(currentPuuid()) : null));
+
+ipcMain.handle('play-session:start', () => (currentPuuid() ? startPlaySession(currentPuuid()) : null));
+
+ipcMain.handle('play-session:end', (_event, id) => {
+  if (currentPuuid()) endPlaySession(currentPuuid(), id);
+});
+
+ipcMain.handle('play-session:history', (_event, limit) =>
+  currentPuuid() ? getPlaySessionHistory(currentPuuid(), limit ?? 30) : [],
+);
+
 ipcMain.handle('bet:get-pending', () => (currentPuuid() ? getPendingBet(currentPuuid()) : null));
 
 ipcMain.handle('bet:create', (_event, { type, threshold, baselineMatchId }) =>
@@ -918,6 +1023,7 @@ app.whenReady().then(() => {
       "script-src 'self'",
       "style-src 'self' 'unsafe-inline'",
       "img-src 'self' data: https:",
+      "media-src 'self' https:",
       "font-src 'self' data:",
       "connect-src 'self' https://api.henrikdev.xyz https://valorant-api.com https://*.valorant-api.com https://hbfqtrqztyrnsqrrvmep.supabase.co wss://hbfqtrqztyrnsqrrvmep.supabase.co",
       "object-src 'none'",
@@ -937,7 +1043,13 @@ app.whenReady().then(() => {
     });
   });
 
+  if (app.isPackaged && !store.get('autoLaunchInitialized')) {
+    app.setLoginItemSettings({ openAtLogin: true });
+    store.set('autoLaunchInitialized', true);
+  }
+
   createWindow();
+  createTray();
 
   captureEvent(currentPuuid(), 'app_launched', { app_version: app.getVersion(), platform: process.platform });
 

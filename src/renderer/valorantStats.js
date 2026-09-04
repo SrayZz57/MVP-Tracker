@@ -27,6 +27,18 @@ export function findMe(match, name, tag) {
   );
 }
 
+export function patchSelfIdentity(matches, puuid, name, tag) {
+  if (!puuid || !name || !tag) return matches;
+  for (const match of matches) {
+    const me = match?.players?.all_players?.find((p) => p.puuid === puuid);
+    if (me) {
+      me.name = name;
+      me.tag = tag;
+    }
+  }
+  return matches;
+}
+
 export function deathLocationsOnMap(matches, name, tag, mapName, mode = 'deaths') {
   const fullName = normalizeRiotIdPart(`${name}#${tag}`);
   const points = [];

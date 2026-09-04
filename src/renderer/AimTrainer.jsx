@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { Flame, Snowflake, Crown, Wrench } from 'lucide-react';
+import { Flame, Snowflake, Crown, Wrench, ListMusic } from 'lucide-react';
 import { DEFAULT_CONFIG, MODES } from './AimTrainerGame.jsx';
 import Icon from './Icon.jsx';
 import {
@@ -17,6 +17,7 @@ import { computeTrainingImpact } from './aimCorrelation.js';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
 import CustomModeConfig from './CustomModeConfig.jsx';
+import PlaylistManager from './PlaylistManager.jsx';
 import AimLeaderboardRow from './AimLeaderboardRow.jsx';
 import CollapsibleCard from './CollapsibleCard.jsx';
 import CrosshairPreview from './CrosshairPreview.jsx';
@@ -32,6 +33,11 @@ const TARGET_COLORS = ['#ff4655', '#4ec9f5', '#3ddc84', '#ffc857', '#9b7bff', '#
 
 const WARMUP_ROUTINE = ['flick', 'tracking', 'micro'];
 
+const PLAYLIST_MODE_ACCENT = '#4ec9f5';
+
+const TRACKING_MODE_IDS = ['trackingBeginner', 'trackingIntermediate', 'tracking', 'trackingMulti'];
+const PATROL_MODE_IDS = ['patrolSlow', 'patrol', 'patrolFast', 'patrolMulti'];
+
 function loadConfig() {
   try {
     const raw = localStorage.getItem(SETTINGS_STORAGE_KEY);
@@ -46,6 +52,57 @@ function cm360(dpi, sens) {
   return (2.54 * 360) / (dpi * sens * 0.07);
 }
 
+function ModeGroupPicker({ titleKey, descKey, modeIds, activeModeId, personalBests, globalBests, onSelect, onClose, t }) {
+  return (
+    <div className="custom-config-overlay" onClick={onClose}>
+      <div className="custom-config-card tracking-picker-card" onClick={(e) => e.stopPropagation()}>
+        <h2>{t(titleKey)}</h2>
+        <p className="label">{t(descKey)}</p>
+        <div className="aim-mode-grid">
+          {modeIds.map((id) => {
+            const mode = MODES[id];
+            const personal = personalBests[id];
+            const global = globalBests[id];
+            const holdsRecord = personal !== undefined && global !== undefined && personal >= global;
+            return (
+              <Button
+                variant="ghost"
+                key={id}
+                className={id === activeModeId ? 'aim-mode-card active' : 'aim-mode-card'}
+                style={{ '--mode-accent': mode.accent }}
+                onClick={() => onSelect(id)}
+              >
+                <span className="aim-mode-glow" aria-hidden="true" />
+                <span className="aim-mode-head">
+                  <span className="aim-mode-icon"><Icon icon={mode.icon} /></span>
+                  {holdsRecord && <span className="aim-mode-crown" title={t('aimTrainer.holdsRecord')}><Icon icon={Crown} size={14} /></span>}
+                </span>
+                <span className="aim-mode-name">{t(mode.labelKey)}</span>
+                <span className="aim-mode-desc">{t(mode.descKey)}</span>
+                <span className="aim-mode-records">
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value">{personal ?? '–'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.yourBest')}</span>
+                  </span>
+                  <span className="aim-mode-record">
+                    <span className="aim-mode-record-value aim-mode-record-global">{global ?? '–'}</span>
+                    <span className="aim-mode-record-label">{t('aimTrainer.globalBest')}</span>
+                  </span>
+                </span>
+              </Button>
+            );
+          })}
+        </div>
+        <div className="custom-config-actions">
+          <Button variant="ghost" className="account-forgot-password" onClick={onClose}>
+            {t('aimTrainer.customCancel')}
+          </Button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function AimTrainer({ myId, matches, settings, apiKey }) {
   const { t } = useTranslation();
   const [config, setConfig] = useState(loadConfig);
@@ -55,6 +112,7 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const [dailyBoard, setDailyBoard] = useState(undefined);
   const [friendsBoard, setFriendsBoard] = useState(undefined);
   const [showCustomConfig, setShowCustomConfig] = useState(false);
+  const [showPlaylistManager, setShowPlaylistManager] = useState(false);
   const [crosshairs, setCrosshairs] = useState([]);
   const [friendStatusByUser, setFriendStatusByUser] = useState({});
 
@@ -146,7 +204,14 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
   const activeModeLabel = MODES[config.mode] ? t(MODES[config.mode].labelKey) : t('aimTrainer.customTitle');
   const activeModeAccent = MODES[config.mode]?.accent ?? '#8a8f9c';
 
-  const allModeEntries = useMemo(() => Object.entries(MODES), []);
+  const [showTrackingPicker, setShowTrackingPicker] = useState(false);
+  const [showPatrolPicker, setShowPatrolPicker] = useState(false);
+  const allModeEntries = useMemo(
+    () => Object.entries(MODES).filter(([id]) => !TRACKING_MODE_IDS.includes(id) && !PATROL_MODE_IDS.includes(id)),
+    [],
+  );
+  const isTrackingActive = TRACKING_MODE_IDS.includes(config.mode);
+  const isPatrolActive = PATROL_MODE_IDS.includes(config.mode);
 
   return (
     <div>
@@ -290,6 +355,34 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
 
           <Button
             variant="ghost"
+            className={isTrackingActive ? 'aim-mode-card active' : 'aim-mode-card'}
+            style={{ '--mode-accent': MODES.tracking.accent }}
+            onClick={() => setShowTrackingPicker(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={MODES.tracking.icon} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.modes.trackingGroup')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.modes.trackingGroupDesc')}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className={isPatrolActive ? 'aim-mode-card active' : 'aim-mode-card'}
+            style={{ '--mode-accent': MODES.patrol.accent }}
+            onClick={() => setShowPatrolPicker(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={MODES.patrol.icon} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.modes.patrolGroup')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.modes.patrolGroupDesc')}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
             className={config.mode === 'custom' ? 'aim-mode-card active' : 'aim-mode-card'}
             style={{ '--mode-accent': '#8a8f9c' }}
             onClick={() => setShowCustomConfig(true)}
@@ -300,6 +393,20 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
             </span>
             <span className="aim-mode-name">{t('aimTrainer.customTitle')}</span>
             <span className="aim-mode-desc">{t('aimTrainer.customDesc')}</span>
+          </Button>
+
+          <Button
+            variant="ghost"
+            className="aim-mode-card"
+            style={{ '--mode-accent': PLAYLIST_MODE_ACCENT }}
+            onClick={() => setShowPlaylistManager(true)}
+          >
+            <span className="aim-mode-glow" aria-hidden="true" />
+            <span className="aim-mode-head">
+              <span className="aim-mode-icon"><Icon icon={ListMusic} /></span>
+            </span>
+            <span className="aim-mode-name">{t('aimTrainer.playlistsTitle')}</span>
+            <span className="aim-mode-desc">{t('aimTrainer.playlistsIntro')}</span>
           </Button>
         </div>
 
@@ -381,6 +488,14 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
                 onChange={(e) => set({ showWeapon: e.target.checked })}
               />
               <span>{t('aimTrainer.showWeaponLabel')}</span>
+            </label>
+            <label className="aim-config-check">
+              <input
+                type="checkbox"
+                checked={config.theme === 'dark'}
+                onChange={(e) => set({ theme: e.target.checked ? 'dark' : 'day' })}
+              />
+              <span>{t('aimTrainer.darkThemeLabel')}</span>
             </label>
             <Button variant="ghost" className="account-forgot-password" onClick={() => setConfig({ ...DEFAULT_CONFIG })}>
               {t('aimTrainer.resetDefaults')}
@@ -520,12 +635,56 @@ function AimTrainer({ myId, matches, settings, apiKey }) {
         </CollapsibleCard>
       </div>
 
+      {showTrackingPicker && (
+        <ModeGroupPicker
+          titleKey="aimTrainer.modes.trackingGroup"
+          descKey="aimTrainer.modes.trackingGroupDesc"
+          modeIds={TRACKING_MODE_IDS}
+          activeModeId={config.mode}
+          personalBests={personalBests}
+          globalBests={globalBests}
+          onSelect={(id) => {
+            selectMode(id);
+            setShowTrackingPicker(false);
+          }}
+          onClose={() => setShowTrackingPicker(false)}
+          t={t}
+        />
+      )}
+
+      {showPatrolPicker && (
+        <ModeGroupPicker
+          titleKey="aimTrainer.modes.patrolGroup"
+          descKey="aimTrainer.modes.patrolGroupDesc"
+          modeIds={PATROL_MODE_IDS}
+          activeModeId={config.mode}
+          personalBests={personalBests}
+          globalBests={globalBests}
+          onSelect={(id) => {
+            selectMode(id);
+            setShowPatrolPicker(false);
+          }}
+          onClose={() => setShowPatrolPicker(false)}
+          t={t}
+        />
+      )}
+
       {showCustomConfig && (
         <CustomModeConfig
           onClose={() => setShowCustomConfig(false)}
           onSaved={() => {
             setShowCustomConfig(false);
             setConfig(loadConfig());
+          }}
+        />
+      )}
+
+      {showPlaylistManager && (
+        <PlaylistManager
+          onClose={() => setShowPlaylistManager(false)}
+          onLaunch={(playlistSteps) => {
+            setShowPlaylistManager(false);
+            launch({ playlistSteps });
           }}
         />
       )}

@@ -52,7 +52,11 @@ function findLongestWinStreak(matches, name, tag) {
 
   chronological.forEach((match) => {
     const me = findMe(match, name, tag);
-    if (!me) return;
+    if (!me) {
+      currentStreak = 0;
+      currentStart = null;
+      return;
+    }
     const label = resultLabel(match, me);
     if (label === 'Victoire') {
       if (currentStreak === 0) currentStart = match;
@@ -62,7 +66,7 @@ function findLongestWinStreak(matches, name, tag) {
         bestStart = currentStart;
         bestEnd = match;
       }
-    } else if (label === 'Défaite') {
+    } else {
       currentStreak = 0;
       currentStart = null;
     }
@@ -88,6 +92,10 @@ function findBestClutch(matches, name, tag) {
       const playerStats = round.player_stats || [];
       const teammates = playerStats.filter((ps) => ps.player_team === me.team).map((ps) => ps.player_puuid);
       if (!teammates.includes(me.puuid)) return;
+      if (teammates.length < 2) return;
+
+      const myKillsThisRound = playerStats.find((ps) => ps.player_puuid === me.puuid)?.kills ?? 0;
+      if (myKillsThisRound < 1) return;
 
       const allKills = [];
       playerStats.forEach((ps) => (ps.kill_events || []).forEach((k) => allKills.push(k)));

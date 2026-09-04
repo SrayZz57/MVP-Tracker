@@ -1,6 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { ArrowLeft, ChevronDown, ChevronRight } from 'lucide-react';
+import { toPng } from 'html-to-image';
+import { ArrowLeft, ChevronDown, ChevronRight, Share2 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import { supabase } from './supabaseClient.js';
 import { generateBracketRows } from './bracket.js';
@@ -141,6 +142,8 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState(null);
+  const [sharing, setSharing] = useState(false);
+  const heroRef = useRef(null);
 
   async function loadAll() {
     setLoading(true);
@@ -321,16 +324,34 @@ function TournamentDetail({ tournamentId, myId, isAdmin, onBack }) {
       : t('tournaments.yourTeam')
     : t('tournaments.registerTeam');
 
+  const handleShare = () => {
+    if (!heroRef.current) return;
+    setSharing(true);
+    toPng(heroRef.current, { pixelRatio: 2 })
+      .then((dataUrl) => {
+        const link = document.createElement('a');
+        link.href = dataUrl;
+        link.download = `${tournament.name.replace(/[^a-z0-9]+/gi, '-')}.png`;
+        link.click();
+      })
+      .finally(() => setSharing(false));
+  };
+
   const splash = pickSplash(tournamentId, mapImages);
   const fillPercent = Math.min(100, Math.round((teams.length / tournament.max_teams) * 100));
 
   return (
     <div className="tournament-detail">
-      <Button variant="ghost" className="link-back" onClick={onBack}>
-        <Icon icon={ArrowLeft} size={16} /> {t('tournaments.back')}
-      </Button>
+      <div className="tournament-detail-toolbar">
+        <Button variant="ghost" className="link-back" onClick={onBack}>
+          <Icon icon={ArrowLeft} size={16} /> {t('tournaments.back')}
+        </Button>
+        <Button variant="ghost" className="strategy-tool" onClick={handleShare} disabled={sharing}>
+          <Icon icon={Share2} size={16} /> {sharing ? t('tournaments.sharing') : t('tournaments.share')}
+        </Button>
+      </div>
 
-      <div className="tournament-hero" style={splash ? { backgroundImage: `url(${splash})` } : undefined}>
+      <div ref={heroRef} className="tournament-hero" style={splash ? { backgroundImage: `url(${splash})` } : undefined}>
         <span className={`tournament-status-badge ${tournament.status}`}>
           {t(STATUS_LABELS[tournament.status] ?? tournament.status)}
         </span>

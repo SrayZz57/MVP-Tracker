@@ -47,7 +47,13 @@ export function readLockfile() {
   return { port, password, protocol };
 }
 
+let authCache = null;
+const AUTH_CACHE_MS = 5 * 60 * 1000;
+
 async function getLocalAuth(lock) {
+  if (authCache && authCache.password === lock.password && authCache.expiresAt > Date.now()) {
+    return authCache.auth;
+  }
   const basic = Buffer.from(`riot:${lock.password}`).toString('base64');
   const res = await localRequest(
     `${lock.protocol}://127.0.0.1:${lock.port}/entitlements/v1/token`,
@@ -55,13 +61,19 @@ async function getLocalAuth(lock) {
   );
   if (res.status !== 200) throw new Error(`entitlements ${res.status}`);
   const json = JSON.parse(res.body);
-  return { accessToken: json.accessToken, entitlements: json.token, puuid: json.subject };
+  const auth = { accessToken: json.accessToken, entitlements: json.token, puuid: json.subject };
+  authCache = { password: lock.password, auth, expiresAt: Date.now() + AUTH_CACHE_MS };
+  return auth;
 }
 
+let glzBaseCache = null;
+
 export function readGlzBase() {
+  if (glzBaseCache) return glzBaseCache;
   if (!fs.existsSync(SHOOTER_LOG)) return null;
   const log = fs.readFileSync(SHOOTER_LOG, 'utf8');
   const match = log.match(/https:\/\/glz-[a-z0-9-]+\.[a-z0-9]+\.a\.pvp\.net/i);
+  if (match) glzBaseCache = match[0];
   return match ? match[0] : null;
 }
 

@@ -61,13 +61,31 @@ export function computeMapWinrates(matches, name, tag, limit = 8) {
 const ROLE_ORDER = ['Duelliste', 'Initiateur', 'Contrôleur', 'Sentinelle'];
 
 export function computeRoleDistribution(matches, name, tag, agentRoles) {
-  const rows = groupStats(excludeDeathmatch(matches), name, tag, (match, me) => agentRoles.get(me.character)?.roleName);
+  const ranked = excludeDeathmatch(matches);
+  const rows = groupStats(ranked, name, tag, (match, me) => agentRoles.get(me.character)?.roleName);
   const total = rows.reduce((sum, r) => sum + r.games, 0);
   if (total === 0) return [];
 
+  const agentCountsByRole = new Map();
+  ranked.forEach((match) => {
+    const me = findMe(match, name, tag);
+    if (!me?.character) return;
+    const role = agentRoles.get(me.character)?.roleName;
+    if (!role) return;
+    if (!agentCountsByRole.has(role)) agentCountsByRole.set(role, new Map());
+    const agentCounts = agentCountsByRole.get(role);
+    agentCounts.set(me.character, (agentCounts.get(me.character) ?? 0) + 1);
+  });
+
   return ROLE_ORDER.map((role) => {
     const row = rows.find((r) => r.key === role);
-    return { role, games: row?.games ?? 0, percent: row ? (row.games / total) * 100 : 0 };
+    const agentCounts = agentCountsByRole.get(role);
+    const topAgents = agentCounts
+      ? [...agentCounts.entries()]
+          .map(([agent, games]) => ({ agent, games }))
+          .sort((a, b) => b.games - a.games)
+      : [];
+    return { role, games: row?.games ?? 0, percent: row ? (row.games / total) * 100 : 0, topAgents };
   }).filter((r) => r.games > 0);
 }
 

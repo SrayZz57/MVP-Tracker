@@ -27,6 +27,9 @@ import {
   Users,
   LogOut,
   ChevronDown,
+  History,
+  Search,
+  Compass,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import Button from './ui/Button';
@@ -34,6 +37,7 @@ import useValorantData from './useValorantData.js';
 import { useCollapsedBlocks } from './CollapsedBlocksContext.jsx';
 import { useE2EE } from './E2EEContext.jsx';
 import StatsTab from './tabs/StatsTab.jsx';
+import WeaknessTab from './tabs/WeaknessTab.jsx';
 import FormTab from './tabs/FormTab.jsx';
 import NetworkTab from './tabs/NetworkTab.jsx';
 import TiltTab from './tabs/TiltTab.jsx';
@@ -49,6 +53,7 @@ import PerformanceChartsTab from './tabs/PerformanceChartsTab.jsx';
 import TeammatesRivalsTab from './tabs/TeammatesRivalsTab.jsx';
 import BuySimulatorTab from './tabs/BuySimulatorTab.jsx';
 import BetsTab from './tabs/BetsTab.jsx';
+import PlaySessionsTab from './tabs/PlaySessionsTab.jsx';
 import SessionGuideTab from './tabs/SessionGuideTab.jsx';
 import AimTrainerTab from './tabs/AimTrainerTab.jsx';
 import DailyPuzzleTab from './tabs/DailyPuzzleTab.jsx';
@@ -64,6 +69,7 @@ import AccountGreeting from './AccountGreeting.jsx';
 import AccountAuth from './AccountAuth.jsx';
 import SetNewPasswordScreen from './SetNewPasswordScreen.jsx';
 import AccountPage from './AccountPage.jsx';
+import OnboardingTour from './OnboardingTour.jsx';
 import AdminPage from './AdminPage.jsx';
 import TournamentsTab from './tabs/TournamentsTab.jsx';
 import MessagesTab from './tabs/MessagesTab.jsx';
@@ -75,6 +81,7 @@ import useLoadingGate from './useLoadingGate.js';
 import { useOnlinePresence } from './presence.js';
 import { useRankTiers, usePlayerCardArt } from './rankData.js';
 import logoText from '../assets/logo-text.png';
+import { normalizeRiotIdPart } from './valorantStats.js';
 
 const NAV_SECTIONS = [
   {
@@ -92,7 +99,7 @@ const NAV_SECTIONS = [
     sectionKey: 'nav.sections.myAccount',
     tabs: [
       { id: 'my-hall-of-fame', labelKey: 'nav.tabs.myHallOfFame', icon: Trophy },
-      { id: 'my-social', labelKey: 'nav.tabs.mySocial', icon: Handshake },
+      { id: 'my-weakness', labelKey: 'nav.tabs.myWeakness', icon: Compass },
       { id: 'my-skins-collection', labelKey: 'nav.tabs.myCollection', icon: Gem },
       { id: 'tilt', labelKey: 'nav.tabs.tilt', icon: Angry },
       { id: 'reseau', labelKey: 'nav.tabs.network', icon: Signal },
@@ -114,6 +121,7 @@ const NAV_SECTIONS = [
   {
     sectionKey: 'nav.sections.tools',
     tabs: [
+      { id: 'play-sessions', labelKey: 'nav.tabs.playSessions', icon: History },
       { id: 'crosshairs', labelKey: 'nav.tabs.crosshairs', icon: Target },
       { id: 'strategie', labelKey: 'nav.tabs.strategy', icon: Map },
       { id: 'skins', labelKey: 'nav.tabs.skins', icon: Gem },
@@ -224,10 +232,18 @@ function App() {
   const [sidebarNavEl, setSidebarNavEl] = useState(null);
   const [indicator, setIndicator] = useState({ top: 0, height: 0, ready: false, animate: false });
   const indicatorPlacedRef = useRef(false);
+  const [navSearch, setNavSearch] = useState('');
+  const navQuery = normalizeRiotIdPart(navSearch);
   const [pendingOpenFriendId, setPendingOpenFriendId] = useState(null);
   const [session, setSession] = useState(undefined);
   const [profile, setProfile] = useState(undefined);
   const [recoveryPending, setRecoveryPending] = useState(false);
+  const [pendingUpdate, setPendingUpdate] = useState(null);
+
+  useEffect(() => {
+    window.electronAPI.getUpdateStatus().then(setPendingUpdate);
+    return window.electronAPI.onUpdateReady(setPendingUpdate);
+  }, []);
 
   useEffect(() => {
     const unsubscribe = window.electronAPI.onRecoveryDeepLink(async ({ accessToken, refreshToken }) => {
@@ -351,6 +367,19 @@ function App() {
     return () => document.body.classList.remove('in-app');
   }, [enteredApp]);
 
+  const [showOnboarding, setShowOnboarding] = useState(false);
+  useEffect(() => {
+    if (!enteredApp) return undefined;
+    if (localStorage.getItem('mvptracker-onboarding-done')) return undefined;
+    const id = setTimeout(() => setShowOnboarding(true), 300);
+    return () => clearTimeout(id);
+  }, [enteredApp]);
+
+  const closeOnboarding = () => {
+    localStorage.setItem('mvptracker-onboarding-done', '1');
+    setShowOnboarding(false);
+  };
+
   useEffect(() => {
     window.electronAPI.getSettings().then(setSettings);
     window.electronAPI.getLanguage().then((lang) => {
@@ -377,21 +406,6 @@ function App() {
   const isViewingSelf = !!profile && settings?.puuid === profile.riot_puuid;
   const mySettings = profile ? { name: profile.riot_name, tag: profile.riot_tag } : settings;
   const isAdmin = profile?.role === 'admin';
-
-  useEffect(() => {
-    if (!session || myMatches.length === 0 || !mySettings?.name) return;
-    supabase.auth.getSession().then(({ data: { session: fresh } }) => {
-      if (!fresh) return;
-      window.electronAPI.syncMatches({
-        matches: myMatches,
-        name: mySettings.name,
-        tag: mySettings.tag,
-        userId: fresh.user.id,
-        accessToken: fresh.access_token,
-      });
-    });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [myMatches]);
 
   const [myRank, setMyRank] = useState(null);
   useEffect(() => {
@@ -499,6 +513,19 @@ function App() {
     window.electronAPI.saveSettings(updatedSettings);
   };
 
+  const updateRiotId = async (newName, newTag) => {
+    const name = newName.trim();
+    const tag = newTag.trim();
+    const preview = await window.electronAPI.previewRiotAccount({ name, tag, apiKey: settings.apiKey });
+    if (preview.puuid !== profile.riot_puuid) {
+      throw new Error(t('account.riotIdMismatch'));
+    }
+    await updateProfile({ riot_name: preview.name, riot_tag: preview.tag });
+    const updatedSettings = { ...settings, name: preview.name, tag: preview.tag };
+    setSettings(updatedSettings);
+    window.electronAPI.saveSettings(updatedSettings);
+  };
+
   useEffect(() => {
     if (settings !== null || !profile?.riot_puuid || !profile?.henrikdev_api_key) return;
     const hydrated = {
@@ -546,7 +573,7 @@ function App() {
       cancelled = true;
       observer.disconnect();
     };
-  }, [sidebarNavEl, activeTab, settings, collapsedSections]);
+  }, [sidebarNavEl, activeTab, settings, collapsedSections, navQuery]);
 
   const bootGate = useLoadingGate(session === undefined || settings === undefined || profile === undefined);
 
@@ -589,6 +616,7 @@ function App() {
           setSettings(confirmedSettings);
           setLinkingRiot(true);
         }}
+        onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
       />
     );
   }
@@ -639,7 +667,14 @@ function App() {
   const renderValorantTab = () => {
     switch (activeTab) {
       case 'stats':
-        return <StatsTab settings={settings} matches={data.matches} rank={data.rank} loading={data.loading} />;
+        return (
+          <StatsTab
+            settings={settings}
+            matches={data.matches}
+            rank={data.rank}
+            loading={data.loading}
+          />
+        );
       case 'forme':
         return <FormTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'reseau':
@@ -660,7 +695,14 @@ function App() {
         return <AnalyseTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'composition':
         return (
-          <CompositionTab settings={settings} matches={data.matches} mySettings={mySettings} myMatches={myMatches} />
+          <CompositionTab
+            settings={settings}
+            matches={data.matches}
+            mySettings={mySettings}
+            myMatches={myMatches}
+            myId={session.user.id}
+            isAdmin={isAdmin}
+          />
         );
       case 'graphiques':
         return <PerformanceChartsTab settings={settings} matches={data.matches} loading={data.loading} />;
@@ -675,16 +717,16 @@ function App() {
         );
       case 'my-hall-of-fame':
         return <HallOfFameTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
-      case 'my-social':
-        return (
-          <TeammatesRivalsTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />
-        );
+      case 'my-weakness':
+        return <WeaknessTab settings={mySettings} matches={myMatches} onNavigate={setActiveTab} />;
       case 'my-skins-collection':
         return <MySkinsCollectionTab myId={session.user.id} />;
       case 'buy-simulator':
         return <BuySimulatorTab settings={settings} matches={data.matches} loading={data.loading} />;
       case 'bets':
         return <BetsTab settings={mySettings} matches={myMatches} />;
+      case 'play-sessions':
+        return <PlaySessionsTab settings={mySettings} matches={myMatches} apiKey={settings?.apiKey} />;
       case 'session':
         return <SessionGuideTab settings={mySettings} matches={myMatches} loading={isViewingSelf && data.loading} />;
       case 'aim-trainer':
@@ -728,7 +770,9 @@ function App() {
             apiKey={settings?.apiKey}
             onUpdate={updateProfile}
             onUpdateApiKey={updateApiKey}
+            onUpdateRiotId={updateRiotId}
             onSignOut={() => supabase.auth.signOut().then(lockMessagingKey)}
+            onReplayOnboarding={() => setShowOnboarding(true)}
           />
         );
       default:
@@ -752,6 +796,16 @@ function App() {
           <img src={logoText} alt="MVP Tracker" />
         </div>
 
+        <div className="sidebar-search" data-tour="sidebar-search">
+          <Icon icon={Search} size={15} />
+          <input
+            type="text"
+            value={navSearch}
+            onChange={(e) => setNavSearch(e.target.value)}
+            placeholder={t('nav.searchPlaceholder')}
+          />
+        </div>
+
         <div className="sidebar-nav" ref={setSidebarNavEl}>
           <div
             className="sidebar-active-indicator"
@@ -763,9 +817,13 @@ function App() {
             }}
           />
           {(isAdmin ? [...NAV_SECTIONS, ADMIN_SECTION] : NAV_SECTIONS).map((section) => {
-            const collapsed = collapsedSections.has(section.sectionKey);
+            const matchingTabs = navQuery
+              ? section.tabs.filter((tab) => normalizeRiotIdPart(t(tab.labelKey)).includes(navQuery))
+              : section.tabs;
+            if (navQuery && matchingTabs.length === 0) return null;
+            const collapsed = !navQuery && collapsedSections.has(section.sectionKey);
             return (
-              <div key={section.sectionKey} className="sidebar-section">
+              <div key={section.sectionKey} className="sidebar-section" data-tour-section={section.sectionKey}>
                 <Button
                   variant="ghost"
                   className={collapsed ? 'sidebar-section-label collapsed' : 'sidebar-section-label'}
@@ -775,12 +833,15 @@ function App() {
                   <span className="sidebar-section-chevron"><Icon icon={ChevronDown} size={14} /></span>
                 </Button>
                 {!collapsed &&
-                  section.tabs.map((tab) => (
+                  matchingTabs.map((tab) => (
                     <Button
                       variant="ghost"
                       key={tab.id}
                       className={tab.id === activeTab ? 'sidebar-link active' : 'sidebar-link'}
-                      onClick={() => setActiveTab(tab.id)}
+                      onClick={() => {
+                        setActiveTab(tab.id);
+                        setNavSearch('');
+                      }}
                     >
                       <span className="sidebar-link-icon">
                         <Icon icon={tab.icon} size={20} strokeWidth={2} />
@@ -845,6 +906,16 @@ function App() {
             >
               {t('nav.refresh')}
             </Button>
+            {pendingUpdate && (
+              <Button
+                variant="ghost"
+                className="update-ready-button"
+                title={pendingUpdate.releaseName || ''}
+                onClick={() => window.electronAPI.installUpdate()}
+              >
+                {t('nav.updateReady')}
+              </Button>
+            )}
             <Button
               variant="accent"
               className={activeTab === 'aim-trainer' ? 'aim-topbar-button active' : 'aim-topbar-button'}
@@ -902,6 +973,13 @@ function App() {
         {data.error &&
           (/rate limit/i.test(data.error) ? (
             <p className="error-banner">{t('nav.rateLimited')}</p>
+          ) : /account not found/i.test(data.error) && settings?.puuid === profile?.riot_puuid ? (
+            <p className="error-banner">
+              {t('nav.riotIdOutdated')}{' '}
+              <Button variant="ghost" className="error-banner-link" onClick={() => setActiveTab('account')}>
+                {t('nav.riotIdOutdatedLink')}
+              </Button>
+            </p>
           ) : (
             <p className="warning">{t('nav.error', { message: data.error })}</p>
           ))}
@@ -916,6 +994,7 @@ function App() {
       <GoalsWidget matches={myMatches} settings={mySettings} myId={session.user.id} />
       <WeeklyRecapCard matches={myMatches} settings={mySettings} rank={myRank} />
       {isViewingSelf && <PostMortemModal matches={myMatches} settings={mySettings} />}
+      {showOnboarding && <OnboardingTour onClose={closeOnboarding} />}
     </div>
   );
 }

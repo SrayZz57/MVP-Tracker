@@ -20,6 +20,7 @@ import {
   AlertTriangle,
   RotateCcw,
   Play,
+  Footprints,
 } from 'lucide-react';
 import Icon from './Icon.jsx';
 import * as THREE from 'three';
@@ -180,6 +181,58 @@ export const MODES = {
     lifetime: null,
     preset: { targetCount: 1, targetSize: 0.3, spread: 30, duration: 60 },
   },
+  patrolSlow: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolSlow',
+    descKey: 'aimTrainer.modes.patrolSlowDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.0, 1.0],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
+  patrol: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrol',
+    descKey: 'aimTrainer.modes.patrolDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.6, 1.6],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
+  patrolFast: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolFast',
+    descKey: 'aimTrainer.modes.patrolFastDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [2.4, 2.4],
+    driftChangeInterval: [999999, 999999],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
+  patrolMulti: {
+    icon: Footprints,
+    accent: '#3ddc84',
+    labelKey: 'aimTrainer.modes.patrolMulti',
+    descKey: 'aimTrainer.modes.patrolMultiDesc',
+    movement: 'drift',
+    driftLockY: true,
+    driftSpeed: [1.0, 2.4],
+    driftChangeInterval: [2500, 4500],
+    passiveTrack: true,
+    lifetime: null,
+    preset: { targetCount: 1, targetSize: 0.34, spread: 30, duration: 60 },
+  },
   switch: {
     icon: Shuffle,
     accent: '#ffc857',
@@ -242,6 +295,7 @@ export const DEFAULT_CONFIG = {
   spread: 28,
   fov: 103,
   showWeapon: true,
+  theme: 'day',
   crosshairCode: null,
 };
 
@@ -501,14 +555,26 @@ function playTargetPop(ctx) {
 
 function AimTrainerGame({ config: rawConfig }) {
   const playlist = rawConfig?.playlist ?? null;
+  const playlistSteps = rawConfig?.playlistSteps ?? null;
+  const activeList = playlist ?? playlistSteps;
   const [step, setStep] = useState(0);
   const activeMode = playlist ? playlist[Math.min(step, playlist.length - 1)] : rawConfig?.mode;
+  const activeStepConfig = playlistSteps ? playlistSteps[Math.min(step, playlistSteps.length - 1)] : null;
   const config = {
     ...DEFAULT_CONFIG,
     ...rawConfig,
     ...(playlist ? { mode: activeMode, targetSize: MODES[activeMode].preset.targetSize, spread: MODES[activeMode].preset.spread } : {}),
+    ...(activeStepConfig
+      ? {
+          mode: 'custom',
+          duration: activeStepConfig.duration,
+          targetSize: activeStepConfig.targetSize,
+          targetCount: activeStepConfig.targetCount,
+          spread: activeStepConfig.spread,
+        }
+      : {}),
   };
-  const isLastStep = !playlist || step >= playlist.length - 1;
+  const isLastStep = !activeList || step >= activeList.length - 1;
 
   const mountRef = useRef(null);
   const [phase, setPhase] = useState('ready');
@@ -527,9 +593,11 @@ function AimTrainerGame({ config: rawConfig }) {
     const mount = mountRef.current;
     if (!mount) return undefined;
 
+    const isDark = config.theme === 'dark';
+
     const scene = new THREE.Scene();
-    scene.background = new THREE.Color(0x9dc2e0);
-    scene.fog = new THREE.FogExp2(0xa8cbe8, 0.008);
+    scene.background = new THREE.Color(isDark ? 0x0b0d12 : 0x9dc2e0);
+    scene.fog = new THREE.FogExp2(isDark ? 0x0b0d12 : 0xa8cbe8, isDark ? 0.02 : 0.008);
 
     const initialAspect = window.innerWidth / window.innerHeight;
     const camera = new THREE.PerspectiveCamera(
@@ -549,14 +617,14 @@ function AimTrainerGame({ config: rawConfig }) {
     renderer.toneMappingExposure = 1.15;
     mount.appendChild(renderer.domElement);
 
-    scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x3a4152, 1.5));
-    scene.add(new THREE.AmbientLight(0xffffff, 0.45));
+    scene.add(new THREE.HemisphereLight(0xbfd4ff, 0x3a4152, isDark ? 0.5 : 1.5));
+    scene.add(new THREE.AmbientLight(0xffffff, isDark ? 0.15 : 0.45));
 
-    const sun = new THREE.DirectionalLight(0xfff2dc, 2.6);
+    const sun = new THREE.DirectionalLight(0xfff2dc, isDark ? 0.6 : 2.6);
     sun.position.set(8, 16, 6);
     scene.add(sun);
 
-    const backLight = new THREE.DirectionalLight(0xa8c4ff, 0.9);
+    const backLight = new THREE.DirectionalLight(0xa8c4ff, isDark ? 0.3 : 0.9);
     backLight.position.set(-6, 8, -10);
     scene.add(backLight);
 
@@ -572,11 +640,13 @@ function AimTrainerGame({ config: rawConfig }) {
     weaponLight.position.set(0.35, 0.1, 0.3);
     camera.add(weaponLight);
 
-    const sky = new THREE.Mesh(
-      new THREE.SphereGeometry(120, 40, 24),
-      new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false, depthWrite: false }),
-    );
-    scene.add(sky);
+    if (!isDark) {
+      const sky = new THREE.Mesh(
+        new THREE.SphereGeometry(120, 40, 24),
+        new THREE.MeshBasicMaterial({ map: makeSkyTexture(), side: THREE.BackSide, fog: false, depthWrite: false }),
+      );
+      scene.add(sky);
+    }
 
     const arena = new THREE.Group();
     scene.add(arena);
@@ -586,7 +656,7 @@ function AimTrainerGame({ config: rawConfig }) {
       loadPbrMaterial(
         { color: floorColorUrl, normal: floorNormalUrl, roughness: floorRoughnessUrl },
         [18, 18],
-        { metalness: 0.05 },
+        { metalness: 0.05, color: isDark ? 0x3a3f4a : 0xffffff },
       ),
     );
     floor.rotation.x = -Math.PI / 2;
@@ -602,7 +672,7 @@ function AimTrainerGame({ config: rawConfig }) {
     const wallMat = loadPbrMaterial(
       { color: wallColorUrl, normal: wallNormalUrl, roughness: wallRoughnessUrl },
       [8, 2],
-      { metalness: 0.45, side: THREE.DoubleSide },
+      { metalness: 0.45, side: THREE.DoubleSide, color: isDark ? 0x3a3f4a : 0xffffff },
     );
     const WALL_HEIGHT = 7;
     const WALL_HALF = 24;
@@ -951,9 +1021,10 @@ function AimTrainerGame({ config: rawConfig }) {
         }
       });
 
-      if (MODES[cfg.mode]?.holdTracking && phaseRef.current === 'running') {
+      const activeTrackingMode = MODES[cfg.mode]?.holdTracking || MODES[cfg.mode]?.passiveTrack;
+      if (activeTrackingMode && phaseRef.current === 'running') {
         const TRACK_SAMPLE_INTERVAL_MS = 100;
-        const held = state.isTrackingHeld;
+        const held = MODES[cfg.mode]?.passiveTrack ? true : state.isTrackingHeld;
         let onTarget = false;
         let endPoint = null;
         if (held) {
@@ -1074,6 +1145,8 @@ function AimTrainerGame({ config: rawConfig }) {
         state.lastTrackSample = 0;
         return;
       }
+
+      if (MODES[configRef.current.mode]?.passiveTrack) return;
 
       const { targets, raycaster, center, muzzleTip, scene, impactTexture } = state;
       raycaster.setFromCamera(center, camera);
@@ -1269,11 +1342,23 @@ function AimTrainerGame({ config: rawConfig }) {
   const nextStep = () => {
     setStep((s) => s + 1);
     setStats({ hits: 0, misses: 0, times: [] });
-    const nextMode = playlist[step + 1];
-    setTimeLeft(config.duration);
     stateRef.current.sessionEnded = false;
     clearTrackingHold();
     const now = performance.now();
+
+    if (playlistSteps) {
+      const nextConfig = playlistSteps[step + 1];
+      setTimeLeft(nextConfig.duration);
+      const mode = { movement: 'none', lifetime: null };
+      stateRef.current.targets?.forEach((entry) => {
+        resetTargetForMode(entry, mode, nextConfig, now, stateRef.current);
+      });
+      lockPointer(() => setPhase('running'));
+      return;
+    }
+
+    const nextMode = playlist[step + 1];
+    setTimeLeft(config.duration);
     const mode = MODES[nextMode] ?? MODES.flick;
     stateRef.current.targets?.forEach((entry) => {
       resetTargetForMode(entry, mode, mode.preset, now, stateRef.current);
@@ -1295,7 +1380,7 @@ function AimTrainerGame({ config: rawConfig }) {
   const bestReaction = stats.times.length > 0 ? Math.min(...stats.times) : null;
   const hitsPerSecond = config.duration > 0 ? stats.hits / config.duration : 0;
 
-  const score = MODES[config.mode]?.holdTracking
+  const score = (MODES[config.mode]?.holdTracking || MODES[config.mode]?.passiveTrack)
     ? (accuracy === null ? null : avgReaction === null ? Math.round(accuracy) : Math.round(accuracy * 0.7 + Math.max(0, 100 - avgReaction / 10) * 0.3))
     : (total > 0 ? stats.hits : null);
 
@@ -1369,6 +1454,13 @@ function AimTrainerGame({ config: rawConfig }) {
                       · Routine {step + 1}/{playlist.length}
                     </span>
                   )}
+                  {playlistSteps && (
+                    <span className="aim-game-step">
+                      {' '}
+                      · Playlist {step + 1}/{playlistSteps.length}
+                      {activeStepConfig?.name ? ` · ${activeStepConfig.name}` : ''}
+                    </span>
+                  )}
                 </h1>
                 <p>
                   Sensibilité <strong>{config.sens}</strong> · {config.dpi} DPI · {config.duration} secondes
@@ -1376,6 +1468,9 @@ function AimTrainerGame({ config: rawConfig }) {
                 {config.challengeDate && <p className="aim-game-tip"><Icon icon={Trophy} size={16} /> Défi du jour : score comptabilisé au classement</p>}
                 {MODES[config.mode]?.holdTracking && (
                   <p className="aim-game-tip"><Icon icon={Waves} size={16} /> Maintiens le clic enfoncé et garde le viseur sur la cible en mouvement.</p>
+                )}
+                {MODES[config.mode]?.passiveTrack && (
+                  <p className="aim-game-tip"><Icon icon={Footprints} size={16} /> Pas de tir ici : garde simplement le viseur sur la cible le plus longtemps possible.</p>
                 )}
                 {MODES[config.mode]?.movement === 'switch' && (
                   <p className="aim-game-tip"><Icon icon={Shuffle} size={16} /> Touche les cibles dans l'ordre affiché. Une erreur d'ordre compte comme un raté.</p>
@@ -1388,10 +1483,12 @@ function AimTrainerGame({ config: rawConfig }) {
                   <span>
                     <kbd>Souris</kbd> viser
                   </span>
-                  <span>
-                    <kbd>{MODES[config.mode]?.holdTracking ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
-                    {MODES[config.mode]?.holdTracking ? 'suivre' : 'tirer'}
-                  </span>
+                  {!MODES[config.mode]?.passiveTrack && (
+                    <span>
+                      <kbd>{MODES[config.mode]?.holdTracking ? 'Clic maintenu' : 'Clic gauche'}</kbd>{' '}
+                      {MODES[config.mode]?.holdTracking ? 'suivre' : 'tirer'}
+                    </span>
+                  )}
                   <span>
                     <kbd>Échap</kbd> pause
                   </span>
@@ -1415,6 +1512,11 @@ function AimTrainerGame({ config: rawConfig }) {
                 <Button variant="primary" className="refresh aim-game-cta" onClick={resumeSession}>
                   <Icon icon={Play} size={16} /> Reprendre
                 </Button>
+                {!config.challengeDate && (
+                  <Button variant="ghost" className="account-forgot-password" onClick={startSession}>
+                    <Icon icon={RotateCcw} size={16} /> Recommencer
+                  </Button>
+                )}
               </>
             )}
 
@@ -1486,6 +1588,12 @@ function AimTrainerGame({ config: rawConfig }) {
                     <Icon icon={MODES[playlist[step + 1]].icon} style={{ color: MODES[playlist[step + 1]].accent }} />{' '}
                     {playlist[step + 1].charAt(0).toUpperCase() + playlist[step + 1].slice(1)} ({step + 2}/
                     {playlist.length})
+                  </Button>
+                )}
+                {playlistSteps && !isLastStep && (
+                  <Button variant="primary" className="refresh aim-game-cta" onClick={nextStep}>
+                    <Icon icon={Play} size={16} /> Étape suivante · {playlistSteps[step + 1].name} ({step + 2}/
+                    {playlistSteps.length})
                   </Button>
                 )}
                 {!config.challengeDate && (

@@ -1,12 +1,15 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { useTranslation } from 'react-i18next';
-import { AlertTriangle, Info, CheckCircle2 } from 'lucide-react';
+import { AlertTriangle, Info, CheckCircle2, Trash2 } from 'lucide-react';
 import Icon from './Icon.jsx';
-import { useMapMinimaps } from './mapImages.js';
+import { useMapMinimaps, useMapImages } from './mapImages.js';
 import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { mapStatsForAgent, excludeDeathmatch, groupStats } from './valorantStats.js';
 import { analyzeComposition, scoreComposition } from './compAnalysis.js';
 import { getAgentMapTier, MAP_TIER_SOURCE_DATE } from './mapAgentTiers.js';
+import { ROLE_COLORS } from './charts/RoleStackedBar.jsx';
+import { usePlayerCardArt } from './rankData.js';
+import { supabase } from './supabaseClient.js';
 import CountUp from './CountUp.jsx';
 import PlatformFilterToggle from './PlatformFilterToggle.jsx';
 import usePlatformFilter from './usePlatformFilter.js';
@@ -23,9 +26,28 @@ function scoreColor(value) {
   return 'var(--accent)';
 }
 
-function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
+function CompositionAuthor({ author }) {
+  const avatarArt = usePlayerCardArt(author?.avatar_card_uuid);
+  if (!author) return null;
+  const name = author.display_name || (author.riot_name ? `${author.riot_name}#${author.riot_tag}` : null);
+  if (!name) return null;
+
+  return (
+    <span className="comp-published-author">
+      {avatarArt.icon ? (
+        <img src={avatarArt.icon} alt="" className="comp-published-author-avatar" />
+      ) : (
+        <span className="comp-published-author-avatar comp-published-author-fallback">{name.charAt(0)}</span>
+      )}
+      {name}
+    </span>
+  );
+}
+
+function CompositionBuilder({ settings, matches, mySettings, myMatches, myId, isAdmin }) {
   const { t } = useTranslation();
   const minimaps = useMapMinimaps();
+  const mapSplashes = useMapImages();
   const agentIcons = useAgentIcons();
   const agentRoles = useAgentRoles();
   const [selectedMap, setSelectedMap] = useState('');
@@ -34,6 +56,66 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
 
   const mapNames = useMemo(() => [...minimaps.keys()].sort(), [minimaps]);
   const agentNames = useMemo(() => [...agentIcons.keys()].sort(), [agentIcons]);
+
+  const [publishedComps, setPublishedComps] = useState([]);
+  const [loadingComps, setLoadingComps] = useState(false);
+  const [note, setNote] = useState('');
+  const [publishing, setPublishing] = useState(false);
+  const [publishError, setPublishError] = useState(null);
+
+  const [publishedMapFilter, setPublishedMapFilter] = useState('');
+
+  async function loadPublishedComps(map) {
+    setLoadingComps(true);
+    let query = supabase
+      .from('map_compositions')
+      .select('id, map, agents, note, created_at, created_by, author:profiles(display_name, riot_name, riot_tag, avatar_card_uuid)')
+      .order('created_at', { ascending: false });
+    query = map ? query.eq('map', map) : query.limit(30);
+    const { data, error } = await query;
+    if (!error) setPublishedComps(data ?? []);
+    setLoadingComps(false);
+  }
+
+  useEffect(() => {
+    setPublishedMapFilter(selectedMap);
+    setNote('');
+    setPublishError(null);
+  }, [selectedMap]);
+
+  useEffect(() => {
+    loadPublishedComps(publishedMapFilter);
+  }, [publishedMapFilter]);
+
+  const canPublish = Boolean(selectedMap) && slots.every(Boolean) && Boolean(myId);
+
+  async function handlePublish() {
+    if (!canPublish) return;
+    setPublishing(true);
+    setPublishError(null);
+    const { error } = await supabase.from('map_compositions').insert({
+      map: selectedMap,
+      agents: slots,
+      note: note.trim() || null,
+      created_by: myId,
+    });
+    setPublishing(false);
+    if (error) {
+      setPublishError(error.message);
+      return;
+    }
+    setNote('');
+    if (publishedMapFilter === selectedMap) {
+      loadPublishedComps(selectedMap);
+    } else {
+      setPublishedMapFilter(selectedMap);
+    }
+  }
+
+  async function handleDeletePublished(id) {
+    await supabase.from('map_compositions').delete().eq('id', id);
+    loadPublishedComps(publishedMapFilter);
+  }
 
   const analysis = useMemo(() => analyzeComposition(slots, agentRoles), [slots, agentRoles]);
   const score = useMemo(
@@ -136,6 +218,103 @@ function CompositionBuilder({ settings, matches, mySettings, myMatches }) {
               ))}
             </div>
           </div>
+        )}
+      </CollapsibleCard>
+
+      <CollapsibleCard
+        id="composition.published"
+        title={publishedMapFilter ? t('composition.publishedTitle', { map: publishedMapFilter }) : t('composition.publishedTitleAll')}
+      >
+        <p className="label">{selectedMap ? t('composition.publishedIntro') : t('composition.publishedIntroAll')}</p>
+
+        <div className="filter-bar">
+          <select value={publishedMapFilter} onChange={(e) => setPublishedMapFilter(e.target.value)}>
+            <option value="">{t('composition.allMaps')}</option>
+            {mapNames.map((name) => (
+              <option key={name} value={name}>{name}</option>
+            ))}
+          </select>
+        </div>
+
+        {selectedMap && (
+          <>
+            <div className="comp-publish-form">
+              <textarea
+                className="comp-publish-note"
+                placeholder={t('composition.notePlaceholder')}
+                value={note}
+                maxLength={280}
+                onChange={(e) => setNote(e.target.value)}
+              />
+              <Button
+                variant="primary"
+                className="refresh"
+                onClick={handlePublish}
+                disabled={!canPublish}
+                loading={publishing}
+                loadingLabel={t('composition.publishing')}
+              >
+                {t('composition.publish')}
+              </Button>
+            </div>
+            {!slots.every(Boolean) && <p className="label">{t('composition.publishNeedsFullSlots')}</p>}
+            {publishError && <p className="warning">{publishError}</p>}
+          </>
+        )}
+
+        {loadingComps ? (
+          <p className="label">{t('composition.loadingPublished')}</p>
+        ) : publishedComps.length === 0 ? (
+          <p className="label">{t('composition.noPublishedYet')}</p>
+        ) : (
+          <ul className="comp-published-list">
+            {publishedComps.map((comp) => (
+              <li
+                key={comp.id}
+                className="comp-published-item"
+                style={mapSplashes.get(comp.map) ? { '--map-thumb': `url(${mapSplashes.get(comp.map)})` } : undefined}
+              >
+                <div className="comp-published-thumb" aria-hidden="true" />
+                <div className="comp-published-header">
+                  <span className="comp-published-map">{comp.map}</span>
+                  <span className="label comp-published-date">
+                    {new Date(comp.created_at).toLocaleDateString()}
+                  </span>
+                </div>
+                <div className="comp-published-agents">
+                  {comp.agents.map((agent, i) => {
+                    const role = agentRoles.get(agent)?.roleName;
+                    return (
+                      <span
+                        key={i}
+                        className="comp-published-agent-icon"
+                        style={{ '--role-color': ROLE_COLORS[role] ?? 'var(--border)' }}
+                        title={role ? `${agent} · ${role}` : agent}
+                      >
+                        {agentIcons.get(agent) ? <img src={agentIcons.get(agent)} alt={agent} /> : agent.charAt(0)}
+                      </span>
+                    );
+                  })}
+                </div>
+                {comp.note && <p className="comp-published-note">« {comp.note} »</p>}
+                <div className="comp-published-footer">
+                  <CompositionAuthor author={comp.author} />
+                  {(comp.created_by === myId || isAdmin) && (
+                    <Button
+                      variant="icon"
+                      type="button"
+                      className="strategy-tool icon-only danger"
+                      title={t(comp.created_by === myId ? 'composition.deletePublished' : 'composition.deletePublishedAdmin')}
+                      aria-label={t(comp.created_by === myId ? 'composition.deletePublished' : 'composition.deletePublishedAdmin')}
+                      onClick={() => handleDeletePublished(comp.id)}
+                    >
+                      <Icon icon={Trash2} size={14} />
+                    </Button>
+                  )}
+                </div>
+              </li>
+            ))}
+          </ul>
         )}
       </CollapsibleCard>
 

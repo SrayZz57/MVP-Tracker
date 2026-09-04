@@ -64,6 +64,8 @@
       "step4Text": "Résultats et progression mis à jour au fil du tournoi."
     },
     "back": "Retour",
+    "share": "Partager",
+    "sharing": "Export en cours…",
     "teamsCount": "{{count}}/{{max}} équipes",
     "registeredTeams": "Équipes inscrites",
     "noTeamsYet": "Aucune équipe inscrite pour l'instant.",
@@ -123,6 +125,12 @@
     "pc": "PC",
     "console": "Console"
   },
+  "titleBar": {
+    "minimize": "Réduire",
+    "maximize": "Agrandir",
+    "restore": "Restaurer",
+    "close": "Fermer"
+  },
   "nav": {
     "sections": {
       "performance": "Performance",
@@ -143,13 +151,14 @@
       "social": "Coéquipiers & Rivaux",
       "graphiques": "Graphiques",
       "myHallOfFame": "Mon Hall of Fame",
-      "mySocial": "Mes coéquipiers & rivaux",
+      "myWeakness": "Points à travailler",
       "myCollection": "Ma collection",
       "network": "Réseau",
       "session": "Session guidée",
       "aimTrainer": "Aim Trainer",
       "puzzle": "Puzzle du jour",
       "bets": "Paris perso",
+      "playSessions": "Sessions",
       "crosshairs": "Crosshairs",
       "strategy": "Stratégie",
       "skins": "Skins",
@@ -161,16 +170,20 @@
       "account": "Mon compte"
     },
     "rankUnavailable": "Rang indisponible",
+    "searchPlaceholder": "Chercher un onglet...",
     "myAccountTitle": "Mon compte",
     "signOut": "Se déconnecter du compte",
     "loading": "Chargement...",
     "refresh": "Rafraîchir",
     "error": "Erreur : {{message}}",
     "rateLimited": "Trop de requêtes ont été effectuées à l'API cette minute. Réessaie dans moins d'une minute.",
+    "riotIdOutdated": "Ton Riot ID lié ne répond plus. Tu as peut-être changé de pseudo en jeu ?",
+    "riotIdOutdatedLink": "Mets-le à jour dans Mon compte →",
     "linkingInProgress": "Liaison de ton compte en cours...",
     "unreadMessages": "Messages",
     "friendsTitle": "Amis",
-    "discordTitle": "Rejoindre le Discord"
+    "discordTitle": "Rejoindre le Discord",
+    "updateReady": "Mise à jour prête · Redémarrer"
   },
   "common": {
     "language": "Langue",
@@ -218,7 +231,20 @@
       "noDuelist": "Aucun duelliste : possible manque de prise d'espace/d'entrée.",
       "tooManyDuelists": "Beaucoup de duellistes : bonne pression, mais attention au manque d'info/soutien.",
       "balanced": "Les 4 rôles sont couverts, base de compo équilibrée."
-    }
+    },
+    "publishedTitle": "Compositions publiées sur {{map}}",
+    "publishedIntro": "Partage ta compo avec la communauté, ou pioche l'inspiration dans celles déjà publiées.",
+    "publishedTitleAll": "Compositions publiées par la communauté",
+    "allMaps": "Toutes les maps",
+    "publishedIntroAll": "Choisis une map ci-dessus pour publier la tienne. En attendant, voici les dernières publiées, toutes maps confondues.",
+    "notePlaceholder": "Une note pour expliquer ta compo (optionnel)...",
+    "publish": "Publier cette composition",
+    "publishing": "Publication...",
+    "publishNeedsFullSlots": "Remplis les 5 emplacements ci-dessus pour pouvoir publier.",
+    "loadingPublished": "Chargement...",
+    "noPublishedYet": "Aucune composition publiée sur cette map pour l'instant.",
+    "deletePublished": "Supprimer ma composition",
+    "deletePublishedAdmin": "Supprimer cette composition (modération)"
   },
   "social": {
     "you": "Toi",
@@ -254,6 +280,7 @@
     "dayPeriodHint": "Winrate par créneau, plus la case est bleue, meilleur est ton winrate à ce moment-là.",
     "kdTrendTitle": "K/D sur les 20 derniers matchs",
     "winrateTrendTitle": "Winrate glissant (fenêtre de 5 matchs)",
+    "allAgents": "Tous les agents",
     "mapWinrateTitle": "Winrate par map",
     "roleDistributionTitle": "Répartition par rôle",
     "matchLabel": "Match {{n}}"
@@ -433,8 +460,20 @@
       "peekDesc": "Une cible sort de derrière une box, à droite ou à gauche, à la vitesse de strafe de Valorant. Seule la tête compte.",
       "trackingMulti": "Tracking · Multi",
       "trackingMultiDesc": "Deux cibles en mouvement à la fois, viseur maintenu sur celle que tu choisis de suivre.",
+      "trackingGroup": "Tracking",
+      "trackingGroupDesc": "Choisis ton palier de difficulté.",
+      "patrolGroup": "Patrol",
+      "patrolGroupDesc": "Choisis ton palier de vitesse.",
       "strafe": "Strafe",
       "strafeDesc": "La cible traverse l'écran en ligne droite à vitesse constante, comme un vrai strafe. Entraîne le contrôle de recul en plein mouvement.",
+      "patrolSlow": "Patrol · Lent",
+      "patrolSlowDesc": "Une cible qui marche lentement de gauche à droite, sans tir. Garde le viseur dessus.",
+      "patrol": "Patrol · Moyen",
+      "patrolDesc": "Une cible qui marche de gauche à droite, sans tir. Garde le viseur dessus le plus longtemps possible pour marquer des points.",
+      "patrolFast": "Patrol · Rapide",
+      "patrolFastDesc": "Une cible qui court de gauche à droite, sans tir. Le palier le plus exigeant en vitesse constante.",
+      "patrolMulti": "Patrol · Multi",
+      "patrolMultiDesc": "La vitesse (et parfois la direction) change en cours de manche, impossible d'anticiper un rythme fixe.",
       "switchMode": "Switch",
       "switchModeDesc": "Plusieurs cibles numérotées : touche-les dans l'ordre affiché. Une erreur d'ordre compte comme un raté, même si tu touches une cible.",
       "strafeTap": "Rafale",
@@ -460,6 +499,7 @@
     "targetColorLabel": "Couleur des cibles",
     "fovLabel": "Champ de vision : {{fov}}°",
     "showWeaponLabel": "Afficher l'arme et les mains",
+    "darkThemeLabel": "Salle sombre (sans ciel bleu ni sol clair)",
     "crosshairSection": "Crosshair",
     "crosshairEmpty": "Aucun crosshair dans ta bibliothèque. Ajoutes-en un dans l'onglet Crosshairs.",
     "crosshairDefault": "Croix par défaut",
@@ -520,6 +560,33 @@
     "customEdit": "Modifier les réglages",
     "customCancel": "Annuler",
     "customSave": "Enregistrer",
+    "presetsIntro": "Tes réglages personnalisés sauvegardés : charge-en un directement, ou crées-en un nouveau.",
+    "presetSummary": "{{seconds}}s · {{count}} cible(s) · taille {{size}} · dispersion {{deg}}°",
+    "presetLoad": "Charger",
+    "presetDelete": "Supprimer ce preset",
+    "presetNew": "+ Nouveau preset",
+    "presetNameLabel": "Nom du preset",
+    "presetNamePlaceholder": "Ex : Flick serré",
+    "presetNameRequired": "Donne un nom à ce preset avant de l'enregistrer.",
+    "presetFavorite": "Mettre en favori",
+    "presetUnfavorite": "Retirer des favoris",
+    "playlistsTitle": "Playlists",
+    "playlistsIntro": "Enchaîne plusieurs de tes presets personnalisés dans la même session.",
+    "playlistsEmpty": "Aucune playlist créée pour l'instant.",
+    "playlistsNeedPresets": "Crée d'abord au moins un preset personnalisé (bouton « Personnalisé ») pour pouvoir construire une playlist.",
+    "playlistStepsCount": "{{count}} exercice(s)",
+    "playlistLaunch": "Lancer",
+    "playlistDelete": "Supprimer cette playlist",
+    "playlistNew": "+ Nouvelle playlist",
+    "playlistEditIntro": "Donne un nom à ta playlist, puis ajoute tes presets dans l'ordre où tu veux les enchaîner.",
+    "playlistNameLabel": "Nom de la playlist",
+    "playlistNamePlaceholder": "Ex : Routine du soir",
+    "playlistAddStep": "Ajouter un exercice :",
+    "playlistStepUp": "Monter cette étape",
+    "playlistStepDown": "Descendre cette étape",
+    "playlistStepRemove": "Retirer cette étape",
+    "playlistUnknownPreset": "Preset supprimé",
+    "playlistSaveError": "Donne un nom à la playlist et ajoute au moins un exercice.",
     "summaryDuration": "{{seconds}}s",
     "summaryCount": "{{count}} cible(s)",
     "summarySize": "taille {{size}}",
@@ -592,6 +659,28 @@
       "hsPercent": "Avoir {{threshold}}%+ de précision tête",
       "win": "Gagner ce match"
     }
+  },
+  "playSessions": {
+    "title": "Session en cours",
+    "description": "Démarre une session avant de jouer, arrête-la à la fin. Le résumé se base sur tes vrais matchs joués entre les deux.",
+    "startSession": "Démarrer une session",
+    "starting": "Démarrage...",
+    "endSession": "Terminer la session",
+    "ending": "Fin en cours...",
+    "liveSince": "Session en cours depuis {{duration}}",
+    "justEnded": "Résumé de la session",
+    "gamesPlayed": "Parties",
+    "winrate": "Winrate",
+    "kd": "K/D",
+    "precision": "Précision tête",
+    "kda": "K/D/A",
+    "agentsPlayed": "Agents joués",
+    "topWeapons": "Armes principales",
+    "historyTitle": "Historique des sessions",
+    "noHistoryYet": "Aucune session terminée pour l'instant.",
+    "noMatchesInWindow": "Aucun match joué pendant cette session.",
+    "refreshMatches": "Resynchroniser mes matchs",
+    "refreshing": "Resynchronisation..."
   },
   "buySim": {
     "noRoundData": "Aucun match avec données de round en cache pour l'instant.",
@@ -1389,6 +1478,40 @@
         "title": "Joueur équilibré",
         "text": "Rien ne ressort fortement dans un sens ou l'autre pour l'instant, un profil stable, sans excès ni faiblesse marquée sur les axes suivis."
       }
+    },
+    "weakness": {
+      "title": "Points à travailler",
+      "none": "Rien à signaler pour l'instant, ton profil est équilibré sur tous les axes suivis.",
+      "aggression": {
+        "title": "Agressivité",
+        "text": "Tu prends peu de premiers duels. Le mode Peek de l'Aim Trainer entraîne exactement ça : sortir et engager vite un adversaire qui apparaît.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "stability": {
+        "title": "Stabilité mentale",
+        "text": "Tes perfs se dégradent souvent après une défaite ou une série de morts. Le mode Precision de l'Aim Trainer travaille le calme et la précision, utile pour ne pas paniquer.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "versatility": {
+        "title": "Polyvalence",
+        "text": "Tu joues un nombre limité d'agents. L'outil Composition permet d'explorer d'autres rôles et de préparer un agent de secours.",
+        "action": "Ouvrir Composition"
+      },
+      "clutch": {
+        "title": "Clutch factor",
+        "text": "Tu gagnes peu de situations à 1 contre plusieurs. Le mode Snap & Hold de l'Aim Trainer entraîne à viser vite puis tenir sa position, utile en clutch.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "aim": {
+        "title": "Précision",
+        "text": "Ton pourcentage de headshots est bas. Le mode Micro de l'Aim Trainer force à viser des cibles minuscules, exactement le geste qu'il faut pour toucher plus souvent à la tête.",
+        "action": "Ouvrir l'Aim Trainer"
+      },
+      "positioning": {
+        "title": "Positionnement",
+        "text": "Tu meurs souvent dans les toutes premières secondes du round. Le mode Reflex de l'Aim Trainer entraîne à réagir et neutraliser vite dès qu'un adversaire apparaît.",
+        "action": "Ouvrir l'Aim Trainer"
+      }
     }
   },
   "goals": {
@@ -1519,7 +1642,8 @@
     "confirmYes": "Oui, c'est moi. Lier ce compte",
     "confirmNo": "↺ Non, recommencer",
     "alreadyLinkedError": "Ce compte Riot est déjà lié à un autre compte MVP Tracker, chaque Riot ID ne peut être lié qu'à un seul compte à la fois.",
-    "genericLinkError": "La liaison a échoué. Réessaie dans un instant."
+    "genericLinkError": "La liaison a échoué. Réessaie dans un instant.",
+    "backToLogin": "← Retour à l'écran de connexion"
   },
   "auth": {
     "headings": {
@@ -1574,6 +1698,8 @@
   },
   "account": {
     "changePhoto": "Changer la photo",
+    "saveEdit": "Enregistrer",
+    "cancelEdit": "Annuler",
     "clickToEdit": "Cliquer pour modifier",
     "riotIdLinked": "Riot ID lié : {{name}}#{{tag}}",
     "memberSince": " · Membre depuis le {{date}}",
@@ -1595,11 +1721,17 @@
     "settingsTitle": "Compte",
     "settingsHint": "Connecté avec ton compte MVP Tracker, ton Riot ID lié reste indépendant de ce compte.",
     "emailLabel": "Adresse mail",
+    "riotIdLabel": "Riot ID lié",
+    "riotIdHint": "Si tu as changé de pseudo EN JEU, mets-le à jour ici pour que le tracker continue à trouver tes parties. Ça ne change pas le compte Valorant lié, juste le nom sous lequel on le cherche.",
+    "riotIdMismatch": "Ce Riot ID appartient à un autre compte Valorant, pas au tien. Vérifie l'orthographe, ou contacte-nous si tu penses que c'est une erreur.",
     "apiKeyLabel": "Clé API HenrikDev",
     "apiKeyMissing": "Non renseignée",
     "agentSelectOverlayLabel": "Fenêtre de sélection d'agent par-dessus le jeu",
     "agentSelectOverlayHint": "Affiche une petite fenêtre par-dessus Valorant pendant la sélection d'agent et le début de partie (rangs, suggestions). Désactive-la si tu ne veux jamais de fenêtre supplémentaire par-dessus le jeu.",
+    "autoLaunchLabel": "Lancer MVP Tracker au démarrage de Windows",
+    "autoLaunchHint": "L'app se lance en arrière-plan à l'allumage du PC, réduite dans la barre système (icône près de l'horloge). Le ping et la détection de tilt continuent sans garder la fenêtre ouverte.",
     "signOut": "Se déconnecter",
+    "replayOnboarding": "Revoir le tutoriel",
     "forgotPassword": "Mot de passe oublié ?",
     "forgotPasswordSending": "Envoi en cours...",
     "forgotPasswordSent": "Email envoyé. Vérifie ta boîte de réception pour réinitialiser ton mot de passe.",
@@ -1698,5 +1830,27 @@
     "suggestPersonal": "{{winrate}}% de victoires avec toi ({{games}} matchs)",
     "suggestCommunity": "recommandé par la communauté",
     "suggestFillsGap": "rôle manquant"
+  },
+  "onboarding": {
+    "welcomeTitle": "Bienvenue sur MVP Tracker !",
+    "welcomeText": "Petit tour rapide pour te montrer où trouver les grandes fonctionnalités : 30 secondes, tu peux passer à tout moment.",
+    "searchTitle": "Recherche d'onglet",
+    "searchText": "Tape ici pour retrouver n'importe quel onglet directement, sans fouiller dans le menu.",
+    "performanceTitle": "Performance",
+    "performanceText": "Tes stats de jeu : historique de matchs, forme récente, heatmap des morts/kills, analyse tactique, graphiques...",
+    "myAccountTitle": "Mon compte",
+    "myAccountText": "Ton Hall of Fame, ta collection de skins, le suivi du tilt et ton monitoring réseau : tout ce qui te concerne toi, spécifiquement.",
+    "tournamentsTitle": "Tournois",
+    "tournamentsText": "Inscris-toi aux tournois communautaires et suis les brackets en cours.",
+    "trainingTitle": "Entraînement",
+    "trainingText": "Aim Trainer 3D (plusieurs modes), session guidée d'échauffement, puzzle tactique du jour, paris perso sur ta prochaine game.",
+    "toolsTitle": "Outils",
+    "toolsText": "Sessions, bibliothèque de crosshairs, tableau de stratégie, catalogue de skins, compositions d'équipe, simulateur d'achat, wiki.",
+    "endTitle": "C'est tout !",
+    "endText": "Tu peux revoir ce tutoriel à tout moment depuis Mon compte, tout en bas de la page.",
+    "previous": "← Précédent",
+    "next": "Suivant →",
+    "finish": "Terminer",
+    "skip": "Passer"
   }
 }

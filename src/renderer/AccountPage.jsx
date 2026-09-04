@@ -7,6 +7,7 @@ import { useAgentIcons, useAgentRoles } from './agentIcons.js';
 import { computeRoleDistribution } from './performanceCharts.js';
 import { excludeDeathmatch, groupStats, overallWinrate } from './valorantStats.js';
 import RoleStackedBar from './charts/RoleStackedBar.jsx';
+import AgentDetailModal from './AgentDetailModal.jsx';
 import IconPickerModal from './IconPickerModal.jsx';
 import { supabase } from './supabaseClient.js';
 import CollapsibleCard from './CollapsibleCard.jsx';
@@ -21,7 +22,7 @@ function formatMemberSince(isoDate, locale) {
   return new Date(isoDate).toLocaleDateString(locale, { day: 'numeric', month: 'long', year: 'numeric' });
 }
 
-function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onSignOut }) {
+function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, onUpdate, onUpdateApiKey, onUpdateRiotId, onSignOut, onReplayOnboarding }) {
   const { t, i18n } = useTranslation();
   const [avatarPickerOpen, setAvatarPickerOpen] = useState(false);
   const [agentPickerOpen, setAgentPickerOpen] = useState(false);
@@ -33,15 +34,29 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
   const [apiKeyDraft, setApiKeyDraft] = useState(apiKey ?? '');
   const [savingApiKey, setSavingApiKey] = useState(false);
   const [overlayEnabled, setOverlayEnabled] = useState(true);
+  const [autoLaunchEnabled, setAutoLaunchEnabled] = useState(true);
+  const [selectedAgent, setSelectedAgent] = useState(null);
+  const [editingRiotId, setEditingRiotId] = useState(false);
+  const [riotNameDraft, setRiotNameDraft] = useState(mySettings.name ?? '');
+  const [riotTagDraft, setRiotTagDraft] = useState(mySettings.tag ?? '');
+  const [savingRiotId, setSavingRiotId] = useState(false);
+  const [riotIdError, setRiotIdError] = useState(null);
 
   useEffect(() => {
     window.electronAPI.getAgentSelectOverlayEnabled().then(setOverlayEnabled);
+    window.electronAPI.getAutoLaunch().then(setAutoLaunchEnabled);
   }, []);
 
   const handleToggleOverlay = () => {
     const next = !overlayEnabled;
     setOverlayEnabled(next);
     window.electronAPI.setAgentSelectOverlayEnabled(next);
+  };
+
+  const handleToggleAutoLaunch = () => {
+    const next = !autoLaunchEnabled;
+    setAutoLaunchEnabled(next);
+    window.electronAPI.setAutoLaunch(next);
   };
 
   const avatarCardUuid = profile.avatar_card_uuid ?? myRank?.cardUuid;
@@ -120,6 +135,19 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
     setEditingApiKey(false);
   };
 
+  const handleSaveRiotId = async () => {
+    setSavingRiotId(true);
+    setRiotIdError(null);
+    try {
+      await onUpdateRiotId(riotNameDraft, riotTagDraft);
+      setEditingRiotId(false);
+    } catch (err) {
+      setRiotIdError(err.message);
+    } finally {
+      setSavingRiotId(false);
+    }
+  };
+
   return (
     <div>
       <div
@@ -147,12 +175,19 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                   autoFocus
                   onKeyDown={(e) => e.key === 'Enter' && handleSaveName()}
                 />
-                <Button variant="primary" onClick={handleSaveName} loading={saving} loadingLabel={null}>
+                <Button
+                  variant="primary"
+                  onClick={handleSaveName}
+                  loading={saving}
+                  loadingLabel={null}
+                  aria-label={t('account.saveEdit')}
+                >
                   <Icon icon={Check} size={16} />
                 </Button>
                 <Button
                   variant="icon"
                   className="account-name-cancel"
+                  aria-label={t('account.cancelEdit')}
                   onClick={() => {
                     setNameDraft(profile.display_name ?? '');
                     setEditingName(false);
@@ -242,7 +277,7 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
         {roleDistribution.length > 0 && (
           <>
             <h4 className="account-subsection-title">{t('account.realRoleDistribution')}</h4>
-            <RoleStackedBar rows={roleDistribution} />
+            <RoleStackedBar rows={roleDistribution} onSelectAgent={setSelectedAgent} />
           </>
         )}
       </CollapsibleCard>
@@ -256,6 +291,57 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           </p>
         )}
         <div className="account-email-row">
+          <span className="account-tile-label">{t('account.riotIdLabel')}</span>
+          {editingRiotId ? (
+            <div className="account-name-edit-row">
+              <input
+                type="text"
+                value={riotNameDraft}
+                onChange={(e) => setRiotNameDraft(e.target.value)}
+                placeholder={t('linkRiot.usernamePlaceholder')}
+                autoFocus
+              />
+              <span className="search-bar-hash">#</span>
+              <input
+                type="text"
+                value={riotTagDraft}
+                onChange={(e) => setRiotTagDraft(e.target.value)}
+                placeholder={t('linkRiot.tagPlaceholder')}
+                onKeyDown={(e) => e.key === 'Enter' && handleSaveRiotId()}
+              />
+              <Button
+                variant="primary"
+                onClick={handleSaveRiotId}
+                loading={savingRiotId}
+                loadingLabel={null}
+                aria-label={t('account.saveEdit')}
+              >
+                <Icon icon={Check} size={16} />
+              </Button>
+              <Button
+                variant="icon"
+                className="account-name-cancel"
+                aria-label={t('account.cancelEdit')}
+                onClick={() => {
+                  setRiotNameDraft(mySettings.name ?? '');
+                  setRiotTagDraft(mySettings.tag ?? '');
+                  setRiotIdError(null);
+                  setEditingRiotId(false);
+                }}
+              >
+                <Icon icon={X} size={16} />
+              </Button>
+            </div>
+          ) : (
+            <span className="account-name-display" onClick={() => setEditingRiotId(true)} title={t('account.clickToEdit')}>
+              {mySettings.name}#{mySettings.tag}
+              <span className="account-name-pencil"><Icon icon={Pencil} size={14} /></span>
+            </span>
+          )}
+        </div>
+        {riotIdError && <p className="warning">{riotIdError}</p>}
+        <p className="label account-toggle-hint">{t('account.riotIdHint')}</p>
+        <div className="account-email-row">
           <span className="account-tile-label">{t('account.apiKeyLabel')}</span>
           {editingApiKey ? (
             <div className="account-name-edit-row">
@@ -267,12 +353,19 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
                 autoFocus
                 onKeyDown={(e) => e.key === 'Enter' && handleSaveApiKey()}
               />
-              <Button variant="primary" onClick={handleSaveApiKey} loading={savingApiKey} loadingLabel={null}>
+              <Button
+                variant="primary"
+                onClick={handleSaveApiKey}
+                loading={savingApiKey}
+                loadingLabel={null}
+                aria-label={t('account.saveEdit')}
+              >
                 <Icon icon={Check} size={16} />
               </Button>
               <Button
                 variant="icon"
                 className="account-name-cancel"
+                aria-label={t('account.cancelEdit')}
                 onClick={() => {
                   setApiKeyDraft(apiKey ?? '');
                   setEditingApiKey(false);
@@ -298,12 +391,25 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
           </span>
         </label>
         <p className="label account-toggle-hint">{t('account.agentSelectOverlayHint')}</p>
+        <label className="account-email-row account-toggle-row">
+          <span className="account-tile-label">{t('account.autoLaunchLabel')}</span>
+          <span className={`switch ${autoLaunchEnabled ? 'on' : ''}`}>
+            <input type="checkbox" checked={autoLaunchEnabled} onChange={handleToggleAutoLaunch} />
+            <span className="switch-track">
+              <span className="switch-thumb" />
+            </span>
+          </span>
+        </label>
+        <p className="label account-toggle-hint">{t('account.autoLaunchHint')}</p>
         <div className="account-settings-actions">
           <Button variant="ghost" className="sidebar-signout account-signout" onClick={onSignOut}>
             {t('account.signOut')}
           </Button>
           <Button variant="ghost" className="account-forgot-password" onClick={handleForgotPassword} disabled={resetStatus === 'sending'}>
             {resetStatus === 'sending' ? t('account.forgotPasswordSending') : t('account.forgotPassword')}
+          </Button>
+          <Button variant="ghost" className="account-forgot-password" onClick={onReplayOnboarding}>
+            {t('account.replayOnboarding')}
           </Button>
         </div>
         {resetStatus === 'sent' && <p className="label account-reset-status">{t('account.forgotPasswordSent')}</p>}
@@ -342,6 +448,15 @@ function AccountPage({ profile, mySettings, myMatches, myRank, email, apiKey, on
             setAgentPickerOpen(false);
           }}
           onClose={() => setAgentPickerOpen(false)}
+        />
+      )}
+
+      {selectedAgent && (
+        <AgentDetailModal
+          character={selectedAgent}
+          matches={myMatches}
+          settings={mySettings}
+          onClose={() => setSelectedAgent(null)}
         />
       )}
     </div>

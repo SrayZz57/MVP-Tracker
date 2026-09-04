@@ -7,6 +7,7 @@ import './renderer/i18n/index.js';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import App from './renderer/App.jsx';
+import TitleBar from './renderer/TitleBar.jsx';
 import AimTrainerGame from './renderer/AimTrainerGame.jsx';
 import AgentSelectOverlay from './renderer/AgentSelectOverlay.jsx';
 import { CollapsedBlocksProvider } from './renderer/CollapsedBlocksContext.jsx';
@@ -37,11 +38,16 @@ function Root() {
   if (view === 'aim-trainer') return <AimTrainerGame config={gameConfig} />;
   if (view === 'agent-select-overlay') return <AgentSelectOverlay />;
   return (
-    <E2EEProvider>
-      <CollapsedBlocksProvider>
-        <App />
-      </CollapsedBlocksProvider>
-    </E2EEProvider>
+    <div className="app-frame">
+      <TitleBar />
+      <div className="app-frame-body">
+        <E2EEProvider>
+          <CollapsedBlocksProvider>
+            <App />
+          </CollapsedBlocksProvider>
+        </E2EEProvider>
+      </div>
+    </div>
   );
 }
 
