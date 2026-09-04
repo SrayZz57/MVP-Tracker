@@ -28,6 +28,8 @@ import { register as registerJournalIpc } from './ipc/journal.js';
 
 app.commandLine.appendSwitch('disable-http-cache');
 
+if (!app.isPackaged) app.setAppUserModelId('fr.mvptracker.dev');
+
 const store = new Store();
 
 initApiCache(store);
@@ -196,13 +198,13 @@ let mainWindow = null;
 let tray = null;
 let isQuitting = false;
 
-const trayIconPath = app.isPackaged
+const appIconPath = app.isPackaged
   ? path.join(process.resourcesPath, 'favicon.ico')
   : path.join(__dirname, '..', '..', 'src', 'assets', 'favicon.ico');
 
 function createTray() {
   if (tray) return;
-  tray = new Tray(trayIconPath);
+  tray = new Tray(appIconPath);
   tray.setToolTip('MVP Tracker');
   tray.setContextMenu(
     Menu.buildFromTemplate([
@@ -280,7 +282,7 @@ const createWindow = () => {
     height: 600,
     show: false,
     autoHideMenuBar: true,
-    icon: MAIN_WINDOW_VITE_DEV_SERVER_URL ? path.join(app.getAppPath(), 'src/assets/favicon.ico') : undefined,
+    icon: appIconPath,
     frame: false,
     backgroundColor: '#0a0c11',
     webPreferences: {
